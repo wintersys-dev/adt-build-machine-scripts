@@ -1,0 +1,139 @@
+##########################################################################################################################################
+# This is an application descriptor for wordpress. Using this technique you can provide customisations to how you install wordpress.
+# Here you will find various details required for the successful installation of wordpress such as which version of wordpress to install, 
+# the database credentials for your wordpress install and details required by the application itself such as a username
+# and password. Unless your adt-build-machine-scripts repository is private please be aware not to put any sensitive information directly
+# in this file, instead, look at how the MANDATORY_INDIVIDUAL_SETTING parameters are used in a way that keeps the senstive details private
+# in all circumstances using placeholders which can be substituted out. 
+##########################################################################################################################################
+
+#################################################################################################################################################
+# Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
+#################################################################################################################################################
+
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Wordpress Website
+
+#You most likely want to set this to something unique because setting it to unique is another thing that a hacker doesn't know where as if it's
+#just webmaster or admin that's easy to guess or assume
+WEBSITE_USERNAME:adt-webmaster
+
+#The initial website password (which you should change as soon as installation is complete) is taken from whatever the first 12 characters of your
+#S3_ACCESS_KEY variable is set to. So, to find the initial password for your application you need to find  your S3_ACCESS_KEY and extract the first
+#12 characters of it s your bootstrap password
+WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
+
+#This is taken from the value of "SYSTEM_FROMEMAIL_ADDRESS" and it needs to be a live email. You will also need to make sure that your smtp system is
+#up and running if you want to change this email address because wordpress enforces that you verify your email address before you can change it to
+#something else
+WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
+
+
+###########################################################
+# wordpress version (version_no|latest|nightly) and locale
+###########################################################
+WORDPRESS_VERSION:latest
+#WORDPRESS_VERSION:6.9.0
+
+##################
+# Wordpress locale
+##################
+WORDPRESS_LOCALE:en_GB
+
+
+#####################################################################################################################################################
+#Interactive install or not
+#If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
+#In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
+#what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your wordpress application straight away
+#without providing any input
+#####################################################################################################################################################
+INTERACTIVE_APPLICATION_INSTALL:no
+
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:logs:tmp:cache
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:logs:tmp:cache:wp-config.php
+
+######################################################################################################################################################
+#This sets the webroot of your application. You can change this according to your taste. Just to make a mental note, I am in no way a wordpress expert
+#I have never even built one serious site using  it and I wanted to be able to put wp-content outside of the webroot (in other words /var/www/html/wp-content
+#rather than (as configured here) /var/www/html/wordpress/wp-content but I had problems with the theming not loading images and so on so if anyone knows
+#how to move the wp-content outside of the webroot successfully if they could give me a shout it can be integrated and that would be win
+######################################################################################################################################################
+WEBROOT_DIRECTORY:/var/www/html/wordpress
+
+########################################################################################################################################################
+#This sets the wordpress config file to be outside of the webroot. I believe that  when it is outside of the webroot it can be accessed by wordpress but
+#it cannot be accessed directly under any circumstances as long as the webroot of the server is set correctly and so that makes our credentials more secure
+#It is recommended that you also use a plugin to rename the wp-admin URL to something unique as a security measure also.
+#The actual name of the config file must literally contain the word 'config' this is for pattern matching reasons.
+#For example config-a1287.php or x179-config.php but most likely you will just want to call it wp-config.php
+######################################################################################################################################################
+CONFIG_FILE:/var/www/html/wp-config.php
+
+#########################################################################################################################
+#If you want your wp-content directory to be outside of the webroot of your website set this to yes, if not set it to no
+#########################################################################################################################
+WP_CONTENT_OUTSIDE_WEBROOT:yes
+
+#####################################################################################################################################################
+#These settings pick various directories and files which should be present in a wordpress installation. What that means is that if there is a partial
+#download or extraction of wordpress and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#and make a notification
+######################################################################################################################################################
+APPLICATION_INTEGRITY_DIRECTORIES:wp-admin:wp-content:wp-includes
+APPLICATION_INTEGRITY_FILES:index.php:wp-activate.php:wp-blog-header.php:wp-comments-post.php:wp-config-sample.php:wp-cron.php:wp-links-opml.php:wp-load.php:wp-login.php:wp-mail.php:wp-settings.php:wp-signup.php:wp-trackback.php:xmlrpc.php
+
+###########################################################################################
+#Here you can list PHP modules that are required by moodle and the system will install them 
+###########################################################################################
+PHP_MODULES:json mysqli curl dom exif fileinfo hash imagick igbinary intl mbstring openssl pdo_mysql xml zip
+
+#####################################################################################################################################################
+# Mandatory credential settings when making a non-interactive installation
+#These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
+#wordpress non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+# ${BUILD_HOME}/application/wordpress/SetApplicationConfig.sh
+#####################################################################################################################################################
+MANDATORY_INDIVIDUAL_SETTING:DB_USER=XXXXAPPLICATION_USERNAMEXXXX
+MANDATORY_INDIVIDUAL_SETTING:DB_PASSWORD=XXXXAPPLICATION_PASSWORDXXXX
+MANDATORY_INDIVIDUAL_SETTING:DB_NAME=XXXXAPPLICATION_DATABASEXXXX
+
+
+#########################################################################################################################################################
+# General individual settings for your wordpress install
+#These settings are general configuration settings for wordpress. You can set various behaviours using these settings. In a live situation you could have
+#a set of configuration files such as /var/www/html/wp-config-live.php or /var/www/html/wp-config-debug.php and you can switch from one configuration
+#to another (if you want to debug for example you can switch to your debug configuration) simply by changing the configuration file which is pointed to
+#in /var/www/html/wordpress/wp-config.php. Again notice the placeholders that are swapped out as part of the build process
+#########################################################################################################################################################
+INDIVIDUAL_SETTING::DISALLOW_FILE_EDIT=false
+INDIVIDUAL_SETTING::CONCATENATE_SCRIPTS=true
+INDIVIDUAL_SETTING::COMPRESS_SCRIPTS=true
+INDIVIDUAL_SETTING::COMPRESS_CSS=true
+INDIVIDUAL_SETTING::DISABLE_WP_CRON=true
+INDIVIDUAL_SETTING::WP_SITEURL=https://XXXXWEBSITE_URLXXXX
+INDIVIDUAL_SETTING::WP_HOME=https://XXXXWEBSITE_URLXXXX
+INDIVIDUAL_SETTING::AUTOSAVE_INTERVAL=180
+INDIVIDUAL_SETTING::WP_POST_REVISIONS=3
+INDIVIDUAL_SETTING::COOKIE_DOMAIN=XXXXWEBSITE_URLXXXX
+INDIVIDUAL_SETTING::NOBLOGREDIRECT=https://XXXXWEBSITE_URLXXXX
+INDIVIDUAL_SETTING::WP_MEMORY_LIMIT=96M
+INDIVIDUAL_SETTING::WP_MAX_MEMORY_LIMIT=128M
+INDIVIDUAL_SETTING::WP_CACHE=true
+INDIVIDUAL_SETTING::EMPTY_TRASH_DAYS=30
+INDIVIDUAL_SETTING::WP_ALLOW_REPAIR=true
+INDIVIDUAL_SETTING::FORCE_SSL_ADMIN=true
+INDIVIDUAL_SETTING::WP_DEBUG_LOG=/var/www/html/logs/debug.log
+INDIVIDUAL_SETTING::WP_TEMP_DIR=/var/www/html/tmp
+

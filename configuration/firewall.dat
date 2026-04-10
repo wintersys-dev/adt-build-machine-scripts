@@ -1,0 +1,77 @@
+############################################################################################################
+# This configuration file is so that you can easily enable adhoc firewall ports if you need ports to be open
+# that aren't open in the default configurations for an application need. Say, for example you modified the 
+# scripts to support phpmyadmin then you might want port 8080 to be open to your ip addres 81.10.166.111/32
+# on your webserver so to achieve that you would put this line into this file 
+#
+# WEBSERVERPORTS:8080|ipv4|81.10.166.111/32
+#
+# if your application had some further need that additionally required port 1111 to be open to all machines 
+# you would use:
+#
+# WEBSERVERPORTS:8080|ipv4|81.10.166.111/32 1111|ipv4|0.0.0.0/0
+#
+# as long as you follow this exact format the webserver machine and the firewall of your provider will
+# be automatically configured to reflect this configurations and the ports defined will be open.
+# You can only set one configuration set active at a time and you do that by uncommenting it as you can see
+# from the default set. If you are trying different webserver combinations you will likely need to visit
+# this file each time you change your configuration to, for example, include or exclude reverse proxies
+############################################################################################################
+# CONFIGURATION 1: This is the firewall configuration you use when you want your webservers to be accessible
+# from any IP address on the Internet and is the default configuration for the quick demos
+#############################################################################################################
+AUTHENTICATORPORTS:
+REVERSEPROXYPORTS:
+AUTOSCALERPORTS:
+WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
+DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
+# only from cloudflare ip addresses and you are not using an authentication server
+#############################################################################################################
+#AUTHENTICATORPORTS:
+#REVERSEPROXYPORTS:
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:cloudflare|ipv4|cloudflare
+#DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 3: This is the firewall configuration you use when you want your reverse proxy servers to be
+# accessible from any ip address on the Internet and you are not using an authentication server
+#############################################################################################################
+#AUTHENTICATORPORTS:
+#REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 4: This is the firewall configuration you use when you want your reverse proxies to be accessible
+# only from cloudflare ip addresses and you are not using an authentication server
+#############################################################################################################
+#AUTHENTICATORPORTS:
+#REVERSEPROXYPORTS:cloudflare|ipv4|cloudflare 
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 5: This is the firewall configuration you use when you are using an authentication server
+# that you are using to allow access by "basic auth" to the reverse proxy 
+#############################################################################################################
+#AUTHENTICATORPORTS:443|ipv4|0.0.0.0/0 
+#REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 6: This is the firewall configuration you use when you are using an authentication server
+# that you using to allow access by "basic auth" to the reverse proxy that is accessible from cloudflare
+#############################################################################################################
+#AUTHENTICATORPORTS:cloudflare|ipv4|cloudflare  
+#REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
+
+
+
+
+

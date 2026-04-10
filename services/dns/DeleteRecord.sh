@@ -1,0 +1,90 @@
+#!/bin/sh
+##################################################################################
+# Author : Peter Winter
+# Date   : 13/07/2016
+# Description : This script will delete a DNS record from your DNS provider
+##################################################################################
+# License Agreement:
+# This file is part of The Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+####################################################################################
+####################################################################################
+#set -x
+
+zoneid="${1}"
+recordid="${2}"
+email="${3}"
+credentials="${4}"
+dns="${5}"
+
+if ( [ "${dns}" = "cloudflare" ] )
+then
+        if ( [ "`/bin/echo ${credentials} | /bin/grep ':::'`" != "" ] )
+        then
+                api_token="`/bin/echo ${credentials} | /usr/bin/awk -F':::' '{print $2}'`"
+                /usr/bin/curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${recordid}" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json"
+        else
+                authkey="${credentials}"
+                /usr/bin/curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${recordid}" -H "X-Auth-Email: ${email}"  -H "X-Auth-Key: ${authkey}" -H "Content-Type: application/json"
+        fi
+fi
+
+
+domain="${6}"
+domainurl="`/bin/echo ${domain} | /usr/bin/cut -d'.' -f2-`"
+recordid="${2}"
+dns="${5}"
+
+if ( [ "${dns}" = "digitalocean" ] )
+then
+        /usr/local/bin/doctl compute domain records delete --force ${domainurl} ${recordid} --config /root/.config/doctl/dns-do-config.yaml 
+fi
+
+recordid="${2}"
+dns="${5}"
+domainurl="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+
+if ( [ "${dns}" = "exoscale" ] )
+then
+        /usr/bin/exo dns remove ${domainurl} ${recordid} -Q -f  --config /root/.config/exoscale/dns-exoscale.toml 
+fi
+
+record_id="${2}"
+dns="${5}"
+domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+
+if ( [ "${dns}" = "linode" ] )
+then
+        linode_config_file="/root/.config/dns-linode-cli"
+        
+        if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
+        then
+             linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
+        fi
+                        
+        export LINODE_CLI_CONFIG=${linode_config_file}
+        
+        domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+        /usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults 
+        unset LINODE_CLI_CONFIG
+fi
+
+recordid="${2}"
+dns="${5}"
+domainurl="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+
+if ( [ "${dns}" = "vultr" ] )
+then
+        /usr/bin/vultr dns record delete ${domainurl} ${recordid} --config /root/.dns-vultr-cli.yaml 
+fi
+
+

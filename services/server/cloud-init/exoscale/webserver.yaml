@@ -1,0 +1,136 @@
+#cloud-config
+
+manage_resolv_conf: true
+resolv_conf:
+  nameservers:
+    - '8.8.8.8'
+    - '8.8.4.4'
+    - '1.1.1.1'
+
+users:
+  - name: XXXXSERVER_USERXXXX
+    passwd: 'XXXXSERVER_USER_PASSWORDXXXX'
+    groups: [ sudo ]
+    shell: /bin/bash
+    lock_passwd: false
+
+    ssh_authorized_keys:
+      - 'XXXXSSH_PUBLIC_KEYXXXX'
+
+ssh_pwauth: false
+
+ssh_keys:
+  XXXXALGORITHMXXXX_private: |
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      XXXXSSH_PRIVATE_KEYXXXX
+      -----END OPENSSH PRIVATE KEY-----
+
+timezone: 'XXXXTIMEZONEXXXX'
+hostname: XXXXWEBSERVER_HOSTNAMEXXXX
+manage_etc_hosts: true
+
+keyboard:
+  layout: gb
+
+write_files:
+- path: /etc/netplan/eth1.yaml
+  content: |
+    network:
+      version: 2
+      ethernets:
+        eth1:
+          dhcp4: true
+  permissions: '0600'
+- encoding: b64
+  content: XXXXWEBSERVER_CONFIGURATIONXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz
+  permissions: '0644'
+- encoding: b64
+  content: XXXXBUILDSTYLES_SETTINGSXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz
+  permissions: '0644'
+- encoding: b64
+  content: XXXXFIREWALL_PORT_SETTINGSXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz
+- encoding: b64
+  content: XXXXAPPLICATION_SETTINGSXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz
+  permissions: '0644'
+- content: /home/XXXXSERVER_USERXXXX
+  owner: root:root
+  path: /home/homedir.dat
+  permissions: '0644'
+- content: |
+    ClientAliveInterval 60
+    ClientAliveCountMax 2
+  path: /home/XXXXSERVER_USERXXXX/.ssh/config
+  owner: 'root:root'
+  permissions: '0600'
+- content: | 
+    export LANGUAGE=en_GB.UTF-8
+    export LANG=en_GB.UTF-8
+    export LC_ALL=en_GB.UTF-8
+  path: /etc/profile
+  append: true
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - network-manager 
+  - jq
+  - rsync
+  - cron
+#XXXXNGINXXXXX  - nginx
+#XXXXAPACHEXXXX  - apache2
+#XXXXAPACHEXXXX  - libapache2-mod-fcgid
+#XXXXLIGHTTPDXXXX  - lighttpd
+#XXXXMARIADB_CLIENTXXXX  - mariadb-client
+#XXXXPOSTRGESQL_CLIENTXXXX  - postgresql-client
+
+runcmd:
+  - [ netplan, apply ]
+  - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
+  - '/usr/sbin/locale-gen'
+  - '/bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
+  - '/bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
+  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
+  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
+  - '/usr/bin/git clone  -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone'
+  - '/usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX && /bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX'
+  - '/usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/utilities/software/InitialiseToolkitForDevelopment.sh'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/software.dat /home/XXXXSERVER_USERXXXX/runtime/software.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat /home/XXXXSERVER_USERXXXX/runtime/firewall.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/application.dat /home/XXXXSERVER_USERXXXX/runtime/application.dat'
+  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type d -exec chmod 755 {} \;' 
+  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type f -exec chmod 750 {} \;'
+  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
+  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
+  - '/usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX'
+  - '/bin/sed -i -e "s/^Port.*/Port XXXXSSH_PORTXXXX/" -e "s/^#Port.*/Port XXXXSSH_PORTXXXX/" /etc/ssh/sshd_config'
+  - '/bin/sed -i -e "s/^PasswordAuthentication.*/PasswordAuthentication no/g" -e "s/^#PasswordAuthentication.*/PasswordAuthentication no/g" -e "s/^PermitRootLogin.*/PermitRootLogin no/g" -e "s/^#PermitRootLogin.*/PermitRootLogin no/g" -e "s/^KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/g" -e "s/^#KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/g" -e "s/^AddressFamily.*/AddressFamily inet/g" -e "s/^#AddressFamily.*/AddressFamily inet/g" -e "s/^#LoginGraceTime/LoginGraceTime/g" -e "s/^#StrictModes/StrictModes/g" -e "s/^#MaxAuthTries/MaxAuthTries/g" -e "s/^#MaxSessions/MaxSessions/g" /etc/ssh/sshd_config'
+  - '/home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart'
+#XXXXPHPDEBIANXXXX  - '/usr/bin/curl -sSL https://raw.githubusercontent.com/wintersys-dev/adt-build-machine-scripts/main/installation/php-debian-installer.sh | /usr/bin/bash -x'
+#XXXXPHPDEBIANXXXX  - '{ /usr/bin/apt-get install phpXXXXPHP_VERSIONXXXX-fpm phpXXXXPHP_VERSIONXXXX XXXXPHP_MODULESXXXX -y -qq ; export HOME=/home/XXXXSERVER_USERXXXX ; /bin/sh ${HOME}/installation/InstallApplicationLanguage.sh ; } &'
+#XXXXPHPUBUNTUXXXX  - 'export HOME=/home/XXXXSERVER_USERXXXX ; /home/XXXXSERVER_USERXXXX/installation/InstallPHPBase.sh ; /bin/sh ${HOME}/installation/InstallApplicationLanguage.sh &'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallPackageManager.sh' 
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallEmailUtil.sh'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallFirewall.sh'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallVirusScanner.sh'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallDatastoreTools.sh'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallDatabaseClient.sh' 
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallWebserver.sh &'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/ws.sh &'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallWPCLI.sh &'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallGo.sh &'
