@@ -55,7 +55,7 @@ build_machine_ip="`${BUILD_HOME}/helpers/GetBuildMachineIP.sh`"
 
 
 
-if ( [ -f ${BUILD_HOME}/descriptors/firewallfirewall.dat ] )
+if ( [ -f ${BUILD_HOME}/configuration/firewall.dat ] )
 then
         authenticator_firewall_ports="`/bin/grep "^AUTHENTICATORPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
         autoscaler_firewall_ports="`/bin/grep "^AUTOSCALERPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
