@@ -35,7 +35,7 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application
 fi
 
-/bin/cp ${BUILD_HOME}/application/descriptors/${APPLICATION}.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+/bin/cp ${BUILD_HOME}/application/${APPLICATION}/descriptor.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
 SYSTEM_EMAIL_PROVIDER="`${BUILD_HOME}/helpers/GetVariableValue.sh 'SYSTEM_EMAIL_PROVIDER'`"
 SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/GetVariableValue.sh 'SYSTEM_FROMEMAIL_ADDRESS' | /bin/sed 's/_/ /g'`"
