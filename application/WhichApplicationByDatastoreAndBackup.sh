@@ -112,10 +112,10 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/configuration.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
-	fi
+	#if ( [ -f ${interrogation_home}/configuration.php.default ] )
+	#then
+#		/bin/cp ${interrogation_home}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
 	then
@@ -175,13 +175,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/settings.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/settings.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
-	else
-		status "Couldn't find drupal default configuration file in backup webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/settings.php.default ] )
+#	then
+#		/bin/cp ${interrogation_home}/settings.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
+#	else
+#		status "Couldn't find drupal default configuration file in backup webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
 	then
@@ -209,13 +209,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/config.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
-	else
-		status "Couldn't find moodle default configuration file in backup archive webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/config.php.default ] )
+#	then
+#		/bin/cp ${interrogation_home}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
+#	else
+#		status "Couldn't find moodle default configuration file in backup archive webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
 	then
