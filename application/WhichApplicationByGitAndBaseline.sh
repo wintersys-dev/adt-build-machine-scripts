@@ -113,13 +113,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
-	else
-		status "Couldn't find joomla default configuration file in baseline webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ] )
+#	then
+#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
+#	else
+#		status "Couldn't find joomla default configuration file in baseline webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
 	then
@@ -149,13 +149,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/wp-config.php.default
-	else
-		status "Couldn't find joomla default configuration file in baseline webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ] )
+#	then
+#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/wp-config.php.default
+#	else
+#		status "Couldn't find joomla default configuration file in baseline webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
 	then
@@ -185,13 +185,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ] )
-	then
-		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
-	else
-		status "Couldn't find drupal default configuration file in baseline webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ] )
+#	then
+#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
+#	else
+#		status "Couldn't find drupal default configuration file in baseline webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
 	then
@@ -222,13 +222,13 @@ then
 		read x
 	fi
 
-	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ] )
-	then
-		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
-	else
-		status "Couldn't find moodle default configuration file in baseline webroot"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ] )
+#	then
+#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
+#	else
+#		status "Couldn't find moodle default configuration file in baseline webroot"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
 	then
