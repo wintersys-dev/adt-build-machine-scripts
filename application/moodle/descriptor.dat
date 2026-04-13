@@ -75,8 +75,8 @@ WEBROOT_DIRECTORY:/var/www/html/moodle
 #You can list multiple assets directories like this:
 #ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
-ASSETS_OUTSIDE_WEBROOT:yes
-ASSETS_OUTSIDE_WEBROOT_LIST:wp-content
+ASSETS_OUTSIDE_WEBROOT:no
+ASSETS_OUTSIDE_WEBROOT_LIST:
 
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
