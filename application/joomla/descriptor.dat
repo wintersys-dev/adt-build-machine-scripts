@@ -86,6 +86,7 @@ CONFIG_FILE:/var/www/html/configuration.php
 #If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
+ASSETS_OUTSIDE_WEBROOT_LIST:images
 
 #####################################################################################################################################################
 #Interactive install or not
