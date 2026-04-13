@@ -54,8 +54,11 @@ CONFIG_FILE:/var/www/html/settings.php
 
 #########################################################################################################################
 #If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
+#You can list multiple assets directories like this:
+#ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
+ASSETS_OUTSIDE_WEBROOT_LIST:sites/default/files
 
 ####################################################################################################################################
 #filesystem configuration settings
