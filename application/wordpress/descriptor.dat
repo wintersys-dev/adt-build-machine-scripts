@@ -82,9 +82,12 @@ WEBROOT_DIRECTORY:/var/www/html/wordpress
 CONFIG_FILE:/var/www/html/wp-config.php
 
 #########################################################################################################################
-#If you want your wp-content directory to be outside of the webroot of your website set this to yes, if not set it to no
+#If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
+#You can list multiple assets directories like this:
+#ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
-WP_CONTENT_OUTSIDE_WEBROOT:yes
+ASSETS_OUTSIDE_WEBROOT:yes
+ASSETS_OUTSIDE_WEBROOT_LIST:wp-content
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a wordpress installation. What that means is that if there is a partial
