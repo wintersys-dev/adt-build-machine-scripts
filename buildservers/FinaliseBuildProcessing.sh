@@ -262,7 +262,7 @@ do
 
 	for ws_active_ip in ${ws_active_ips}
 	do
-		/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/application/configuration/InitialiseConfigurationByApplication.sh" 2>/dev/null
+		/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh" 2>/dev/null
 		application_configuration_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/INITIAL_CONFIG_SET && /bin/echo 'INITIAL_CONFIG_SET'"`" >&3
 
 		if ( [ "${application_configuration_installed}" = "" ] )
@@ -271,7 +271,7 @@ do
 			if ( [ "`/bin/echo ${notified} | /bin/grep ${ws_active_ip}`" = "" ] )
 			then
 				status "Waiting for ${APPLICATION} configuration settings on machine with ip address ${ws_active_ip}. If this goes on forever, there is a problem and you will need to investigate on the webserver that is blocking"
-				status "The script you will be interested in if this blocks is: /home/${SERVER_USER}/application/configuration/InitialiseConfigurationByApplication.sh"
+				status "The script you will be interested in if this blocks is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh"
 			fi
 			application_configuration_installed=""
 		else
