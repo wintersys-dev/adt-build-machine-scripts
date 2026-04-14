@@ -253,7 +253,7 @@ fi
 
 #This is where the application is configured either interactively or automatically
 
-status "Checking that the application configuration for ${APPLICATION} has fully installed...."
+status "Checking that the application configuration for ${APPLICATION} has fully installed....(this can SOMETIMES take a while (in the order of 5 minutes)"
 application_configuration_installed=""
 notified=""
 while ( [ "${application_configuration_installed}" = "" ] )
