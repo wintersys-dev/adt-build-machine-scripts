@@ -302,7 +302,7 @@ fi
 if ( [ "${NO_WEBSERVERS}" != "0" ] )
 then
 	#This checks that the webserver itself has been fully installed and is running. 
-	status "Checking that the webserver ${WEBSERVER_CHOICE} has fully installed....(this may take a while if compiling from source)"
+	status "Checking that the webserver ${WEBSERVER_CHOICE} has fully installed....(this may take a while, but not forever, if compiling from source)"
 
 	while ( [ "${webserver_installed}" = "" ] )
 	do
