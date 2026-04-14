@@ -89,5 +89,8 @@ else
 	fi
 fi
 
-. ${BUILD_HOME}/application/${APPLICATION}/SetApplicationConfig.sh
+if ( [ -d ${BUILD_HOME}/application/cms/${APPLICATION} ] )
+then
+	. ${BUILD_HOME}/application/cms/${APPLICATION}/SetApplicationConfig.sh
+fi
 
