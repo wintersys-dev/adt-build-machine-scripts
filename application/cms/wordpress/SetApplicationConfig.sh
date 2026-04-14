@@ -35,7 +35,7 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application
 fi
 
-/bin/cp ${BUILD_HOME}/application/${APPLICATION}/descriptor.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+/bin/cp ${BUILD_HOME}/application/cms/${APPLICATION}/descriptor.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
 /bin/sed -i "s/XXXXAPPLICATION_USERNAMEXXXX/${DB_USERNAME}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat        
 /bin/sed -i "s/XXXXAPPLICATION_PASSWORDXXXX/${DB_PASSWORD}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
