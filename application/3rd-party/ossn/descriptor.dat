@@ -34,10 +34,9 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 ##########################################################################################################################################
 # ossn version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
 ##########################################################################################################################################
-
 #Sourced from github
-#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
-#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
+SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
 
 ####################################################################################################################################
 #filesystem configuration settings
