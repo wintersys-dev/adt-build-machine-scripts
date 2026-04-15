@@ -1,0 +1,137 @@
+##########################################################################################################################################
+# This is an application descriptor for joomla. Using this technique you can provide customisations to how you install joomla.
+# Here you will find various details required for the successful installation of joomla ss such as the database credentials for your joomla 
+# install and details required by the application itself such as a username and password. Unless your adt-build-machine-scripts repository 
+# is private please be aware not to put any sensitive information directly in this file, instead, look at how the MANDATORY_INDIVIDUAL_SETTING 
+# parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
+##########################################################################################################################################
+
+#################################################################################################################################################
+# Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
+#################################################################################################################################################
+
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Joomla Website
+
+#You most likely want to set this to something unique because setting it to unique is another thing that a hacker doesn't know where as if it's
+#just webmaster or admin that's easy to guess or assume
+WEBSITE_USERNAME:adt-webmaster
+
+#The initial website password (which you should change as soon as installation is complete) is taken from whatever the first 12 characters of your
+#S3_ACCESS_KEY variable is set to. So, to find the initial password for your application you need to find  your S3_ACCESS_KEY and extract the first
+#12 characters of it s your bootstrap password
+WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
+
+#A decription of the website user account
+WEBSITE_USER_DESCRIPTION:ADT Test User Account
+
+############################################################################################
+#This is taken from the value of "SYSTEM_FROMEMAIL_ADDRESS" and it needs to be a live email. 
+############################################################################################
+WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
+
+
+##########################################################################################################################################
+# ossn version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
+##########################################################################################################################################
+
+#Sourced from github
+#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
+#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:logs:tmp:cache:ossn_data
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:logs:tmp:cache:configuration.php
+
+
+#---------------------------------------------
+  
+#####################################################################################################################################################
+#These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
+#download or extraction of joomla and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#and make a notification
+######################################################################################################################################################
+APPLICATION_INTEGRITY_DIRECTORIES:administrator:api:cache:cli:components:files:includes:language:layouts:libraries:media:modules:plugins:templates
+APPLICATION_INTEGRITY_FILES:index.php
+
+
+######################################################################################################################################################
+#This sets the webroot of your application. You can change this according to your taste. 
+######################################################################################################################################################
+WEBROOT_DIRECTORY:/var/www/html/joomla
+
+########################################################################################################################################################
+#This sets the joomla config file to be outside of the webroot. 
+######################################################################################################################################################
+CONFIG_FILE:/var/www/html/configuration.php
+
+#########################################################################################################################
+#If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
+#You can list multiple assets directories like this:
+#ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
+#########################################################################################################################
+ASSETS_OUTSIDE_WEBROOT:yes
+ASSETS_OUTSIDE_WEBROOT_LIST:images
+
+#####################################################################################################################################################
+#Interactive install or not
+#If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
+#In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
+#what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your joomla application straight away
+#without providing any input
+#####################################################################################################################################################
+INTERACTIVE_APPLICATION_INSTALL:no
+
+###########################################################################################
+#Here you can list PHP modules that are required by joomla and the system will install them 
+###########################################################################################
+PHP_MODULES:apcu simplexml dom gd intl zip mysqli pgsql mbstring curl soap
+
+#####################################################################################################################################################
+# Mandatory credential settings when making a non-interactive installation
+#These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
+#joomla non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+# ${BUILD_HOME}/application/joomla/SetApplicationConfig.sh
+#####################################################################################################################################################
+MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
+MANDATORY_INDIVIDUAL_SETTING:password='XXXXAPPLICATION_PASSWORDXXXX'
+MANDATORY_INDIVIDUAL_SETTING:db='XXXXAPPLICATION_DATABASEXXXX'
+
+#########################################################################################################################################################
+# General individual settings for your joomla install
+#These settings are general configuration settings for joomla. You can set various behaviours using these settings. In a live situation you could have
+#a set of configuration files such as /var/www/html/configuration.php or /var/www/html/configuration-debug.php and you can switch from one configuration
+#to another (if you want to debug for example you can switch to your debug configuration) simply by changing the configuration file which is pointed to
+#in /var/www/html/joomla/cofiguration.php. Again notice the placeholders that are swapped out as part of the build process
+#########################################################################################################################################################
+INDIVIDUAL_SETTING:mailer='smtp'
+INDIVIDUAL_SETTING:smtpauth=1
+INDIVIDUAL_SETTING:smtpuser='XXXXSMTP_USERXXXX'
+INDIVIDUAL_SETTING:smtppass='XXXXSMTP_PASSXXXX'
+INDIVIDUAL_SETTING:smtpsecure='tls'
+INDIVIDUAL_SETTING:smtp_port=XXXXSMTP_PORTXXXX
+INDIVIDUAL_SETTING:smtphost=XXXXSMTP_HOSTXXXX
+
+#Hardcoded overrides (you can override any default setting in the configuration.php file for joomla by setting it here as per the examples)
+INDIVIDUAL_SETTING:cachetime=30
+INDIVIDUAL_SETTING:cache_handler='file'
+INDIVIDUAL_SETTING:caching=1
+INDIVIDUAL_SETTING:sef=1
+INDIVIDUAL_SETTING:sef_suffix=1
+INDIVIDUAL_SETTING:sef_rewrite=1
+INDIVIDUAL_SETTING:unicodeslugs=1
+INDIVIDUAL_SETTING:gzip=1
+INDIVIDUAL_SETTING:force_ssl=2
+INDIVIDUAL_SETTING:shared_session=0
+INDIVIDUAL_SETTING:tmp_path='/var/www/html/tmp'
+INDIVIDUAL_SETTING:log_path='/var/www/html/logs'
