@@ -68,7 +68,7 @@ APPLICATION_INTEGRITY_FILES:composer.json:composer.lock:config-dist.php:CONTRIBU
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/moodle
+WEBROOT_DIRECTORY:/var/www/html/moodle/public
 
 #########################################################################################################################
 #If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
