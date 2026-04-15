@@ -115,7 +115,7 @@ MANDATORY_INDIVIDUAL_SETTING:collation=utf8mb4_general_ci
 #These settings are general configuration settings for drupal. You can set various behaviours using these settings. In a live situation you could have
 #a set of configuration files such as /var/www/html/settings.php or /var/www/html/settings-debug.php and you can switch from one configuration
 #to another (if you want to debug for example you can switch to your debug configuration) simply by changing the configuration file which is pointed to
-#in /var/www/html/joomla/settings.php. Again notice the placeholders that are swapped out as part of the build process
+#in /var/www/html/drupal/settings.php. Again notice the placeholders that are swapped out as part of the build process
 #########################################################################################################################################################
 ADDITIONAL_SETTING:$settings['package_manager_composer_path'] = '/usr/local/bin/composer';
 ADDITIONAL_SETTING:$settings['package_manager_rsync_path'] = '/usr/bin/rsync';
