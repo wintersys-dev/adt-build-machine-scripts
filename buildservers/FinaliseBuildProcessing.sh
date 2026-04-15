@@ -221,26 +221,26 @@ else
 fi
 
 # This checks that the application language (most likely PHP) has been installed correctly
-if ( [ "${APPLICATION_LANGUAGE}" != "" ] )
-then
-	status "Checking that ${APPLICATION_LANGUAGE} has fully installed...."
-	application_language_installed="" 
-	while ( [ "${application_language_installed}" = "" ] )
-	do
-		/bin/sleep 1
-		for ws_active_ip in ${ws_active_ips}
-		do
-			/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/webserver/RestartWebserver.sh" 2>/dev/null 
-			application_language_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallApplicationLanguage.sh && /bin/echo 'APPLICATION_LANGUAGE'"`" >&3 
-
-			if ( [ "${application_language_installed}" = "" ] )
-			then
-				application_language_installed=""
-			fi
-
-		done
-	done
-fi
+#if ( [ "${APPLICATION_LANGUAGE}" != "" ] )
+#then
+#	status "Checking that ${APPLICATION_LANGUAGE} has fully installed...."
+#	application_language_installed="" 
+#	while ( [ "${application_language_installed}" = "" ] )
+#	do
+#		/bin/sleep 1
+#		for ws_active_ip in ${ws_active_ips}
+#		do
+#			/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/webserver/RestartWebserver.sh" 2>/dev/null 
+#			application_language_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallApplicationLanguage.sh && /bin/echo 'APPLICATION_LANGUAGE'"`" >&3 
+#
+#			if ( [ "${application_language_installed}" = "" ] )
+#			then
+#				application_language_installed=""
+#			fi
+#
+#		done
+#	done
+#fi
 
 if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "`/bin/grep "INTERACTIVE_APPLICATION_INSTALL:yes" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`" != "" ] ) 
 then
