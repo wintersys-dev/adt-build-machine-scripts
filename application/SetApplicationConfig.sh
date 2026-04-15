@@ -92,5 +92,8 @@ fi
 if ( [ -d ${BUILD_HOME}/application/cms/${APPLICATION} ] )
 then
 	. ${BUILD_HOME}/application/cms/${APPLICATION}/SetApplicationConfig.sh
+elif ( [ -d ${BUILD_HOME}/application/3rd-party/${APPLICATION} ] )
+then
+	. ${BUILD_HOME}/application/3rd-party/${APPLICATION}/SetApplicationConfig.sh
 fi
 
