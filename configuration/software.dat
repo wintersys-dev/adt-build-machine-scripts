@@ -43,14 +43,6 @@
 # LIGHTTPD:repo
 # You can define what extensions PHP will be built with by modifying the line starting PHP: as shown below
 # PHP:<extension1>:<extension2>|port
-# You can override settings in the www.conf file of the php-fpm pool mechanism and also the php.ini file of your php-fpm configuration
-# Using this technique you can easily tune your PHP configuration and maybe you can have comented in and commented out configurations
-# where one might be production or for appication 1 and the other might be for development and so on
-# CONFIGPHPPOOL:<name1>=<value1>##<value2>:<name2>=<value1##value2>:<name3>=<value1##value2>:<name4>=<value1##value2>:<namen>=<value1##value2>
-# CONFIGPHPINI:<name1>=<value1>##<value2>:<name2>=<value1##value2>:<name3>=<value1##value2>:<name4>=<value1##<value2>:<namen>=<value1##value2>
-# NOTE: php.ini multiple values such as open_basedir with colon delmited values need to be written as "<name>=<value1>|<value2>|<value3>" with "|" instead of the usual ":"
-# This will perform something like, "apt install php8.0-fpm" if you put "fpm" in here for "extension1"
-# At the end of the line you can see "|port". When this is set it will set a port for use by php-fpm if it is not set then file sockets are used instead
 # If you have PERSIST_ASSETS_TO_DATASTORE=1 then you need a datastore mount tool, you can install from repo or from source and your options are:
 # DATASTOREMOUNTTOOL:s3fs:repo
 # DATASTOREMOUNTTOOL:s3fs:source
@@ -140,12 +132,13 @@
 ###############################################################################################
 #Pick one build style for each component you want to enable installation for. The choice of which to install e.g. NGINX or APACHE is made elsewhere
 #All this does is tell us how to build it not whether to build it
-#####UNCOMMENT AND MODIFY THESE TO INSTALL NGINX USING CLOUD-INIT#################################################
+#-----------------------------------------------------NGINX---------------------------------------------------------------------------------
+#Install NGINX using the cloud-init default
 #NGINX:cloud-init
 #NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
-#####UNCOMMENT AND MODIFY THESE TO INSTALL NGINX USING APT#################################################
+#Install NGINX from a repository
 # One of repo:os or repo:official 
 NGINX:repo:os
 #NGINX:repo:official
@@ -154,7 +147,7 @@ NGINX:repo:os
 NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
-#####UNCOMMENT AND MODIFY THESE TO INSTALL NGINX FROM SOURCE#################################################
+#Install NGINX from source based on the f5 version (you can do it from github or from the f5 archives (comment in one and comment out the other))
 #NGINX:source
 #NGINX:fork:f5
 # One of git-branch or sourcecode_url (git takes precedence if both are present)
@@ -164,7 +157,7 @@ NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
-#####UNCOMMENT AND MODIFY THESE TO INSTALL FREENGINX FROM SOURCE#################################################
+#Install NGINX from source based on freenginx version (you can do it from github or from the freenginx archives (comment in one and comment out the other))
 #NGINX:source
 #NGINX:fork:free
 # One of git-branch or sourcecode_url (git takes precedence if both are present)
@@ -174,20 +167,18 @@ NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
-##############################################################NGINX###########################################################
-
-##############################################################APACHE###########################################################
-#####UNCOMMENT AND MODIFY THESE TO INSTALL APACHE USING CLOUD-INIT#################################################
+#----------------------------------------------------APACHE----------------------------------------------------------------------------------
+#Install APACHE using the cloud init default
 #APACHE:cloud-init
 #APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
 #APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
-######UNCOMMENT AND MODIFY THESE TO INSTALL APACHE FROM REPO USING APT#############################################
+#Install APACHE from repositories
 APACHE:repo
 APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
 APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
-######UNCOMMENT AND MODIFY THESE TO INSTALL APACHE FROM SOURCE#####################################################
+#Install APACHE from source (you can do it from github or from the apache archives (comment in one and comment out the other))
 #APACHE:source
 #APACHE:git-branch:2.4.66
 #APACHE:apr:git-branch:1.7.6
@@ -203,20 +194,20 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 #APACHE:static-modules-list:mpm_event
 #APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 #APACHE:software-packages:libtool-bin:autoconf:libpcre2-dev:build-essential:zlib1g-dev:libssl-dev:libnghttp2-dev:libexpat1-dev
-##############################################################APACHE###########################################################
 
-##############################################################LIGHTTPD###########################################################
-#####UNCOMMENT AND MODIFY THESE TO INSTALL LIGHTTPD USING CLOUD-INIT#################################################
+
+#----------------------------------------------------LIGHTTPD----------------------------------------------------------------------------------
+#Install lighttpd from cloud-init defaults
 #LIGHTTPD:cloud-init
 #LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 #LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
 
-#####UNCOMMENT AND MODIFY THESE TO INSTALL LIGHTTPD USING APT#################################################
+#Install lighttpd from repos
 #LIGHTTPD:repo
 #LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 #LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 
-#####UNCOMMENT AND MODIFY THESE TO INSTALL LIGHTTPD FROM SOURCE#################################################
+#Install LIGHTTPD from source (you can do it from github or from the lighttpd archives (comment in one and comment out the other))
 LIGHTTPD:source
 #LIGHTTPD:git-branch:lighttpd-1.4.82
 LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.82.tar.gz
@@ -226,37 +217,31 @@ LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:
 LIGHTTPD:static-modules-list:zlib:libxml:openssl:gnutls
 LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 LIGHTTPD:software-packages:autoconf:build-essential:automake:libtool:pkg-config:libssl-dev:libgnutls28-dev:libpcre2-dev:zlib1g-dev
-##############################################################LIGHTTPD###########################################################
-##############################################################PHP###########################################################
-#PHP config 1
-#PHP:cli:fpm:gmp:xmlrpc:soap:dev:mysqli:phpdbg:mbstring:gd:imap:ldap:pgsql:pspell:tidy:intl:curl:zip:xml:imagick:ssh2:apcu|9176
-#PHP config 2
-#PHP:cli:fpm:gmp:xmlrpc:soap:dev:mysqli:phpdbg:mbstring:gd:imap:pgsql:pspell:tidy:intl:curl:zip:xml:imagick:ssh2:apcu
-#PHP joomla 5 (zlib and json are enabled by default in php>8.0)
-#####################last live one####PHP:cli:fpm:simplexml:dom:gd:intl:zip:mysqli:pgsql:mbstring:curl:soap
-PHP:cli:fpm|9176
-#PHP:cli:fpm:simplexml:dom:gd:intl:zip:mysqli:mbstring:curl:soap
-#PHP:cli:fpm:simplexml:dom:gd:intl:zip:mysqli:curl
-#PHP Wordpress (zlib mysqli and json are enabled by default in php>8.0)
-#PHP:cli:fpm:curl:dom:exif:igbinary:imagick:intl:mbstring:openssl:xml:zip:mysqli|9176
-###CONFIGPHPPOOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_servers=10:pm.min_spare_servers=5:pm.max_spare_servers=20:pm.process_idle_timeout=10s
-##CONFIGPHPINI:memory_limit=128M:file_uploads=On:session.save_handler=files:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=On:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html:upload_tmp_dir=/var/www/html/tmp:sys_temp_dir=/var/www/html/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
-##############################################################PHP###########################################################
-DATASTOREMOUNTTOOL:rclone:binary
+
+#----------------------------------------------------PHP---------------------------------------------------------------------------------
+###Set what base PHP libraries you want installed. Install application specific libraries in your application descriptor####
+PHP:cli:fpm|9176  
+#---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
+#DATASTOREMOUNTTOOL:rclone:binary
 #DATASTOREMOUNTTOOL:s3fs:source
 #DATASTOREMOUNTTOOL:goof:binary
 #DATASTOREMOUNTTOOL:geesefs:source
+#---------------------------------------------DATASTORE CONFIG TOOL OPERATION STYLE-------------------------------------------------------
 DATASTORECONFIGSTYLE:tool
 #DATASTORECONFIGSTYLE:lightweight
 #DATASTORECONFIGSTYLE:heavyweight
+#---------------------------------------------DATABASES----------------------------------------------------------------------------------
 #MARIADB:cloud-init
 MARIADB:repo:12.2.2
 MYSQL:repo:9.2.0
 POSTGRES:repo:17
+#---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
 BUILDCHAINTYPE:standard
+#---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
 #DATASTORETOOL:s3cmd:source 
 #DATASTORETOOL:s5cmd:source
 DATASTORETOOL:rclone:binary
+#---------------------------------------------CLOUD CLI TOOL----------------------------------------------------------------------------------
 #CLOUDCLITOOL:doctl:binary
 CLOUDCLITOOL:doctl:snap
 CLOUDCLITOOL:linode-cli:pip
@@ -265,15 +250,24 @@ CLOUDCLITOOL:linode-cli:pip
 CLOUDCLITOOL:exo:source
 #CLOUDCLITOOL:vultr:binary
 CLOUDCLITOOL:vultr:source
+#---------------------------------------------GO----------------------------------------------------------------------------------
 #GO:repo
 GO:binary
+#---------------------------------------------MERGER FS----------------------------------------------------------------------------
 MERGEFILESYSTEMSTOOL:mergefs:repo
+#---------------------------------------------PACKAGE MANAGER----------------------------------------------------------------------
 PACKAGEMANAGER:apt-get
+#---------------------------------------------FIREWALL-----------------------------------------------------------------------------
 FIREWALL:ufw
 #FIREWALL:iptables:20:30
+#---------------------------------------------FAIL 2 BAN-----------------------------------------------------------------------------
 FAIL2BAN:active
+#---------------------------------------------EMAIL---------------------------------------------------------------------------------
 EMAILUTIL:sendemail
+#---------------------------------------------SSL CERT CLIENT-----------------------------------------------------------------------
 #SSLCERTCLIENT:acme:github.com
 SSLCERTCLIENT:lego:snap
+#---------------------------------------------GIT BRANCH OF INFRASTRUCTURE REPOS-----------------------------------------------------
 GITBRANCH:main
+#---------------------------------------------VIRUS SCANNER------------------------------------------------------------------------
 VIRUSSCANNER:clamav:daily
