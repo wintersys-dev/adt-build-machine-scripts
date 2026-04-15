@@ -93,6 +93,34 @@ then
 	fi
 fi
 
+if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat ] )
+then
+	detected_application="`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat | /usr/bin/tr '[:upper:]' '[:lower:]'`"
+	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:${detected_application}
+	APPLICATION="${detected_application}"
+	status "Discovered you are deploying ${detected_application} from a datastore backup with ${db_type} database type"
+	status "Press the <enter> key to accept as true"
+
+	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
+	then
+		read x
+	fi
+else
+	status "Error, cannot find dba.dat file in your backup archive"
+	/bin/touch /tmp/END_IT_ALL
+fi
+
+${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat
+
+
+
+
+
+
+
+
+
+
 #################JOOMLA################
 if ( [ "`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat`" = "JOOMLA" ] )
 then
