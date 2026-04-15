@@ -93,137 +93,30 @@ then
 	fi
 fi
 
-#################JOOMLA################
-if ( [ "`/bin/cat ${interrogation_home}/dba.dat`" = "JOOMLA" ] )
+if ( [ -f ${interrogation_home}/dba.dat ] )
 then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:joomla
-
-	APPLICATION="joomla"
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="images"
-	fi
-
-	status "Discovered you are deploying joomla from a datastore backup with ${db_type} database type"
+	detected_application="`/bin/cat ${interrogation_home}/dba.dat | /usr/bin/tr '[:upper:]' '[:lower:]'`"
+	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:${detected_application}
+	APPLICATION="${detected_application}"
+	status "Discovered you are deploying ${detected_application} from a datastore backup with ${db_type} database type"
 	status "Press the <enter> key to accept as true"
 
 	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
 	then
 		read x
 	fi
-
-	#if ( [ -f ${interrogation_home}/configuration.php.default ] )
-	#then
-#		/bin/cp ${interrogation_home}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+else
+	status "Error, cannot find dba.dat file in your backup archive"
+	/bin/touch /tmp/END_IT_ALL
+fi
+		
+if ( [ -f ${interrogation_home}/dbp.dat ] )
+then
 	/bin/cp ${interrogation_home}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
 	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
-	#################WORDPRESS################
-elif ( [ "`/bin/cat ${interrogation_home}/dba.dat`" = "WORDPRESS" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:wordpress
-
-	APPLICATION="wordpress"
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="wp-content.uploads"
-	fi
-
-	status "Discovered you are deploying wordpress from a datastore backup with ${db_type} database type"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/wp-config.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/wp-config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/wp-config.php.default
-#	else
-#		status "Couldn't find wordpress default configuration file in baseline webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-	fi
-	/bin/cp ${interrogation_home}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"	#################DRUPAL################
-elif ( [ "`/bin/cat ${interrogation_home}/dba.dat`" = "DRUPAL" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:drupal
-
-	APPLICATION="drupal"
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="sites.default.files.pictures:sites.default.files.styles:sites.default.files.inline-images"
-	fi
-
-	status "Discovered you are deploying drupal from a datastore backup with ${db_type} database type"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/settings.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/settings.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
-#	else
-#		status "Couldn't find drupal default configuration file in backup webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-	fi
-
-	/bin/cp ${interrogation_home}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
-#################MOODLE################
-elif ( [ "`/bin/cat ${interrogation_home}/dba.dat`" = "MOODLE" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:moodle
-
-	APPLICATION="moodle"
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="moodledata.filedir"
-	fi
-
-	status "Discovered you are deploying moodle from a datastore backup with ${db_type} database type"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/config.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
-#	else
-#		status "Couldn't find moodle default configuration file in backup archive webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-	fi
-
-	/bin/cp ${interrogation_home}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
+else
+	status "Error, cannot find dbp.dat file in your backup archive"
+	/bin/touch /tmp/END_IT_ALL
 fi
 
 /bin/rm -r ${interrogation_home}
