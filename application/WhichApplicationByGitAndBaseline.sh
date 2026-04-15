@@ -106,166 +106,17 @@ then
 		read x
 	fi
 else
-	status "Error, cannot find dba.dat file in your backup archive"
+	status "Error, cannot find dba.dat file in your git baseline"
 	/bin/touch /tmp/END_IT_ALL
 fi
 
-${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat
-
-
-
-
-
-
-
-
-
-
-#################JOOMLA################
-if ( [ "`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat`" = "JOOMLA" ] )
+if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
 then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:joomla
-	APPLICATION="joomla"
-	interrogated="1"
-
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="images"
-	fi
-
-	status "Discovered you are deploying joomla from a git repo baseline"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/configuration.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/configuration.php.default
-#	else
-#		status "Couldn't find joomla default configuration file in baseline webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-		/bin/touch /tmp/END_IT_ALL
-	fi
-
 	/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
 	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
-	#################WORDPRESS################
-elif ( [ "`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat`" = "WORDPRESS" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:wordpress
-	APPLICATION="wordpress"
-	interrogated="1"
-
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="wp-content.uploads"
-	fi
-
-	status "Discovered you are deploying wordpress from a git repo baseline"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/wp-config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/wp-config.php.default
-#	else
-#		status "Couldn't find joomla default configuration file in baseline webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-		/bin/touch /tmp/END_IT_ALL
-	fi
-
-	/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
-	#################DRUPAL################
-elif ( [ "`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat`" = "DRUPAL" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:drupal
-	APPLICATION="drupal"
-	interrogated="1"
-
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="sites.default.files.pictures:sites.default.files.styles:sites.default.files.inline-images"
-	fi
-
-	status "Discovered you are deploying drupal from a git repo baseline"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ] )
-#	then
-#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/sites/default/default.settings.php ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/settings.php.default
-#	else
-#		status "Couldn't find drupal default configuration file in baseline webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-		/bin/touch /tmp/END_IT_ALL
-	fi
-
-	/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
-
-	#################MOODLE################
-elif ( [ "`/bin/cat ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dba.dat`" = "MOODLE" ] )
-then
-	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/APPLICATION:moodle
-	APPLICATION="moodle"
-	interrogated="1"
-
-	if ( [ "${DIRECTORIES_TO_MOUNT}" = "" ] )
-	then
-		DIRECTORIES_TO_MOUNT="moodledata.filedir"
-	fi
-
-	status "Discovered you are deploying moodle from a git repo baseline"
-	status "Press the <enter> key to accept as true"
-
-	if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-
-#	if ( [ -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ] )
-#	then
-#		/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/config.php.default ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/config.php.default
-#	else
-#		status "Couldn't find moodle default configuration file in baseline webroot"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
-
-	if ( [ ! -f ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ] )
-	then
-		status "Error, cannot find db prefix file"
-		/bin/touch /tmp/END_IT_ALL
-	fi
-
-	/bin/cp ${interrogation_home}/${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}/dbp.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}
-	${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/dbp.dat" "root" "distributed" "no"
+else
+	status "Error, cannot find dbp.dat file in your git baseline"
+	/bin/touch /tmp/END_IT_ALL
 fi
 
 /bin/rm -r ${interrogation_home}
