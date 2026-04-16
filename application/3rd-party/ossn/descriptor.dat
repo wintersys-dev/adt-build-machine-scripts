@@ -1,9 +1,9 @@
 ##########################################################################################################################################
-# This is an application descriptor for joomla. Using this technique you can provide customisations to how you install joomla.
-# Here you will find various details required for the successful installation of joomla ss such as the database credentials for your joomla 
-# install and details required by the application itself such as a username and password. Unless your adt-build-machine-scripts repository 
-# is private please be aware not to put any sensitive information directly in this file, instead, look at how the MANDATORY_INDIVIDUAL_SETTING 
-# parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
+# This is an application descriptor for Open Source Social Network. 
+# https://www.opensource-socialnetwork.org/
+# Using this technique you can automate the installation of open source social network.
+# Here you will find various details required for the successful installation of open source social network. Using descriptors we can
+# aim for consistent installation processes which takes some of the potential for error out of the installation process.
 ##########################################################################################################################################
 
 ##########################################################################################################################################
@@ -12,6 +12,10 @@
 #Sourced from github
 SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
 SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+
+#Sourced from opensource social network url
+#SOUCECODE_URL:ossn:www.opensource-socialnetwork.org/download_ossn/latest/build.zip
+(no checksum using this method)
 
 ####################################################################################################################################
 #filesystem configuration settings
@@ -50,13 +54,13 @@ CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
 #If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
 #In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
 #what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
-#If this is set to "no" then the installtion should complete without pausing and you will be able to access your joomla application straight away
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your ossn application straight away
 #without providing any input
 #####################################################################################################################################################
 INTERACTIVE_APPLICATION_INSTALL:no
 
 ###########################################################################################
-#Here you can list PHP modules that are required by joomla and the system will install them 
+#Here you can list PHP modules that are required by ossn and the system will install them 
 ###########################################################################################
 PHP_MODULES:curl gd zip mysqli simplexml mbstring 
 CONFIG_PHP_INI:memory_limit=128M file_uploads=On session.save_handler=files upload_max_filesize=64M post_max_size=64M max_input_vars=5000 zlib.output_compression=On cgi.fix_pathinfo=0 output_buffering=Off disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source allow_url_fopen=On allow_url_include=Off memory_limit=256M opcache.enable=1 opcache.memory_consumption=256 open_basedir=/var/log##/var/run##/var/cache##/var/www/html upload_tmp_dir=/var/www/html/tmp sys_temp_dir=/var/www/html/tmp expose_php=Off date.timezone='Europe/London' cgi.force_redirect=On   
@@ -66,7 +70,7 @@ CONFIG_PHP_POOL:pm=ondemand pm.max_children=10 pm.max_requests=200 pm.start_serv
 # Mandatory credential settings when making a non-interactive installation
 #These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
 #joomla non-interactively. Notice that placeholders are used and are populated privately with live data in the script
-# ${BUILD_HOME}/application/joomla/SetApplicationConfig.sh
+# ${BUILD_HOME}/application/ossn/SetApplicationConfig.sh
 #####################################################################################################################################################
 MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
 MANDATORY_INDIVIDUAL_SETTING:password='XXXXAPPLICATION_PASSWORDXXXX'
