@@ -6,31 +6,6 @@
 # parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
 ##########################################################################################################################################
 
-#################################################################################################################################################
-# Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
-#################################################################################################################################################
-
-#The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Joomla Website
-
-#You most likely want to set this to something unique because setting it to unique is another thing that a hacker doesn't know where as if it's
-#just webmaster or admin that's easy to guess or assume
-WEBSITE_USERNAME:adt-webmaster
-
-#The initial website password (which you should change as soon as installation is complete) is taken from whatever the first 12 characters of your
-#S3_ACCESS_KEY variable is set to. So, to find the initial password for your application you need to find  your S3_ACCESS_KEY and extract the first
-#12 characters of it s your bootstrap password
-WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
-
-#A decription of the website user account
-WEBSITE_USER_DESCRIPTION:ADT Test User Account
-
-############################################################################################
-#This is taken from the value of "SYSTEM_FROMEMAIL_ADDRESS" and it needs to be a live email. 
-############################################################################################
-WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
-
-
 ##########################################################################################################################################
 # ossn version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
 ##########################################################################################################################################
@@ -50,18 +25,14 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:ossn_data
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
 EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.config.site.php
-
-
-#---------------------------------------------
   
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
 #download or extraction of joomla and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
-APPLICATION_INTEGRITY_DIRECTORIES:administrator:api:cache:cli:components:files:includes:language:layouts:libraries:media:modules:plugins:templates
+APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
 APPLICATION_INTEGRITY_FILES:index.php
-
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
