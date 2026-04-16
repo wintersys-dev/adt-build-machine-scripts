@@ -49,7 +49,16 @@ else
         exit
 fi
 
-buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,'`
+if ( [ "${1}" = "all" ] )
+then
+        /bin/echo "You are asking to list and consider for deletion all of the buckets in your datastore. This is risky as mistakes might delete unintended data"
+        /bin/echo "But seeing as you have passed the parameter 'all' I will presume you know what you are doing. Double check all that is offered for deletion before typing 'Y'"
+        /bin/echo "Press <enter> to continue"
+        read x
+        buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,'`
+else
+        buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,' | /bin/grep "authip-adt-allowed"`
+fi
 
 for bucket in ${buckets}
 do
