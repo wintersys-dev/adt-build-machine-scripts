@@ -49,7 +49,7 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:ossn_data
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:logs:tmp:cache:configuration.php
+EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.site.db.php
 
 
 #---------------------------------------------
