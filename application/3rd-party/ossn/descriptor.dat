@@ -90,7 +90,7 @@ ASSETS_OUTSIDE_WEBROOT_LIST:images
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your joomla application straight away
 #without providing any input
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:no
+INTERACTIVE_APPLICATION_INSTALL:yes
 
 ###########################################################################################
 #Here you can list PHP modules that are required by joomla and the system will install them 
