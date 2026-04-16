@@ -32,7 +32,7 @@ EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.config.site.php
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
-APPLICATION_INTEGRITY_FILES:index.php
+APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md:CONTRIBUTORS.md:COPYRIGHT.txt:index.php:LICENSE.md:opensource-socialnetwork.xml:README.md:robots.txt:SECURITY.md:SUPPORT.txt:TESTS.md:UPGRADE.txt
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
