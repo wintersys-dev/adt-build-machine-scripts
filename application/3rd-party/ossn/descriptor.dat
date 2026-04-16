@@ -49,7 +49,7 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:ossn_data
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.site.db.php
+EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.config.site.php
 
 
 #---------------------------------------------
@@ -72,7 +72,7 @@ WEBROOT_DIRECTORY:/var/www/html/ossn
 #This sets the joomla config file to be outside of the webroot. 
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/ossn.config.db.php
-CONFIG_FILE_SITE:/var/www/html/ossn.site.db.php
+CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
 
 #########################################################################################################################
 #If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
