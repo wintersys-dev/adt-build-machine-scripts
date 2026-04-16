@@ -45,14 +45,6 @@ WEBROOT_DIRECTORY:/var/www/html/ossn
 CONFIG_FILE:/var/www/html/ossn.config.db.php
 CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
 
-#########################################################################################################################
-#If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
-#You can list multiple assets directories like this:
-#ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
-#########################################################################################################################
-ASSETS_OUTSIDE_WEBROOT:yes
-ASSETS_OUTSIDE_WEBROOT_LIST:images
-
 #####################################################################################################################################################
 #Interactive install or not
 #If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
@@ -79,32 +71,3 @@ CONFIG_PHP_POOL:pm=ondemand pm.max_children=10 pm.max_requests=200 pm.start_serv
 MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
 MANDATORY_INDIVIDUAL_SETTING:password='XXXXAPPLICATION_PASSWORDXXXX'
 MANDATORY_INDIVIDUAL_SETTING:db='XXXXAPPLICATION_DATABASEXXXX'
-
-#########################################################################################################################################################
-# General individual settings for your joomla install
-#These settings are general configuration settings for joomla. You can set various behaviours using these settings. In a live situation you could have
-#a set of configuration files such as /var/www/html/configuration.php or /var/www/html/configuration-debug.php and you can switch from one configuration
-#to another (if you want to debug for example you can switch to your debug configuration) simply by changing the configuration file which is pointed to
-#in /var/www/html/joomla/cofiguration.php. Again notice the placeholders that are swapped out as part of the build process
-#########################################################################################################################################################
-INDIVIDUAL_SETTING:mailer='smtp'
-INDIVIDUAL_SETTING:smtpauth=1
-INDIVIDUAL_SETTING:smtpuser='XXXXSMTP_USERXXXX'
-INDIVIDUAL_SETTING:smtppass='XXXXSMTP_PASSXXXX'
-INDIVIDUAL_SETTING:smtpsecure='tls'
-INDIVIDUAL_SETTING:smtp_port=XXXXSMTP_PORTXXXX
-INDIVIDUAL_SETTING:smtphost=XXXXSMTP_HOSTXXXX
-
-#Hardcoded overrides (you can override any default setting in the configuration.php file for joomla by setting it here as per the examples)
-INDIVIDUAL_SETTING:cachetime=30
-INDIVIDUAL_SETTING:cache_handler='file'
-INDIVIDUAL_SETTING:caching=1
-INDIVIDUAL_SETTING:sef=1
-INDIVIDUAL_SETTING:sef_suffix=1
-INDIVIDUAL_SETTING:sef_rewrite=1
-INDIVIDUAL_SETTING:unicodeslugs=1
-INDIVIDUAL_SETTING:gzip=1
-INDIVIDUAL_SETTING:force_ssl=2
-INDIVIDUAL_SETTING:shared_session=0
-INDIVIDUAL_SETTING:tmp_path='/var/www/html/tmp'
-INDIVIDUAL_SETTING:log_path='/var/www/html/logs'
