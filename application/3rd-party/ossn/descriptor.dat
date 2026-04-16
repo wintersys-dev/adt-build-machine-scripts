@@ -1,3 +1,14 @@
+WEBROOT_DIRECTORY
+CONFIG_FILE
+CONFIG_FILE_SITE
+INTERACTIVE_APPLICATION_INSTALL
+DIRECTORIES_TO_CREATE:
+MANDATORY_INDIVIDUAL_SETTING:user
+MANDATORY_INDIVIDUAL_SETTING:password=
+MANDATORY_INDIVIDUAL_SETTING:db
+
+
+
 ##########################################################################################################################################
 # This is an application descriptor for joomla. Using this technique you can provide customisations to how you install joomla.
 # Here you will find various details required for the successful installation of joomla ss such as the database credentials for your joomla 
