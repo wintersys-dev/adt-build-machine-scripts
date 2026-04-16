@@ -7,7 +7,7 @@
 ##########################################################################################################################################
 
 ##########################################################################################################################################
-# ossn version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
+# ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
 ##########################################################################################################################################
 #Sourced from github
 SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
@@ -31,8 +31,8 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:ossn_data
 EXCLUDE_FROM_BACKUP:logs:tmp:cache:ossn.config.db.php:ossn.config.site.php
   
 #####################################################################################################################################################
-#These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
-#download or extraction of joomla and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
+#download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
@@ -44,7 +44,7 @@ APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md
 WEBROOT_DIRECTORY:/var/www/html/ossn
 
 ########################################################################################################################################################
-#This sets the joomla config file to be outside of the webroot. 
+#This sets the ossn config file(s) to be outside of the webroot. 
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/ossn.config.db.php
 CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
@@ -69,7 +69,7 @@ CONFIG_PHP_POOL:pm=ondemand pm.max_children=10 pm.max_requests=200 pm.start_serv
 #####################################################################################################################################################
 # Mandatory credential settings when making a non-interactive installation
 #These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
-#joomla non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+#ossn non-interactively. Notice that placeholders are used and are populated privately with live data in the script
 # ${BUILD_HOME}/application/ossn/SetApplicationConfig.sh
 #####################################################################################################################################################
 MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
