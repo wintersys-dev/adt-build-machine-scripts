@@ -17,6 +17,9 @@ SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59c
 #SOUCECODE_URL:www.opensource-socialnetwork.org/download_ossn/latest/build.zip
 (no checksum using this method)
 
+#This is the special data directory that will be set in the configuration of open source social network
+DATA_DIRECTORY:/var/www/html/ossn_data
+
 ####################################################################################################################################
 #filesystem configuration settings
 #This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
