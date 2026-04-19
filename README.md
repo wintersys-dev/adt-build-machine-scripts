@@ -1,7 +1,6 @@
 # README #
 
-You can read about and find tutorials about the "Agile Deployment Toolkit" [here](
-https://www.wintersys-projects.uk/Agile%20Deployment%20Toolkit/IntialOverviewOfADT)
+You can read about and find tutorials about the "Agile Deployment Toolkit" [here](https://www.wintersys-projects.uk/Agile%20Deployment%20Toolkit/IntialOverviewOfADT)
 -----------------------------
 
 **${BUILD_HOME}/adt-build-machine-scripts/application**  
