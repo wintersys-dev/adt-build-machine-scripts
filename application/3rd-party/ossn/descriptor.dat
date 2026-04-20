@@ -9,9 +9,12 @@
 ##########################################################################################################################################
 # ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
 ##########################################################################################################################################
+#To install from a git branch, use this
+MOODLE:git-branch:MOODLE_501_STABLE
+
 #Sourced from github
-SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
-SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
+#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
 
 #Sourced from opensource social network url
 #SOUCECODE_URL:www.opensource-socialnetwork.org/download_ossn/latest/build.zip
