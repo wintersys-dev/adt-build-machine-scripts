@@ -31,8 +31,8 @@ DRUPAL_VERSION:drupal/recommended-project
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
 
-DRUPAL_MODULES_TO_INSTALL:imce
-DRUPAL_THEMES_TO_INSTALL:bootstrap
+DRUPAL_MODULES_TO_INSTALL:webform
+DRUPAL_THEMES_TO_INSTALL:gin
 
 ##########################################################
 #2. To install drupal CMS
