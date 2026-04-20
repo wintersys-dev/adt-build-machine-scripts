@@ -31,8 +31,13 @@ DRUPAL_VERSION:drupal/recommended-project
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
 
-DRUPAL_MODULES_TO_INSTALL:webform
-DRUPAL_THEMES_TO_INSTALL:gin
+#Install themes or modules during the build rather than through the gui. 
+#here the webform module (https://www.drupal.org/project/webform) is shown as an example of how to install a module)
+#You can chain modules to install as a colon separated list DRUPAL_MODULES_TO_INSTALL:<module1>:<module2>:<module3>....<module n>
+#and the gin theme (https://www.drupal.org/project/gin) is shown as an example of how to install a theme. 
+#You can chain themes to install as a colon separated list DRUPAL_THEMES_TO_INSTALL:<theme1>:<theme2>:<theme3>....<theme n>
+#DRUPAL_MODULES_TO_INSTALL:webform
+#DRUPAL_THEMES_TO_INSTALL:gin
 
 ##########################################################
 #2. To install drupal CMS
@@ -45,6 +50,7 @@ DRUPAL_THEMES_TO_INSTALL:gin
 #CMS_VERSION:drupal/cms:^2.1@beta
 #CMS_VERSION:drupal/cms:^2.1@rc
 
+#See DRUPAL_MODULES_TO_INSTALL above for how this works because it works the same way for drupal cms as for drupal
 #CMS_MODULES_TO_INSTALL:drupal_cms_media
 #CMS_THEMES_TO_INSTALL:bootstrap
 
