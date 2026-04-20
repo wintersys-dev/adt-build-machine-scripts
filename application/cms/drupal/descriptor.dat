@@ -31,6 +31,9 @@ DRUPAL_VERSION:drupal/recommended-project
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
 
+DRUPAL_MODULES_TO_INSTALL:imce
+DRUPAL_THEMES_TO_INSTALL:bootstrap
+
 ##########################################################
 #2. To install drupal CMS
 #APPLICATION_TYPE:cms
@@ -41,6 +44,10 @@ DRUPAL_VERSION:drupal/recommended-project
 #CMS_VERSION:drupal/cms:^2.1@alpha
 #CMS_VERSION:drupal/cms:^2.1@beta
 #CMS_VERSION:drupal/cms:^2.1@rc
+
+CMS_MODULES_TO_INSTALL:drupal_cms_media
+CMS_THEMES_TO_INSTALL:bootstrap
+
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
