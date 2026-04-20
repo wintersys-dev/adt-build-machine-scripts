@@ -45,8 +45,8 @@ DRUPAL_THEMES_TO_INSTALL:bootstrap
 #CMS_VERSION:drupal/cms:^2.1@beta
 #CMS_VERSION:drupal/cms:^2.1@rc
 
-CMS_MODULES_TO_INSTALL:drupal_cms_media
-CMS_THEMES_TO_INSTALL:bootstrap
+#CMS_MODULES_TO_INSTALL:drupal_cms_media
+#CMS_THEMES_TO_INSTALL:bootstrap
 
 
 ######################################################################################################################################################
