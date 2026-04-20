@@ -52,7 +52,7 @@ DRUPAL_VERSION:drupal/recommended-project
 
 #See DRUPAL_MODULES_TO_INSTALL above for how this works because it works the same way for drupal cms as for drupal
 #CMS_MODULES_TO_INSTALL:drupal_cms_media
-#CMS_THEMES_TO_INSTALL:bootstrap
+#CMS_THEMES_TO_INSTALL:bootstrap_barrio
 
 
 ######################################################################################################################################################
