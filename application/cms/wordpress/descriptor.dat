@@ -45,12 +45,14 @@ WORDPRESS_LOCALE:en_GB
 #using the cli as part of the installation process. That way the plugins you want are already installed into your
 #wordpress instantiation and you don't have to dance around in the backend intalling the plugins you need
 #As an example if you click on bbpress the URL in the browser will be https://wordpress.org/plugins/bbpress
-#which means that the name of the plugin is bbpress
+#which means that the name of the plugin name is bbpress
 #If you click on wp mail smtp then the URL is https://wordpress.org/plugins/wp-mail-smtp
-#which means that that plugin name is  wp-mail-smtp and so below is shown the an example of how to install those
-#two plugins when you make a deployment
+#which means that that plugin name is wp-mail-smtp
+#By default I install wp-mail-smtp you can install other plugins as a comma separated list, for example
+#to install bbpress and wp-mai-smtp you would set:
+#PLUGINS_TO_INSTALL:wp-mail-smtp:bbpress
 ############################################################################################################
-PLUGINS_TO_INSTALL:bbpress:wp-mail-smtp
+PLUGINS_TO_INSTALL:wp-mail-smtp
 
 #####################################################################################################################################################
 #Interactive install or not
