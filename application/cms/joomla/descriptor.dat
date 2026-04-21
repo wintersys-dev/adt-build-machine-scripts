@@ -35,6 +35,8 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 # joomla version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
 ##########################################################################################################################################
 
+JOOMLA:git-branch:6.2-dev
+
 #Sourced from github
 #SOURCECODE_URL:github.com/joomla/joomla-cms/releases/download/XXXXAPPLICATION_VERSIONXXXX/Joomla_XXXXAPPLICATION_VERSIONXXXX-Alpha-Full_Package.zip
 #SOURCECODE_URL:github.com/joomla/joomla-cms/releases/download/XXXXAPPLICATION_VERSIONXXXX/Joomla_XXXXAPPLICATION_VERSIONXXXX-Beta-Full_Package.zip
