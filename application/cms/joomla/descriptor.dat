@@ -30,13 +30,12 @@ WEBSITE_USER_DESCRIPTION:ADT Test User Account
 ############################################################################################
 WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 
+#To install from a git branch, use this
+JOOMLA:git-branch:6.2-dev
 
 ##########################################################################################################################################
 # joomla version and URL to download joomla sourcecode from (uncomment or modify according to which version of joomla you want to install)
 ##########################################################################################################################################
-
-JOOMLA:git-branch:6.2-dev
-
 #Sourced from github
 #SOURCECODE_URL:github.com/joomla/joomla-cms/releases/download/XXXXAPPLICATION_VERSIONXXXX/Joomla_XXXXAPPLICATION_VERSIONXXXX-Alpha-Full_Package.zip
 #SOURCECODE_URL:github.com/joomla/joomla-cms/releases/download/XXXXAPPLICATION_VERSIONXXXX/Joomla_XXXXAPPLICATION_VERSIONXXXX-Beta-Full_Package.zip
@@ -48,9 +47,9 @@ JOOMLA:git-branch:6.2-dev
 #SOURCECODE_MD5:a3eaae4a62d2313de01d7ff7ba5417e9
 #SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 
-SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.tar.gz
-SOURCECODE_MD5:d306e61affe62b37245ffddad1361a4f
-SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
+#SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.tar.gz
+#SOURCECODE_MD5:d306e61affe62b37245ffddad1361a4f
+#SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
 
 ####################################################################################################################################
 #filesystem configuration settings
