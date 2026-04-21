@@ -77,8 +77,8 @@ CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_serv
 #####################################################################################################################################################
 # Mandatory credential settings when making a non-interactive installation
 #These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
-#ossn non-interactively. Notice that placeholders are used and are populated privately with live data in the script
-# ${BUILD_HOME}/application/ossn/SetApplicationConfig.sh
+#nextcloud non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+# ${BUILD_HOME}/application/nextcloud/SetApplicationConfig.sh
 #####################################################################################################################################################
 MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
 MANDATORY_INDIVIDUAL_SETTING:password='XXXXAPPLICATION_PASSWORDXXXX'
