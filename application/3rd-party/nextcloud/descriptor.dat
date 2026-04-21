@@ -39,8 +39,8 @@ DIRECTORIES_TO_CREATE:logs:tmp:nextcloud_data
 EXCLUDE_FROM_BACKUP:logs:tmp
   
 #####################################################################################################################################################
-#These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
-#download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#These settings pick various directories and files which should be present in a nextcloud installation. What that means is that if there is a partial
+#download or extraction of nextcloud and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
