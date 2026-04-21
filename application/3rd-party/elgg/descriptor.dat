@@ -1,27 +1,27 @@
 ##########################################################################################################################################
-# This is an application descriptor for Open Source Social Network. 
-# https://www.opensource-socialnetwork.org/
-# Using this technique you can automate the installation of open source social network.
-# Here you will find various details required for the successful installation of open source social network. Using descriptors we can
+# This is an application descriptor for Elgg Social Network. 
+# https://elgg.org/
+# Using this technique you can automate the installation of Elgg.
+# Here you will find various details required for the successful installation of Elgg. Using descriptors we can
 # aim for consistent installation processes which takes some of the potential for error out of the installation process.
 ##########################################################################################################################################
 
 ##########################################################################################################################################
-# ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
+# elgg version and URL to download ossn sourcecode from (uncomment or modify according to which version of elgg you want to install)
 ##########################################################################################################################################
 #To install from a git branch, use this
-OSSN:git-branch:master
+ELGG:git-branch:master
 
 #Sourced from github
-#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
-#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+#SOURCECODE_URL:github.com/Elgg/Elgg/releases/download/6.3.4/elgg-6.3.4.zip
+#SOURCECODE_SHA256:6cc7f9facde1aea18e75c89b0cf2f3973c0f3202ec74a6e517a6979821203f14
 
 #Sourced from opensource social network url
 #SOUCECODE_URL:elgg.org/about/getelgg?forward=elgg-6.3.4.zip
 (no checksum using this method)
 
-#This is the special data directory that will be set in the configuration of open source social network
-DATA_DIRECTORY:/var/www/html/ossn_data
+#This is the special data directory that will be set in the configuration of elgg social network
+#DATA_DIRECTORY:/var/www/html/ossn_data
 
 ####################################################################################################################################
 #filesystem configuration settings
@@ -29,7 +29,7 @@ DATA_DIRECTORY:/var/www/html/ossn_data
 #If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
 #configuring it in the plugin
 ####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:ossn_data
+DIRECTORIES_TO_CREATE:logs:tmp
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
@@ -37,8 +37,8 @@ DIRECTORIES_TO_CREATE:logs:tmp:ossn_data
 EXCLUDE_FROM_BACKUP:logs:tmp:ossn.config.db.php:ossn.config.site.php
   
 #####################################################################################################################################################
-#These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
-#download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#These settings pick various directories and files which should be present in a elgg installation. What that means is that if there is a partial
+#download or extraction of elgg and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
@@ -47,7 +47,7 @@ APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/ossn
+WEBROOT_DIRECTORY:/var/www/html/elgg
 
 ########################################################################################################################################################
 #This sets the ossn config file(s) to be outside of the webroot. 
