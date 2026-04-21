@@ -9,8 +9,6 @@
 ##########################################################################################################################################
 # ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
 ##########################################################################################################################################
-#To install from a git branch, use this
-OSSN:git-branch:master
 
 #Sourced from github
 #SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
