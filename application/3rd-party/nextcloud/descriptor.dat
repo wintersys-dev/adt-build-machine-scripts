@@ -1,25 +1,29 @@
 ##########################################################################################################################################
 # This is an application descriptor for Open Source Social Network. 
-# https://www.opensource-socialnetwork.org/
-# Using this technique you can automate the installation of open source social network.
-# Here you will find various details required for the successful installation of open source social network. Using descriptors we can
+# https://nextcloud.com/
+# Using this technique you can automate the installation of next cloud.
+# Here you will find various details required for the successful installation of next cloud. Using descriptors we can
 # aim for consistent installation processes which takes some of the potential for error out of the installation process.
 ##########################################################################################################################################
 
 ##########################################################################################################################################
-# ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
+# next cloud version and URL to download ossn sourcecode from (uncomment or modify according to which version of next cloud you want to install)
 ##########################################################################################################################################
 
-#Sourced from github
-#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
-#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+#Sourced from nextcloud website as zip archive
+SOURCECODE_URL:download.nextcloud.com/server/releases/nextcloud-33.0.2.zip
+SOURCECODE_SHA256:57e083874459ccb0214e36aaba1c1aa4d0f9ff72e623cb9c777c46d4dd513153
+SOURCECODE_SHA512:8f99b140fcc20fe6111aa25adf26a859ced412d88d24b06880be42d084f2780662409c47170cc2c39de5377481f640521531a15be22617675b3a858e0be9e6a1
 
-#Sourced from opensource social network url
-#SOUCECODE_URL:www.opensource-socialnetwork.org/download_ossn/latest/build.zip
-(no checksum using this method)
+
+#Sourced from nextcloud website as tar archive
+SOURCECODE_URL:download.nextcloud.com/server/releases/nextcloud-33.0.2.tar.bz2
+SOURCECODE_SHA256:91257ab5002d5d09da8d09d80389983330351c5c00a7e3a25b177bcea81171cc
+SOURCECODE_SHA512:0b142323539d04967ae88f88c875e37ec0727d9d68d8853fd21567bc211efeb350ec1e0505965b9122977cdf2a9853617b1a3fe6975177bc045e49b9a5769740
+
 
 #This is the special data directory that will be set in the configuration of open source social network
-DATA_DIRECTORY:/var/www/html/ossn_data
+DATA_DIRECTORY:/var/www/html/nextcloud_data
 
 ####################################################################################################################################
 #filesystem configuration settings
@@ -27,12 +31,12 @@ DATA_DIRECTORY:/var/www/html/ossn_data
 #If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
 #configuring it in the plugin
 ####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:ossn_data
+DIRECTORIES_TO_CREATE:logs:tmp:nextcloud_data
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:logs:tmp:ossn.config.db.php:ossn.config.site.php
+EXCLUDE_FROM_BACKUP:logs:tmp
   
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
@@ -45,10 +49,10 @@ APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/ossn
+WEBROOT_DIRECTORY:/var/www/html/nextcloud
 
 ########################################################################################################################################################
-#This sets the ossn config file(s) to be outside of the webroot. 
+#This sets the nextcloud config file(s) to be outside of the webroot. 
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/ossn.config.db.php
 CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
