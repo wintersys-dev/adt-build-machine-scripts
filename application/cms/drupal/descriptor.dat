@@ -54,8 +54,10 @@ DRUPAL_VERSION:drupal/recommended-project
 #CMS_MODULES_TO_INSTALL:
 #CMS_THEMES_TO_INSTALL:
 
+#If youw ant to install a specific template you can put it here. An example template is the healthcare template
+#To see this in action, install DRUPAL CMS and uncomment TEMPLATE_TO_INSTALL below
 #See DRUPAL_MODULES_TO_INSTALL above for how this works because it works the same way for drupal cms as for drupal
-DRUPAL_TEMPLATES_TO_INSTALL:healthcare
+TEMPLATE_TO_INSTALL:healthcare
 
 
 ######################################################################################################################################################
