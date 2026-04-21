@@ -62,13 +62,13 @@ CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
 #If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
 #In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
 #what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
-#If this is set to "no" then the installtion should complete without pausing and you will be able to access your ossn application straight away
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your nextcloud application straight away
 #without providing any input
 #####################################################################################################################################################
 INTERACTIVE_APPLICATION_INSTALL:no
 
 ###########################################################################################
-#Here you can list PHP modules that are required by ossn and the system will install them 
+#Here you can list PHP modules that are required by nextcloud and the system will install them 
 ###########################################################################################
 PHP_MODULES:curl:gd:zip:mysqli:pdo:simplexml:mbstring 
 CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=On:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html:upload_tmp_dir=/var/www/html/tmp:sys_temp_dir=/var/www/html/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
