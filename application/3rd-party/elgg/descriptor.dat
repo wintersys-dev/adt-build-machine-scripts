@@ -1,1 +1,83 @@
-https://elgg.org/about/getelgg?forward=elgg-6.3.4.zip
+##########################################################################################################################################
+# This is an application descriptor for Open Source Social Network. 
+# https://www.opensource-socialnetwork.org/
+# Using this technique you can automate the installation of open source social network.
+# Here you will find various details required for the successful installation of open source social network. Using descriptors we can
+# aim for consistent installation processes which takes some of the potential for error out of the installation process.
+##########################################################################################################################################
+
+##########################################################################################################################################
+# ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
+##########################################################################################################################################
+#To install from a git branch, use this
+OSSN:git-branch:master
+
+#Sourced from github
+#SOURCECODE_URL:github.com/opensource-socialnetwork/opensource-socialnetwork/releases/download/9.4/ossn-v9.4-1773864888.zip
+#SOURCECODE_SHA256:7b14ed6277f007288a594b9d6639190214e12057562a8fd784f16791bdd59cf8
+
+#Sourced from opensource social network url
+#SOUCECODE_URL:elgg.org/about/getelgg?forward=elgg-6.3.4.zip
+(no checksum using this method)
+
+#This is the special data directory that will be set in the configuration of open source social network
+DATA_DIRECTORY:/var/www/html/ossn_data
+
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:logs:tmp:ossn_data
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:logs:tmp:ossn.config.db.php:ossn.config.site.php
+  
+#####################################################################################################################################################
+#These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
+#download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#and make a notification
+######################################################################################################################################################
+APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
+APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md:CONTRIBUTORS.md:COPYRIGHT.txt:index.php:LICENSE.md:opensource-socialnetwork.xml:README.md:robots.txt:SECURITY.md:SUPPORT.txt:TESTS.md:UPGRADE.txt
+
+######################################################################################################################################################
+#This sets the webroot of your application. You can change this according to your taste. 
+######################################################################################################################################################
+WEBROOT_DIRECTORY:/var/www/html/ossn
+
+########################################################################################################################################################
+#This sets the ossn config file(s) to be outside of the webroot. 
+######################################################################################################################################################
+CONFIG_FILE:/var/www/html/ossn.config.db.php
+CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
+
+#####################################################################################################################################################
+#Interactive install or not
+#If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
+#In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
+#what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your ossn application straight away
+#without providing any input
+#####################################################################################################################################################
+INTERACTIVE_APPLICATION_INSTALL:no
+
+###########################################################################################
+#Here you can list PHP modules that are required by ossn and the system will install them 
+###########################################################################################
+PHP_MODULES:curl:gd:zip:mysqli:pdo:simplexml:mbstring 
+CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=On:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html:upload_tmp_dir=/var/www/html/tmp:sys_temp_dir=/var/www/html/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
+CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_servers=10:pm.min_spare_servers=5:pm.max_spare_servers=20:pm.process_idle_timeout=10s
+
+#####################################################################################################################################################
+# Mandatory credential settings when making a non-interactive installation
+#These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
+#ossn non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+# ${BUILD_HOME}/application/ossn/SetApplicationConfig.sh
+#####################################################################################################################################################
+MANDATORY_INDIVIDUAL_SETTING:user='XXXXAPPLICATION_USERNAMEXXXX'
+MANDATORY_INDIVIDUAL_SETTING:password='XXXXAPPLICATION_PASSWORDXXXX'
+MANDATORY_INDIVIDUAL_SETTING:db='XXXXAPPLICATION_DATABASEXXXX'
