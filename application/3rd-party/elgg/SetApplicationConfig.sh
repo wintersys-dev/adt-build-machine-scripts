@@ -21,8 +21,6 @@
 #####################################################################################
 #set -x
 
-#WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/GetVariableValue.sh 'S3_ACCESS_KEY' | /usr/bin/head -c 12`" 
-
 if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application ] )
 then
 	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application
