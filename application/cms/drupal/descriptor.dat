@@ -54,6 +54,9 @@ DRUPAL_VERSION:drupal/recommended-project
 #CMS_MODULES_TO_INSTALL:
 #CMS_THEMES_TO_INSTALL:
 
+#See DRUPAL_MODULES_TO_INSTALL above for how this works because it works the same way for drupal cms as for drupal
+DRUPAL_TEMPLATES_TO_INSTALL:healthcare
+
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
