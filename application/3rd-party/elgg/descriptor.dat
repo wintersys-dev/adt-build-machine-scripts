@@ -13,8 +13,8 @@
 ELGG:git-branch:master
 
 #Sourced from github
-#SOURCECODE_URL:github.com/Elgg/Elgg/releases/download/6.3.4/elgg-6.3.4.zip
-#SOURCECODE_SHA256:6cc7f9facde1aea18e75c89b0cf2f3973c0f3202ec74a6e517a6979821203f14
+SOURCECODE_URL:github.com/Elgg/Elgg/releases/download/6.3.4/elgg-6.3.4.zip
+SOURCECODE_SHA256:6cc7f9facde1aea18e75c89b0cf2f3973c0f3202ec74a6e517a6979821203f14
 
 #Sourced from opensource social network url
 #SOUCECODE_URL:elgg.org/about/getelgg?forward=elgg-6.3.4.zip
