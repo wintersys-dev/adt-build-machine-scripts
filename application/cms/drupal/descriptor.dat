@@ -22,10 +22,10 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #Application Type (only uncomment one of these 2 depending on whether you want to install "drupal" or "drupal cms")
 ###################################################################
 # 1. To install drupal uncomment as required
-APPLICATION_TYPE:drupal
+#APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
-DRUPAL_VERSION:drupal/recommended-project
+#DRUPAL_VERSION:drupal/recommended-project
 #DRUPAL_VERSION:drupal/recommended-project:11.3.0
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
@@ -41,10 +41,10 @@ DRUPAL_VERSION:drupal/recommended-project
 
 ##########################################################
 #2. To install drupal CMS
-#APPLICATION_TYPE:cms
+APPLICATION_TYPE:cms
 
 #(pick which version of drupal cms you want to install by uncommenting one of these)
-#CMS_VERSION:drupal/cms
+CMS_VERSION:drupal/cms
 #CMS_VERSION:drupal/cms:2.0.4
 #CMS_VERSION:drupal/cms:^2.1@alpha
 #CMS_VERSION:drupal/cms:^2.1@beta
