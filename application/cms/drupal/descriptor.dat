@@ -91,7 +91,7 @@ EXCLUDE_FROM_BACKUP:logs:tmp:cache:settings.php
 #download or extraction of wordpress and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
-APPLICATION_INTEGRITY_DIRECTORIES:core:modules:profiles:../recipes:sites:themes:../vendor
+APPLICATION_INTEGRITY_DIRECTORIES:core:modules:profiles:sites:themes:../vendor
 APPLICATION_INTEGRITY_FILES:autoload.php:index.php:update.php
 
 
