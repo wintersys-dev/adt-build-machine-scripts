@@ -66,8 +66,7 @@ EXCLUDE_FROM_BACKUP:logs:tmp:cache:config.php
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:lib:admin:public/admin:public/ai:public/analytics:public/auth:public/availability:public/backup:public/badges:public/blocks:public/blog:public/cache:public/calendar:public/cohort:public/comment:public/communication:public/competency:public/completion:public/contentbank:public/course:public/customfield:public/dataformat:public/enrol:public/error:public/favourites:public/files:public/filter:public/grade:public/group:public/h5p:public/install:public/iplookup:public/lang:public/lib:public/local:public/login:public/media:public/message:public/mnet:public/mod:public/moodlenet:public/my:public/notes:public/payment:public/pix:public/plagiarism:public/portfolio:public/privacy:public/question:public/rating:public/report:public/reportbuilder:public/repository:public/rss:public/search:public/sms:public/tag:public/theme:public/user:public/userpix:public/webservice
-APPLICATION_INTEGRITY_FILES:
-
+APPLICATION_INTEGRITY_FILES:public/behat.yml.dist:public/brokenfile.php:public/draftfile.php:public/editmode.php:public/file.php:public/help.php:public/help_ajax.php:public/index.php:public/install.php:public/pluginfile.php:public/r.php:public/security.txt:public/tokenpluginfile.php:public/version.php
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
