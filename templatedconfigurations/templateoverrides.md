@@ -20,7 +20,7 @@ and also:
 
 **${BUILD_HOME}/templatedconfigurations/templates/${cloudhost}/${cloudhost}${SELECTED_TEMPLATE}.tmpl**
 
-Once you have decided with variables you want to override, override them in the copy of the Override Script that you made. pay attention to the template specification [Template Specification](https://github.com/wintersys-dev/adt-build-machine-scripts/blob/master/templatedconfigurations/specification.md). You can place your overrides in the override script as export statements, around about line 50 where it says, "Additionl Overrides". An example if given of how to override the WS_SIZE variable. 
+Once you have decided with variables you want to override, override them in the copy of the Override Script that you made. pay attention to the template specification [Template Specification](https://github.com/wintersys-dev/adt-build-machine-scripts/blob/master/specifications/specification.md). You can place your overrides in the override script as export statements, around about line 50 where it says, "Additionl Overrides". An example if given of how to override the WS_SIZE variable. 
 
 4. When you are very sure that you have completed all the overrides you require in your copy of the override script, paste the entire modified script into the "user data" part of a VPS system which you need to  spin up using your cloudhost's gui as your build machine on your cloudhost's infrastructure.
 
