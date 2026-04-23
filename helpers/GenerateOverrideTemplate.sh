@@ -117,7 +117,7 @@ do
                                 /bin/echo "############################################################################################"
                                 /bin/echo "Explanation from the specification regarding this variable:"
                                 /bin/echo "############################################################################################"
-                                /bin/sed "/### ${live_variable}/,/----/!d;/----/q" ${BUILD_HOME}/templatedconfigurations/specification.md
+                                /bin/sed "/### ${live_variable}/,/----/!d;/----/q" ${BUILD_HOME}/specifications/specification.md
                                 live_variable_green=`/bin/echo "${green}${live_variable}${text_reset}"` 
                                 /bin/echo 'Found a variable "'${live_variable_green}'" what do you want to set it to?'
                                 current_value="`/bin/grep -w "^export ${live_variable}=" ${override_script} | /usr/bin/awk -F'"' '"{print $2}"' | /usr/bin/awk -F'"' '{print $2}'`"
