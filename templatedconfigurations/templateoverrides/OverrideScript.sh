@@ -59,7 +59,22 @@ exec 2>>/root/${ERR_FILE}
 /bin/mkdir -p /home/${BUILDMACHINE_USER}/.ssh
 /bin/echo "${SSH}" >> /home/${BUILDMACHINE_USER}/.ssh/authorized_keys
 
-/bin/sed -i -e "s/^PasswordAuthentication.*/PasswordAuthentication no/g" -e "s/^#PasswordAuthentication.*/PasswordAuthentication no/g" -e "s/^PermitRootLogin.*/PermitRootLogin no/g" -e "s/^#PermitRootLogin.*/PermitRootLogin no/g" -e "s/^KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/g" -e "s/^#KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/g" -e "s/^AddressFamily.*/AddressFamily inet/g" -e "s/^#AddressFamily.*/AddressFamily inet/g" -e "s/^#LoginGraceTime/LoginGraceTime/g" -e "s/^#StrictModes/StrictModes/g" -e "s/^#MaxAuthTries/MaxAuthTries/g" -e "s/^#MaxSessions/MaxSessions/g" /etc/ssh/sshd_config
+/usr/bin/tee /etc/ssh/sshd_config.d/99-hardening.conf > /dev/null <<'EOF'
+PasswordAuthentication no
+PermitRootLogin no
+KbdInteractiveAuthentication no
+AddressFamily inet
+LoginGraceTime 60
+StrictModes yes
+MaxAuthTries 3
+MaxSessions 10
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+KerberosAuthentication no
+GSSAPIAuthentication no
+UsePAM no
+X11Forwarding no 
+EOF
 
 if ( [ "${BUILDMACHINE_SSH_PORT}" = "" ] )
 then
