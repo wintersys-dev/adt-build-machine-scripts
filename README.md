@@ -31,6 +31,10 @@ Scripts that relate to 3rd party services that the build depends on such as a gi
 **${BUILD_HOME}/adt-build-machine-scripts/selection**  
 Scripts that prompt for selection between particular service options when there needs to be a choice made.   
 
+**${BUILD_HOME}/adt-build-machine-scripts/specifications**   
+The specifications are put under this directory, that includes the reference specification and the quick specification. 
+
+
 **${BUILD_HOME}/adt-build-machine-scripts/templatedconfigurations**  
 Scripts related to the templating system of the current build
 
