@@ -55,7 +55,7 @@ echo () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-quick_specification="${BUILD_HOME}/templatedconfigurations/quick_specification.dat"
+quick_specification="${BUILD_HOME}/specifications/quick_specification.dat"
 status_set="0"
 
 if ( [ "${1}" != "" ] )
