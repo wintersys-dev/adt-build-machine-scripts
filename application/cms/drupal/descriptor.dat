@@ -57,7 +57,8 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #3. To install drooplet
 
 APPLICATION_TYPE:droopler
-DROOPLER_VERSION:droptica/droopler-project
+#DROOPLER_VERSION:droptica/droopler-project
+DROOPLER_VERSION:droptica/droopler-project:^5.1.0
 
 
 ######################################################################################################################################################
