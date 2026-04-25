@@ -87,8 +87,8 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:drupal/sites/default/files:private
 EXCLUDE_FROM_BACKUP:logs:tmp:cache:settings.php
 
 #####################################################################################################################################################
-#These settings pick various directories and files which should be present in a wordpress installation. What that means is that if there is a partial
-#download or extraction of wordpress and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
+#download or extraction of drupal and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:core:modules:profiles:sites:themes:../vendor
@@ -100,7 +100,7 @@ APPLICATION_INTEGRITY_FILES:autoload.php:index.php:update.php
 #If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
 #In interactive mode, the database credentials, database identifier and port are displayed as part of the build logging output and you can find out
 #what they are in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
-#If this is set to "no" then the installtion should complete without pausing and you will be able to access your wordpress application straight away
+#If this is set to "no" then the installtion should complete without pausing and you will be able to access your drupal application straight away
 #without providing any input
 #####################################################################################################################################################
 INTERACTIVE_APPLICATION_INSTALL:no
@@ -116,7 +116,7 @@ CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_serv
 #####################################################################################################################################################
 # Mandatory credential settings when making a non-interactive installation
 #These are mandatory database settings that are absolutely required for there to be any chance of your application coming online if you are installing
-#wordpress non-interactively. Notice that placeholders are used and are populated privately with live data in the script
+#drupal non-interactively. Notice that placeholders are used and are populated privately with live data in the script
 # ${BUILD_HOME}/application/wordpress/SetApplicationConfig.sh
 #####################################################################################################################################################
 MANDATORY_INDIVIDUAL_SETTING:username=XXXXAPPLICATION_USERNAMEXXXX
