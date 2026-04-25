@@ -54,12 +54,6 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #CMS_MODULES_TO_INSTALL:
 #CMS_THEMES_TO_INSTALL:
 
-#3. To install drooplet
-
-APPLICATION_TYPE:droopler
-#DROOPLER_VERSION:droptica/droopler-project
-DROOPLER_VERSION:droptica/droopler-project:^5.1.0
-
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
