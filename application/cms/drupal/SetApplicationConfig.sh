@@ -22,6 +22,7 @@
 #set -x
 
 WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/GetVariableValue.sh 'S3_ACCESS_KEY' | /usr/bin/head -c 12`" 
+WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh 'WEBSITE_URL' | /bin/sed 's/\./\\\\\\\./g'`" 
 
 if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application ] )
 then
@@ -35,3 +36,6 @@ fi
 /bin/sed -i "s/XXXXAPPLICATION_PASSWORDXXXX/${DB_PASSWORD}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXAPPLICATION_DATABASEXXXX/${DB_NAME}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXWEBSITE_PASSWORDXXXX/${WEBSITE_PASSWORD}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+/bin/sed -i "s/XXXXWEBSITE_URLXXXX/${WEBSITE_URL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+
+
