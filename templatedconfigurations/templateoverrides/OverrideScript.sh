@@ -59,11 +59,11 @@ exec 2>>/root/${ERR_FILE}
 /bin/mkdir -p /home/${BUILDMACHINE_USER}/.ssh
 /bin/echo "${SSH}" >> /home/${BUILDMACHINE_USER}/.ssh/authorized_keys
 
-/usr/bin/tee /etc/ssh/sshd_config.d/99-hardening.conf > /dev/null <<'EOF'
-PasswordAuthentication no
+/bin/echo "PasswordAuthentication no
 PermitRootLogin no
 KbdInteractiveAuthentication no
 AddressFamily inet
+LoginGraceTime 60
 StrictModes yes
 MaxAuthTries 3
 MaxSessions 10
@@ -72,8 +72,7 @@ PermitEmptyPasswords no
 KerberosAuthentication no
 GSSAPIAuthentication no
 UsePAM no
-X11Forwarding no 
-EOF
+X11Forwarding no" > /etc/ssh/sshd_config.d/99-hardening.conf
 
 if ( [ "${BUILDMACHINE_SSH_PORT}" = "" ] )
 then
