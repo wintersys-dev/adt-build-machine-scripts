@@ -9,7 +9,7 @@ Here we have scripts related to the custom application that is being deployed, "
 **${BUILD_HOME}/adt-build-machine-scripts/descriptors**  
 This is where the descriptors are for the current build. You can make changes to the files that are here to configure a different build out  
 
-**${BUILD_HOME}/adt-build-machine-scripts/build**  
+**${BUILD_HOME}/adt-build-machine-scripts/buildservers**  
 These scripts will build different classes of server machine, for example, database, webserver or autoscaler machine types  
 
 **${BUILD_HOME}/adt-build-machine-scripts/helpers**  
