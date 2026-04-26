@@ -6,6 +6,9 @@
 # parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
 ##########################################################################################################################################
 
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Drupal Website
+
 #################################################################################################################################################
 # Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
 #################################################################################################################################################
