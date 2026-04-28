@@ -23,6 +23,9 @@ WEBROOT_DIRECTORY:/var/www/html/social-messenger
 CONFIG_FILE:/var/www/html/config.php
 
 
+api:login:logout:signup:src chat.php:database.sql:favicon.ico:index.php:README.md
+
+
 ###########################################################################################
 #Here you can list PHP modules that are required by ossn and the system will install them 
 ###########################################################################################
