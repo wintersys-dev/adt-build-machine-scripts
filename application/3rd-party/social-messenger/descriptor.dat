@@ -16,3 +16,4 @@ SOCIAL-MESSENGER:git-branch:main
 #This sets the webroot of your application. You can change this according to your taste. 
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/social-messenger
+
