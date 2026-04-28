@@ -22,9 +22,26 @@ WEBROOT_DIRECTORY:/var/www/html/social-messenger
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/config.php
 
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:
 
-api:login:logout:signup:src chat.php:database.sql:favicon.ico:index.php:README.md
-
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:config.php
+  
+#####################################################################################################################################################
+#These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
+#download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
+#and make a notification
+######################################################################################################################################################
+APPLICATION_INTEGRITY_DIRECTORIES:api:login:logout:signup:src
+APPLICATION_INTEGRITY_FILES:chat.php:database.sql:favicon.ico:index.php:README.md
 
 ###########################################################################################
 #Here you can list PHP modules that are required by ossn and the system will install them 
