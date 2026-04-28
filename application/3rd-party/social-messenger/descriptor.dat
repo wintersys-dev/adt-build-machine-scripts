@@ -1,0 +1,13 @@
+##########################################################################################################################################
+# This is an application descriptor for Open Source Social Network. 
+# https://www.opensource-socialnetwork.org/
+# Using this technique you can automate the installation of open source social network.
+# Here you will find various details required for the successful installation of open source social network. Using descriptors we can
+# aim for consistent installation processes which takes some of the potential for error out of the installation process.
+##########################################################################################################################################
+
+##########################################################################################################################################
+# ossn version and URL to download ossn sourcecode from (uncomment or modify according to which version of ossn you want to install)
+##########################################################################################################################################
+#To install from a git branch, use this
+OSSN:git-branch:master
