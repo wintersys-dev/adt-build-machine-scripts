@@ -291,7 +291,7 @@ then
 		/bin/sleep 1
 		for rp_active_ip in ${rp_active_ips}
 		do
-			rp_webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${rp_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallWebserver.sh && /bin/echo 'INSTALL_WEBSERVER'"`" >&3
+			rp_webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${rp_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallReverseProxy.sh && /bin/echo 'REVERSE_PROXY_INSTALLED'"`" >&3
 			if ( [ "${rp_webserver_installed}" = "" ] )
 			then
 				rp_webserver_installed=""
@@ -311,7 +311,7 @@ then
 		/bin/sleep 1
 		for ws_active_ip in ${ws_active_ips}
 		do
-			webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallWebserver.sh && /bin/echo 'INSTALL_WEBSERVER'"`" >&3
+			webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallWebserver.sh && /bin/echo 'WEBSERVER_INSTALLED'"`" >&3
 			if ( [ "${webserver_installed}" = "" ] )
 			then
 				webserver_installed=""
