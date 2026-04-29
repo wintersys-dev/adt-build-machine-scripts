@@ -33,10 +33,12 @@ linode_firewall_rules ()
                 then
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
                         ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
-                        firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}'
+                        if ( [ "`/bin/echo ${ip_address} | /bin/fgrep -o . | /usr/bin/wc -l`" = "3" ] )
+                        then
+                                firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}'
+                        fi
                 fi
         done
-        #firewall_rules="`/bin/echo ${firewall_rules} | /bin/sed 's/,$//g'`"
         /bin/echo "${firewall_rules}"
 }
 
