@@ -599,7 +599,7 @@ You can set the cloudhost to Digital Ocean, for example by setting the CLOUDHOST
 
 (I realised that if English is not your first language my naming convention NO_ might be confusing because it looks like no (as in none). So, please note: the abbreviation "no." (from Latin numero) always refers to quantity or indicates "number" or number of so NO_AUTHENTICATORS expands to "number of authenticators")
 
-The number of authenticators you want to deploy.
+The number of authenticators you want to deploy up to a maximumm of 3 authenticators. 
 
 -------------------------
 
