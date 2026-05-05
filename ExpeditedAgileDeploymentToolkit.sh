@@ -444,6 +444,10 @@ ${BUILD_HOME}/initialisation/InitialiseDatabaseService.sh
 # where and if this is possible
 ${BUILD_HOME}/services/dbaas/AdjustDBaaSFirewall.sh
 
+# We perform the build using cloud-init scripts passed to the server being provisioned when it is created using the CLI
+# This script will substitute placeholder tokens for live values
+${BUILD_HOME}/initialisation/InitialiseCloudInit.sh 
+
 # If we are building an authentication server then that server will require its own SSL certificate, so, generate one here
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 then
@@ -452,11 +456,6 @@ fi
 
 # Generate the SSL certificate that will be used by our webservers
 ${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh 
-
-# We perform the build using cloud-init scripts passed to the server being provisioned when it is created using the CLI
-# This script will substitute placeholder tokens for live values
-${BUILD_HOME}/initialisation/InitialiseCloudInit.sh 
-
 
 if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
 then
