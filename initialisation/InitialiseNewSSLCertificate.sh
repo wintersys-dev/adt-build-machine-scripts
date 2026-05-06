@@ -64,7 +64,7 @@ else
         WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL`"
 fi
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" != "yes" ] )
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
 then
         datastore_identifier="wireguard-rp-ssl"
         WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
