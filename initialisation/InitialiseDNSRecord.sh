@@ -31,9 +31,8 @@ status () {
 ip="${1}" #the IP address of the webserver
 record="${2}"
 website_url="${3}" #The URL of the website
-
-
 auth="${4}"
+
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/GetVariableValue.sh CLOUDHOST`"
@@ -59,6 +58,11 @@ then
 	DNS_USERNAME="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTH_DNS_USERNAME`"
 	DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
 	DNS_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTH_DNS_CHOICE`"
+else
+	if ( [ "${auth}" = "wire-guard" ] )
+	then
+		WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www8/www/g'`"
+	fi
 fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
