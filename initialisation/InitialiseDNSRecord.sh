@@ -31,6 +31,8 @@ status () {
 ip="${1}" #the IP address of the webserver
 record="${2}"
 website_url="${3}" #The URL of the website
+
+
 auth="${4}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -42,6 +44,12 @@ DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/GetVariableValue.sh DNS_SECURITY_KEY`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh DNS_CHOICE`"
 MULTI_REGION="`${BUILD_HOME}/helpers/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/GetVariableValue.sh PRIMARY_REGION`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+
+if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
+then
+
+fi
 
 if ( [ "${website_url}" != "" ] )
 then
