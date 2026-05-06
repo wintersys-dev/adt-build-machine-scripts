@@ -56,6 +56,13 @@ MOD_SECURITY="`${BUILD_HOME}/helpers/GetVariableValue.sh MOD_SECURITY`"
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
 
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+then
+        subdomain="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'"
+        WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+        /bin/sed 's/^WEBSITE_URL:.*/WEBSITE_URL:${WEBSITE_URL}' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/reverseproxy_configuration_settings.dat
+fi
+
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 OPTIONS="-o ConnectTimeout=10 -o ConnectionAttempts=5 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
 SUDO="DEBIAN_FRONTEND=noninteractive /bin/echo ${SERVER_USER_PASSWORD} | /usr/bin/sudo -S -E "
