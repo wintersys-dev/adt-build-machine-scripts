@@ -61,7 +61,6 @@ then
 elif ( [ "${bucket_type}" = "wireguard-rp-ssl" ] )
 then
         WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www8/www/g'`"        
-        DNS_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTH_DNS_CHOICE`"
         if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
         then
                 service_token="lets"
