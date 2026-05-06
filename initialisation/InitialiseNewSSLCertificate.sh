@@ -45,6 +45,7 @@ SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION
 SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION_SERVICE`"
 CLOUDHOST="`${BUILD_HOME}/helpers/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_IDENTIFIER`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh DNS_CHOICE`"
 datastore_identifier="ssl"
 config_datastore_identifier="config"
@@ -167,7 +168,13 @@ then
 				fi
 			fi
 
-			${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
+			then
+				rp_website_url="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
+				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${rp_website_url}" "${auth}"
+			fi
+			
+			${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
 		fi
 
 		if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
@@ -182,7 +189,13 @@ then
 				fi
 			fi
 
-			${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
+			then
+				rp_website_url="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
+				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${rp_website_url}" "${auth}"
+			fi
+
+			${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
 			/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem
 		fi
 
