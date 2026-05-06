@@ -60,7 +60,7 @@ SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 then
         WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
-        /bin/sed 's/^WEBSITE_URL:.*/WEBSITE_URL:${WEBSITE_URL}' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/reverseproxy_configuration_settings.dat
+        /bin/sed -i "s/^WEBSITEURL:.*/WEBSITEURL:${WEBSITE_URL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/reverseproxy_configuration_settings.dat
 fi
 
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
