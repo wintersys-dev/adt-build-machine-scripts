@@ -79,7 +79,7 @@ firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /b
 ${BUILD_HOME}/application/SetApplicationConfig.sh
 application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 then
 	subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
 	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
