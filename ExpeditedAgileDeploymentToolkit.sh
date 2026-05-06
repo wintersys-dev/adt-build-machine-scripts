@@ -455,7 +455,7 @@ then
 fi
 
 # Generate the SSL certificate that will be used by our webservers
-${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh 
+${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "" "no"
 
 # Generate the SSL certificate if we are using wireguard
 ${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "" "wire-guard"
