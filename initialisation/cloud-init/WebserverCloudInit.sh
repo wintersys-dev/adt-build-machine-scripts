@@ -52,13 +52,6 @@ DB_USERNAME="`${BUILD_HOME}/helpers/GetVariableValue.sh DB_USERNAME`"
 DB_PASSWORD="`${BUILD_HOME}/helpers/GetVariableValue.sh DB_PASSWORD`"
 GIT_BRANCH="`/bin/grep "^GITBRANCH:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
-then
-        subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
-        WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
-        /bin/sed 's/^WEBSITE_URL:.*/WEBSITE_URL:${WEBSITE_URL}' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/webserver_configuration_settings.dat
-fi
-
 git_provider_domain="`${BUILD_HOME}/services/git/GitProviderDomain.sh ${INFRASTRUCTURE_REPOSITORY_PROVIDER}`"
 
 /bin/cp /dev/null ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/webserver_configuration_settings.dat
