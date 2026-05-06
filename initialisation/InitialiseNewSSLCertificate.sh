@@ -98,6 +98,9 @@ then
 	service_token="zero"
 fi
 
+subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
+service_website_url="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+
 #ssl_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
 #ssl_bucket="${ssl_bucket}-${DNS_CHOICE}-${service_token}-ssl"
 
@@ -165,8 +168,10 @@ then
 				fi
 			fi
 
-				subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
-	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] && [ "${auth}" = "no" ] )
+			then
+				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${service_website_url} ${auth}
+			fi
 
 			${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
 		fi
@@ -181,6 +186,11 @@ then
 				else
 					/bin/echo "SSLCERTCLIENT:acme:github.com" >> ${BUILD_HOME}/configuration/software.dat
 				fi
+			fi
+
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] && [ "${auth}" = "no" ] )
+			then
+				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${service_website_url} ${auth}
 			fi
 
 			${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
