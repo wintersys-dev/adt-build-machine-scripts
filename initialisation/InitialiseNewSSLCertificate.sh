@@ -45,6 +45,7 @@ SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION
 SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION_SERVICE`"
 CLOUDHOST="`${BUILD_HOME}/helpers/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_IDENTIFIER`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh DNS_CHOICE`"
 datastore_identifier="ssl"
 config_datastore_identifier="config"
