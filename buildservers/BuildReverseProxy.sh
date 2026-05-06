@@ -58,7 +58,7 @@ SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 then
-        subdomain="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'"
+        subdomain="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
         WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
         /bin/sed 's/^WEBSITE_URL:.*/WEBSITE_URL:${WEBSITE_URL}' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/reverseproxy_configuration_settings.dat
 fi
