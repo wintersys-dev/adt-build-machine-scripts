@@ -103,12 +103,6 @@ then
 	service_token="zero"
 fi
 
-subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
-service_website_url="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
-
-#ssl_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-#ssl_bucket="${ssl_bucket}-${DNS_CHOICE}-${service_token}-ssl"
-
 ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "${datastore_identifier}" "local" 
 
 if ( ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] ) || ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] ) )
@@ -273,7 +267,7 @@ then
 			${BUILD_HOME}/services/email/SendEmail.sh "NEW SSL CERTIFICATE PUT IN DATASTORE" "SSL Certificate successfully provisioned/generated" "INFO"
 		fi
 	else
-		${BUILD_HOME}/services/email/SendEmail.sh "SSL CERTIFICATE NOT SUCCESSFULLY GENERATED" "SSL Certificate not successfully provisioned/generated" "INFO"
+		${BUILD_HOME}/services/email/SendEmail.sh "SSL CERTIFICATE NOT SUCCESSFULLY GENERATED" "SSL Certificate not successfully provisioned/generated" "ERROR"
 		status "SSL Certificate not successfully provisioned/generated"
 		/bin/touch /tmp/END_IT_ALL
 	fi
