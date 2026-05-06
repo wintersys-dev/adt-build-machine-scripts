@@ -28,12 +28,9 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-
-website_url="${1}"
-auth="${2}"
+auth="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 if ( [ "`/usr/bin/pwd`" != "${BUILD_HOME}" ] )
 then
         cd ${BUILD_HOME}
