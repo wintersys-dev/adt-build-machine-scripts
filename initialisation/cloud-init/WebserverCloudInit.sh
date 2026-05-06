@@ -37,6 +37,7 @@ ALGORITHM="`${BUILD_HOME}/helpers/GetVariableValue.sh ALGORITHM`"
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
 SERVER_USER_PASSWORD_HASHED="`/usr/bin/mkpasswd -m sha512crypt ${SERVER_USER_PASSWORD}`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 INFRASTRUCTURE_REPOSITORY_OWNER="`${BUILD_HOME}/helpers/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_OWNER`"
 INFRASTRUCTURE_REPOSITORY_PROVIDER="`${BUILD_HOME}/helpers/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_PROVIDER`"
 SSH_PUBLIC_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}.pub`"
@@ -77,6 +78,10 @@ firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /b
 ${BUILD_HOME}/application/SetApplicationConfig.sh
 application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
+if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
+then
+
+fi
 
 from_snapshot=""
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
