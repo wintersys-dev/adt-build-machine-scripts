@@ -32,7 +32,6 @@ status () {
 website_url="${1}"
 auth="${2}"
 
-AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "`/usr/bin/pwd`" != "${BUILD_HOME}" ] )
@@ -48,7 +47,6 @@ then
                 exit
         fi
 fi
-
 
 SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION_METHOD`"
 SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/GetVariableValue.sh SSL_GENERATION_SERVICE`"
