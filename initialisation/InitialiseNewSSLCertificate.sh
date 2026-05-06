@@ -169,8 +169,8 @@ then
 
 			if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" != "yes" ] )
 			then
-				rp_website_url="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
-				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${rp_website_url}" "${auth}"
+				WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
+				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
 			else
 				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
 			fi
