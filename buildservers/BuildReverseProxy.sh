@@ -47,6 +47,7 @@ BUILDOS="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILDOS`"
 BUILDOS_VERSION="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILDOS_VERSION`"
 RP_SERVER_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh RP_SERVER_TYPE`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_MACHINE_VPC`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 SSH_PORT="`${BUILD_HOME}/helpers/GetVariableValue.sh SSH_PORT`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_MACHINE_VPC`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www8/www/g'`"
@@ -225,9 +226,9 @@ do
 						if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DNS_PRIMED ] )
 						then
 							/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DNS_PRIMED
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary"
+							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "${AUTHENTICATOR_TYPE}"
 						else
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary"	
+							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" "${AUTHENTICATOR_TYPE}"
 						fi
                         finished="1"
                 fi
