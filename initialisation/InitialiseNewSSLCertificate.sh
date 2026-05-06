@@ -67,6 +67,7 @@ fi
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" != "yes" ] )
 then
         datastore_identifier="wireguard-rp-ssl"
+        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
 fi
 
 if ( [ "${auth}" = "yes" ] )
@@ -153,13 +154,7 @@ then
                                 fi
                         fi
 
-                        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" != "yes" ] )
-                        then
-                                WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
-                                ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
-                        else
-                                ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
-                        fi
+                        ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
                 fi
 
                 if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
@@ -174,13 +169,7 @@ then
                                 fi
                         fi
 
-                        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" != "yes" ] )
-                        then
-                                WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
-                                ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
-                        else
-                                ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
-                        fi
+                        ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
                         /bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem
                 fi
 
