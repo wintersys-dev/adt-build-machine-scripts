@@ -46,11 +46,6 @@ MULTI_REGION="`${BUILD_HOME}/helpers/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/GetVariableValue.sh PRIMARY_REGION`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
-then
-
-fi
-
 if ( [ "${website_url}" != "" ] )
 then
 	WEBSITE_URL="${website_url}"
@@ -58,6 +53,11 @@ else
 	WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL`"
 fi
 
+if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
+then
+	subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
+	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+fi
 
 if ( [ "${auth}" = "yes" ] )
 then
