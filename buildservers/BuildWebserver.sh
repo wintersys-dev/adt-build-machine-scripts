@@ -253,7 +253,7 @@ do
 			finished="0"
 		else
 			#If we are here then the build did succeed and we can add the IP address to the DNS system
-			if ( [ "${NO_REVERSE_PROXY}" = "0" ] || [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+			if ( [ "${NO_REVERSE_PROXY}" = "0" ] )
 			then
 				if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DNS_PRIMED ] )
 				then
