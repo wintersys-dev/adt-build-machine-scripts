@@ -53,7 +53,7 @@ else
 	WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL`"
 fi
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
+if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] && [ "${auth}" != "yes" ]  )
 then
 	subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
 	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
