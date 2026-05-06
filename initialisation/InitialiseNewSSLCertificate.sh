@@ -168,7 +168,7 @@ then
 				fi
 			fi
 
-			if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] && [ "${auth}" = "no" ] )
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
 			then
 				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${service_website_url} ${auth}
 			fi
@@ -188,7 +188,7 @@ then
 				fi
 			fi
 
-			if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] && [ "${auth}" = "no" ] )
+			if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
 			then
 				${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${service_website_url} ${auth}
 			fi
