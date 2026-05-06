@@ -54,6 +54,7 @@ BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_MACHINE_VPC`
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
 INFRASTRUCTURE_REPOSITORY_OWNER="`${BUILD_HOME}/helpers/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_OWNER`"
 NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/GetVariableValue.sh NO_REVERSE_PROXY`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 WEBSERVER_CHOICE="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSERVER_CHOICE`"
 MOD_SECURITY="`${BUILD_HOME}/helpers/GetVariableValue.sh MOD_SECURITY`"
 SSH_PORT="`${BUILD_HOME}/helpers/GetVariableValue.sh SSH_PORT`"
@@ -252,7 +253,7 @@ do
 			finished="0"
 		else
 			#If we are here then the build did succeed and we can add the IP address to the DNS system
-			if ( [ "${NO_REVERSE_PROXY}" = "0" ] )
+			if ( [ "${NO_REVERSE_PROXY}" = "0" ] || [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 			then
 				if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DNS_PRIMED ] )
 				then
