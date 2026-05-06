@@ -81,7 +81,8 @@ application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
 then
-	subdomain="`/bin/echo www8.the-galley.uk | /usr/bin/awk -F'.' '{print $1}'`-service"
+	subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
+	WEBSITE_URL="`/bin/echo "${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
 fi
 
 from_snapshot=""
