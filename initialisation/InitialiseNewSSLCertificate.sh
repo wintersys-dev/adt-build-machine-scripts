@@ -164,6 +164,9 @@ then
 				fi
 			fi
 
+				subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
+	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+
 			${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
 		fi
 
