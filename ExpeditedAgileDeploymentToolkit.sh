@@ -451,14 +451,14 @@ ${BUILD_HOME}/initialisation/InitialiseCloudInit.sh
 # If we are building an authentication server then that server will require its own SSL certificate, so, generate one here
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 then
-	${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "FILLER" "yes" 
+	${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" 
 fi
 
 # Generate the SSL certificate that will be used by our webservers
-${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "" "no"
+${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "no"
 
 # Generate the SSL certificate if we are using wireguard
-${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "" "wire-guard"
+${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "wire-guard"
 
 if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
 then
