@@ -38,6 +38,7 @@ SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cr
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
 SERVER_USER_PASSWORD_HASHED="`/usr/bin/mkpasswd -m sha512crypt ${SERVER_USER_PASSWORD}`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+WEBSITE_URL="`${BUILD_HOME}/helpers/GetVariableValue.sh WEBSITE_URL`"
 INFRASTRUCTURE_REPOSITORY_OWNER="`${BUILD_HOME}/helpers/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_OWNER`"
 INFRASTRUCTURE_REPOSITORY_PROVIDER="`${BUILD_HOME}/helpers/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_PROVIDER`"
 SSH_PUBLIC_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}.pub`"
@@ -80,7 +81,7 @@ application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
 then
-
+	subdomain="`/bin/echo www8.the-galley.uk | /usr/bin/awk -F'.' '{print $1}'`-service"
 fi
 
 from_snapshot=""
