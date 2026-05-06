@@ -457,6 +457,9 @@ fi
 # Generate the SSL certificate that will be used by our webservers
 ${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh 
 
+# Generate the SSL certificate if we are using wireguard
+${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "" "wire-guard"
+
 if ( [ "`${BUILD_HOME}/helpers/IsHardcoreBuild.sh`" != "1" ] )
 then
 	status ""
