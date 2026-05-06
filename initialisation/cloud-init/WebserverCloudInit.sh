@@ -83,6 +83,7 @@ if ( [ "${AUTHENTICATOR_TYPE}" = "wireguard" ] )
 then
 	subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`-service"
 	WEBSITE_URL="${subdomain}`/bin/echo ${WEBSITE_URL} | awk -F'.' '{OFS=".";$1=""}1'`"
+	/bin/sed 's/^WEBSITE_URL:.*/WEBSITE_URL:${WEBSITE_URL}' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/webserver_configuration_settings.dat
 fi
 
 from_snapshot=""
