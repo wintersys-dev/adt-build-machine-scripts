@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# shellcheck disable=SC2034
+dns_dgon_info='DigitalOcean.com
+Site: DigitalOcean.com/help/api/
+Docs: github.com/acmesh-official/acme.sh/wiki/dnsapi#dns_dgon
+Options:
+DO_API_KEY API Key
+Author: <github@thewer.com>
+'
+
+#set -x
+
+#####################  Public functions  #####################
+
+## Create the text record for validation.
+## Usage: fulldomain txtvalue
+## EG: "_acme-challenge.www.other.domain.com" "XKrxpRBosdq0HG9i01zxXp5CPBs"
+dns_dgon_add() {
+        fulldomain="$(echo "$1" | _lower_case)"
+        txtvalue=$2
+
+        _sub_domain="`/bin/echo ${fulldomain} | /usr/bin/cut -d '.' -f -2`"
+        _domain="`/bin/echo ${fulldomain} | /usr/bin/cut -d '.' -f 3-`"
+
+        _debug _sub_domain "$_sub_domain"
+        _debug _domain "$_domain"
+
+        _info "Adding record"
+
+        if ( [ "`/usr/local/bin/doctl compute domain records list $_domain --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select ( .data | contains ( "'$txtvalue'")).id'`" = "" ] )
+        then
+                /usr/local/bin/doctl compute domain records create --record-type TXT --record-name $_sub_domain --record-data $txtvalue  --record-ttl 60 --config /root/.config/doctl/dns-do-config.yaml $_domain 
+        fi
+
+        if ( [ "`/usr/local/bin/doctl compute domain records list $_domain --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select ( .data | contains ( "'$txtvalue'")).id'`" != "" ] )
+        then
+                _info "Added, OK"
+                return 0
+        fi
+
+        _err "Add txt record error."
+        return 1
+
+}
+
+## Remove the txt record after validation.
+## Usage: fulldomain txtvalue
+## EG: "_acme-challenge.www.other.domain.com" "XKrxpRBosdq0HG9i01zxXp5CPBs"
+dns_dgon_rm() {
+        fulldomain="$(echo "$1" | _lower_case)"
+        txtvalue=$2
+
+        _domain="`/bin/echo ${fulldomain} | /usr/bin/cut -d '.' -f 3-`"
+        _domain_id="`/usr/local/bin/doctl compute domain records list $_domain --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select ( .data | contains ( "'$txtvalue'")).id'`"
+
+        if ( [ "`/usr/local/bin/doctl compute domain records list $_domain --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select ( .data | contains ( "'$txtvalue'")).id'`" != "" ] )
+        then
+                /usr/local/bin/doctl compute domain records delete $_domain ${_domain_id}  --force --config /root/.config/doctl/dns-do-config.yaml
+        fi
+
+        if ( [ "`/usr/local/bin/doctl compute domain records list $_domain --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select ( .data | contains ( "'$txtvalue'")).id'`" = "" ] )
+        then
+                _info "Removed, OK"
+                return 0
+        fi
+
+        _err "Remove txt record error."
+        return 1
+}

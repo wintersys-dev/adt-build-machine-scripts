@@ -1,0 +1,54 @@
+#cloud-config
+
+users:
+  - name: XXXXSERVER_USERXXXX
+    passwd: 'XXXXSERVER_USER_PASSWORDXXXX'
+    groups: [ sudo ]
+    shell: /bin/bash
+    lock_passwd: false
+
+hostname: XXXXAUTOSCALER_HOSTNAMEXXXX
+
+write_files:
+- path: /etc/netplan/eth1.yaml
+  content: |
+    network:
+      version: 2
+      ethernets:
+        eth1:
+          dhcp4: true
+  permissions: '0600'
+- encoding: b64
+  content: XXXXAUTOSCALER_CONFIGURATIONXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat.gz
+  permissions: '0644'
+- encoding: b64
+  content: XXXXWEBSERVER_CONFIGURATIONXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz
+  permissions: '0644'
+- encoding: b64
+  content: XXXXBUILDSTYLES_SETTINGSXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz
+  permissions: '0644'
+  
+package_update: true
+package_upgrade: true
+
+runcmd:
+  - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
+  - '/usr/sbin/locale-gen'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/autoscaler_configuration_settings.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/software.dat /home/XXXXSERVER_USERXXXX/runtime/software.dat'  
+  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type d -exec chmod 755 {} \;' 
+  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type f -exec chmod 750 {} \;'
+  - '/usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX'
+  - '/home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart'
+  - '/home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "cron" restart'
+  - '/bin/sh /home/XXXXSERVER_USERXXXX/security/ResetFirewall.sh'
