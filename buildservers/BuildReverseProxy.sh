@@ -225,9 +225,19 @@ do
 						if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED ] )
 						then
 							/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "" "${AUTHENTICATOR_TYPE}"
+							if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+							then
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh "10.0.0.1" "primary" "" "${AUTHENTICATOR_TYPE}"
+							else
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "" "${AUTHENTICATOR_TYPE}"
+							fi
 						else
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" "" "${AUTHENTICATOR_TYPE}"
+							if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+							then
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh 10.0.0.1 "secondary" "" "${AUTHENTICATOR_TYPE}"
+							else
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" "" "${AUTHENTICATOR_TYPE}"
+							fi
 						fi
                         finished="1"
                 fi
