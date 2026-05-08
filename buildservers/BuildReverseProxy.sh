@@ -232,12 +232,7 @@ do
 								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "" "${AUTHENTICATOR_TYPE}"
 							fi
 						else
-							if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
-							then
-								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh 10.0.0.1 "secondary" "" "${AUTHENTICATOR_TYPE}"
-							else
 								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" "" "${AUTHENTICATOR_TYPE}"
-							fi
 						fi
                         finished="1"
                 fi
