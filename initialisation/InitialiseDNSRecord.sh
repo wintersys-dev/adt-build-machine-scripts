@@ -61,7 +61,7 @@ then
 else
 	if ( [ "${auth}" = "wire-guard" ] )
 	then
-		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www8/www/g'`"
+		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www-protected/www/g'`"
 	fi
 fi
 
