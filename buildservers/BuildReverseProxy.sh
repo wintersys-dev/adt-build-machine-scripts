@@ -50,7 +50,7 @@ BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MAC
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
-WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www8/www/g'`"
+WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL | /bin/sed 's/www-protected/www/g'`"
 NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
 WEBSERVER_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSERVER_CHOICE`"
 MOD_SECURITY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MOD_SECURITY`"
@@ -59,7 +59,7 @@ SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 then
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www8/www/g'`"
+        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www-protected/www/g'`"
         /bin/sed -i "s/^WEBSITEURL:.*/WEBSITEURL:${WEBSITE_URL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/reverseproxy_configuration_settings.dat
 fi
 
