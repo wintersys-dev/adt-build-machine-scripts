@@ -65,7 +65,8 @@ then
 elif ( [ "${bucket_type}" = "wireguard-rp-ssl" ] )
 then
         website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/${website_subdomain}-protected/${website_subdomain}/g"`"
+        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/\-protected//g"`"
+
         DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
         
         if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
