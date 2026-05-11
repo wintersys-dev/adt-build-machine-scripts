@@ -64,7 +64,8 @@ fi
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] )
 then
         datastore_identifier="wireguard-rp-ssl"
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/www-protected/www/g'`"
+        website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/${website_subdomain}-protected/${website_subdomain}/g"`"
 fi
 
 if ( [ "${auth}" = "yes" ] )
