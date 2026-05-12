@@ -222,10 +222,10 @@ LIGHTTPD:software-packages:autoconf:build-essential:automake:libtool:pkg-config:
 ###Set what base PHP libraries you want installed. Install application specific libraries in your application descriptor####
 PHP:cli:fpm|9176  
 #---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
-#DATASTOREMOUNTTOOL:rclone:binary
+DATASTOREMOUNTTOOL:rclone:binary
 #DATASTOREMOUNTTOOL:s3fs:source
 #DATASTOREMOUNTTOOL:goof:binary
-DATASTOREMOUNTTOOL:geesefs:source
+#DATASTOREMOUNTTOOL:geesefs:source
 #---------------------------------------------DATASTORE CONFIG TOOL OPERATION STYLE-------------------------------------------------------
 DATASTORECONFIGSTYLE:tool
 #DATASTORECONFIGSTYLE:lightweight
