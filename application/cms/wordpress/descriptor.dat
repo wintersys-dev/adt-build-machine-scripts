@@ -100,7 +100,8 @@ CONFIG_FILE:/var/www/html/wp-config.php
 #ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
-WEBROOT_DIRECTORIES_TO_MOUNT:wp-config
+WEBROOT_DIRECTORIES_TO_MOUNT:wp-content
+LINK_INSIDE_WEBROOT:wp-content
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a wordpress installation. What that means is that if there is a partial
