@@ -58,9 +58,6 @@
 # DATASTORECONFIGSTYLE:tool
 # DATASTORECONFIGSTYLE:lightweight
 # DATASTORECONFIGSTYLE:heavyweight
-# If you want to unify different individual mount points as one file system you will need a filesystem merge tool
-# MERGEFILESYSTEMSTOOL:mergefs:repo
-# MERGEFILESYSTEMSTOOL:mergefs:binary
 # When installing mariadb on your VPS systems you can give it a verion number to install like this 
 # If you put 'cloud-init' here then cloud-init will install the default version of mariadb
 # MARIADB:cloud-init
