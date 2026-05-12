@@ -75,6 +75,7 @@ CONFIG_FILE:/var/www/html/settings.php
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_DIRECTORIES_TO_MOUNT:sites/default/files
+LINK_INSIDE_WEBROOT:sites/default/files
 
 ####################################################################################################################################
 #filesystem configuration settings
