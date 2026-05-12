@@ -80,6 +80,7 @@ WEBROOT_DIRECTORY:/var/www/html/moodle
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:no
 WEBROOT_DIRECTORIES_TO_MOUNT:moodledata
+LINK_INSIDE_WEBROOT:
 
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
