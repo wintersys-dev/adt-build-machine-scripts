@@ -87,9 +87,9 @@ CONFIG_FILE:/var/www/html/configuration.php
 #If assets are outside of webroot for organisational reasons you can link to the assets from inside the webroot by listing
 #the assts directory in LINK_INSIDE_WEBROOT
 #########################################################################################################################
-ASSETS_OUTSIDE_WEBROOT:no
+ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_ASSET_DIRECTORIES:images
-#LINK_INSIDE_WEBROOT:images
+LINK_INSIDE_WEBROOT:images
 
 #####################################################################################################################################################
 #Interactive install or not
