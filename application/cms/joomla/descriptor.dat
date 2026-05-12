@@ -86,7 +86,6 @@ CONFIG_FILE:/var/www/html/configuration.php
 #ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
-ASSETS_OUTSIDE_WEBROOT_LIST:images
 
 #####################################################################################################################################################
 #Interactive install or not
