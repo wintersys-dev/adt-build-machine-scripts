@@ -30,11 +30,8 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-#DIRECTORIES_TO_MOUNT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DIRECTORIES_TO_MOUNT`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
-APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION`"
-DIRECTORIES_TO_MOUNT="`/bin/grep "^WEBROOT_ASSET_DIRECTORIES:"  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat`"
 interrogation_home="${BUILD_HOME}/interrogation"
 
 APPLICATION=""
