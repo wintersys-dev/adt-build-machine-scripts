@@ -38,7 +38,12 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
-DIRECTORIES_TO_MOUNT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DIRECTORIES_TO_MOUNT`"
+#DIRECTORIES_TO_MOUNT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DIRECTORIES_TO_MOUNT`"
+CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
+BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
+APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION`"
+
+DIRECTORIES_TO_MOUNT="`/bin/grep "^WEBROOT_ASSET_DIRECTORIES:"  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat`"
 
 #When we are a baseline, we want to persist all our assets to our datastore. This involves deleting any existing assets from the bucket
 #we are persisting to so we issue a warning here, that the existing assets will be purged
