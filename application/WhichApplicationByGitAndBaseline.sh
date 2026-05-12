@@ -32,8 +32,10 @@ APPLICATION_BASELINE_SOURCECODE_REPOSITORY="`${BUILD_HOME}/helpers/services/GetV
 BASELINE_DB_REPOSITORY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BASELINE_DB_REPOSITORY`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-DIRECTORIES_TO_MOUNT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DIRECTORIES_TO_MOUNT`"
+#DIRECTORIES_TO_MOUNT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DIRECTORIES_TO_MOUNT`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
+APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION`"
+DIRECTORIES_TO_MOUNT="`/bin/grep "^WEBROOT_ASSET_DIRECTORIES:"  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat`"
 interrogation_home="${BUILD_HOME}/interrogation"
 
 APPLICATION=""
