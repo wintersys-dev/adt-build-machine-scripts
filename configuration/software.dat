@@ -223,7 +223,7 @@ LIGHTTPD:software-packages:autoconf:build-essential:automake:libtool:pkg-config:
 PHP:cli:fpm|9176  
 #---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
 #DATASTOREMOUNTTOOL:rclone:binary
-#DATASTOREMOUNTTOOL:s3fs:source
+DATASTOREMOUNTTOOL:s3fs:source
 #DATASTOREMOUNTTOOL:goof:binary
 #DATASTOREMOUNTTOOL:geesefs:source
 #---------------------------------------------DATASTORE CONFIG TOOL OPERATION STYLE-------------------------------------------------------
