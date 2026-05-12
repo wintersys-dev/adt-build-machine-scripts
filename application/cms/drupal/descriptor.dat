@@ -74,7 +74,6 @@ CONFIG_FILE:/var/www/html/settings.php
 #ASSETS_OUTSIDE_WEBROOT_LIST:dir1 dir2 dir3
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
-ASSETS_OUTSIDE_WEBROOT_LIST:sites/default/files
 
 ####################################################################################################################################
 #filesystem configuration settings
