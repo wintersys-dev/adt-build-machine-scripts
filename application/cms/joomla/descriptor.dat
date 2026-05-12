@@ -87,7 +87,7 @@ CONFIG_FILE:/var/www/html/configuration.php
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_ASSET_DIRECTORIES:images
-#LINK_INSIDE_WEBROOT:images
+LINK_INSIDE_WEBROOT:images
 
 #####################################################################################################################################################
 #Interactive install or not
