@@ -350,7 +350,7 @@ then
 			while ( [ "${assets_mounted}" = "" ] )
 			do
 				/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/datastore/assets/SetupAssetsStore.sh"  2>/dev/null
-				assets_mounted="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/utilities/status/AreAssetsMounted.sh"`" 2>/dev/null
+				assets_mounted="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/datastore/assets/AreAssetsMounted.sh"`" 2>/dev/null
 			done
 		done
 	done
