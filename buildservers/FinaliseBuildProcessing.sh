@@ -234,7 +234,7 @@ then
 			application_language_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallApplicationLanguage.sh && /bin/echo 'APPLICATION_LANGUAGE'"`" >&3 
 			if ( [ "${application_language_installed}" = "" ] )
 			then
-				continue
+				break
 			fi
 		done
 	done
@@ -292,7 +292,7 @@ then
 			rp_webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${rp_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallReverseProxy.sh && /bin/echo 'REVERSE_PROXY_INSTALLED'"`" >&3
 			if ( [ "${rp_webserver_installed}" = "" ] )
 			then
-				continue
+				break
 			fi
 		done
 	done
@@ -312,7 +312,7 @@ then
 			webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallWebserver.sh && /bin/echo 'WEBSERVER_INSTALLED'"`" >&3
 			if ( [ "${webserver_installed}" = "" ] )
 			then
-				continue
+				break
 			fi
 		done
 	done
@@ -330,7 +330,7 @@ do
 		bespoke_application_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/BESPOKE_APPLICATION_INSTALLED && /bin/echo 'BESPOKE_APPLICATION_INSTALLED'"`" >&3
 		if ( [ "${bespoke_application_installed}" = "" ] )
 		then
-			continue
+			break
 		fi
 	done
 done
@@ -349,7 +349,7 @@ then
 				assets_mounted="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/datastore/assets/AreAssetsMounted.sh"`" 2>/dev/null
 				if ( [ "${assets_mounted}" = "" ] )
 				then
-					continue
+					break
 				fi
 		done
 	done
