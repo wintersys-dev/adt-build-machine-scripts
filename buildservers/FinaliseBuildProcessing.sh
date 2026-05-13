@@ -232,12 +232,10 @@ then
 		do
 			/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/webserver/RestartWebserver.sh" 2>/dev/null 
 			application_language_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallApplicationLanguage.sh && /bin/echo 'APPLICATION_LANGUAGE'"`" >&3 
-
 			if ( [ "${application_language_installed}" = "" ] )
 			then
-				application_language_installed=""
+				continue
 			fi
-
 		done
 	done
 fi
@@ -294,7 +292,7 @@ then
 			rp_webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${rp_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallReverseProxy.sh && /bin/echo 'REVERSE_PROXY_INSTALLED'"`" >&3
 			if ( [ "${rp_webserver_installed}" = "" ] )
 			then
-				rp_webserver_installed=""
+				continue
 			fi
 		done
 	done
@@ -314,7 +312,7 @@ then
 			webserver_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/installedsoftware/InstallWebserver.sh && /bin/echo 'WEBSERVER_INSTALLED'"`" >&3
 			if ( [ "${webserver_installed}" = "" ] )
 			then
-				webserver_installed=""
+				continue
 			fi
 		done
 	done
@@ -332,7 +330,7 @@ do
 		bespoke_application_installed="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "/usr/bin/test -f /home/${SERVER_USER}/runtime/BESPOKE_APPLICATION_INSTALLED && /bin/echo 'BESPOKE_APPLICATION_INSTALLED'"`" >&3
 		if ( [ "${bespoke_application_installed}" = "" ] )
 		then
-			bespoke_application_installed=""
+			continue
 		fi
 	done
 done
@@ -347,11 +345,12 @@ then
 		/bin/sleep 1
 		for ws_active_ip in ${ws_active_ips}
 		do
-			while ( [ "${assets_mounted}" = "" ] )
-			do
 				/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/datastore/assets/SetupAssetsStore.sh"  2>/dev/null
 				assets_mounted="`/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/services/datastore/assets/AreAssetsMounted.sh"`" 2>/dev/null
-			done
+				if ( [ "${assets_mounted}" = "" ] )
+				then
+					continue
+				fi
 		done
 	done
 fi
