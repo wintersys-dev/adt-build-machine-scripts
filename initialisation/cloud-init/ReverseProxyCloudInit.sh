@@ -75,6 +75,9 @@ reverseproxy_configuration_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST
 build_styles_settings="`/bin/cat ${BUILD_HOME}/configuration/software.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
+${BUILD_HOME}/application/SetApplicationConfig.sh
+application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+
 from_snapshot=""
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
 then
