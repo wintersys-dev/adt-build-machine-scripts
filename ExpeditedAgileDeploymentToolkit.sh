@@ -74,7 +74,10 @@ end_it_all() {
 			then
 				/bin/rm /tmp/END_IT_ALL_USER
 			fi
-			/usr/bin/kill 0
+			if ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
+			then
+				/usr/bin/kill 0
+			fi
 		fi
 	done
 }
@@ -89,6 +92,11 @@ trap '/bin/touch /tmp/END_IT_ALL_USER; exit' INT
 if ( [ ! -d /root/logs ] )
 then
 	/bin/mkdir /root/logs
+fi
+
+if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+then
+	/bin/rm /tmp/SHUTDOWN_INITIATED
 fi
 
 exec 3>&1
@@ -573,6 +581,7 @@ trap - EXIT INT
 
 if ( [ "${software_updated}" = "1" ] )
 then
+	/bin/touch /tmp/SHUTDOWN_INITIATED
 	/usr/sbin/shutdown -r now
 fi 
 
