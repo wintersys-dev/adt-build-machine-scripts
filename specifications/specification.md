@@ -423,7 +423,13 @@ There are three settings you can use:
 
 "0" means just use the webservers actual directories for asset storage (this will likely only be the case if you have very few assets to store). The literal webroot is used for asset storage you can't deploy multiple webservers if you use this setting because the asset files will not be shared between the webservers. If someone can think of a good way of automatically (and easily) synchronising  the asset folder of n webservers, that would be cool.  
 
-"1" means use S3FS (or another supported solution, for example goofys) to mount assets buckets into your webserver's filesystem assets are then written directly to these services when your application stores an asset. This is suitable for production mode.   
+"1" means use S3FS (or another supported solution, for example goofys) to mount assets buckets into your webserver's filesystem assets are then written directly to these services when your application stores an asset. If you set this value to "1" in conjuction with 
+
+>     WEBROOT_ASSET_DIRECTORIES: in your application descriptor (${HOME}/runtime/application.dat)
+
+Then the directories of your application defined by WEBROOT_ASSET_DIRECTORIES will be mounted from S3 into your webroot. These directories will be excluded from backups and so might become your only copy of these assets so you need to be aware of that and perhaps persist them to distributed regions if your wallet can stretch to that.
+
+"2" This is the exact same function as "1" but is only applicable if you are deploying reverse proxies. When this value is set to "2", the reverse proxies will proxy the requests for the directories set using WEBROOT_ASSET_DIRECTORIES directly to the S3 servers increasing the speed of access as well as the machine workload that you would have if accessing the assets through a mount tool like S3FS. And so the way this works is that when your application generates assets they are written by the webserver machines to a shared S3 bucket using a S3 mount tool and when that asset is then requested in a read operation the reverse proxy machine redirects that request directly to the S3 bucket meaning that there is minimal load on your servers other than the redirection itself. (note: I don't have the knowledge to get this to work with Lighttpd so this option is only available if you are deploying NGINX or APACHE) servers as your reverse proxies. If anyone has the knowledge to get this to work in a similar way with lighttpd similar to how I have done it for APACHE and LIGHTTPD if they could let me know I will integrate it into my solution.
 
 -----
 
