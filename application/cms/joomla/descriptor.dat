@@ -88,8 +88,7 @@ CONFIG_FILE:/var/www/html/configuration.php
 #the assts directory in LINK_INSIDE_WEBROOT
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
-#WEBROOT_ASSET_DIRECTORIES:images
-WEBROOT_ASSET_DIRECTORIES:images:test:test1:test2
+WEBROOT_ASSET_DIRECTORIES:images
 LINK_INSIDE_WEBROOT:images
 
 #####################################################################################################################################################
