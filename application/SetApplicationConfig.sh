@@ -89,11 +89,11 @@ else
 	fi
 fi
 
-if ( [ -d ${BUILD_HOME}/application/cms/${APPLICATION} ] )
+if ( [ -d ${BUILD_HOME}/application/php/cms/${APPLICATION} ] )
 then
-	. ${BUILD_HOME}/application/cms/${APPLICATION}/SetApplicationConfig.sh
-elif ( [ -d ${BUILD_HOME}/application/3rd-party/${APPLICATION} ] )
+	. ${BUILD_HOME}/application/php/cms/${APPLICATION}/SetApplicationConfig.sh
+elif ( [ -d ${BUILD_HOME}/application/php/3rd-party/${APPLICATION} ] )
 then
-	. ${BUILD_HOME}/application/3rd-party/${APPLICATION}/SetApplicationConfig.sh
+	. ${BUILD_HOME}/application/php/3rd-party/${APPLICATION}/SetApplicationConfig.sh
 fi
 
