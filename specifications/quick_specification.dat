@@ -12,8 +12,8 @@ S3_LOCATION EXOSCALE US
 S3_LOCATION LINODE US
 S3_LOCATION VULTR US
 EMAIL_NOTIFICATION_LEVEL ERROR INFO MANDATORY
-DNS_CHOICE cloudflare digitalocean exoscale linode vultr NONE
-AUTH_DNS_CHOICE cloudflare digitalocean exoscale linode vultr NONE
+DNS_CHOICE cloudflare digitalocean exoscale linode vultr
+AUTH_DNS_CHOICE cloudflare digitalocean exoscale linode vultr
 AUTHENTICATOR_TYPE firewall basic-auth
 APPLICATION_REPOSITORY_PROVIDER github gitlab bitbucket
 INFRASTRUCTURE_REPOSITORY_PROVIDER github gitlab bitbucket
