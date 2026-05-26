@@ -62,6 +62,7 @@ BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MAC
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+LOAD_BALANCER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh LOAD_BALANCER`"
 DB_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_IDENTIFIER`"
 DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
 
@@ -409,11 +410,16 @@ then
 		#Make an actual attempt to access the website, if this goes through we should consider ourselves fully primed
 		. ${BUILD_HOME}/application/SetHeadFile.sh
 
-		status "The Website isn't online yet. It can take a minute for the software on your machines to settle down post install. I will try again...please wait"
+		status "The Website isn't online yet. It can take a minute for the software on your machines to settle down post install. I will keep trying...please wait"
 
 		if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
 		then
-			ips_to_check="${rp_active_ips}"
+			if ( [ "${LOAD_BALANCER}" = "1" ] && [ "${AUTHENTICATOR_TYPE}" = "basic-auth" ] )
+            then
+            	ips_to_check="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+            else
+            	ips_to_check="${rp_active_ips}"
+            fi
 		else
 			ips_to_check="${ws_active_ips}"
 		fi
