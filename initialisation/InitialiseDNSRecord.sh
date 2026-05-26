@@ -44,6 +44,7 @@ DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+LOAD_BALANCER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh LOAD_BALANCER`"
 
 if ( [ "${website_url}" != "" ] )
 then
@@ -68,7 +69,7 @@ fi
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
 
-if ( [ "${DNS_CHOICE}" != "" ] || [ "${auth}" = "yes" ] )
+if ( [ "${DNS_CHOICE}" != "" ] && ( [ "${LOADBALANCER}" = "0" ] || [ "${auth}" = "yes" ] ) )
 then
 	#If we get to here then we know that the webserver was built correctly
 	#We have to configure it some more and add it to the DNS provider's DNS so we can access the webserver
