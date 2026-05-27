@@ -282,12 +282,16 @@ then
         
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-auth-laptop-ips"`" != "" ] )
         then
-                ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "firewall-auth-laptop-ips" "distributed"
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "firewall-auth-laptop-ips" "root" "distributed" 
+
+               # ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "firewall-auth-laptop-ips" "distributed"
         fi
         
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "basic-auth-credentials"`" != "" ] )
         then
-                ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "basic-auth-credentials" "distributed"
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "basic-auth-credentials" "root" "distributed" 
+
+               # ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "basic-auth-credentials" "distributed"
         fi
 fi
 
