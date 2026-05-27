@@ -15,7 +15,10 @@
 # be automatically configured to reflect this configurations and the ports defined will be open.
 # You can only set one configuration set active at a time and you do that by uncommenting it as you can see
 # from the default set. If you are trying different webserver combinations you will likely need to visit
-# this file each time you change your configuration to, for example, include or exclude reverse proxies
+# this file each time you change your configuration to, for example, include or exclude reverse proxies.
+# REMEMBER: if you are using a loadbalancer you will most likely want your reverse proxies that the loadbalancer
+# forwards traffic to completely firewalled off from the public internet allowing the loadbalancer to be the
+# public face of your webproperty. 
 ############################################################################################################
 # CONFIGURATION 1: This is the firewall configuration you use when you want your webservers to be accessible
 # from any IP address on the Internet and is the default configuration for the quick demos
