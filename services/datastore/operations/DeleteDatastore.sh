@@ -87,16 +87,16 @@ elif ( [ "${bucket_type}" = "dbaas" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
         active_bucket="${active_bucket}-${DNS_CHOICE}-dbaas"
-elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
-elif ( [ "${bucket_type}" = "basic-auth-credentials" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-basic-auth-credentials"
-elif ( [ "${bucket_type}" = "snap" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-        active_bucket="${active_bucket}-${DNS_CHOICE}-snap"
+#elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
+#then
+#        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
+#elif ( [ "${bucket_type}" = "basic-auth-credentials" ] )
+#then
+#        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-basic-auth-credentials"
+#elif ( [ "${bucket_type}" = "snap" ] )
+#then
+#        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+#        active_bucket="${active_bucket}-${DNS_CHOICE}-snap"
 elif ( [ "${bucket_type}" = "ad-hoc" ] )
 then
         active_bucket="1$$agile"
