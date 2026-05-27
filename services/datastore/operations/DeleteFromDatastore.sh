@@ -99,6 +99,12 @@ then
 elif ( [ "${bucket_type}" = "scaling" ] )
 then
         active_bucket="`/bin/echo ${additional_specifier} | /bin/sed 's/\./-/g'`"
+elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
+elif ( [ "${bucket_type}" = "basic-auth-credentials" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-basic-auth-credentials"
 elif ( [ "${bucket_type}" = "dbaas" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
