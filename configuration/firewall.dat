@@ -84,34 +84,6 @@
 #DATABASEPORTS:
 
 
-############################################################################################################
-# CONFIGURATION 8: This is the firewall configuration you use when you are using an authentication server
-# that you using to allow access by "wireguard" to the proxy machine. Access to the proxy is controlled using
-# wireguard and then the websever(s) only accept requests that originate from our wireguard accssible proxy
-# machines. This means that our webservers are not world accessible (no world open 443 port) and our proxy machines 
-# are only accessible via our wireguard authentication process. This makes it very hard for bots and so to probe
-# any of your machines although it might take a bit of understanding to see how this works on your part
-# The wirguard port is "SSH_PORT + 1" so here it is set to 1036 because I set SSH_PORT to 1035 if you have set
-# a different SSH_PORT then you will need to change the 1036 value on your proxy machine. If your SSH_PORT is
-# set to 2078 then you would need to set:
-# REVERSEPROXYPORTS:2079|ipv4|0.0.0.0/0
-# Of course this looks like its world accessible based on the firewall settings but actually the access is controlled by 
-# crpyptokey routing rather than the firewall. So, anyone without an appropriate crypto key will not be able to access
-# this port
-# Similarly:
-# WEBSERVERPORTS:443|ipv4|0.0.0.0/0
-# Allows access through the native firewall but the operating system firewall (ufw or iptables) will block all ip
-# addresses except the ip addresses of our proxy machines behind the scenes and so for this to work your native
-# firewall and your OS firewall (ufw or iptables) both have to be activated.
-#############################################################################################################
-AUTHENTICATORPORTS:443|ipv4|cloudflare  
-#REVERSEPROXYPORTS:1036|ipv4|0.0.0.0/0
-REVERSEPROXYPORTS:
-AUTOSCALERPORTS:
-WEBSERVERPORTS:443|ipv4|0.0.0.0/0
-DATABASEPORTS:
-
-
 
 
 
