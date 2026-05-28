@@ -29,7 +29,6 @@ status () {
 }
 
 auth="${1}"
-wireguard="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 if ( [ "`/usr/bin/pwd`" != "${BUILD_HOME}" ] )
@@ -37,14 +36,6 @@ then
         cd ${BUILD_HOME}
 fi
 
-if ( [ "${wireguard}" = "wire-guard" ] )
-then
-        AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
-        if ( [ "${AUTHENTICATOR_TYPE}" != "wire-guard" ] )
-        then
-                exit
-        fi
-fi
 
 SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_METHOD`"
 SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_SERVICE`"
@@ -62,12 +53,6 @@ else
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 fi
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] && [ "${wireguard}" = "wire-guard" ] )
-then
-        datastore_identifier="wireguard-rp-ssl"
-        website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/\-protected//g"`"
-fi
 
 if ( [ "${auth}" = "yes" ] )
 then
