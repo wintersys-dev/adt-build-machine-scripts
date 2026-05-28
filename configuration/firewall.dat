@@ -77,11 +77,11 @@ DATABASEPORTS:
 # CONFIGURATION 7: This is the firewall configuration you use when you are using an authentication server
 # that you using to allow access by "firewall" to the reverse proxy 
 #############################################################################################################
-#AUTHENTICATORPORTS:443|ipv4|0.0.0.0/0  
-#REVERSEPROXYPORTS:
-#AUTOSCALERPORTS:
-#WEBSERVERPORTS:
-#DATABASEPORTS:
+AUTHENTICATORPORTS:443|ipv4|0.0.0.0/0  
+REVERSEPROXYPORTS:
+AUTOSCALERPORTS:
+WEBSERVERPORTS:
+DATABASEPORTS:
 
 
 
