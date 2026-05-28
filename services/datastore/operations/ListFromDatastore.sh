@@ -62,21 +62,6 @@ then
         fi
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
         active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
-elif ( [ "${bucket_type}" = "wireguard-rp-ssl" ] )
-then
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/\-protected//g"`"
-
-        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
-        
-        if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
-        then
-                service_token="lets"
-        elif ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
-        then
-                service_token="zero"
-        fi
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-        active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
 
 elif ( [ "${bucket_type}" = "multi-region" ] )
 then
