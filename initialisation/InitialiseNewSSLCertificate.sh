@@ -63,13 +63,6 @@ else
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 fi
 
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] && [ "${wireguard}" = "wire-guard" ] )
-then
-        datastore_identifier="wireguard-rp-ssl"
-        website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/\-protected//g"`"
-fi
-
 if ( [ "${auth}" = "yes" ] )
 then
         datastore_identifier="auth-ssl"
