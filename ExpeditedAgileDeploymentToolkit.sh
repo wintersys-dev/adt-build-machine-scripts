@@ -463,6 +463,12 @@ then
 	NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
 	AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 
+	if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${NO_AUTHENTICATORS}" = "1" ] )
+	then
+		NO_AUTHENTICATORS="2"
+		${BUILD_HOME}/helpers/services/SetVariableValue.sh "NO_AUTHENTICATOR=2"
+	fi
+	
     if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
     then
 		${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" "yes" "1"   #Auth=yes, wireguard=yes, authenticator no = 1
