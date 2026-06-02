@@ -38,7 +38,7 @@ then
         cd ${BUILD_HOME}
 fi
 
-if ( [ "${wireguard}" = "wire-guard" ] )
+if ( [ "${wireguard}" = "yes" ] )
 then
         AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
         if ( [ "${AUTHENTICATOR_TYPE}" != "wire-guard" ] )
