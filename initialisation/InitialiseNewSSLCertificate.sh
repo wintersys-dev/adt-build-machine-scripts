@@ -30,6 +30,7 @@ status () {
 
 auth="${1}"
 wireguard="${2}"
+authenticator_no="${3}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 if ( [ "`/usr/bin/pwd`" != "${BUILD_HOME}" ] )
@@ -74,7 +75,7 @@ then
         datastore_identifier="auth-ssl"
         config_datastore_identifier="auth-config"
         NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
-        if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${wireguard}" = "yes" ] )
+        if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${wireguard}" = "yes" ] && [ "${authenticator_no}" = "1" ] )
         then
                 WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"
         else
