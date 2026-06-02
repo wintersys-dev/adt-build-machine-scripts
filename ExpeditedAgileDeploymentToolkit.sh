@@ -465,7 +465,7 @@ then
 
     if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
     then
-		${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" "1"  
+		${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" "wire-guard" "1"  
 	fi
 fi
 
