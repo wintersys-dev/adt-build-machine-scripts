@@ -39,6 +39,8 @@
 
 website_url="${1}"
 auth="${2}"
+wireguard="${3}"
+authenticator_no="${4}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROMEMAIL_ADDRESS'`"
