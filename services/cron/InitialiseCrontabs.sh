@@ -30,6 +30,6 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 ${BUILD_HOME}/services/cron/InitialiseBuildMachineFirewallCron.sh
 ${BUILD_HOME}/services/cron/InitialiseUpdateAndUpgradeCron.sh
-${BUILD_HOME}/services/InitialiseRenewSSLCertificateCron.sh
-${BUILD_HOME}/services/InitialiseAuditSSHConnectionsCron.sh
-${BUILD_HOME}/services/InitialiseVirusScannerCron.sh
+${BUILD_HOME}/services/cron/InitialiseRenewSSLCertificateCron.sh
+${BUILD_HOME}/services/cron/InitialiseAuditSSHConnectionsCron.sh
+${BUILD_HOME}/services/cron/InitialiseVirusScannerCron.sh
