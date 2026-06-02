@@ -155,7 +155,7 @@ then
                                 fi
                         fi
 
-                        ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
+                        ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
                 fi
 
                 if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
@@ -170,13 +170,13 @@ then
                                 fi
                         fi
 
-                        ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
+                        ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
                         /bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem
                 fi
 
                 if ( [ "${SSL_GENERATION_METHOD}" = "MANUAL" ] )
                 then
-                        ${BUILD_HOME}/services/security/ssl/manual/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
+                        ${BUILD_HOME}/services/security/ssl/manual/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
                 fi
         fi
 
