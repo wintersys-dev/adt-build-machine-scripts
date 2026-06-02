@@ -54,8 +54,6 @@ then
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
         DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
 
-        if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
-        then
         if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
         then
                 service_token="lets"
