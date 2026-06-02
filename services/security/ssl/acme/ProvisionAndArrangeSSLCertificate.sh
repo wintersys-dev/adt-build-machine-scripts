@@ -103,7 +103,7 @@ do
 				/bin/mkdir ${BUILD_HOME}/.lego
 			fi
 
-			${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh ${website_url} ${auth}
+			${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
 
 			if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
 			then
@@ -134,7 +134,7 @@ do
 		fi
 
 		#There was no certificate so generate one and copy it back to the build client for later use
-		${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh ${website_url} ${auth}
+		${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
 
 		if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
 		then
