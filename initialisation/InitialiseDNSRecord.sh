@@ -32,6 +32,7 @@ ip="${1}" #the IP address of the webserver
 record="${2}"
 website_url="${3}" #The URL of the website
 auth="${4}"
+wireguard="${5}"
 
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -55,7 +56,10 @@ fi
 
 if ( [ "${auth}" = "yes" ] )
 then
-	WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+	if ( [ "${wireguard}" != "yes" ] )
+	then
+		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+	fi
 	DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
 	DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
 	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
