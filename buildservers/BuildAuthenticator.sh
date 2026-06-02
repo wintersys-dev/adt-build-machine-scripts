@@ -217,6 +217,11 @@ do
 			#Is added to the DNS provider
 			if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 			then
+				if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "`/bin/echo ${authenticator_name} | /bin/grep "^NO-1"`" != "" ] )
+				then
+					${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"  "yes"
+				fi
+			
 				if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED ] )
 				then
 					/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED
