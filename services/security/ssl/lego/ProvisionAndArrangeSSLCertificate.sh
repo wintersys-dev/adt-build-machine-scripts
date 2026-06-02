@@ -100,7 +100,7 @@ then
 			/bin/mkdir ${BUILD_HOME}/.lego
 		fi
 
-		${BUILD_HOME}/services/security/ssl/lego/ObtainSSLCertificate.sh ${website_url} ${auth}
+		${BUILD_HOME}/services/security/ssl/lego/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
 
 
 		if ( [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.crt ] && [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.key ] )
@@ -132,7 +132,7 @@ else
 	fi
 
 	#There was no certificate so generate one and copy it back to the build client for later use
-	${BUILD_HOME}/services/security/ssl/lego/ObtainSSLCertificate.sh ${website_url} ${auth}
+	${BUILD_HOME}/services/security/ssl/lego/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
 
 	if ( [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.crt ] && [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.key ] )
 	then
