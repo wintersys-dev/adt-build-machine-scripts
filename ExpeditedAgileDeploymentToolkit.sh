@@ -460,6 +460,13 @@ ${BUILD_HOME}/initialisation/InitialiseCloudInit.sh
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 then
 	${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" 
+	NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
+	AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+
+    if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+    then
+		${BUILD_HOME}/initialisation/InitialiseNewSSLCertificate.sh "yes" "1"  
+	fi
 fi
 
 # Generate the SSL certificate that will be used by our webservers
