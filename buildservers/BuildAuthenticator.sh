@@ -212,26 +212,21 @@ do
 		then
 			#If we are here then the build didn't complete correctly
 			finished="0"
-		else
+        else
 			#If we are here then we believe that the build completed correctly so the public IP address for the our authenticator machine
 			#Is added to the DNS provider
-			if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
-			then
-				if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "`/bin/echo ${authenticator_name} | /bin/grep "^NO-1"`" != "" ] )
-				then
-					${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" "`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"  "yes" "yes"
-				fi
-			
-				if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED ] )
-				then
-					/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED
-					${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" ${WEBSITE_URL} "yes"
-				else
-					${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" ${WEBSITE_URL} "yes"
-				fi
-			fi
-			finished="1"
-		fi
+            if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
+            then
+            	if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED ] )
+                then
+                	/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/AUTH_DNS_PRIMED
+                    ${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary" ${WEBSITE_URL} "yes"
+                else
+                	${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" ${WEBSITE_URL} "yes"
+                fi
+        	fi
+            finished="1"
+        fi
 
 		#If $done != 1, then the authenticator didn't build properly, so, destroy the machine
 		if ( [ "${finished}" != "1" ] )
