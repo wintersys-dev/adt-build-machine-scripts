@@ -92,6 +92,7 @@ then
 fi
 
 ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "${datastore_identifier}" "local" 
+${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "${config_datastore_identifier}" "local" 
 
 if ( ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] ) || ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] ) )
 then
