@@ -22,15 +22,13 @@
 #set -x
 
 status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
 website_url="${1}"
 auth="${2}"
-wireguard="${3}"
-authenticator_no="${4}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
@@ -40,30 +38,24 @@ DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
 if ( [ "${auth}" = "yes" ] )
 then
-	if ( [ "${wireguard}" = "yes" ] && [ "${authenticator_no}" = "1" ] )
-	then
-		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"
-	else
-		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-	fi
-	DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
-	DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
-	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+        DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
+        DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
+        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
 fi
 
 if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
 then
-	service_token="lets"
+        service_token="lets"
 elif ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
 then
-	service_token="zero"
+        service_token="zero"
 fi
 
 
 if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url} ] )
 then
-	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}
+        /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}
 fi
 
 status ""
@@ -78,96 +70,96 @@ status "########################################################################
 count="0"
 while ( [ ! -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] || [ ! -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] && [ "${count}" -lt "5" ] )
 do
-	count="`/usr/bin/expr ${count} + 1`"
-	if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
-	then
-		if ( [ "`/usr/bin/openssl x509 -checkend 604800 -noout -in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem | /bin/grep 'Certificate will expire'`" != "" ] )
-		then
-			if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] )
-			then
-				/bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem.previous`/bin/date | /bin/sed 's/ //g'`
-			fi
+        count="`/usr/bin/expr ${count} + 1`"
+        if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
+        then
+                if ( [ "`/usr/bin/openssl x509 -checkend 604800 -noout -in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem | /bin/grep 'Certificate will expire'`" != "" ] )
+                then
+                        if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] )
+                        then
+                                /bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem.previous`/bin/date | /bin/sed 's/ //g'`
+                        fi
 
-			if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
-			then
-				/bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem.previous`/bin/date | /bin/sed 's/ //g'`
-			fi
+                        if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
+                        then
+                                /bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem.previous`/bin/date | /bin/sed 's/ //g'`
+                        fi
 
-			if ( [ -d ${BUILD_HOME}/.lego ] )
-			then
-				/bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
-			fi
+                        if ( [ -d ${BUILD_HOME}/.lego ] )
+                        then
+                                /bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
+                        fi
 
-			if ( [ ! -d ${BUILD_HOME}/.lego ] )
-			then
-				/bin/mkdir ${BUILD_HOME}/.lego
-			fi
+                        if ( [ ! -d ${BUILD_HOME}/.lego ] )
+                        then
+                                /bin/mkdir ${BUILD_HOME}/.lego
+                        fi
 
-			${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
+                        ${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh ${website_url} ${auth}
 
-			if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
-			then
-				/bin/cp ~/.acme.sh/${website_url}_ecc/fullchain.cer ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
-				/bin/cp ~/.acme.sh/${website_url}_ecc/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
-			fi
+                        if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
+                        then
+                                /bin/cp ~/.acme.sh/${website_url}_ecc/fullchain.cer ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
+                                /bin/cp ~/.acme.sh/${website_url}_ecc/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
+                        fi
 
-			if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
-			then
-				/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
-				/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
-				status "Have successfully generated a new certificate for your domain ${website_url} because the old certificate has expired"
-				status "Press <enter> to acknowledge"
-				if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-				then
-					read x
-				fi
-			else
-				status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesn't seem to have been generated"
-				status "Can't operate without it, this is a secure system, so have to exit. Please investigate in ${BUILD_HOME}/logs"
-				/bin/touch /tmp/END_IT_ALL
-			fi
-		fi
-	else
-		if ( [ -d ${BUILD_HOME}/.lego ] )
-		then
-			/bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
-		fi
+                        if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
+                        then
+                                /bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
+                                /bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
+                                status "Have successfully generated a new certificate for your domain ${website_url} because the old certificate has expired"
+                                status "Press <enter> to acknowledge"
+                                if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
+                                then
+                                        read x
+                                fi
+                        else
+                                status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesn't seem to have been generated"
+                                status "Can't operate without it, this is a secure system, so have to exit. Please investigate in ${BUILD_HOME}/logs"
+                                /bin/touch /tmp/END_IT_ALL
+                        fi
+                fi
+        else
+                if ( [ -d ${BUILD_HOME}/.lego ] )
+                then
+                        /bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
+                fi
 
-		#There was no certificate so generate one and copy it back to the build client for later use
-		${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh "${website_url}" "${auth}" "${wireguard}" "${authenticator_no}"
+                #There was no certificate so generate one and copy it back to the build client for later use
+                ${BUILD_HOME}/services/security/ssl/acme/ObtainSSLCertificate.sh ${website_url} ${auth}
 
-		if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
-		then
-			#All this is about is putting the generated certificate files in the right place on our nice new webserver
-			/bin/cp ~/.acme.sh/${website_url}_ecc/fullchain.cer ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
-			/bin/cp ~/.acme.sh/${website_url}_ecc/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
+                if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] && [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
+                then
+                        #All this is about is putting the generated certificate files in the right place on our nice new webserver
+                        /bin/cp ~/.acme.sh/${website_url}_ecc/fullchain.cer ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
+                        /bin/cp ~/.acme.sh/${website_url}_ecc/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
 
-			if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
-			then
-				/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
-				/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
-				status "Have successfully generated a new certificate for your domain ${website_url} because originally there was no certificate present on your filesystem for me to use"
-				status "Press <enter> to acknowledge"
-				if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-				then
-					read x
-				fi
-			else
-				status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesnt seem to have been generated"
-				status "Cant operate without it, this is a secure system, so have to quit. Please investigate ${BUILD_HOME}/logs"
-				/bin/touch /tmp/END_IT_ALL
+                        if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem ] )
+                        then
+                                /bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/privkey.pem
+                                /bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${website_url}/fullchain.pem
+                                status "Have successfully generated a new certificate for your domain ${website_url} because originally there was no certificate present on your filesystem for me to use"
+                                status "Press <enter> to acknowledge"
+                                if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
+                                then
+                                        read x
+                                fi
+                        else
+                                status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesnt seem to have been generated"
+                                status "Cant operate without it, this is a secure system, so have to quit. Please investigate ${BUILD_HOME}/logs"
+                                /bin/touch /tmp/END_IT_ALL
 
-			fi
-		fi
-	fi
+                        fi
+                fi
+        fi
 done
 
 if ( [ -f ~/.acme.sh/${website_url}_ecc/fullchain.cer ] )
 then
-	/bin/rm ~/.acme.sh/${website_url}_ecc/fullchain.cer 
+        /bin/rm ~/.acme.sh/${website_url}_ecc/fullchain.cer 
 fi
 
 if ( [ -f ~/.acme.sh/${website_url}_ecc/${website_url}.key ] )
 then
-	/bin/rm ~/.acme.sh/${website_url}_ecc/${website_url}.key
+        /bin/rm ~/.acme.sh/${website_url}_ecc/${website_url}.key
 fi
