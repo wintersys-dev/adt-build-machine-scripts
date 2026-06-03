@@ -104,8 +104,14 @@ then
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] ) 
         then
                 status "Found existing SSL certificates in the datastore for website url ${WEBSITE_URL} trying to use those to save time and reissuance"
-                ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "fullchain.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
-                ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "privkey.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
+                if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem ] )
+                then
+                        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "fullchain.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
+                fi
+                if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] )
+                then
+                        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "privkey.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
+                fi
         fi
 
         status "Checking that current certificate is not expired"
