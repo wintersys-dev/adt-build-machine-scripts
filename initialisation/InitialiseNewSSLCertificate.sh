@@ -30,7 +30,6 @@ status () {
 
 auth="${1}"
 wireguard="${2}"
-authenticator_no="${3}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 if ( [ "`/usr/bin/pwd`" != "${BUILD_HOME}" ] )
@@ -38,7 +37,7 @@ then
         cd ${BUILD_HOME}
 fi
 
-if ( [ "${wireguard}" = "yes" ] )
+if ( [ "${wireguard}" = "wire-guard" ] )
 then
         AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
         if ( [ "${AUTHENTICATOR_TYPE}" != "wire-guard" ] )
@@ -63,19 +62,18 @@ else
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 fi
 
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${auth}" = "no" ] && [ "${wireguard}" = "wire-guard" ] )
+then
+        datastore_identifier="wireguard-rp-ssl"
+        website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+        WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed "s/\-protected//g"`"
+fi
+
 if ( [ "${auth}" = "yes" ] )
 then
         datastore_identifier="auth-ssl"
         config_datastore_identifier="auth-config"
-        NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
-        if ( [ "${NO_AUTHENTICATORS}" -gt "1" ] && [ "${wireguard}" = "yes" ] && [ "${authenticator_no}" = "1" ] )
-        then
-                datastore_identifier="auth-ssl-1"
-                WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`" 
-                WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"
-        else
-                WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-        fi
+        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
         DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
         DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
         DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
@@ -92,7 +90,6 @@ then
 fi
 
 ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "${datastore_identifier}" "local" 
-${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "${config_datastore_identifier}" "local" 
 
 if ( ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] ) || ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] ) )
 then
@@ -109,6 +106,7 @@ then
                 then
                         ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "fullchain.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
                 fi
+
                 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem ] )
                 then
                         ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${datastore_identifier}" "privkey.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}"
@@ -162,7 +160,7 @@ then
                                 fi
                         fi
 
-                        ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
+                        ${BUILD_HOME}/services/security/ssl/lego/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
                 fi
 
                 if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
@@ -177,13 +175,13 @@ then
                                 fi
                         fi
 
-                        ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
+                        ${BUILD_HOME}/services/security/ssl/acme/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}"
                         /bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem
                 fi
 
                 if ( [ "${SSL_GENERATION_METHOD}" = "MANUAL" ] )
                 then
-                        ${BUILD_HOME}/services/security/ssl/manual/ProvisionAndArrangeSSLCertificate.sh "${WEBSITE_URL}" "${auth}" "${wireguard}" "${authenticator_no}"
+                        ${BUILD_HOME}/services/security/ssl/manual/ProvisionAndArrangeSSLCertificate.sh ${WEBSITE_URL} ${auth}
                 fi
         fi
 
