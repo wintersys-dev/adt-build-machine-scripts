@@ -52,6 +52,7 @@ BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MAC
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
 WEBSERVER_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSERVER_CHOICE`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 MOD_SECURITY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MOD_SECURITY`"
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
@@ -215,13 +216,19 @@ do
                 else
                         #If we are here then we believe that the build completed correctly so the public IP address for the our reverseproxy machine
                         #Is added to the DNS provider
+						if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+						then
+							dns_ip="10.`/bin/echo ${reverseproxy_name} | /usr/bin/awk -F'-' '{print $2}'`.0.0"
+						else
+							dns_ip="${ip}"
+						fi
 
 						if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED ] )
 						then
 							/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "primary"
+							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "primary"
 						else
-								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${ip} "secondary" 
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "secondary" 
 						fi
                         finished="1"
                 fi
