@@ -218,7 +218,7 @@ do
                         #Is added to the DNS provider
 						if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 						then
-							dns_ip="10.`/bin/echo ${reverseproxy_name} | /usr/bin/awk -F'-' '{print $2}'`.0.0"
+							dns_ip="10.`/bin/echo ${reverseproxy_name} | /usr/bin/awk -F'-' '{print $2}'`.0.1"
 						else
 							dns_ip="${ip}"
 						fi
