@@ -269,10 +269,10 @@ fi
 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
 then
 	AUTOSCALER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/autoscaler_keys"
-	if ( [ "${PRODUCTION}" = "1" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
+	if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
 	then
 		as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-	elif ( [ "${PRODUCTION}" = "1" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
+	elif ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
 	then
 		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
 	fi
