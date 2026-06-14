@@ -31,8 +31,7 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
-DEVELOPMENT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEVELOPMENT`"
+DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
 NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
 NO_WEBSERVERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_WEBSERVERS`"
@@ -51,7 +50,7 @@ SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cr
 pids=""
 
 #If PRODUCTION=1 then we  need to work out how many autoscalers we want to deploy if we don't already know
-if ( [ "${PRODUCTION}" = "1" ] && [ "${DEVELOPMENT}" = "0" ] && [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] )
 then
 	if ( [ "${NO_AUTOSCALERS}" = "" ] )
 	then
@@ -281,10 +280,10 @@ then
 	db_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
 elif ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
-	if ( [ "${PRODUCTION}" = "1" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
+	if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
 	then
 		as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-	elif ( [ "${PRODUCTION}" = "1" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
+	elif ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
 	then
 		as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
 	fi
@@ -293,7 +292,7 @@ then
 fi
 
 # Simply report that so far, so good
-if ( [ "${PRODUCTION}" = "1" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 	built_servers=""
 	if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
