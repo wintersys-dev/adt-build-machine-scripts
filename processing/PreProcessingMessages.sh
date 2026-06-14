@@ -30,10 +30,9 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
+DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
 APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION`"
-#APPLICATION_REPOSITORY_TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_REPOSITORY_TOKEN`"
 BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
@@ -49,7 +48,7 @@ status "#########################################"
 status ""
 
 #Let the deployer how many autoscalers are set to be built
-if ( [ "${PRODUCTION}" = "1" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 	status "############################################"
 	status "Number of autoscalers is set to: ${NO_AUTOSCALERS}"
