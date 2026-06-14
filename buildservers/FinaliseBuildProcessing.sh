@@ -155,11 +155,17 @@ if ( [ "${as_active_ips}" != "" ] )
 then
 	for autoscaler_ip in `/bin/echo ${as_active_ips} | /bin/sed 's/:/ /g'`
 	do
-		test ${PRODUCTION} -eq 1 && /usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_AS} ${SERVER_USER}@${as_active_ip} "${SUDO} /bin/touch /home/${SERVER_USER}/runtime/INITIAL_BUILD_COMPLETED" 2>/dev/null
+		if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
+		then
+			/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_AS} ${SERVER_USER}@${as_active_ip} "${SUDO} /bin/touch /home/${SERVER_USER}/runtime/INITIAL_BUILD_COMPLETED" 2>/dev/null
+		fi
 	done
 elif ( [ "${as_active_ip}" != "" ] )
 then
-	test ${PRODUCTION} -eq 1 && /usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_AS} ${SERVER_USER}@${as_active_ip} "${SUDO} /bin/touch /home/${SERVER_USER}/runtime/INITIAL_BUILD_COMPLETED" 2>/dev/null
+	if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
+	then
+		/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_AS} ${SERVER_USER}@${as_active_ip} "${SUDO} /bin/touch /home/${SERVER_USER}/runtime/INITIAL_BUILD_COMPLETED" 2>/dev/null
+	fi
 fi
 
 #See if we need to know the ip address for a reverse proxy or not
