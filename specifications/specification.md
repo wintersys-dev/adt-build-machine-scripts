@@ -311,18 +311,15 @@ Set this to 0 if you don't want to synchronise the webroots of your webservers s
 
 -------
 
-### PRODUCTION 
-### DEVELOPMENT
-
-These settings are twinned. It only makes sense for them to be in one of two configurations:
+### DEPLOYMENT_MODE
 
 Production mode :   
-PRODUCTION="1", DEVELOPMENT="0"  
+DEPLOYMENT_MODE="PRODUCTION"
 
 Development mode :   
-PRODUCTION="0", DEVELOPMENT="1"  
+DEPLOYMENT_MODE="DEVELOPMENT" 
 
-These settings must be altered as a pair. When in production, an autoscaler or autoscalers are deployed and you can configure how many webservers you want to be running. In development mode there will be at most one webserver running.
+When in production, an autoscaler or autoscalers are deployed and you can configure how many webservers and reverse proxy machines you want to be running. In development mode there will be at most one webserver running and no autoscalers or reverse proxies.
 
 -----
 
