@@ -29,7 +29,7 @@ fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`" != "1" ] )
+if ( [ "`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`" != "PRODUCTION" ] )
 then
 	/bin/echo "You are not in PRODUCTION mode, cannot set scaling parameters"
 	exit
