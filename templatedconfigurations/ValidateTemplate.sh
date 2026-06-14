@@ -185,26 +185,15 @@ then
 	${log_command} "Your value for the variable SYSTEM_EMAIL_PROVIDER (${SYSTEM_EMAIL_PROVIDER}) doesn't appear to be valid please review"
 fi
 
-if ( [ "`/bin/grep "^PRODUCTION " ${quick_specification} | /bin/grep -w "${PRODUCTION}"  2>/dev/null `" = "" ] )
+if ( [ "`/bin/grep "^DEPLOYMENT_MODE " ${quick_specification} | /bin/grep -w "${DEPLOYMENT_MODE}"  2>/dev/null `" = "" ] )
 then
-	${log_command} "Your value for the variable PRODUCTION (${PRODUCTION}) doesn't appear to be valid please review"
-fi
-
-if ( [ "`/bin/grep "^DEVELOPMENT " ${quick_specification} | /bin/grep -w "${DEVELOPMENT}"  2>/dev/null `" = "" ] )
-then
-	${log_command} "Your value for the variable DEVELOPMENT (${DEVELOPMENT}) doesn't appear to be valid please review"
+	${log_command} "Your value for the variable DEPLOYMENT_MODE (${DEPLOYMENT_MODE}) doesn't appear to be valid please review"
 fi
 
 if ( [ "`/bin/grep "^LOADBALANCER " ${quick_specification} | /bin/grep -w "${LOADBALANCER}"  2>/dev/null `" = "" ] )
 then
 	${log_command} "Your value for the variable LOADBALANCER (${LOADBALANCER}) doesn't appear to be valid please review"
 fi
-
-if ( [ "${PRODUCTION}" = "1" ] && [ "${DEVELOPMENT}" != "0" ] || [ "${PRODUCTION}" = "0" ] && [ "${DEVELOPMENT}" != "1" ]  )
-then
-	${log_command} "It looks like your values for PRODUCTION ( ${PRODUCTION}) and DEVELOPMENT (${DEVELOPMENT}) are inconsistent"
-fi
-
 
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] && ( [ "${SYSTEM_EMAIL_PROVIDER}" = "" ] || [ "${SYSTEM_TOEMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_FROMEMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_EMAIL_USERNAME}" = "" ] || [ "${SYSTEM_EMAIL_PASSWORD}" = "" ] ) )
 then
