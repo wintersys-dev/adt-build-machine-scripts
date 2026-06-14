@@ -159,7 +159,7 @@ then
 	then
 		${BUILD_HOME}/buildservers/BuildDatabase.sh
 	fi
-elif ( [ "${IN_PARALLEL}" = "1" ] && [ "${PRODUCTION}" = "1" ] )
+elif ( [ "${IN_PARALLEL}" = "1" ] && [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 
 	if ( [ "${NO_REVERSE_PROXY}" -ne "0" ] )
