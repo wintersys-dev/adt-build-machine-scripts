@@ -78,7 +78,7 @@ OPTIONS_WS="-o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=
 OPTIONS_DB="-o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
 
 #Just do some checks to make sure that all the different server types are running correctly
-if ( [ "${PRODUCTION}" = "1" ] && [ "${NO_AUTOSCALERS}" != "0" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`" = "" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" != "0" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`" = "" ] )
 then
 	status "It seems like something is not quite right with the build. The Autoscaler seems not to be running so the website will not function properly."
 fi
@@ -94,7 +94,7 @@ then
 fi
 
 #If this is a PRODUCTION build there's some steps to take to get the active IP addresses for all machine types
-if ( [ "${PRODUCTION}" = "1" ] && [ "${DEVELOPMENT}" = "0" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then 
 	no_autoscalers="`${BUILD_HOME}/services/server/NumberOfServers.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`"
 
