@@ -37,7 +37,7 @@ then
 	${BUILD_HOME}/initialisation/cloud-init/AuthenticatorCloudInit.sh
 fi
 
-if ( [ "${DEPLOYMENT_MODE}" = "1" ] && [ "${NO_AUTOSCALERS}" != "0" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" != "0" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/AutoscalerCloudInit.sh
 fi
