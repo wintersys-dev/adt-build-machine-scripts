@@ -40,12 +40,10 @@ status "#########################WEBSERVER BUILD MESSAGES ARE IN BLUE###########
 
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
 BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
 BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
 WS_SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WS_SERVER_TYPE`"
