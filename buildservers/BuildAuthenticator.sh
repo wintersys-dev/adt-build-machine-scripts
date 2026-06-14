@@ -43,7 +43,6 @@ BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDEN
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
 BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
 BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
 AUTH_SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_TYPE`"
