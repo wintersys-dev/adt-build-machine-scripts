@@ -49,7 +49,6 @@ SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cr
 
 pids=""
 
-#If PRODUCTION=1 then we  need to work out how many autoscalers we want to deploy if we don't already know
 if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] )
 then
 	if ( [ "${NO_AUTOSCALERS}" = "" ] )
