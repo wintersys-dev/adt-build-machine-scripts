@@ -122,7 +122,7 @@ then
 	fi
 fi 
 
-if ( [ "${IN_PARALLEL}" = "0" ] && [ "${PRODUCTION}" = "1" ] )
+if ( [ "${IN_PARALLEL}" = "0" ] && [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 	if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 	then
