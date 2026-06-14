@@ -27,8 +27,7 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
-DEVELOPMENT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEVELOPMENT`"
+DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 #NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
@@ -36,7 +35,7 @@ BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDEN
 #NO_WEBSERVERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_WEBSERVERS`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
-if ( [ "${PRODUCTION}" = "1" ] && [ "${DEVELOPMENT}" = "0" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 	if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STATIC_SCALE:* ] )
 	then
