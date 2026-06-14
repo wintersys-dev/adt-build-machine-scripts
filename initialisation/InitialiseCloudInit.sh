@@ -25,8 +25,7 @@
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
-PRODUCTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRODUCTION`"
-DEVELOPMENT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEVELOPMENT`"
+DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
 NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
 DB_INSTALL_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_INSTALL_MODE`"
@@ -38,7 +37,7 @@ then
 	${BUILD_HOME}/initialisation/cloud-init/AuthenticatorCloudInit.sh
 fi
 
-if ( [ "${PRODUCTION}" = "1" ] && [ "${DEVELOPMENT}" = "0" ] && [ "${NO_AUTOSCALERS}" != "0" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "1" ] && [ "${NO_AUTOSCALERS}" != "0" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/AutoscalerCloudInit.sh
 fi
