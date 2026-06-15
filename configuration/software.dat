@@ -62,9 +62,11 @@
 # If you put 'cloud-init' here then cloud-init will install the default version of mariadb
 # MARIADB:cloud-init
 # MARIADB:repo:<version>
+# MARIADB:repo:default (this will install the default version for the operating system version you are installing)
 # MySQL can be installed similarly to mariadb but there is no cloud-init option. You just tell it the version number you want to install and that its not cloud-init
 # You need to get your MySQL version number from https://dev.mysql.com/downloads/mysql (for example, 9.2.0)
 # MYSQL:repo:<version>
+# MYSQL:repo:default (this will install the default version for the operating system version you are installing)
 # When installing postgres on your VPS systems you can give a version number to install like this
 # POSTGRES:repo:<version>
 # The buildchain type will define what usecase you are deploying. Standard will deploy autoscaler,webserver and database. database will deploy database only and webserver will deploy webserver only
@@ -231,7 +233,7 @@ DATASTORECONFIGSTYLE:tool
 #MARIADB:cloud-init
 #MARIADB:repo:12.2.2
 MARIADB:repo:default
-#MYSQL:repo:9.2.0
+#MYSQL:repo:9.7.0
 MYSQL:repo:default
 POSTGRES:repo:17
 #---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
