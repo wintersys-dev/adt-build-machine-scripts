@@ -204,7 +204,7 @@ then
 	fi
 fi
 
-if ( [ "${IN_PARALLEL}" = "1" ]  &&[ "${DEVELOPMENT}" = "1" ] )
+if ( [ "${IN_PARALLEL}" = "1" ]  && [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] )
 then
 
 	if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
