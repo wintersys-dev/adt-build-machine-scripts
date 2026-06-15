@@ -230,7 +230,8 @@ DATASTORECONFIGSTYLE:tool
 #---------------------------------------------DATABASES----------------------------------------------------------------------------------
 #MARIADB:cloud-init
 MARIADB:repo:12.2.2
-MYSQL:repo:9.2.0
+#MYSQL:repo:9.2.0
+MYSQL:repo:official
 POSTGRES:repo:17
 #---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
 BUILDCHAINTYPE:standard
