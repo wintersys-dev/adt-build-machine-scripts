@@ -311,7 +311,7 @@ then
 		built_servers="${built_servers} Webserver(s)"
 	fi
 	status "${built_servers} and Database built correctly....."
-elif ( [ "${DEVELOPMENT}" = "1" ] )
+elif ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] )
 then
 	status "Webserver and Database built correctly....."
 fi
