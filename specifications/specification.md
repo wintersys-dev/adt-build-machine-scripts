@@ -463,14 +463,22 @@ You need to set BUILD_ARCHIVE_CHOICE based on where you are deploying from. The 
 
 ### APPLICATION_LANGUAGE
 
-You can set this to "HTML" or "PHP" based on the language you are deploying for.
+You can set this to "HTML" or "PHP" based on the language you are deploying for.  
 
 ------
 
-### PHP_VERSION
+### PHP_VERSION  
 
-If you are deploying PHP, then you can set which version of PHP you are deploying here. Ordinarily, it should be the latest available version (currently 7.4).
-So, to use 7.4 you would set PHP_VERSION="7.4"
+You can set your PHP_VERSION here. Each operating system has a default version of PHP that it supports. The default versions for   
+
+UBUNTU 24:04 is 8.3  
+UBUNTU 26:04 is 8.5  
+DEBIAN 13 is 8.4  
+
+So, to use 8.4 you would set PHP_VERSION="8.4"  
+
+Note: if you set a PHP version which is different to the default OS version it will be installed using 3rd party repositories and not official repositories. For example, if you were deploying debian 13 and you set PHP_VERSION to 8.5 that would make use of 3rd party repositories to get it installed whereas if you set 8.4 for debian 13 that would use the official repositories. At the time of writing, the 3rd party repos aren't available for ubunty 26.04 so you have to install version 8.5 if you want to use ubuntu 26.04 until such time as the 3rd party repositories are supported in ubuntu 26.04  
+
 
 -------------
 
