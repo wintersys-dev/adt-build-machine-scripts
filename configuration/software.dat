@@ -69,6 +69,7 @@
 # MYSQL:repo:default (this will install the default version for the operating system version you are installing)
 # When installing postgres on your VPS systems you can give a version number to install like this
 # POSTGRES:repo:<version>
+# POSTGRES:repo:default (this will install the default version for the operating system version you are installing)
 # The buildchain type will define what usecase you are deploying. Standard will deploy autoscaler,webserver and database. database will deploy database only and webserver will deploy webserver only
 # Developers could define other chain node types such as caching for example and then caching would deploy a caching node such as memcached or redis and so on
 # BUILDCHAINTYPE:standard|webserver|database
@@ -235,7 +236,8 @@ DATASTORECONFIGSTYLE:tool
 MARIADB:repo:default
 #MYSQL:repo:9.7.0
 MYSQL:repo:default
-POSTGRES:repo:17
+#POSTGRES:repo:17
+POSTGRES:repo:default
 #---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
 BUILDCHAINTYPE:standard
 #---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
