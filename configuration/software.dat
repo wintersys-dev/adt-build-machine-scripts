@@ -236,8 +236,8 @@ DATASTORECONFIGSTYLE:tool
 MARIADB:repo:default
 #MYSQL:repo:9.7.0
 MYSQL:repo:default
-#POSTGRES:repo:17
-POSTGRES:repo:default
+POSTGRES:repo:18
+#POSTGRES:repo:default
 #---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
 BUILDCHAINTYPE:standard
 #---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
