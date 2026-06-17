@@ -70,19 +70,19 @@
 # that you using to allow access by "firewall" to the reverse proxy 
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 #############################################################################################################
-#AUTHENTICATORPORTS:443|ipv4|cloudflare   
-#REVERSEPROXYPORTS:
-#AUTOSCALERPORTS:
-#WEBSERVERPORTS:
-#DATABASEPORTS:
+AUTHENTICATORPORTS:443|ipv4|cloudflare   
+REVERSEPROXYPORTS:
+AUTOSCALERPORTS:
+WEBSERVERPORTS:
+DATABASEPORTS:
 ############################################################################################################
 # CONFIGURATION 7: This is the firewall configuration you use when you are using an authentication server
 # that you using to allow access by "wireguard" to the reverse proxy 
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 # 1036 is the wireguard port with is SSH_PORT + 1 by default
 #############################################################################################################
-AUTHENTICATORPORTS:443|ipv4|cloudflare  
-REVERSEPROXYPORTS:1036|ipv4|0.0.0.0/0
-AUTOSCALERPORTS:
-WEBSERVERPORTS:
-DATABASEPORTS:
+#AUTHENTICATORPORTS:443|ipv4|cloudflare  
+#REVERSEPROXYPORTS:1036|ipv4|0.0.0.0/0
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
