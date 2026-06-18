@@ -110,10 +110,21 @@ then
         then
              linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
         fi
-                        
+        
+        #Make damn sure that the DNS record gets added to the DNS system                        
         export LINODE_CLI_CONFIG=${linode_config_file}
-        domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-        #Make damn sure that the DNS record gets added to the DNS system
+        
+        count="0"
+        domain__id=""
+        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
+        do
+                domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                if ( [ "$?" != "0" ] )
+                then
+                        /bin/sleep 10
+                fi
+                count="`/usr/bin/expr ${count} + 1`"
+        done
+          
         count="0"
         while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`" = "" ] )
         do
