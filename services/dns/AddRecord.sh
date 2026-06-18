@@ -74,11 +74,20 @@ dns="${7}"
 if ( [ "${dns}" = "exoscale" ] )
 then
         #Make damn sure that the DNS record gets added to the DNS system
+        
         count="0"
-
-        id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
-
-        if ( [ "${id}" != "" ] )
+        domain__id=""
+        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
+        do
+                domain_id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
+                then
+                        /bin/sleep 10
+                fi
+                count="`/usr/bin/expr ${count} + 1`"
+        done
+        
+        
+        if ( [ "${domain_id}" != "" ] )
         then
                 while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`" = "" ] )
                 do
