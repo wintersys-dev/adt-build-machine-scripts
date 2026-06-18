@@ -20,8 +20,24 @@
 # forwards traffic to completely firewalled off from the public internet allowing the loadbalancer to be the
 # public face of your webproperty. 
 ############################################################################################################
-# CONFIGURATION 1: This is the firewall configuration you use when you want your webservers to be accessible
-# from any IP address on the Internet and is the default configuration for the quick demos
+# CONFIGURATION 1: This is the most permissive configuration which should only be used for the demos and until
+# you are familiar with the toolkit. You can use one of the below configurations or craft your own in your
+# own fork once you are more comfortable with how this toolkit works. Using a permissive configuration by
+# default helps stop people experimenting with the toolkit from running into firewall issues that block access
+# to their deployed website of not configured correctly. If you run reverse proxies you don't need 443 open
+# on your webservers and if you don't run reverse proxies then the reverse proxies setting is moot but for
+# neatness there is a configuration below for when you are running without reverse proxies
+#############################################################################################################
+AUTHENTICATORPORTS:443|ipv4|cloudflare
+REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
+AUTOSCALERPORTS:
+WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
+DATABASEPORTS:
+############################################################################################################
+# CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
+# from any IP address on the Internet. If you are in development mode you can change this so that your 
+# development webserver is only accessible from your machine's IP address, for example:
+# WEBSERVERPORTS:443|ipv4|90.32.12.43/32. This provides an extra level of security
 #############################################################################################################
 #AUTHENTICATORPORTS:
 #REVERSEPROXYPORTS:
@@ -29,7 +45,7 @@
 #WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
+# CONFIGURATION 3: This is the firewall configuration you use when you want your webservers to be accessible
 # only from cloudflare ip addresses and you are not using an authentication server
 #############################################################################################################
 #AUTHENTICATORPORTS:
@@ -38,7 +54,7 @@
 #WEBSERVERPORTS:443|ipv4|cloudflare
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 3: This is the firewall configuration you use when you want your reverse proxy servers to be
+# CONFIGURATION 4: This is the firewall configuration you use when you want your reverse proxy servers to be
 # accessible from any ip address on the Internet and you are not using an authentication server
 #############################################################################################################
 #AUTHENTICATORPORTS:
@@ -47,7 +63,7 @@
 #WEBSERVERPORTS:
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 4: This is the firewall configuration you use when you want your reverse proxies to be accessible
+# CONFIGURATION 5: This is the firewall configuration you use when you want your reverse proxies to be accessible
 # only from cloudflare ip addresses and you are not using an authentication server
 #############################################################################################################
 #AUTHENTICATORPORTS:
@@ -56,7 +72,7 @@
 #WEBSERVERPORTS:
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 5: This is the firewall configuration you use when you are using an authentication server
+# CONFIGURATION 6: This is the firewall configuration you use when you are using an authentication server
 # that you using to allow access by "basic auth" or "whitelist" to the reverse proxy
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 #############################################################################################################
@@ -66,7 +82,7 @@
 #WEBSERVERPORTS:
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 6: This is the firewall configuration you use when you are using an authentication server
+# CONFIGURATION 7: This is the firewall configuration you use when you are using an authentication server
 # that you using to allow access by "firewall" to the reverse proxy 
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 #############################################################################################################
@@ -76,7 +92,7 @@
 #WEBSERVERPORTS:
 #DATABASEPORTS:
 ############################################################################################################
-# CONFIGURATION 7: This is the firewall configuration you use when you are using an authentication server
+# CONFIGURATION 8: This is the firewall configuration you use when you are using an authentication server
 # that you using to allow access by "wireguard" to the reverse proxy 
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 # 1036 is the wireguard port with is SSH_PORT + 1 by default
