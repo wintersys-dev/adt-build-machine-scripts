@@ -548,9 +548,13 @@ This will define the authentication process that is used by the authenticator cl
 The two classes are 
 
 1 - "firewall" - this means that users will be granted and denied access based on their IP address  
-2 - "basic-auth" - this means that a basic auth dialog box will appear and a user will have to enter their email and password before they can be allowed in to the main site. This should be reasonably secure as it https is used.   
+2 - "basic-auth" - this means that a basic auth dialog box will appear and a user will have to enter their email and password before they can be allowed in to the main site. This should be reasonably secure as it https is used.  
+3 - "whitelist" - this will control access to your webserver based on an allowed list of ip addresses listed in the webserver configuration. You have to have port 443 open on your webserver for this to work. Access is controlled by the webserver not by the firewall.
+4 - "wire-guard" - this will configure your servers to use wire guard as a method to control access to them. 
 
-NOTE: these are not final authentication steps a user will still have to authenticate to the actual application but by having these techniques available it can stop bots and so on from probing your webproperty.   
+NOTE 1: these are not final authentication steps a user will still have to authenticate to the actual application but by having these techniques available it can stop bots and so on from probing your webproperty.  
+
+NOTE 2: These authentication techniques only authenticate to reverse proxy type machines. In other words, access is controlled through reverse proxies, so, if you are not deploying reverse proxies these techniques won't work.  
 
 ------------
 
