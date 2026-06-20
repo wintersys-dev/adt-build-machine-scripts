@@ -366,6 +366,8 @@ When this is set to "0" any reverse proxies in the build chain will be omitted
  
 This tells the system how many reverse proxy servers to deploy this can be up to 5 servers. So, you set this value to any integer between 1 and 5
 
+------
+
 ### DATABASE_INSTALLATION_TYPE
 
 If you are installing a database on a VPS system, you have three types of database you can choose from by default. Obviously, your choice here has to be supported by your CMS system. The choices are: "Maria", "MySQL", and "Postgres" and if you are installing a managed darabase you will want to set this to DBaaS
