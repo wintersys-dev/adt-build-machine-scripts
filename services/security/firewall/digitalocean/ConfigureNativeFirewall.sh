@@ -50,7 +50,7 @@ BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDEN
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
-NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
+NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
@@ -139,7 +139,7 @@ then
                 machine_identifier="rp-${REGION}-${BUILD_IDENTIFIER}"
         fi
 
-        if ( [ "${NO_REVERSE_PROXY}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ||  [ "${firewall_name}" = "adt-authenticator" ] )
+        if ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ||  [ "${firewall_name}" = "adt-authenticator" ] )
         then
                 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
                 then
@@ -150,14 +150,14 @@ then
         else
                 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
                 then
-                        if ( [ "${NO_REVERSE_PROXY}" != "0" ] && [ "${firewall_name}" = "adt-webserver" ] )
+                        if ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-webserver" ] )
                         then
                                 rules="protocol:tcp,ports:443,address:${build_machine_ip}/32 protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "
                         fi
                 fi
         fi
 
-        if ( ( [ "${NO_REVERSE_PROXY}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxy" ] ) || ( [ "${NO_REVERSE_PROXY}" = "0" ] &&  [ "${firewall_name}" = "adt-webserver" ] ) )
+        if ( ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxy" ] ) || ( [ "${NO_REVERSE_PROXY}" = "0" ] &&  [ "${firewall_name}" = "adt-webserver" ] ) )
         then
                 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
                 then
