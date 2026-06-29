@@ -76,7 +76,7 @@ do
         status "OK... Building an reverse proxy ${reverse_proxy_no}. This is the ${counter} attempt of 5"
 
         #Check if there is an reverse proxy already running. If there is, then skip building the reverse proxy
-        if ( [ "${reverse_proxy_no}" -le "${NO_REVERSE_PROXY}" ] )
+        if ( [ "${reverse_proxy_no}" -le "${NO_REVERSE_PROXIES}" ] )
         then
                 ip=""
                 #Construct a unique name for this reverse proxy server
@@ -265,7 +265,7 @@ do
                 fi
         else
                 #An reverse proxy server is already running in the current region ask if we can use that one
-                status "Configured to use ${NO_REVERSE_PROXY} reverse proxies and found ${reverse_proxy_no} running whilst trying to build more"
+                status "Configured to use ${NO_REVERSE_PROXIES} reverse proxies and found ${reverse_proxy_no} running whilst trying to build more"
                 status "The reverse proxy you are asking me to build looks like it's excess to the configured requirements"
                 status "Will not be creating reverse proxy"
                 /bin/touch /tmp/END_IT_ALL
