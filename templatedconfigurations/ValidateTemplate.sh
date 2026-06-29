@@ -301,9 +301,9 @@ then
 	${log_command} "Your value for the variable NO_WEBSERVERS (${NO_WEBSERVERS}) doesn't appear to be valid please review"
 fi
 
-if ( [ "`/bin/grep "^NO_REVERSE_PROXY " ${quick_specification} | /bin/grep -w "${NO_REVERSE_PROXY}"  2>/dev/null `" = "" ] )
+if ( [ "`/bin/grep "^NO_REVERSE_PROXIES " ${quick_specification} | /bin/grep -w "${NO_REVERSE_PROXIES}"  2>/dev/null `" = "" ] )
 then
-	${log_command} "Your value for the variable NO_REVERSE_PROXY (${NO_REVERSE_PROXY}) doesn't appear to be valid please review"
+	${log_command} "Your value for the variable NO_REVERSE_PROXIES (${NO_REVERSE_PROXIES}) doesn't appear to be valid please review"
 fi
 
 if ( [ "${NO_REVERSE_PROXY}" != "0" ] && [ "`/bin/grep "^REVERSE_PROXY_WEBSERVER " ${quick_specification} | /bin/grep -w "${REVERSE_PROXY_WEBSERVER}"  2>/dev/null `" = "" ] )
@@ -629,7 +629,7 @@ then
 	${log_command} "Your value for the variable PRIMARY_REGION (${PRIMARY_REGION}) doesn't appear to be valid please review"
 fi
 
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${NO_REVERSE_PROXY}" = "0" ] )
+if ( [ "${MULTI_REGION}" = "1" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] )
 then
 	${log_command} "You are set to deploy to multiple regions which means that you have to use reverse proxy machines"
 	${log_command} "Currently your number of reverse proxy machines is set to zero"
