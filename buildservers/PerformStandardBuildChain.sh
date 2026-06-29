@@ -134,10 +134,10 @@ then
 		done		
 	fi
 
-	if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+	if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 	then
 		tally="0"
-		while ( [ "${tally}" -lt "${NO_REVERSE_PROXY}" ] )
+		while ( [ "${tally}" -lt "${NO_REVERSE_PROXIES}" ] )
 		do
 			tally="`/usr/bin/expr ${tally} + 1`"
 			${BUILD_HOME}/buildservers/BuildReverseProxy.sh ${tally}
