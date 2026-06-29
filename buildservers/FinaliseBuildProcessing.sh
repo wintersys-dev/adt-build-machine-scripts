@@ -418,7 +418,7 @@ then
 
 		status "The Website isn't online yet. It can take a minute for the software on your machines to settle down post install. I will keep trying...please wait"
 
-		if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+		if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 		then
 			if ( [ "${LOAD_BALANCER}" = "1" ] && [ "${AUTHENTICATOR_TYPE}" = "basic-auth" ] )
             then
