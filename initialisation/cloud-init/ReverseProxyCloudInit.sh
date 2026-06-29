@@ -141,7 +141,7 @@ fi
 status ""
 status "Validating reverse proxy cloud-init script"
 
-if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 then
 	reverseproxy_cloud_init_status="`/usr/bin/cloud-init schema --config-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml`"
 	status "${reverseproxy_cloud_init_status}"
