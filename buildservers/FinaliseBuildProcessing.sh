@@ -56,7 +56,7 @@ REVERSE_PROXY_WEBSERVER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REV
 PERSIST_ASSETS_TO_DATASTORE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PERSIST_ASSETS_TO_DATASTORE`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
+NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 NO_WEBSERVERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_WEBSERVERS`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
@@ -172,7 +172,7 @@ fi
 rp_active_ips=""
 if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
-	if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+	if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 	then
 		if ( [ "${rp_active_ips}" = "" ] )
 		then
@@ -285,7 +285,7 @@ do
 	done
 done
 
-if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 then
 	#This checks that the reverse proxy webserver itself has been fully installed and is running. 
 	status "Checking that the reverse proxy webserver ${REVERSE_PROXY_WEBSERVER} has fully installed....(this may take a while if compiling from source)"
