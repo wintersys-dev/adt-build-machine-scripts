@@ -219,10 +219,10 @@ then
 		done		
 	fi
 
-	if ( [ "${NO_REVERSE_PROXY}" -ne "0" ] )
+	if ( [ "${NO_REVERSE_PROXIES}" -ne "0" ] )
 	then
 		tally="0"
-		while ( [ "${tally}" -lt "${NO_REVERSE_PROXY}" ] )
+		while ( [ "${tally}" -lt "${NO_REVERSE_PROXIES}" ] )
 		do
 			tally="`/usr/bin/expr ${tally} + 1`"
 			${BUILD_HOME}/buildservers/BuildReverseProxy.sh ${tally} &
@@ -298,7 +298,7 @@ then
 	then
 		built_servers="Authentication Server(s)"		
 	fi
-	if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+	if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 	then
 		built_servers="${built_servers} Reverse Proxy Server(s)"
 	fi
