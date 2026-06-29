@@ -27,7 +27,7 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 NO_AUTHENTICATORS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTHENTICATORS`"
 DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
-NO_REVERSE_PROXY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXY`"
+NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 DB_INSTALL_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_INSTALL_MODE`"
 NO_WEBSERVERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_WEBSERVERS`"
 
@@ -42,7 +42,7 @@ then
 	${BUILD_HOME}/initialisation/cloud-init/AutoscalerCloudInit.sh
 fi
 
-if ( [ "${NO_REVERSE_PROXY}" != "0" ] )
+if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/ReverseProxyCloudInit.sh
 fi
