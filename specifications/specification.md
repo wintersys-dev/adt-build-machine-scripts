@@ -346,21 +346,9 @@ You have a choice of webserver that you want to deploy to. You can set this to "
 
 This sets which webserver is to be used for the reverse proxy webserver which can be different to what you use as your main webserver. For example you can set this to "NGINX" and your main webserver to "APACHE"
 
------
-
-### REVERSE_PROXY
-
-if you want to deploy reverse proxy/proxies then you can set REVERSE_PROXY to "1" in your template. So, this setting has two options
- 
- 
-- "1" - Deploy reverse proxy/proxies
-- "0" - Do not deploy reverse proxy/proxies
- 
-When this is set to "0" any reverse proxies in the build chain will be omitted
-
 ----------
  
-### NO_REVERSE_PROXY
+### NO_REVERSE_PROXIES
 
 (I realised that if English is not your first language my naming convention NO_ might be confusing because it looks like no (as in none). So, please note: the abbreviation "no." (from Latin numero) always refers to quantity or indicates "number" or number of so NO_REVERSE_PROXIES expands to "number of reverse proxies)
  
