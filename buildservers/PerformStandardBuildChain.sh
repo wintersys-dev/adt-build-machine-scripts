@@ -161,10 +161,10 @@ then
 elif ( [ "${IN_PARALLEL}" = "1" ] && [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
 
-	if ( [ "${NO_REVERSE_PROXY}" -ne "0" ] )
+	if ( [ "${NO_REVERSE_PROXIES}" -ne "0" ] )
 	then
 		tally="0"
-		while ( [ "${NO_REVERSE_PROXY}" -le "5" ] && [ "${tally}" -lt "${NO_REVERSE_PROXY}" ] )
+		while ( [ "${NO_REVERSE_PROXIES}" -le "5" ] && [ "${tally}" -lt "${NO_REVERSE_PROXIES}" ] )
 		do
 			tally="`/usr/bin/expr ${tally} + 1`"
 			${BUILD_HOME}/buildservers/BuildReverseProxy.sh ${tally} &
