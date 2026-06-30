@@ -18,7 +18,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 ################################################################################
-set -x
+#set -x
 
 zoneid="${1}"
 email="${2}"
@@ -74,21 +74,19 @@ dns="${7}"
 if ( [ "${dns}" = "exoscale" ] )
 then
         #Make damn sure that the DNS record gets added to the DNS system
-        
+
         count="0"
         domain__id=""
         while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
         do
                 domain_id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
-                then
-                        /bin/sleep 10
-                fi
+                /bin/sleep 10
                 count="`/usr/bin/expr ${count} + 1`"
         done
-        
-        
+
         if ( [ "${domain_id}" != "" ] )
         then
+                count="0"
                 while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`" = "" ] )
                 do
                         count="`/usr/bin/expr ${count} + 1`"
@@ -114,42 +112,46 @@ dns="${7}"
 if ( [ "${dns}" = "linode" ] )
 then        
         linode_config_file="/root/.config/dns-linode-cli"
-        
+
         if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
         then
-             linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
+                linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
         fi
-        
+
         #Make damn sure that the DNS record gets added to the DNS system                        
         export LINODE_CLI_CONFIG=${linode_config_file}
-        
+
         count="0"
         domain__id=""
         while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
         do
-                domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                fi
-                count="`/usr/bin/expr ${count} + 1`"
-        done
-          
-        count="0"
-        while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`" = "" ] )
-        do
-                count="`/usr/bin/expr ${count} + 1`"
-                /usr/local/bin/linode-cli domains records-create ${domain_id} --type A --name ${subdomain} --target ${ip} --ttl_sec 60 --no-defaults
+                domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                
                 if ( [ "$?" != "0" ] )
                 then
                         /bin/sleep 10
+                        count="`/usr/bin/expr ${count} + 1`"
                 fi
         done
 
-        unset LINODE_CLI_CONFIG
-
-        if ( [ "${count}" = "5" ] )
+        if ( [ "${domain_id}" != "" ] )
         then
-                /bin/touch /tmp/END_IT_ALL
+                count="0"
+                while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`" = "" ] )
+                do
+                        count="`/usr/bin/expr ${count} + 1`"
+                        /usr/local/bin/linode-cli domains records-create ${domain_id} --type A --name ${subdomain} --target ${ip} --ttl_sec 60 --no-defaults
+                        if ( [ "$?" != "0" ] )
+                        then
+                                /bin/sleep 10
+                        fi
+                done
+
+                unset LINODE_CLI_CONFIG
+
+                if ( [ "${count}" = "5" ] )
+                then
+                        /bin/touch /tmp/END_IT_ALL
+                fi
         fi
 fi
 
