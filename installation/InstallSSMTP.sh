@@ -49,13 +49,13 @@ if ( [ "${apt}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-			eval ${install_command} ssmtp	
-			eval ${install_command} mailutils	
+			eval ${install_command} ssmtp ${tail_options}
+			eval ${install_command} mailutils ${tail_options}	
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-			eval ${install_command} ssmtp	
-			eval ${install_command} mailutils	
+			eval ${install_command} ssmtp ${tail_options}
+			eval ${install_command} mailutils ${tail_options}	
 	fi
 fi
