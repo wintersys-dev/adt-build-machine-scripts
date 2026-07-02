@@ -28,6 +28,8 @@ fi
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 manager=""
+options=""
+tail_options=""
 if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
 then
 	manager="/usr/bin/apt"
@@ -36,6 +38,10 @@ elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.da
 then
 	manager="/usr/bin/apt-get"
 	options="-o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y"
+elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "nala" ] )
+then
+	manager="/usr/bin/nala"
+	tail_options="-y"
 fi
 
 export DEBIAN_FRONTEND=noninteractive 
@@ -47,7 +53,7 @@ then
 	then
 		if ( [ "`/bin/grep "^VIRUSSCANNER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep clamav`" != "" ] )
         then
-			eval ${install_command} clamav clamav-daemon clamav-freshclam clamdscan
+			eval ${install_command} clamav clamav-daemon clamav-freshclam clamdscan ${tail_options}
 		fi
 	fi
 
@@ -55,7 +61,7 @@ then
 	then
 		if ( [ "`/bin/grep "^VIRUSSCANNER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep clamav`" != "" ] )
         then
-			eval ${install_command} clamav clamav-daemon clamav-freshclam clamdscan
+			eval ${install_command} clamav clamav-daemon clamav-freshclam clamdscan ${tail_options}
 		fi
 	fi
 fi
