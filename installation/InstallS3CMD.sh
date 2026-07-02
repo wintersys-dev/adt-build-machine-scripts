@@ -53,10 +53,10 @@ then
 	then
 		if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
 		then
-			eval ${install_command} s3cmd
+			eval ${install_command} s3cmd ${tail_options}
 		elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
 		then
-			eval ${install_command} python3 python3-dateutil
+			eval ${install_command} python3 python3-dateutil ${tail_options}
 			/usr/bin/ln -s /usr/bin/python3 /usr/bin/python
 			${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
 			/bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
@@ -68,10 +68,10 @@ then
 	then
 		if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
 		then
-			eval ${install_command} s3cmd
+			eval ${install_command} s3cmd ${tail_options}
 		elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
 		then
-			eval ${install_command} python3 python3-dateutil
+			eval ${install_command} python3 python3-dateutil ${tail_options}
 			/usr/bin/ln -s /usr/bin/python3 /usr/bin/python
 			${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
 			/bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
