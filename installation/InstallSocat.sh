@@ -51,11 +51,11 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${install_command} socat
+		eval ${install_command} socat ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${install_command} socat
+		eval ${install_command} socat ${tail_options}
 	fi
 fi
