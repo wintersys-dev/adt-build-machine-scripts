@@ -257,7 +257,7 @@ CLOUDCLITOOL:vultr:source
 #GO:repo
 GO:binary
 #---------------------------------------------PACKAGE MANAGER----------------------------------------------------------------------
-PACKAGEMANAGER:apt-get
+PACKAGEMANAGER:nala
 #---------------------------------------------FIREWALL-----------------------------------------------------------------------------
 FIREWALL:ufw
 #FIREWALL:iptables:20:30
