@@ -55,11 +55,11 @@ then
         then
                 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone:repo`" != "" ] )
                 then
-                        eval ${install_command} rclone
+                        eval ${install_command} rclone ${tail_options}
                 fi
                 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone:binary`" != "" ] )
                 then
-                        eval ${install_command} unzip 
+                        eval ${install_command} unzip ${tail_options}
                         cd /opt
                         /usr/bin/wget https://downloads.rclone.org/rclone-current-linux-amd64.zip
                         /usr/bin/unzip /opt/rclone*.zip
@@ -88,11 +88,11 @@ then
         then
                 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone:repo`" != "" ] )
                 then
-                        eval ${install_command} rclone
+                        eval ${install_command} rclone ${tail_options}
                 fi
                 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone:binary`" != "" ] )
                 then
-                        eval ${install_command} unzip 
+                        eval ${install_command} unzip ${tail_options} 
                         cd /opt
                         /usr/bin/wget https://downloads.rclone.org/rclone-current-linux-amd64.zip
                         /usr/bin/unzip /opt/rclone*.zip
