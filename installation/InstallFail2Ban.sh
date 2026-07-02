@@ -53,7 +53,7 @@ then
 	then
 		if ( [ "`/bin/grep "^FAIL2BAN:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep active`" != "" ] )
 		then
-			eval ${install_command} fail2ban
+			eval ${install_command} fail2ban ${tail_options}
 
 			if ( [ ! -f /etc/fail2ban/jail.d/jail.local ] )
 			then
@@ -66,7 +66,7 @@ then
 	then
 		if ( [ "`/bin/grep "^FAIL2BAN:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep active`" != "" ] )
 		then
-			eval ${install_command} fail2ban
+			eval ${install_command} fail2ban ${tail_options}
 
 			if ( [ ! -f /etc/fail2ban/jail.d/jail.local ] )
 			then
