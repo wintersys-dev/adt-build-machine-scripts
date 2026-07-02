@@ -25,12 +25,33 @@ then
 	buildos="${1}"
 fi
 
-if ( [ "${buildos}" = "ubuntu" ] )
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+manager=""
+if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
 then
-	DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq upgrade -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages
+	manager="/usr/bin/apt"
+	options="-o DPkg::Lock::Timeout=-1 -qq -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages"
+elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt-get" ] )
+then
+	manager="/usr/bin/apt-get"
+	options="-o DPkg::Lock::Timeout=-1 -qq -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages"
 fi
 
-if ( [ "${buildos}" = "debian" ] )
+export DEBIAN_FRONTEND=noninteractive 
+upgrade_command="${manager} ${options} upgrade " 
+
+if ( [ "${manager}" != "" ] )
 then
-	DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq upgrade -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages
+	if ( [ "${buildos}" = "ubuntu" ] )
+	then
+		eval ${upgrade_command}
+	fi
+
+	if ( [ "${buildos}" = "debian" ] )
+	then
+		eval ${upgrade_command} 
+	fi
 fi
+
+
