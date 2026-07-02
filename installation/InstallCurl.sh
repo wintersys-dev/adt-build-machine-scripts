@@ -49,12 +49,12 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${install_command} curl
+		eval ${install_command} curl ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${install_command} curl
+		eval ${install_command} curl ${tail_options}
 	fi
 fi
 
