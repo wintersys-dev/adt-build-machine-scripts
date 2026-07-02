@@ -31,6 +31,31 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 buildos="${1}"
 
+
+if ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Ubuntu"`" != "" ] )
+then    
+	if ( [ ! -f /root/UPDATEDSOFTWARE ] )
+	then
+		status "Performing software update....."
+		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InitialUpdate.sh "ubuntu"  >>${upgrade_log} 2>&1
+	else
+		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "ubuntu"  >>${upgrade_log} 2>&1
+	fi
+fi
+
+if ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Debian"`" != "" ] )
+then     
+	if ( [ ! -f /root/UPDATEDSOFTWARE ] )
+	then
+		status "Performing software update....."
+		${BUILD_HOME}/installation/InitialUpdate.sh "debian"  >>${upgrade_log} 2>&1
+	else
+		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "debian"  >>${upgrade_log} 2>&1
+	fi
+fi
+
 if ( [ ! -f /root/DATASTORETOOL_INSTALLED ] &&  [ "${buildos}" = "ubuntu" ] )
 then
 	status "Installing/Updating Datastore tools"
@@ -42,6 +67,7 @@ then
 	${BUILD_HOME}/installation/InstallDatastoreTools.sh "debian" 2>&1 >/dev/null
 	/bin/touch /root/DATASTORETOOL_INSTALLED
 fi
+
 
 if ( [ ! -f /root/UPDATEDSOFTWARE ] || [ "`/usr/bin/find ~/UPDATEDSOFTWARE -mmin +1440 -print`" != "" ] )
 then
@@ -68,16 +94,6 @@ then
 
 	if ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Ubuntu"`" != "" ] )
 	then    
-		if ( [ ! -f /root/UPDATEDSOFTWARE ] )
-		then
-			status "Performing software update....."
-			${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
-			${BUILD_HOME}/installation/InitialUpdate.sh "ubuntu"  >>${upgrade_log} 2>&1
-		else
-			${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
-			${BUILD_HOME}/installation/UpdateAndUpgrade.sh "ubuntu"  >>${upgrade_log} 2>&1
-		fi
-
 		status "Installing Firewall"
 		${BUILD_HOME}/installation/InstallFirewall.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Initialising Firewall"
@@ -107,14 +123,6 @@ then
 		/bin/touch ${BUILD_HOME}/runtime/EXUPDATEDSOFTWARE
 	elif ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Debian"`" != "" ] )
 	then     
-		if ( [ ! -f /root/UPDATEDSOFTWARE ] )
-		then
-			status "Performing software update....."
-			${BUILD_HOME}/installation/InitialUpdate.sh "debian"  >>${upgrade_log} 2>&1
-		else
-			${BUILD_HOME}/installation/UpdateAndUpgrade.sh "debian"  >>${upgrade_log} 2>&1
-		fi
-
 		status "Installing Firewall"
 		${BUILD_HOME}/installation/InstallFirewall.sh "debian" >>${upgrade_log} 2>&1
 		status "Initialising Firewall"
