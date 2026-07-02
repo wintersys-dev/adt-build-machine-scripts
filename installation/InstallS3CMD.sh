@@ -27,50 +27,50 @@ fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd`" != "" ] )
+manager=""
+if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
 then
-        apt=""
-        if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
-        then
-                apt="/usr/bin/apt"
-        elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt-get" ] )
-        then
-                apt="/usr/bin/apt-get"
-        fi
+	manager="/usr/bin/apt"
+	options="-o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y"
+elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt-get" ] )
+then
+	manager="/usr/bin/apt-get"
+	options="-o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y"
+fi
 
-        install_command="DEBIAN_FRONTEND=noninteractive ${apt} -o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y install " 
+export DEBIAN_FRONTEND=noninteractive 
+install_command="${manager} ${options} install " 
 
-        if ( [ "${apt}" != "" ] )
-        then
-                if ( [ "${buildos}" = "ubuntu" ] )
-                then
-                        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
-                        then
-                                eval ${install_command} s3cmd
-                        elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
-                        then
-                                eval ${install_command} python3 python3-dateutil
-                                /usr/bin/ln -s /usr/bin/python3 /usr/bin/python
-								${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
-                                /bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
-                                /bin/cp -r ./s3cmd/S3 /usr/bin/
-                                /bin/rm -r ./s3cmd
-                        fi
-                fi
-                if ( [ "${buildos}" = "debian" ] )
-                then
-                        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
-                        then
-                                eval ${install_command} s3cmd
-                        elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
-                        then
-                                eval ${install_command} python3 python3-dateutil
-                                /usr/bin/ln -s /usr/bin/python3 /usr/bin/python
-								${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
-                                /bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
-                                /bin/cp -r ./s3cmd/S3 /usr/bin/
-                                /bin/rm -r ./s3cmd
-                        fi
-                fi
-        fi
+if ( [ "${manager}" != "" ] )
+then
+	if ( [ "${buildos}" = "ubuntu" ] )
+	then
+		if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
+		then
+			eval ${install_command} s3cmd
+		elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
+		then
+			eval ${install_command} python3 python3-dateutil
+			/usr/bin/ln -s /usr/bin/python3 /usr/bin/python
+			${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
+			/bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
+			/bin/cp -r ./s3cmd/S3 /usr/bin/
+			/bin/rm -r ./s3cmd
+		fi
+	fi
+	if ( [ "${buildos}" = "debian" ] )
+	then
+		if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:repo`" != "" ] )
+		then
+			eval ${install_command} s3cmd
+		elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd:source`" != "" ] )
+		then
+			eval ${install_command} python3 python3-dateutil
+			/usr/bin/ln -s /usr/bin/python3 /usr/bin/python
+			${BUILD_HOME}/services/git/GitClone.sh "github" "" "s3tools" "s3cmd" ""
+			/bin/cp ./s3cmd/s3cmd /usr/bin/s3cmd
+			/bin/cp -r ./s3cmd/S3 /usr/bin/
+			/bin/rm -r ./s3cmd
+		fi
+    fi
 fi
