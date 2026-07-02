@@ -27,38 +27,36 @@ fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd`" != "" ] )
+if ( [ "${buildos}" = "ubuntu" ] )
 then
-        if ( [ "${buildos}" = "ubuntu" ] )
+        ${BUILD_HOME}/installation/InstallJQ.sh ${buildos}
+        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:binary`" != "" ] )
         then
-                ${BUILD_HOME}/installation/InstallJQ.sh ${buildos}
-                if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:binary`" != "" ] )
-                then
-                        /usr/bin/wget "`/usr/bin/wget -q -O - https://api.github.com/repos/peak/s5cmd/releases/latest  | /usr/bin/jq -r '.assets[] | select (.name | contains ("amd64"))'.browser_download_url`"
-                        /usr/bin/dpkg -i ./s5cmd_*_linux_amd64.deb
-                        /bin/rm ./s5cmd_*_linux_amd64.deb
-                fi
-                if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:source`" != "" ] )
-                then
-                        ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
-                        GOBIN=`/usr/bin/pwd` /usr/bin/go install github.com/peak/s5cmd/v2@latest                 
-                        /bin/mv ./s5cmd /usr/bin/s5cmd                                      
-                fi
+                /usr/bin/wget "`/usr/bin/wget -q -O - https://api.github.com/repos/peak/s5cmd/releases/latest  | /usr/bin/jq -r '.assets[] | select (.name | contains ("amd64"))'.browser_download_url`"
+                /usr/bin/dpkg -i ./s5cmd_*_linux_amd64.deb
+                /bin/rm ./s5cmd_*_linux_amd64.deb
         fi
-        if ( [ "${buildos}" = "debian" ] )
+        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:source`" != "" ] )
         then
-                ${BUILD_HOME}/installation/InstallJQ.sh ${buildos}
-                if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:binary`" != "" ] )
-                then
-                        /usr/bin/wget "`/usr/bin/wget -q -O - https://api.github.com/repos/peak/s5cmd/releases/latest  | /usr/bin/jq -r '.assets[] | select (.name | contains ("amd64"))'.browser_download_url`"
-                        /usr/bin/dpkg -i ./s5cmd_*_linux_amd64.deb
-                        /bin/rm ./s5cmd_*_linux_amd64.deb
-                fi
-                if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:source`" != "" ] )
-                then
-                        ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
-                        GOBIN=`/usr/bin/pwd` /usr/bin/go install github.com/peak/s5cmd/v2@latest                 
-                        /bin/mv ./s5cmd /usr/bin/s5cmd                                      
-                fi
+                ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
+                GOBIN=`/usr/bin/pwd` /usr/bin/go install github.com/peak/s5cmd/v2@latest                 
+                /bin/mv ./s5cmd /usr/bin/s5cmd                                      
+        fi
+fi
+
+if ( [ "${buildos}" = "debian" ] )
+then
+        ${BUILD_HOME}/installation/InstallJQ.sh ${buildos}
+        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:binary`" != "" ] )
+        then
+                /usr/bin/wget "`/usr/bin/wget -q -O - https://api.github.com/repos/peak/s5cmd/releases/latest  | /usr/bin/jq -r '.assets[] | select (.name | contains ("amd64"))'.browser_download_url`"
+                /usr/bin/dpkg -i ./s5cmd_*_linux_amd64.deb
+                /bin/rm ./s5cmd_*_linux_amd64.deb
+        fi
+        if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd:source`" != "" ] )
+        then
+                ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
+                GOBIN=`/usr/bin/pwd` /usr/bin/go install github.com/peak/s5cmd/v2@latest                 
+                /bin/mv ./s5cmd /usr/bin/s5cmd                                      
         fi
 fi
