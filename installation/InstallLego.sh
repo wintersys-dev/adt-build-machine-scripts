@@ -53,7 +53,7 @@ then
 	then
 	    if ( [ "`/bin/grep "^SSLCERTCLIENT:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep SSLCERTCLIENT:lego:binary`" != "" ] )
         then
-			eval ${install_command} jq 			
+			eval ${install_command} jq ${tail_options}	
 			version="`/usr/bin/curl -L https://api.github.com/repos/go-acme/lego/releases/latest | /usr/bin/jq -r '.name'`" 
 			if ( [ -f /usr/bin/lego ] )                                                                                    
 			then                                                                                                            
@@ -62,7 +62,7 @@ then
 			/usr/bin/wget -c https://github.com/xenolf/lego/releases/download/${version}/lego_${version}_linux_amd64.tar.gz -O- | /usr/bin/tar -xz -C /usr/bin      
 		elif ( [ "`/bin/grep "^SSLCERTCLIENT:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep SSLCERTCLIENT:lego:snap`" != "" ] )
 		then
-			eval ${install_command} snapd
+			eval ${install_command} snapd ${tail_options}
 			snap="`/usr/bin/whereis snap | /usr/bin/awk -F':' '{print $NF}' | /usr/bin/awk '{print $1}'`"
 			${snap} install lego
 			/usr/bin/ln -s /snap/bin/lego /usr/bin/lego
@@ -73,7 +73,7 @@ then
 	then
 	    if ( [ "`/bin/grep "^SSLCERTCLIENT:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep SSLCERTCLIENT:lego:binary`" != "" ] )
         then
-			eval ${install_command} jq 			
+			eval ${install_command} jq ${tail_options}		
 			version="`/usr/bin/curl -L https://api.github.com/repos/go-acme/lego/releases/latest | /usr/bin/jq -r '.name'`" 
 			if ( [ -f /usr/bin/lego ] )                                                                                    
 			then                                                                                                            
@@ -82,7 +82,7 @@ then
 			/usr/bin/wget -c https://github.com/xenolf/lego/releases/download/${version}/lego_${version}_linux_amd64.tar.gz -O- | /usr/bin/tar -xz -C /usr/bin      
 		elif ( [ "`/bin/grep "^SSLCERTCLIENT:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep SSLCERTCLIENT:lego:snap`" != "" ] )
 		then
-			eval ${install_command} snapd
+			eval ${install_command} snapd ${tail_options}
 			snap="`/usr/bin/whereis snap | /usr/bin/awk -F':' '{print $NF}' | /usr/bin/awk '{print $1}'`"
 			${snap} install lego
 			/usr/bin/ln -s /snap/bin/lego /usr/bin/lego
