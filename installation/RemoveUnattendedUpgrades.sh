@@ -51,11 +51,11 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${remove_command} unattended-upgrades
+		eval ${remove_command} unattended-upgrades ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${remove_command} unattended-upgrades
+		eval ${remove_command} unattended-upgrades ${tail_options}
 	fi
 fi
