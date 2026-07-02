@@ -51,12 +51,12 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${upgrade_command}
+		eval ${upgrade_command} ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${upgrade_command} 
+		eval ${upgrade_command} ${tail_options} 
 	fi
 fi
 
