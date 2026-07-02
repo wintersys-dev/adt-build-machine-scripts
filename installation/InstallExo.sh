@@ -56,7 +56,7 @@ then
                         /usr/bin/curl -fsSL https://raw.githubusercontent.com/exoscale/cli/master/install-latest.sh | /bin/sh >/dev/null
                 elif ( [ "`/bin/grep "^CLOUDCLITOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep CLOUDCLITOOL:exo:source`" != "" ] )
                 then
-                        ${install_command} build-essential
+                        ${install_command} build-essential ${tail_options}
                         ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
                         if ( [ ! -d /opt/exoscale ] )
                         then
@@ -78,7 +78,7 @@ then
                         /usr/bin/curl -fsSL https://raw.githubusercontent.com/exoscale/cli/master/install-latest.sh | /bin/sh >/dev/null
                 elif ( [ "`/bin/grep "^CLOUDCLITOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep CLOUDCLITOOL:exo:source`" != "" ] )
                 then
-                        ${install_command} build-essential
+                        ${install_command} build-essential ${tail_options}
                         ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
                         if ( [ ! -d /opt/exoscale ] )
                         then
