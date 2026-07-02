@@ -61,3 +61,20 @@ then
 	fi
 fi
 
+if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "nala" ] )
+then
+	if ( [ "${buildos}" = "ubuntu" ] )
+	then
+		/usr/bin/yes | /usr/bin/dpkg --configure -a
+		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq apt-utils
+		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update --allow-change-held-packages    
+	fi
+
+	if ( [ "${buildos}" = "debian" ] )
+	then
+		/usr/bin/yes | /usr/bin/dpkg --configure -a
+		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq apt-utils 
+		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update --allow-change-held-packages    
+	fi
+fi
+
