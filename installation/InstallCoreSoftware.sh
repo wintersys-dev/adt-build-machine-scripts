@@ -37,11 +37,11 @@ then
 	if ( [ ! -f /root/UPDATEDSOFTWARE ] )
 	then
 		status "Performing software update....."
-		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
-		${BUILD_HOME}/installation/InitialUpdate.sh "ubuntu"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  
+		${BUILD_HOME}/installation/InitialUpdate.sh "ubuntu"  
 	else
-		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu"  >>${upgrade_log} 2>&1
-		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "ubuntu"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/RemoveUnattendedUpgrades.sh "ubuntu" 
+		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "ubuntu"  
 	fi
 fi
 
@@ -50,9 +50,9 @@ then
 	if ( [ ! -f /root/UPDATEDSOFTWARE ] )
 	then
 		status "Performing software update....."
-		${BUILD_HOME}/installation/InitialUpdate.sh "debian"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InitialUpdate.sh "debian"  
 	else
-		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "debian"  >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/UpdateAndUpgrade.sh "debian"  
 	fi
 fi
 
