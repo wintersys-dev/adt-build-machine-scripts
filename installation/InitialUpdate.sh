@@ -68,6 +68,7 @@ then
 		/usr/bin/yes | /usr/bin/dpkg --configure -a
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq apt-utils
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq nala
+		/usr/bin/nala fetch --fetches 2 --auto -y 
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update --allow-change-held-packages    
 	fi
 
@@ -76,6 +77,7 @@ then
 		/usr/bin/yes | /usr/bin/dpkg --configure -a
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq apt-utils 
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 install -y -qq nala
+		/usr/bin/nala fetch --fetches 2 --auto -y 
 		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update --allow-change-held-packages    
 	fi
 fi
