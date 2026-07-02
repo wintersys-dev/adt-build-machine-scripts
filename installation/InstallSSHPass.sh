@@ -51,12 +51,12 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${install_command} sshpass
+		eval ${install_command} sshpass ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${install_command} sshpass
+		eval ${install_command} sshpass ${tail_options}
 	fi
 fi
 
