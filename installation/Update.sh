@@ -35,7 +35,7 @@ then
 elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt-get" ] )
 then
 	manager="/usr/bin/apt-get"
-	options="-o DPkg::Lock::Timeout=-1 -qq-o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages"
+	options="-o DPkg::Lock::Timeout=-1 -qq -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -y --allow-downgrades --allow-remove-essential --allow-change-held-packages"
 fi
 
 export DEBIAN_FRONTEND=noninteractive 
