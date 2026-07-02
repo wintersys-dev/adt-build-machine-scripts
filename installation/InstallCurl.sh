@@ -26,6 +26,8 @@ then
 fi
 
 manager=""
+options=""
+tail_options=""
 if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
 then
 	manager="/usr/bin/apt"
