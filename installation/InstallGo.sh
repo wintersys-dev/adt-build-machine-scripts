@@ -51,10 +51,10 @@ if ( [ "${buildos}" = "ubuntu" ] )
 then
         if ( [ "`/bin/grep "^GO:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep repo`" != "" ] )
         then
-                eval ${install_command} golang-go
+                eval ${install_command} golang-go ${tail_options}
         elif ( [ "`/bin/grep "^GO:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep binary`" != "" ] )
         then
-                eval ${install_command} jq                       
+                eval ${install_command} jq ${tail_options}                       
                 version="`/usr/bin/curl https://go.dev/dl/?mode=json | /usr/bin/jq -r '.[0].version' | /bin/sed 's/go//g'1`"            
                 /usr/bin/wget -c https://dl.google.com/go/go${version}.linux-amd64.tar.gz -O - | /usr/bin/tar -xz -C /usr/local  
 
@@ -69,10 +69,10 @@ if ( [ "${buildos}" = "debian" ] )
 then
         if ( [ "`/bin/grep "^GO:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep repo`" != "" ] )
         then
-                 eval ${install_command} golang-go
+                 eval ${install_command} golang-go ${tail_options}
         elif ( [ "`/bin/grep "^GO:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep binary`" != "" ] )
         then       
-                eval ${install_command} jq                       
+                eval ${install_command} jq ${tail_options}                       
                 version="`/usr/bin/curl https://go.dev/dl/?mode=json | /usr/bin/jq -r '.[0].version' | /bin/sed 's/go//g'1`"            
                 /usr/bin/wget -c https://dl.google.com/go/go${version}.linux-amd64.tar.gz -O - | /usr/bin/tar -xz -C /usr/local  
 
