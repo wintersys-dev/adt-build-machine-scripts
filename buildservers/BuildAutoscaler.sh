@@ -229,8 +229,8 @@ do
 		else
 			#Happy days, if we are here then the autoscaler has built correctly
 			status "An autoscaler (${autoscaler_name}) has built correctly (`/usr/bin/date`) and is accepting connections"
-			counter="0"
 		fi
+		counter="`/usr/bin/expr ${counter} + 1`"
 	else
 		#An appropriate looking autoscaler is already running in the current region
 		status "Configured to use ${NO_AUTOSCALERS} autoscalers and found ${autoscaler_no} running whilst trying to build more"
