@@ -253,7 +253,9 @@ do
 			${BUILD_HOME}/services/server/DestroyServer.sh ${DBIP_PUBLIC} ${CLOUDHOST}
 
 			#Wait until we are sure that the database server(s) are destroyed because of a faulty build
-			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "db-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "${built}" ] )
+			status "Probing for the termination of the failed database machine so that a new one can be built"
+			status "If this goes on forever, please investigate"
+			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "db-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "0" ] )
 			do
 				/bin/sleep 5
 			done 
