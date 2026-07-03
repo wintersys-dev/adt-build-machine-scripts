@@ -246,6 +246,8 @@ do
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "authenticatorip" "local"
 			${BUILD_HOME}/services/server/DestroyServer.sh ${AUTHIP_PUBLIC} ${CLOUDHOST}
 
+			status "Probing for the termination of the failed authenticator machine so that a new one can be built"
+			status "If this goes on forever, please investigate"
 			#Wait until we are sure that the authentication server is destroyed because of a faulty build
 			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "auth-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "0" ] )
 			do
