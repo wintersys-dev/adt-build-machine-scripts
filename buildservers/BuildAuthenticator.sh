@@ -257,7 +257,6 @@ do
 			#Happy days, if we are here then we are confident that an authentication server built correctly
 			status "An authentication server (${authenticator_name}) has built correctly (`/usr/bin/date`) and is accepting connections"
 		fi
-		counter="`/usr/bin/expr ${counter} + 1`"
 	else
 		#An authentication server is already running in the current region ask if we can use that one
 		status "It looks like you already have an authenticator running in your specified region"
