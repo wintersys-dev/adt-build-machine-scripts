@@ -291,8 +291,8 @@ do
 		else
 			#Happy days if we are here. we believe a build has been successful
 			status "A webserver (${webserver_name}) has built correctly (`/usr/bin/date`) and is accepting connections"
-			counter="`/usr/bin/expr ${counter} - 1`"
 		fi
+		counter="`/usr/bin/expr ${counter} + 1`"
 	else
 		#Am appropriate webserver seems to be already running for this reason
 		status "Configured to use ${NO_WEBSERVERS} webservers and found ${webserver_no} running whilst trying to build more"
