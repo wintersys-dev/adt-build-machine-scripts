@@ -53,7 +53,7 @@ exec 2>>/root/${ERR_FILE}
 
 /usr/sbin/adduser --disabled-password --gecos "" ${BUILDMACHINE_USER} 
 /bin/sed -i '$ a\ ClientAliveInterval 60\nTCPKeepAlive yes\nClientAliveCountMax 10000' /etc/ssh/sshd_config
-/bin/echo ${BUILDMACHINE_USER}:${BUILDMACHINE_PASSWORD} | /usr/bin/sudo -S -E /usr/sbin/chpasswd 
+/bin/echo ${BUILDMACHINE_USER}:${BUILDMACHINE_PASSWORD} | /usr/bin/sudo -S /usr/sbin/chpasswd 
 /usr/bin/gpasswd -a ${BUILDMACHINE_USER} sudo 
 
 /bin/mkdir -p /home/${BUILDMACHINE_USER}/.ssh
