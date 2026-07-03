@@ -221,6 +221,8 @@ do
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "autoscalerips" "local"
 			${BUILD_HOME}/services/server/DestroyServer.sh ${ip} ${CLOUDHOST}
 
+			status "Probing for the termination of the failed autoscaler machine so that a new one can be built"
+			status "If this goes on forever, please investigate"
 			#Wait until we are sure that the autoscaler server(s) are destroyed because of a faulty build
 			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "NO-${autoscaler_no}-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "0" ] )
 			do
