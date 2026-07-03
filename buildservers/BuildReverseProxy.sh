@@ -264,7 +264,6 @@ do
                         #Happy days, if we are here then we are confident that an reverse proxy server built correctly
                         status "A reverse proxy server (${reverseproxy_name}) has built correctly (`/usr/bin/date`) and is accepting connections"
                 fi
-				counter="`/usr/bin/expr ${counter} + 1`"
         else
                 #An reverse proxy server is already running in the current region ask if we can use that one
                 status "Configured to use ${NO_REVERSE_PROXIES} reverse proxies and found ${reverse_proxy_no} running whilst trying to build more"
