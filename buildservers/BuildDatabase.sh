@@ -264,7 +264,6 @@ do
 			#Happy days, if we are here, then it means that the database server is believed to have been built correctly
 			status "A database server (${database_name}) has built correctly (`/usr/bin/date`) and is accepting connections"
 		fi
-		counter="`/usr/bin/expr ${counter} + 1`"
 	else
 		#A datatbase server is already running
 		status "It looks like you already have a database running in your specified region"
