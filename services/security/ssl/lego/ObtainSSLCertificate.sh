@@ -57,7 +57,7 @@ DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURI
 SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_METHOD`"
 SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_SERVICE`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
-SUDO="/bin/echo ${SERVER_USER_PASSWORD} | /usr/bin/sudo -S -E "
+SUDO="/bin/echo ${SERVER_USER_PASSWORD} | /usr/bin/sudo -S "
 
 if ( [ "${website_url}" != "" ] )
 then
