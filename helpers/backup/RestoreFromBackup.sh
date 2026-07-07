@@ -9,4 +9,4 @@ else
         restoration_no="`/usr/bin/expr ${existing_restoration_no} + 1`"
 fi
 
-echo ${restoration_no}
+/bin/grep -rlZ "${DB_NAME}" ${BUILD_HOME}/runtime | /usr/bin/xargs -0 /bin/sed -i "s/${DB_NAME}.*/${DB_NAME}_restored-${restoration_no}/g
