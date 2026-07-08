@@ -27,7 +27,7 @@ do
         read archive
 done
 
-/bin/touch /tmp/ACTIVATE_RESTORATION
+/bin/touch /tmp/ACTIVATE_RESTORATION.${archive}
 
 /bin/echo "Do you want this to be a distributed or local restoration?"
 /bin/echo "Please enter one of 'local' or 'distributed'"
@@ -39,4 +39,4 @@ do
         read mode
 done
 
-${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "/tmp/ACTIVATE_RESTORATION" "" "${mode}" "no"
+${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "/tmp/ACTIVATE_RESTORATION.${archive}" "" "${mode}" "no"
