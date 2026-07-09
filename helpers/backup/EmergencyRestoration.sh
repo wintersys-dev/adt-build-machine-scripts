@@ -1,3 +1,5 @@
+#!/bin/sh
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 periodicities="hourly, daily, weekly, monthly, bimonthly"
