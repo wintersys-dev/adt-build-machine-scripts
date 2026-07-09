@@ -39,4 +39,11 @@ do
         read mode
 done
 
+marker="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "ACTIVATE_RESTORATION" | /bin/grep -o "ACTIVATE_RESTORATION.*"`"
+
+if ( [ "${marker}" != "" ] )
+then
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "${marker}" "local"
+fi
+
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "/tmp/ACTIVATE_RESTORATION.${archive}" "" "${mode}" "no"
