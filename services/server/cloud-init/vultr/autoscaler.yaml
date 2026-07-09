@@ -3,6 +3,7 @@
 manage_resolv_conf: true
 resolv_conf:
   nameservers:
+    - '9.9.9.9'
     - '1.1.1.2'
     - '8.8.8.8'
     - '8.8.4.4'
