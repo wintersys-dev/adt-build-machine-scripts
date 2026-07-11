@@ -33,7 +33,7 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 # wordpress version (version_no|latest|nightly) and locale
 ###########################################################
 WORDPRESS_VERSION:latest
-#WORDPRESS_VERSION:6.9.0
+#WORDPRESS_VERSION:7.0.0
 
 ##################
 # Wordpress locale
