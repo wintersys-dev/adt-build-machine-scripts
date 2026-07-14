@@ -77,7 +77,7 @@ then
         export LINODE_CLI_CONFIG=${linode_config_file}
         
         domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-        /usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.name == "'${subdomain}'").id'
+        /usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${subdomain}" --no-defaults --json | /usr/bin/jq -r '.[] | select (.name == "'${subdomain}'").id'
         unset LINODE_CLI_CONFIG
 fi
 
