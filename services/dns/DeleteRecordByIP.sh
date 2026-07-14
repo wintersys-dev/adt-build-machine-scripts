@@ -49,21 +49,12 @@ dns="${7}"
 if ( [ "${dns}" = "digitalocean" ] )
 then
         #Make damn sure that the DNS record gets added to the DNS system
-        count="0"
-        while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/doctl compute domain records list ${domainurl} --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select (.data == "'${ip}'").id'`" = "" ] )
-        do
-                count="`/usr/bin/expr ${count} + 1`"
-                /usr/local/bin/doctl compute domain records create --record-type A --record-name ${subdomain} --record-data ${ip}  --record-ttl 60 ${domainurl} --config /root/.config/doctl/dns-do-config.yaml
-                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                fi
-        done
-
-        if ( [ "${count}" = "5" ] )
+        record_id="`/usr/local/bin/doctl compute domain records list "${domainurl}" --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select (.data == "'${ip}'").id'`"
+        if ( [ "${record_id}" != "" ] )
         then
-                /bin/touch /tmp/END_IT_ALL
+                /usr/local/bin/doctl compute domain records delete  "${domainurl}" "${record_id}" --config /root/.config/doctl/dns-do-config.yaml
         fi
+
 fi
 
 subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
@@ -73,24 +64,14 @@ dns="${7}"
 
 if ( [ "${dns}" = "exoscale" ] )
 then
-        #Make damn sure that the DNS record gets added to the DNS system
-
-        count="0"
-        domain__id=""
-        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
-        do
-                domain_id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
-                /bin/sleep 10
-                count="`/usr/bin/expr ${count} + 1`"
-        done
+        domain_id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
 
         if ( [ "${domain_id}" != "" ] )
         then
-              record_id="`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`"
+              record_id="`/usr/bin/exo dns show "${id}" --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`"
               if ( [ "${record_id}" != "" ] )
               then
-
-                        /usr/bin/exo dns remove ${domain_id} ${record_id} --config /root/.config/exoscale/dns-exoscale.toml 
+                        /usr/bin/exo dns remove "${domain_id}" "${record_id}" --config /root/.config/exoscale/dns-exoscale.toml 
               fi
         fi
 fi
@@ -109,28 +90,17 @@ then
                 linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
         fi
 
-        #Make damn sure that the DNS record gets added to the DNS system                        
         export LINODE_CLI_CONFIG=${linode_config_file}
 
-        count="0"
-        domain__id=""
-        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
-        do
-                domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                
-                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                        count="`/usr/bin/expr ${count} + 1`"
-                fi
-        done
+        domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                
 
         if ( [ "${domain_id}" != "" ] )
         then
-                record_id="`/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`"
+                record_id="`/usr/local/bin/linode-cli domains records-list "${domain_id}" --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`"
 
                 if ( [ "${record_id}" != "" ] )
                 then
-                        /usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id}
+                        /usr/local/bin/linode-cli domains records-delete "${domain_id}" "${record_id}"
                 fi
         fi
         unset LINODE_CLI_CONFIG
@@ -145,10 +115,10 @@ if ( [ "${dns}" = "vultr" ] )
 then
         #Make damn sure that the DNS record gets added to the DNS system
         count="0"
-        while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/vultr dns record list ${domainurl} --config /root/.dns-vultr-cli.yaml -o json | /usr/bin/jq -r '.records[] | select (.data == "'${ip}'").id'`" = "" ] )
+        while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/vultr dns record list "${domainurl}" --config /root/.dns-vultr-cli.yaml -o json | /usr/bin/jq -r '.records[] | select (.data == "'${ip}'").id'`" = "" ] )
         do
                 count="`/usr/bin/expr ${count} + 1`"
-                /usr/bin/vultr dns record create ${domainurl} -n ${subdomain} -t A -d "${ip}" --priority=10 --ttl=60 --config /root/.dns-vultr-cli.yaml 
+                /usr/bin/vultr dns record create "${domainurl}" -n "${subdomain}" -t A -d "${ip}" --priority=10 --ttl=60 --config /root/.dns-vultr-cli.yaml 
                 if ( [ "$?" != "0" ] )
                 then
                         /bin/sleep 10
