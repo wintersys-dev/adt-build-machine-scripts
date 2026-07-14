@@ -86,21 +86,12 @@ then
 
         if ( [ "${domain_id}" != "" ] )
         then
-                count="0"
-                while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`" = "" ] )
-                do
-                        count="`/usr/bin/expr ${count} + 1`"
-                        /usr/bin/exo dns add A ${domainurl} -a ${ip} -n ${subdomain} -t 60  --config /root/.config/exoscale/dns-exoscale.toml 
-                        if ( [ "$?" != "0" ] )
-                        then
-                                /bin/sleep 10
-                        fi
-                done
-        fi
+              record_id="`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`"
+              if ( [ "${record_id}" != "" ] )
+              then
 
-        if ( [ "${count}" = "5" ] || [ "${id}" = "" ] )
-        then
-                /bin/touch /tmp/END_IT_ALL
+                        /usr/bin/exo dns remove ${domain_id} ${record_id} --config /root/.config/exoscale/dns-exoscale.toml 
+              fi
         fi
 fi
 
