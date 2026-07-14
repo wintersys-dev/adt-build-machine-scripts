@@ -141,14 +141,8 @@ then
                 then
                         /usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id}
                 fi
-
-                unset LINODE_CLI_CONFIG
-
-                if ( [ "${count}" = "5" ] )
-                then
-                        /bin/touch /tmp/END_IT_ALL
-                fi
         fi
+        unset LINODE_CLI_CONFIG
 fi
 
 subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
