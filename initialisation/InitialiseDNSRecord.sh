@@ -115,5 +115,8 @@ then
 		fi
 	fi
 
+	#Its possible that the IP address that has been assigned was used on a previous deployment and is still assigned to another machine so
+	#if that is the case, delete it
+	${BUILD_HOME}/services/dns/DeleteRecordByIP.sh  "${zoneid}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${ip}" "true" "${DNS_CHOICE}"
 	${BUILD_HOME}/services/dns/AddRecord.sh "${zoneid}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${ip}" "true" "${DNS_CHOICE}"
 fi
