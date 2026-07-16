@@ -25,6 +25,8 @@ then
 	buildos="${1}"
 fi
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 manager=""
 options=""
 tail_options=""
