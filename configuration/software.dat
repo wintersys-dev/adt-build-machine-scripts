@@ -91,8 +91,8 @@
 # You can install the GO language from binary or repo
 # GO:repo
 # GO:binary
-# You can choose which package manager you want to use. Currently only apt apt-get and nala are supported mostly as an example of how multiple package managers can be implemented. 
-# PACKAGEMANAGER:apt|apt-get|nala
+# You can choose which package manager you want to use. Currently apt apt-get, nala and aptitude are supported mostly as an example of how multiple package managers can be implemented. 
+# PACKAGEMANAGER:apt|apt-get|nala|aptitude
 # You can choose what style of firewall you would like to have by setting the FIREWALL. You can choose ufw or iptables
 # FIREWALL:ufw|iptables
 # By default there is no rate limiting if you want to set rate limiting for ports open to the Internet such as 443 (possibly) then
@@ -257,7 +257,7 @@ CLOUDCLITOOL:vultr:source
 #GO:repo
 GO:binary
 #---------------------------------------------PACKAGE MANAGER----------------------------------------------------------------------
-PACKAGEMANAGER:nala
+PACKAGEMANAGER:aptitude
 #---------------------------------------------FIREWALL-----------------------------------------------------------------------------
 FIREWALL:ufw
 #FIREWALL:iptables:20:30
