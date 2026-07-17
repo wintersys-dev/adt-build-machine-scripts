@@ -242,8 +242,8 @@ POSTGRES:repo:18
 BUILDCHAINTYPE:standard
 #---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
 #DATASTORETOOL:s3cmd:repo 
-#DATASTORETOOL:s5cmd:source
-DATASTORETOOL:rclone:binary
+DATASTORETOOL:s5cmd:source
+#DATASTORETOOL:rclone:binary
 #---------------------------------------------CLOUD CLI TOOL----------------------------------------------------------------------------------
 #CLOUDCLITOOL:doctl:binary
 CLOUDCLITOOL:doctl:snap
