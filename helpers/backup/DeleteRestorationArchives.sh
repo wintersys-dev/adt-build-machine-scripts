@@ -45,6 +45,6 @@ fi
 
 for archive in ${archives}
 do
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup" "applicationsourcecode.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup-web" "applicationsourcecode.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
         ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup-db" "${website_identifier}-DB-backup.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
 done
