@@ -16,7 +16,7 @@ do
 done
 
 
-archives="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup" "root" ${periodicity} | /bin/grep "ARCHIVE" | /bin/sed 's/.*ARCHIVE/ARCHIVE/g'`"
+archives="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" ${periodicity} | /bin/grep "ARCHIVE" | /bin/sed 's/.*ARCHIVE/ARCHIVE/g'`"
 archives="`/bin/echo ${archives} | /usr/bin/tr '\n' ' '`"
 /bin/echo "${archives}"
 
