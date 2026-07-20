@@ -589,6 +589,11 @@ then
 	fi
 fi
 
+if ( [ "${NO_AUTHENTICATORS}" != "0" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] )
+then
+	${log_command} "It's pointless to be deploying ${NO_AUTHENTICATORS} authenticator machine(s) without reverse proxies running because the reverse proxies action the authentication"
+fi
+
 if ( ( [ "${CLOUDHOST}" = "linode" ] || [ "${CLOUDHOST}" = "exoscale" ] ) && [ "${CLOUDHOST_ACCOUNT_ID}" = "" ] )
 then
 	${log_command} "It looks like CLOUDHOST_ACCOUNT_ID is blank this should definitely not be the case for ${CLOUDHOST}"
