@@ -41,11 +41,13 @@ if ( [ "${manager}" != "" ] )
 then
         if ( [ "${buildos}" = "ubuntu" ] )
         then
+                eval ${install_command} psmisc
                 eval ${install_command} aptitude
         fi
 
         if ( [ "${buildos}" = "debian" ] )
         then
+                eval ${install_command} psmisc
                 eval ${install_command} aptitude
         fi
 fi
