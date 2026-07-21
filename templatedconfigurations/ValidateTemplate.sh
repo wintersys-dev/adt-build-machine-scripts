@@ -240,6 +240,11 @@ then
 	${log_command} "Your value for the variable PERSIST_ASSETS_TO_DATASTORE (${PERSIST_ASSETS_TO_DATASTORE}) doesn't appear to be valid please review"
 fi
 
+if ( [ "${PERSIST_ASSETS_TO_DATASTORE}" = "2" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] )
+then
+	${log_command} "Its pointless to set PERSIST_ASSETS_TO_DATASTORE to 2 without deploying any reverse proxy machines"
+fi
+
 existing_build_identifiers="`/bin/ls ${BUILD_HOME}/runtime/${CLOUDHOST}`"
 
 if ( [ "`/bin/echo ${existing_build_identifiers} | /bin/grep -w "${BUILD_IDENTIFIER}"`" = "" ] && [ "`/bin/echo ${existing_build_identifiers} | /bin/grep -Eo "${BUILD_IDENTIFIER}"`" != "" ] )
