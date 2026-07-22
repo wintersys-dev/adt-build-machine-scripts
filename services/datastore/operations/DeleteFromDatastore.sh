@@ -114,6 +114,15 @@ then
 elif ( [ "${bucket_type}" = "basic-auth-credentials" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-basic-auth-credentials"
+elif ( [ "${bucket_type}" = "wire-guard" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard"
+elif ( [ "${bucket_type}" = "wire-guard-emails" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemails"
+elif ( [ "${bucket_type}" = "wire-guard-emailed-links" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemailedlinks"          
 elif ( [ "${bucket_type}" = "dbaas" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
