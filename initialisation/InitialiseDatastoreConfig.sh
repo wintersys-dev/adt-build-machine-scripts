@@ -289,6 +289,21 @@ then
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "basic-auth-credentials" "root" "distributed" 
         fi
+
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard" "root" "distributed" 
+        fi
+
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emails"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard-emails" "root" "distributed" 
+        fi
+
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emailed-links"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard-emailed-links" "root" "distributed" 
+        fi
 fi
 
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
