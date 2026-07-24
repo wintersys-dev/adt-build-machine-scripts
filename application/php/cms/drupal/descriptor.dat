@@ -29,7 +29,7 @@ APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
 DRUPAL_VERSION:drupal/recommended-project
-#DRUPAL_VERSION:drupal/recommended-project:11.3.0
+#DRUPAL_VERSION:drupal/recommended-project:11.4.3
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
