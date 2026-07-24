@@ -41,7 +41,7 @@ EXCLUDE_FROM_BACKUP:logs:tmp:ossn.config.db.php:ossn.config.site.php
 #download or extraction of ossn and some files are missing by using these files to check the intergrity of the installtion we can detect this
 #and make a notification
 ######################################################################################################################################################
-APPLICATION_INTEGRITY_DIRECTORIES:actions:cache:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
+APPLICATION_INTEGRITY_DIRECTORIES:actions:classes:components:configurations:installation:libraries:licenses:locale:system:themes:upgrade:vendors
 APPLICATION_INTEGRITY_FILES:AUTHOR.txt:ChangeLog.txt:CHANGES.txt:CONTRIBUTING.md:CONTRIBUTORS.md:COPYRIGHT.txt:index.php:LICENSE.md:opensource-socialnetwork.xml:README.md:robots.txt:SECURITY.md:SUPPORT.txt:TESTS.md:UPGRADE.txt
 
 ######################################################################################################################################################
