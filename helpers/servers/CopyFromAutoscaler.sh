@@ -20,7 +20,7 @@
 #######################################################################################################
 #set -x
 
-AS_IP=""
+AUTOSCALER_IP=""
 
 if ( [ ! -f  ./CopyFromAutoscaler.sh ] )
 then
@@ -106,7 +106,7 @@ do
 
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		AS_IP=${ip}
+		AUTOSCALER_IP=${ip}
 		break
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
@@ -119,11 +119,11 @@ fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-AUTOSCALER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/autoscaler_${AS_IP}keys"
+AUTOSCALER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/autoscaler_${AUTOSCALER_IP}keys"
 
 if ( [ ! -f ${AUTOSCALER_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AS_IP} > ${AUTOSCALER_PUBLIC_KEYS}    
+	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AUTOSCALER_IP} > ${AUTOSCALER_PUBLIC_KEYS}    
 fi
 
 if ( [ "`/bin/cat ${AUTOSCALER_PUBLIC_KEYS}`" = "" ] )
@@ -144,7 +144,7 @@ fi
 read localdir
 
 start=`/bin/date +%s`
-/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTOSCALER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USER}@${AS_IP}:${sourcefile} ${localdir}
+/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTOSCALER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USER}@${AUTOSCALER_IP}:${sourcefile} ${localdir}
 end=`/bin/date +%s`
 runtime="`/usr/bin/expr ${end} - ${start}`"
 
@@ -159,9 +159,9 @@ then
 
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AS_IP} > ${AUTOSCALER_PUBLIC_KEYS}
+		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AUTOSCALER_IP} > ${AUTOSCALER_PUBLIC_KEYS}
 	fi
 
-	/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTOSCALER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USER}@${AS_IP}:${sourcefile} ${localdir}
+	/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTOSCALER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USER}@${AUTOSCALER_IP}:${sourcefile} ${localdir}
 fi
 
