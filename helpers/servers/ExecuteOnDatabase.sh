@@ -109,7 +109,7 @@ do
 	read response
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		DATABASE_I=${ip}
+		DATABASE_IP=${ip}
 		break
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
