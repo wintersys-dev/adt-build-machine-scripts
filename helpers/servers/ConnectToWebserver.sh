@@ -20,7 +20,7 @@
 #######################################################################################################
 #set -x
 
-WEB_IP=""
+WEBSERVER_IP=""
 
 if ( [ ! -f  ./ConnectToWebserver.sh ] )
 then
@@ -99,7 +99,7 @@ do
 
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		WEB_IP=${ip}
+		WEBSERVER_IP=${ip}
 		break
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
@@ -112,14 +112,14 @@ fi
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-WEBSERVER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/webserver_${WEB_IP}keys"
+WEBSERVER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/webserver_${WEBSERVER_IP}keys"
 
 if ( [ ! -f ${WEBSERVER_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${WEB_IP} > ${WEBSERVER_PUBLIC_KEYS}    
+	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${WEBSERVER_IP} > ${WEBSERVER_PUBLIC_KEYS}    
 	if ( [ "`/bin/cat ${WEBSERVER_PUBLIC_KEYS}`" = "" ] )
 	then
-		/usr/bin/ssh-keyscan ${WEB_IP} > ${WEBSERVER_PUBLIC_KEYS}    
+		/usr/bin/ssh-keyscan ${WEBSERVER_IP} > ${WEBSERVER_PUBLIC_KEYS}    
 	fi
 fi
 
@@ -139,7 +139,7 @@ fi
 
 
 start=`/bin/date +%s`
-/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${WEB_IP}
+/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${WEBSERVER_IP}
 end=`/bin/date +%s`
 runtime="`/usr/bin/expr ${end} - ${start}`"
 
@@ -157,5 +157,5 @@ then
 		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${WEB_IP} > ${WEBSERVER_PUBLIC_KEYS}
 	fi
 
-	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${WEB_IP}
+	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${WEBSERVER_IP}
 fi
