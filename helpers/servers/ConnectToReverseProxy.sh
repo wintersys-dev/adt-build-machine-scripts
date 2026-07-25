@@ -98,7 +98,7 @@ do
 	read response
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		RP_IP=${ip}
+		REVERSEPROXY_IP=${ip}
 		break
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
@@ -111,14 +111,14 @@ fi
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-REVERSE_PROXY_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/reverseproxy_${RP_IP}keys"
+REVERSE_PROXY_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/reverseproxy_${REVERSEPROXY_IP}keys"
 
 if ( [ ! -f ${REVERSE_PROXY_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${RP_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}    
+	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${REVERSEPROXY_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}    
 	if ( [ "`/bin/cat ${REVERSE_PROXY_PUBLIC_KEYS}`" = "" ] )
 	then
-		/usr/bin/ssh-keyscan ${RP_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}    
+		/usr/bin/ssh-keyscan ${REVERSEPROXY_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}    
 	fi
 fi
 
@@ -138,7 +138,7 @@ fi
 
 
 start=`/bin/date +%s`
-/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSE_PROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${RP_IP}
+/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSE_PROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP}
 end=`/bin/date +%s`
 runtime="`/usr/bin/expr ${end} - ${start}`"
 
@@ -152,7 +152,7 @@ then
 	read response1
 	if ( [ "${response1}" = "Y" ] || [ "${response1}" = "y" ] )
 	then
-		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${RP_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}
+		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${REVERSEPROXY_IP} > ${REVERSE_PROXY_PUBLIC_KEYS}
 	fi
-	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSE_PROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${RP_IP}
+	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSE_PROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP}
 fi
