@@ -178,14 +178,13 @@ then
                 /usr/bin/ssh-keyscan  -p ${SSH_PORT} ${REVERSEPROXY_IP} > ${REVERSEPROXY_PUBLIC_KEYS}
         fi
 
-        if ( [ "${execute_on_all}" = "1" ] )
-	then
-		for REVERSEPROXY_IP in ${ips}
-		do
-                        /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSEPROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP} "${command}"
-		done
-	else
-                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSEPROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP} "${command}"
-        fi
-
+		if ( [ "${execute_on_all}" = "1" ] )
+		then
+			for REVERSEPROXY_IP in ${ips}
+			do
+				/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSEPROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP} "${command}"
+			done
+		else
+			/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${REVERSEPROXY_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${REVERSEPROXY_IP} "${command}"
+		fi
 fi
