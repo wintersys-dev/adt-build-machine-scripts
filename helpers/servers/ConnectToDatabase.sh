@@ -90,17 +90,21 @@ fi
 DIR="`/bin/pwd`"
 
 /bin/echo "Which Database server would you like to connect to?"
-count=1
+count="1"
+ip_select="0"
 for ip in ${ips}
 do
-	/bin/echo "${count}:   ${ip}"
-	/bin/echo "Press Y/N to connect..."
-	read response
-
-	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+	if ( [ "${ip_select}" = "0" ] )
 	then
-		DATABASE_IP=${ip}
-		break
+		/bin/echo "${count}:   ${ip}"
+		/bin/echo "Press Y/N to connect..."
+		read response
+
+		if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+		then
+			DATABASE_IP=${ip}
+			ip_select="1"
+		fi
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
 done
