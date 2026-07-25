@@ -104,13 +104,13 @@ if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
         REVERSEPROXY_IP="${ips}"
 else
-        /bin/echo "Do you want to copy your file to all your authentication machines? (Y|y)"
+        /bin/echo "Do you want to copy your file to all your reverseproxy machines? (Y|y)"
         read response
         if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
         then
                 execute_on_all="1"         
         else
-                /bin/echo "OK, which authenticator would you like to connect to?"
+                /bin/echo "OK, which reverseproxy would you like to connect to?"
                 count=1
                 for ip in ${ips}
                 do
