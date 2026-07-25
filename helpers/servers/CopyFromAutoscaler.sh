@@ -97,17 +97,21 @@ then
 fi
 
 /bin/echo "Which autoscaler would you like to connect to?"
-count=1
+count="1"
+ip_select="0"
 for ip in ${ips}
 do
-	/bin/echo "${count}:   ${ip}"
-	/bin/echo "Press Y/N to connect..."
-	read response
-
-	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+	if ( [ "${ip_select}" = "0" ] )
 	then
-		AUTOSCALER_IP=${ip}
-		break
+		/bin/echo "${count}:   ${ip}"
+		/bin/echo "Press Y/N to connect..."
+		read response
+
+		if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+		then
+			AUTOSCALER_IP=${ip}
+			ip_select="1"
+		fi
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
 done
