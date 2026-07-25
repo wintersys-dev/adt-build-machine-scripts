@@ -105,7 +105,7 @@ if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
         WEBSERVER_IP="${ips}"
 else
-        /bin/echo "Do you want to copy your file to all your webserver machines? (Y|y)"
+        /bin/echo "Do you want to execute your command on all your webserver machines? (Y|y)"
         read response
         if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
         then
