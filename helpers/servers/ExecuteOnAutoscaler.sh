@@ -96,7 +96,7 @@ then
 	exit
 fi
 
-copy_to_all="0"
+execute_on_all="0"
 ip_selected="0"
 response="N"
 response1="N"
@@ -108,7 +108,7 @@ else
         read response
         if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
         then
-                copy_to_all="1"         
+                execute_on_all="1"         
         else
                 /bin/echo "OK, which authenticator would you like to connect to?"
                 count=1
@@ -130,6 +130,11 @@ else
                 done
 
         fi
+fi
+
+if ( [ "${response1}" = "N" ] )
+then
+        exit
 fi
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
