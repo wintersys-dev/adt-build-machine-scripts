@@ -103,9 +103,12 @@ then
 fi
 
 copy_to_all="0"
+ip_selected="0"
+response="N"
+response1="N"
 if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
-        AS_IP="${ips}"
+        AUTHENTICATOR_IP="${ips}"
 else
         /bin/echo "Do you want to copy your file to all your authentication machines? (Y|y)"
         read response
@@ -115,9 +118,6 @@ else
         else
                 /bin/echo "OK, which authenticator would you like to connect to?"
                 count=1
-                ip_selected="0"
-                response1="N"
-
                 for ip in ${ips}
                 do
                         if ( [ "${ip_selected}" = "0" ] )
@@ -136,6 +136,11 @@ else
                 done
 
         fi
+fi
+
+if ( [ "${response1}" = "N" ] )
+then
+        exit
 fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
