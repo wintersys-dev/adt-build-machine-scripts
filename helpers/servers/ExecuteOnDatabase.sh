@@ -108,7 +108,7 @@ if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
         DATABASE_IP="${ips}"
 else
-        /bin/echo "Do you want to copy your file to all your database machines? (Y|y)"
+        /bin/echo "Do you want to execute you command on all your database machines? (Y|y)"
         read response
         if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
         then
