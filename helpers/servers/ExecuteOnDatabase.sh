@@ -20,6 +20,8 @@
 #######################################################################################################
 #set -x 
 
+DATABASE_IP=""
+
 if ( [ ! -f  ./ExecuteOnDatabase.sh ] )
 then
 	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/servers subdirectory"
@@ -107,7 +109,7 @@ do
 	read response
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		DB_IP=${ip}
+		DATABASE_I=${ip}
 		break
 	fi
 	count="`/usr/bin/expr ${count} + 1`"
@@ -120,11 +122,11 @@ fi
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-DATABASE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/database_${DB_IP}keys"
+DATABASE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/database_${DATABASE_IP}keys"
 
 if ( [ ! -f ${DATABASE_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
+	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DATABASE_IP} > ${DATABASE_PUBLIC_KEYS}    
 fi
 
 if ( [ "`/bin/cat ${DATABASE_PUBLIC_KEYS}`" = "" ] )
@@ -144,7 +146,7 @@ fi
 command="`/bin/echo ${command} | /bin/sed "s/\\${SERVER_USERNAME}/${SERVER_USERNAME}/g"`"
 
 start=`/bin/date +%s`
-/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${command}"
+/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DATABASE_IP} "${command}"
 end=`/bin/date +%s`
 runtime="`/usr/bin/expr ${end} - ${start}`"
 
@@ -158,8 +160,8 @@ then
 	read response
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}
+		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DATABASE_IP} > ${DATABASE_PUBLIC_KEYS}
 	fi
 
-	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${command}"
+	/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DATABASE_IP} "${command}"
 fi
