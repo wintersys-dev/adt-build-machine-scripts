@@ -20,7 +20,7 @@
 #######################################################################################################
 #set -x
 
-DB_IP=""
+DATABASE_IP=""
 
 if ( [ ! -f  ./CopyToDatabase.sh ] )
 then
@@ -108,7 +108,7 @@ response="N"
 response1="N"
 if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
-        DB_IP="${ips}"
+        DATABASE_IP="${ips}"
 else
         /bin/echo "Do you want to copy your file to all your database  machines? (Y|y)"
         read response
@@ -128,7 +128,7 @@ else
 
                                 if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
                                 then
-                                        DB_IP=${ip}
+                                        DATABASE_IP=${ip}
                                         ip_selected="1"
                                 fi
                                 count="`/usr/bin/expr ${count} + 1`"
@@ -145,11 +145,11 @@ fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-DATABASE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/database_${DB_IP}keys"
+DATABASE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/database_${DATABASE_IP}keys"
 
 if ( [ ! -f ${DATABASE_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
+	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DATABASE_IP} > ${DATABASE_PUBLIC_KEYS}    
 fi
 
 if ( [ "`/bin/cat ${DATABASE_PUBLIC_KEYS}`" = "" ] )
@@ -170,7 +170,7 @@ fi
 read remotedir
 
 start=`/bin/date +%s`
-/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DB_IP}:${remotedir}
+/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DATABASE_IP}:${remotedir}
 end=`/bin/date +%s`
 runtime="`/usr/bin/expr ${end} - ${start}`"
 
@@ -185,16 +185,16 @@ then
 
 	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
 	then
-		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}
+		/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DATABASE_IP} > ${DATABASE_PUBLIC_KEYS}
 	fi
 
 	if ( [ "${copy_to_all}" = "1" ] )
 	then
-		for DB_IP in ${ips}
+		for DATABASE_IP in ${ips}
 		do
-			/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DB_IP}:${remotedir}
+			/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DATABASE_IP}:${remotedir}
 		done
 	else
-		/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DB_IP}:${remotedir}
+		/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${sourcefile} ${SERVER_USER}@${DATABASE_IP}:${remotedir}
 	fi
 fi
