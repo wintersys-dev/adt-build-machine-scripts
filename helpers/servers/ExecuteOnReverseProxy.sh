@@ -102,40 +102,40 @@ response="N"
 response1="N"
 if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
-        REVERSEPROXY_IP="${ips}"
+	REVERSEPROXY_IP="${ips}"
 else
-        /bin/echo "Do you want to execute your command on all your reverseproxy machines? (Y|y)"
-        read response
-        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-        then
-                execute_on_all="1"         
-        else
-                /bin/echo "OK, which reverseproxy would you like to connect to?"
-                count=1
-                for ip in ${ips}
-                do
-                        if ( [ "${ip_selected}" = "0" ] )
-                        then
-                                /bin/echo "${count}:   ${ip}"
-                                /bin/echo "Press Y/N to connect..."
-                                read response1
+	/bin/echo "Do you want to execute your command on all your reverseproxy machines? (Y|y)"
+	read response
+	if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+	then
+		execute_on_all="1"         
+	else
+		/bin/echo "OK, which reverseproxy would you like to connect to?"
+		count="1"
+		for ip in ${ips}
+		do
+			if ( [ "${ip_selected}" = "0" ] )
+			then
+				/bin/echo "${count}:   ${ip}"
+				/bin/echo "Press Y/N to connect..."
+				read response1
 
-                                if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-                                then
-                                        REVERSEPROXY_IP=${ip}
-                                        ip_selected="1"
-                                fi
-                                count="`/usr/bin/expr ${count} + 1`"
-                        fi
-                done
-
-        fi
-fi
-
-if ( [ "${response1}" = "N" ] )
-then
+				if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+				then
+					REVERSEPROXY_IP=${ip}
+					ip_selected="1"
+				fi
+				count="`/usr/bin/expr ${count} + 1`"
+			fi
+		done
+	fi
+	if ( [ "${response1}" = "N" ] )
+	then
         exit
+	fi
 fi
+
+
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
