@@ -81,7 +81,7 @@ then
         export VULTR_API_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/TOKEN`"
 fi
 
-token_to_match="as-`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`-${BUILD_IDENTIFIER}"
+token_to_match="auth-`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`-${BUILD_IDENTIFIER}"
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/VPC-ACTIVE ] )
 then
@@ -100,92 +100,76 @@ execute_on_all="0"
 ip_selected="0"
 response="N"
 response1="N"
-if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
+if ( [ "`/bin/echo ${ips} | /usr/bin/wc -w`" = "1" ] )
 then
-	AUTHENTICATOR_IP="${ips}"
+        AUTHENTICATOR_IP="${ips}"
 else
-	/bin/echo "Do you want to execute your command on all your authentication machines? (Y|y)"
-	read response
-	if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-	then
-		execute_on_all="1"         
-	else
-		/bin/echo "OK, which authenticator would you like to connect to?"
-		count="1"
-		for ip in ${ips}
-		do
-			if ( [ "${ip_selected}" = "0" ] )
-			then
-				/bin/echo "${count}:   ${ip}"
-				/bin/echo "Press Y/N to connect..."
-				read response1
-
-				if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-				then
-					AUTHENTICATOR_IP=${ip}
-					ip_selected="1"
-				fi
-				count="`/usr/bin/expr ${count} + 1`"
-			fi
-		done
-	fi
-	if ( [ "${response1}" = "N" ] )
-	then
-        exit
-	fi
-fi
-
-
-
-SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
-SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-AUTHENTICATOR_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/autoscaler_${AUTHENTICATOR_IP}keys"
-
-if ( [ ! -f ${AUTHENTICATOR_PUBLIC_KEYS} ] )
-then
-        /usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AUTHENTICATOR_IP} > ${AUTHENTICATOR_PUBLIC_KEYS}    
-fi
-
-if ( [ "`/bin/cat ${AUTHENTICATOR_PUBLIC_KEYS}`" = "" ] )
-then
-        /bin/echo "Couldn't initiate ssh key scan please try again (make sure the machine is online"
-        /bin/rm ${AUTHENTICATOR_PUBLIC_KEYS}
-        exit
-fi
-
-if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
-then
-        ALGORITHM="rsa"
-else
-        ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
-fi
-
-start=`/bin/date +%s`
-/usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTHENTICATOR_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${AUTENTICATOR_IP} "${command}"
-end=`/bin/date +%s`
-runtime="`/usr/bin/expr ${end} - ${start}`"
-
-if ( [ "${runtime}" -lt "3" ] )
-then
-        /bin/echo "#####################################################################################################################################################################"
-        /bin/echo "Do you want to initiate a fresh ssh key scan (might be necessary if you can't connect) or  do you want to use previously generated keys"
-        /bin/echo "You should always use previously generated keys unless you can't connect (an previously used ip address might have been reallocated as part of scaling or redeployment"
-        /bin/echo "#####################################################################################################################################################################"
-        /bin/echo "Enter 'Y' to regenerate your SSH public keys anything else to keep the keys you have got. You should only need to regenerate the keys very occassionally if at all"    
+        /bin/echo "Do you want to execute your command on all your authentication machines? (Y|y)"
         read response
-        if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
         then
-                /usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AUTHENTICATOR_IP} > ${AUTHENTICATOR_PUBLIC_KEYS}
+                execute_on_all="1"         
+                AUTHENTICATOR_IPS="${ips}"
+        else
+                /bin/echo "OK, which authenticator would you like to connect to?"
+                count="1"
+                for ip in ${ips}
+                do
+                        if ( [ "${ip_selected}" = "0" ] )
+                        then
+                                /bin/echo "${count}:   ${ip}"
+                                /bin/echo "Press Y/N to connect..."
+                                read response1
+
+                                if ( [ "${response1}" = "Y" ] || [ "${response1}" = "y" ] )
+                                then
+                                        AUTHENTICATOR_IP=${ip}
+                                        ip_selected="1"
+                                fi
+                                count="`/usr/bin/expr ${count} + 1`"
+                        fi
+                done
+                if ( [ "${response1}" = "N" ] )
+                then
+                        exit
+                fi
+        fi
+fi
+
+if ( [ "${execute_on_all}" = "0" ] )
+then
+        AUTHENTICATOR_IPS="${AUTHENTICATOR_IP}"
+fi
+
+
+for AUTHENTICATOR_IP in ${AUTHENTICATOR_IPS}
+do
+        SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
+        SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
+        AUTHENTICATOR_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/authenticator_${AUTHENTICATOR_IP}keys"
+
+        if ( [ ! -f ${AUTHENTICATOR_PUBLIC_KEYS} ] )
+        then
+                /usr/bin/ssh-keyscan  -p ${SSH_PORT} ${AUTHENTICATOR_IP} > ${AUTHENTICATOR_PUBLIC_KEYS}    
         fi
 
-        if ( [ "${execute_on_all}" = "1" ] )
+        if ( [ "`/bin/cat ${AUTHENTICATOR_PUBLIC_KEYS}`" = "" ] )
         then
-                for AUTHENTICATOR_IP in ${ips}
-                do
-                        /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTHENTICATOR_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${AUTHENTICATOR_IP} "${command}"
-                done
-        else
-                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTHENTICATOR_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${AUTHENTICATOR_IP} "${command}"
-    	fi
+                /bin/echo "Couldn't initiate ssh key scan please try again (make sure the machine is online"
+                /bin/rm ${AUTHENTICATOR_PUBLIC_KEYS}
+                exit
+        fi
 
-fi
+        if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
+        then
+                ALGORITHM="rsa"
+        else
+                ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
+        fi
+
+        /bin/echo
+        /bin/echo "Executing command on machine with IP address ${AUTHENTICATOR_IP}"
+        /bin/echo 
+
+        /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${AUTHENTICATOR_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${AUTHENTICATOR_IP} "${command}"
+done
