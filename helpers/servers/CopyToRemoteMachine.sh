@@ -45,7 +45,7 @@ read remotedir
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-/bin/echo "Which class of machine do you want to execute a command on? 1:Authenticator(s), 2:Autoscaler(s), 3:ReverseProxy(s), 4:Webserver(s), 5:Database?"
+/bin/echo "Which class of machine do you want to execute a command on? 1:Authenticator(s), 2:Autoscaler(s), 3:ReverseProxy(s), 4:Webserver(s), 5:Database 6:All Machines?"
 /bin/echo "Please enter 1, 2,3,4 or 5"
 read response
 
@@ -75,6 +75,10 @@ elif ( [ "${response}" = "5" ] )
 then
         machine_type="database"
         machine_type_token="db"
+elif ( [ "${response}" = "6" ] )
+then
+        machine_type="machine"
+        machine_type_token=""
 fi
 
 /bin/echo "Which Cloudhost are you using? 1) Digital Ocean 2) Exoscale 3) Linode 4) Vultr. Please Enter the number for your cloudhost"
