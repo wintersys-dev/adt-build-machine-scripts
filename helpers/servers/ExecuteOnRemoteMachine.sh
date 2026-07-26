@@ -48,7 +48,7 @@ fi
 
 if ( [ "${response}" = "1" ] )
 then
-        machine_type"authenticator"
+        machine_type="authenticator"
         machine_type_token="auth"
 elif ( [ "${response}" = "2" ] )
 then
