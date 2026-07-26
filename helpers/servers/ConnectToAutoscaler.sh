@@ -88,7 +88,7 @@ then
 fi
 
 /bin/echo "Which autoscaler would you like to connect to?"
-count=1
+count="1"
 for ip in ${ips}
 do
 	/bin/echo "${count}:   ${ip}"
