@@ -117,7 +117,7 @@ else
 		copy_to_all="1"   
 	else
 		/bin/echo "OK, which database would you like to copy your file to?"
-		count=1
+		count="1"
 		for ip in ${ips}
 		do
 			if ( [ "${ip_selected}" = "0" ] )
