@@ -108,39 +108,38 @@ response="N"
 response1="N"
 if ( [ "`/bin/echo ${ips} | /usr/bin/wc -l`" = "1" ] )
 then
-        AUTHENTICATOR_IP="${ips}"
+	AUTHENTICATOR_IP="${ips}"
 else
-        /bin/echo "Do you want to copy your file to all your authentication machines? (Y|y)"
-        read response
-        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-        then
-                copy_to_all="1"         
-        else
-                /bin/echo "OK, which authenticator would you like to connect to?"
-                count=1
-                for ip in ${ips}
-                do
-                        if ( [ "${ip_selected}" = "0" ] )
-                        then
-                                /bin/echo "${count}:   ${ip}"
-                                /bin/echo "Press Y/N to connect..."
-                                read response1
+	/bin/echo "Do you want to copy your file to all your authentication machines? (Y|y)"
+	read response
+	if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+	then
+		copy_to_all="1"         
+	else
+		/bin/echo "OK, which authenticator would you like to connect to?"
+		count=1
+		for ip in ${ips}
+		do
+			if ( [ "${ip_selected}" = "0" ] )
+			then
+				/bin/echo "${count}:   ${ip}"
+				/bin/echo "Press Y/N to connect..."
+				read response1
 
-                                if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-                                then
-                                        AUTHENTICATOR_IP=${ip}
-                                        ip_selected="1"
-                                fi
-                                count="`/usr/bin/expr ${count} + 1`"
-                        fi
-                done
+				if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+				then
+					AUTHENTICATOR_IP=${ip}
+					ip_selected="1"
+				fi
+				count="`/usr/bin/expr ${count} + 1`"
+			fi
+		done
+	fi
 
-        fi
-fi
-
-if ( [ "${response1}" = "N" ] )
-then
-        exit
+	if ( [ "${response1}" = "N" ] )
+	then
+		exit	
+	fi
 fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
