@@ -30,12 +30,12 @@ sourcefile="${1}"
 
 if ( [ "${sourcefile}" = "" ] )
 then
-        /bin/echo "Please tell me the full path to the location of the file you wish to copy to the authenticator for example, ${BUILD_HOME}/migrationdirectory/archive.tar.gz"
+        /bin/echo "Please tell me the full path to the location of the file you wish to copy to the remote machine for example, ${BUILD_HOME}/migrationdirectory/archive.tar.gz"
         read sourcefile
         while ( [ "`/bin/ls ${sourcefile}`" = "" ] )
         do
                 /bin/echo "Sorry, can't find that file please tell me again"
-                /bin/echo "Please tell me the full path to the location of the file you wish to copy to the  authenticator for example, ${BUILD_HOME}/migrationdirectory/archive.tar.gz"
+                /bin/echo "Please tell me the full path to the location of the file you wish to copy to the remote machine for example, ${BUILD_HOME}/migrationdirectory/archive.tar.gz"
                 read sourcefile
         done
 fi 
