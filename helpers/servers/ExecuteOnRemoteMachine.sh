@@ -40,13 +40,35 @@ elif ( [ "${command}" = "reboot" ] )
 then
         /bin/echo "This process will reboot the machines you  select next, are you good with that, if so, press <enter>"
         read x
+elif ( [ "${command}" = "backup" ] || [ "${command}" = "backup-db" ] )
+then
+        /bin/echo "You are asking me to make a backup of your webserver I need to know which perodicity you want 1:hourly 2:daily 3:weekly 4:monthly 5:bimonthly"
+        read period
+        if ( [ "`/bin/echo hourly daily weekly monthly bimonthly | /bin/grep "${period}"`" = "" ] )
+        then
+                /bin/echo "That's not a valid period"
+                exit
+        fi
+        /bin/echo "Please also tell me the build identifier for your backup"
+        read build_identifier
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-/bin/echo "Which class of machine do you want to execute a command on? 1:Authenticator(s), 2:Autoscaler(s), 3:ReverseProxy(s), 4:Webserver(s), 5:Database, 6: All Machines?"
-/bin/echo "Please enter 1, 2,3,4 or 5"
-read response
+if ( [ "${command}" != "backup" ] && [ "${command}" != "backup-db" ] )
+then
+        /bin/echo "Which class of machine do you want to execute a command on? 1:Authenticator(s), 2:Autoscaler(s), 3:ReverseProxy(s), 4:Webserver(s), 5:Database, 6: All Machines?"
+        /bin/echo "Please enter 1, 2,3,4 or 5"
+        read response
+else
+        if ( [ "${command}" = "backup" ] )
+        then
+                response="4"
+        elif ( [ "${command}" = "backup-db" ] )
+        then
+                response="5" 
+        fi
+fi
 
 if ( [ "`/bin/echo 1 2 3 4 5 | /bin/grep ${response}`" = "" ] )
 then
