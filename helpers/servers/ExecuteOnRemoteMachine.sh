@@ -58,7 +58,7 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 if ( [ "${command}" != "backup" ] && [ "${command}" != "backup-db" ] )
 then
         /bin/echo "Which class of machine do you want to execute a command on? 1:Authenticator(s), 2:Autoscaler(s), 3:ReverseProxy(s), 4:Webserver(s), 5:Database, 6: All Machines?"
-        /bin/echo "Please enter 1, 2,3,4 or 5"
+        /bin/echo "Please enter 1, 2,3,4,5 or 6"
         read response
 else
         if ( [ "${command}" = "backup" ] )
@@ -70,7 +70,7 @@ else
         fi
 fi
 
-if ( [ "`/bin/echo 1 2 3 4 5 | /bin/grep ${response}`" = "" ] )
+if ( [ "`/bin/echo 1 2 3 4 5 6 | /bin/grep ${response}`" = "" ] )
 then
         /bin/echo "That's not a valid option"
         exit
