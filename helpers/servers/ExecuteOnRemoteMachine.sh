@@ -42,8 +42,16 @@ then
         read x
 elif ( [ "${command}" = "backup" ] || [ "${command}" = "backup-db" ] )
 then
-        /bin/echo "You are asking me to make a backup of your webserver I need to know which perodicity you want 1:hourly 2:daily 3:weekly 4:monthly 5:bimonthly"
-        read period
+        if ( [ "${command}" = "backup" ] )
+        then
+                /bin/echo "You are asking me to make a backup of your application I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        read period
+        fi
+        
+        if ( [ "${command}" = "backup-db" ] )
+        then
+                /bin/echo "You are asking me to make a backup of your datbase I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        read period
+        fi
+        
         if ( [ "`/bin/echo hourly daily weekly monthly bimonthly | /bin/grep "${period}"`" = "" ] )
         then
                 /bin/echo "That's not a valid period"
