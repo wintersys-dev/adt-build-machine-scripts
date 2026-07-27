@@ -57,8 +57,6 @@ then
                 /bin/echo "That's not a valid period"
                 exit
         fi
-        /bin/echo "Please also tell me the build identifier for your backup"
-        read build_identifier
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -178,35 +176,40 @@ if ( [ "`/bin/echo ${ips} | /usr/bin/wc -w`" = "1" ] )
 then
         MACHINE_IP="${ips}"
 else
-        /bin/echo "Do you want to execute your command on all your  ${machine_type} machines? (Y|y)"
-        read response
-        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+        if ( [ "${command}" != "backup" ] && [ "${command}" != "backup-db" ] )
         then
-                execute_on_all="1"         
-                MACHINE_IPS="${ips}"
-        else
-                /bin/echo "OK, which ${machine_type} would you like to connect to?"
-                count="1"
-                for ip in ${ips}
-                do
-                        if ( [ "${ip_selected}" = "0" ] )
-                        then
-                                /bin/echo "${count}:   ${ip}"
-                                /bin/echo "Press Y/N to connect..."
-                                read response1
-
-                                if ( [ "${response1}" = "Y" ] || [ "${response1}" = "y" ] )
-                                then
-                                        MACHINE_IP=${ip}
-                                        ip_selected="1"
-                                fi
-                                count="`/usr/bin/expr ${count} + 1`"
-                        fi
-                done
-                if ( [ "${response1}" = "N" ] )
+                /bin/echo "Do you want to execute your command on all your ${machine_type} machines? (Y|y)"
+                read response
+                if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
                 then
-                        exit
+                        execute_on_all="1"         
+                        MACHINE_IPS="${ips}"
+                else
+                        /bin/echo "OK, which ${machine_type} would you like to connect to?"
+                        count="1"
+                        for ip in ${ips}
+                        do
+                                if ( [ "${ip_selected}" = "0" ] )
+                                then
+                                        /bin/echo "${count}:   ${ip}"
+                                        /bin/echo "Press Y/N to connect..."
+                                        read response1
+
+                                        if ( [ "${response1}" = "Y" ] || [ "${response1}" = "y" ] )
+                                        then
+                                                MACHINE_IP=${ip}
+                                                ip_selected="1"
+                                        fi
+                                        count="`/usr/bin/expr ${count} + 1`"
+                                fi
+                        done
+                        if ( [ "${response1}" = "N" ] )
+                        then
+                                exit
+                        fi
                 fi
+        else
+                MACHINE_IP="`/bin/echo ${ips} | /usr/bin/awk '{print $1}'`"
         fi
 fi
 
@@ -255,10 +258,10 @@ do
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /usr/sbin/shutdown -r now"
         elif ( [ "${command}" = "backup" ] )
         then
-                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${build_identifier}"
+                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${BUILD_IDENTIFIER}"
         elif ( [ "${command}" = "backup-db" ] )
         then
-                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${build_identifier}"
+                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${BUILD_IDENTIFIER}"
         else
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${command}"
         fi
