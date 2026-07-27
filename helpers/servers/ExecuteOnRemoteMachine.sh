@@ -59,6 +59,22 @@ then
                 /bin/echo "That's not a valid period"
                 exit
         fi
+elif ( [ "${command}" = "baseline" ] || [ "${command}" = "baseline-db" ] )
+then
+        if ( [ "${command}" = "baseline" ] )
+        then
+                /bin/echo "You are asking me to make a baseline of your application I need you to give me a the unique identifier of the empty repository you have prepared"
+                /bin/echo "For example, if your repository is testwebsite-webroot-sourcecode-baseline then you need to enter 'testwebsite' at the prompt below"
+                /bin/echo "Please enter the identifier now:"
+                read identifier
+        fi
+        if ( [ "${command}" = "baseline-db" ] )
+        then
+                /bin/echo "You are asking me to make a baseline of your application database I need you to give me a the unique identifier of the empty repository you have prepared"
+                /bin/echo "For example, if your repository is testwebsite-db-baseline then you need to enter 'testwebsite' at the prompt below"
+                /bin/echo "Please enter the identifier now:"
+                read identifier
+        fi  
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -282,6 +298,12 @@ do
         elif ( [ "${command}" = "backup-db" ] )
         then
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${BUILD_IDENTIFIER}"
+        elif ( [ "${command}" = "baseline" ] )
+        then
+                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/baseline/CreateBaseline.sh ${identifier}"
+        elif ( [ "${command}" = "baseline-db" ] )
+        then
+                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /home/${SERVER_USERNAME}/application/baseline/CreateDBBaseline.sh ${identifier}"
         else
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${command}"
         fi
