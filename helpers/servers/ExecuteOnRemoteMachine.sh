@@ -44,14 +44,16 @@ elif ( [ "${command}" = "backup" ] || [ "${command}" = "backup-db" ] )
 then
         if ( [ "${command}" = "backup" ] )
         then
-                /bin/echo "You are asking me to make a backup of your application I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        read period
+                /bin/echo "You are asking me to make a backup of your application I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        
+                read period
         fi
-        
+
         if ( [ "${command}" = "backup-db" ] )
         then
-                /bin/echo "You are asking me to make a backup of your datbase I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        read period
+                /bin/echo "You are asking me to make a backup of your datbase I need to know which perodicity you want, please enter one of: hourly daily weekly monthly bimonthly"        
+                read period
         fi
-        
+
         if ( [ "`/bin/echo hourly daily weekly monthly bimonthly | /bin/grep "${period}"`" = "" ] )
         then
                 /bin/echo "That's not a valid period"
@@ -209,7 +211,25 @@ else
                         fi
                 fi
         else
-                MACHINE_IP="`/bin/echo ${ips} | /usr/bin/awk '{print $1}'`"
+                if ( [ "${command}" = "backup" ] )
+                then
+                        no_webservers="`/bin/echo ${ips} | /usr/bin/wc -w`"
+                        /bin/echo "There is ${no_webservers} running please enter which webserver number you want to make a back up of, in the range 1-${no_webservers}"
+                        read webserver_no
+                        if ( ! [ "${webserver_no}" -eq "${webserver_no}" ] ) 2>/dev/null 
+                        then
+                                /bin/echo "Sorry integers only"
+                                exit
+                        elif ( [ "${webserver_no}" -lt "1" ] || [ "${webserver_no}" -gt "${no_webservers}" ] )
+                        then
+                                /bin/echo "That's outside the range of machine indexes"
+                                exit
+                        fi
+                elif ( [ "${command}" = "backup-db" ] )
+                then
+                        webserver_no="1"
+                fi
+                MACHINE_IP="`/bin/echo ${ips} | /usr/bin/cut -d " " -f ${webserver_no}`"
         fi
 fi
 
