@@ -280,10 +280,14 @@ then
                 ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "config" "local" "${additional_specifier}"
         done
 
-        
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-auth-laptop-ips"`" != "" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "firewall-auth-laptop-ips" "root" "distributed" 
+        fi
+
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-emailed-links"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "firewall-emailed-links" "root" "distributed" 
         fi
         
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "basic-auth-credentials"`" != "" ] )
