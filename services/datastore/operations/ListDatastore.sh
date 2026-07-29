@@ -97,22 +97,6 @@ then
 elif ( [ "${bucket_type}" = "scaling" ] )
 then
         active_bucket="`/bin/echo ${additional_specifier} | /bin/sed 's/\./-/g'`"
-elif ( [ "${bucket_type}" = "backup-web" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
-elif ( [ "${bucket_type}" = "backup-db" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-db-${additional_specifier}"
-elif ( [ "${bucket_type}" = "scaling" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
-elif ( [ "${bucket_type}" = "auth" ] )
-then
-        active_bucket="authip-adt-allowed-${additional_specifier}"
-elif ( [ "${bucket_type}" = "dbaas" ] )
-then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-        active_bucket="${active_bucket}-${DNS_CHOICE}-dbaas"
 elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
@@ -130,7 +114,23 @@ then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemails"
 elif ( [ "${bucket_type}" = "wire-guard-emailed-links" ] )
 then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemailedlinks"   
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemailedlinks"
+elif ( [ "${bucket_type}" = "backup-web" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
+elif ( [ "${bucket_type}" = "backup-db" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-db-${additional_specifier}"
+elif ( [ "${bucket_type}" = "scaling" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
+elif ( [ "${bucket_type}" = "auth" ] )
+then
+        active_bucket="authip-adt-allowed-${additional_specifier}"
+elif ( [ "${bucket_type}" = "dbaas" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+        active_bucket="${active_bucket}-${DNS_CHOICE}-dbaas" 
 elif ( [ "${bucket_type}" = "snap" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
