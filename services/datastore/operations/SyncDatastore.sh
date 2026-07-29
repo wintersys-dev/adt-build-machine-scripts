@@ -96,6 +96,24 @@ then
 elif ( [ "${bucket_type}" = "scaling" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
+elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
+elif ( [ "${bucket_type}" = "whitelist-auth-laptop-ips" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-whitelist-auth-laptop-ips"
+elif ( [ "${bucket_type}" = "basic-auth-credentials" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-basic-auth-credentials"
+elif ( [ "${bucket_type}" = "wire-guard" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard"
+elif ( [ "${bucket_type}" = "wire-guard-emails" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemails"
+elif ( [ "${bucket_type}" = "wire-guard-emailed-links" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemailedlinks"
 elif ( [ "${bucket_type}" = "backup-web" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
