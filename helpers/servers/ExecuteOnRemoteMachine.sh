@@ -77,6 +77,12 @@ then
         fi  
 fi
 
+if ( [ "${command}" != "enable-wireguard-regeneration" ] )
+then
+        /bin/echo "Please enter the IP address of the machine that you want to allow wireguard configuration to be regenerated for"
+        read webserver_ip
+fi
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${command}" != "backup" ] && [ "${command}" != "backup-db" ] )
@@ -91,7 +97,7 @@ else
         elif ( [ "${command}" = "backup-db" ] )
         then
                 response="5" 
-        fi
+        fi        
 fi
 
 if ( [ "`/bin/echo 1 2 3 4 5 6 | /bin/grep ${response}`" = "" ] )
@@ -312,9 +318,9 @@ do
         elif ( [ "${command}" = "reenable-webserver-temination" ] )
         then
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} /bin/rm /home/${SERVER_USERNAME}/runtime/PREVENT_WEBSERVER_TERMINATIONS"
-        elif ( [ "${command}" = "reenable-webserver-temination" ] )
+        elif ( [ "${command}" = "enable-wireguard-regeneration" ] )
         then
-                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} "
+                /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${SUDO} ${webserver_ip} "
         else
                 /usr/bin/ssh -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${MACHINE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${MACHINE_IP} "${command}"
         fi
