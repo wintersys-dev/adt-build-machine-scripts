@@ -97,6 +97,9 @@ then
 elif ( [ "${bucket_type}" = "firewall-auth-laptop-ips" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
+elif ( [ "${bucket_type}" = "firewall-emailed-links" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewalldemailedlinks"
 elif ( [ "${bucket_type}" = "whitelist-auth-laptop-ips" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-whitelist-auth-laptop-ips"
