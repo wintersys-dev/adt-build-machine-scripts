@@ -291,6 +291,40 @@ then
 	${log_command} "I was expecting 5 firewall config settings is your ${BUILD_HOME}/configuration/firewall.dat set correctly?"
 fi
 
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+
+if ( [ "${AUTHENTICATOR_TYPE}" = "firewall" ] )
+then    
+        if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep 443`" != "" ] )
+        then
+                ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
+        fi
+fi
+
+if ( [ "${AUTHENTICATOR_TYPE}" = "basic-auth" ] || [ "${AUTHENTICATOR_TYPE}" = "whitelist" ] )
+then
+        if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep 443`" = "" ] )
+        then
+                ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
+        fi
+fi
+
+SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
+wireguard_port="`/usr/bin/expr ${SSH_PORT} + 1`"
+
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+then
+        if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep ${wireguard_port}`" = "" ] )
+        then
+                ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
+        fi
+
+        if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep 443`" != "" ] )
+        then
+                ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
+        fi
+fi
+
 if ( ! [ `/usr/bin/expr match "${MAX_WEBSERVERS}" '^\([0-9]\+\)$'` ] )
 then
 	${log_command} "Your value for the variable MAX_WEBSERVERS (${MAX_WEBSERVERS}) doesn't appear to be valid please review"
