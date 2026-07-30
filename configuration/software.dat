@@ -210,9 +210,9 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 #Install LIGHTTPD from source (you can do it from github or from the lighttpd archives (comment in one and comment out the other))
 LIGHTTPD:source
 #LIGHTTPD:git-branch:lighttpd-1.4.82
-LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.82.tar.gz
-LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.82.sha256sum
-LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.82.sha512sum
+LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
+LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
+LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
 LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 LIGHTTPD:static-modules-list:zlib:libxml:openssl:gnutls
 LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
