@@ -209,7 +209,7 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 
 #Install LIGHTTPD from source (you can do it from github or from the lighttpd archives (comment in one and comment out the other))
 LIGHTTPD:source
-#LIGHTTPD:git-branch:lighttpd-1.4.82
+#LIGHTTPD:git-branch:lighttpd-1.4.85
 LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
 LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
 LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
