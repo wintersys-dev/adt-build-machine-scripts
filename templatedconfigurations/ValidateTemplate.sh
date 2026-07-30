@@ -286,6 +286,11 @@ then
 	export IN_PARALLEL="0"
 fi
 
+if ( [ "`/bin/egrep "(^AUTHENTICATORPORTS:.*|^REVERSEPROXYPORTS:.*|^AUTOSCALERPORTS:.*|^WEBSERVERPORTS:.*|^DATABASEPORTS:.*)" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/wc -l`" != "5" ] )
+then
+	${log_command} "I was expecting 5 firewall config settings is your ${BUILD_HOME}/configuration/firewall.dat set correctly?"
+fi
+
 if ( ! [ `/usr/bin/expr match "${MAX_WEBSERVERS}" '^\([0-9]\+\)$'` ] )
 then
 	${log_command} "Your value for the variable MAX_WEBSERVERS (${MAX_WEBSERVERS}) doesn't appear to be valid please review"
