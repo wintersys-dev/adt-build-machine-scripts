@@ -106,7 +106,7 @@ then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-auth-laptop-ips"
 elif ( [ "${bucket_type}" = "firewall-emailed-links" ] )
 then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewalldemailedlinks"
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-firewall-emailed-links"
 elif ( [ "${bucket_type}" = "whitelist-auth-laptop-ips" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-whitelist-auth-laptop-ips"
@@ -118,10 +118,10 @@ then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard"
 elif ( [ "${bucket_type}" = "wire-guard-emails" ] )
 then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemails"
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard-emails"
 elif ( [ "${bucket_type}" = "wire-guard-emailed-links" ] )
 then
-        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguardemailedlinks"
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard-emailed-links"
 elif ( [ "${bucket_type}" = "auth" ] )
 then
         active_bucket="authip-adt-allowed-${additional_specifier}"
