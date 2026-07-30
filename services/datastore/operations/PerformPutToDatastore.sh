@@ -19,7 +19,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################################
 #########################################################################################
-set -x
+#set -x
 
 file_to_put="$1"
 place_to_put="$2"
@@ -36,7 +36,6 @@ then
 fi
 
 datastore_cmd=""
-datastore_cmd1=""
 datastore_tool=""
 
 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd`" != "" ] )
@@ -61,8 +60,6 @@ then
 elif ( [ "${datastore_tool}" = "/usr/bin/s5cmd" ] )
 then
         host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-        now="`/usr/bin/date +'%Y-%m-%dT%H:%M:%S'`"
-        datastore_cmd="${datastore_tool} --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp --metadata 'CreationDate=${now}'"
         bucket_prefix="s3://"
         slasher="/"
         place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
@@ -71,8 +68,6 @@ elif ( [ "${datastore_tool}" = "/usr/bin/rclone" ] )
 then
         host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
         datastore_cmd="${datastore_tool} --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} copy "
-        now="`/usr/bin/date +'%Y-%m-%dT%H:%M:%S'`"
-        datastore_cmd1="${datastore_tool} --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} --timestamp ${now} touch "
         bucket_prefix="s3:"
         slasher="/"
         place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
@@ -98,11 +93,6 @@ do
         /bin/sleep 5
         count="`/usr/bin/expr ${count} + 1`"
 done
-
-if ( [ "${datastore_cmd1}" != "" ] )
-then
-        ${datastore_cmd1} ${bucket_prefix}${place_to_put}${slasher}${placed_file}
-fi
 
 if ( [ "${delete}" = "yes" ] )
 then
