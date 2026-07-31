@@ -107,26 +107,22 @@ then
         firewall_rules="`linode_firewall_rules "${database_firewall_ports}"`"
 fi
 
+secure_port="443"
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
+then
+        secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
+fi
+
 if ( [ "${all_dns_proxy_ips}" = "" ] )
 then
-        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
+        if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxies" ] ) )
         then
-                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-               # rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}','{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
                 rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
-
-        else
-                rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
         fi
 else
-        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
+        if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxies" ] ) )
         then
-                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-             #   rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}','{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
                 rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
-
-        else
-                rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
         fi
 fi
 
@@ -152,7 +148,20 @@ then
         fi
 fi
 
-if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) ||  [ "${firewall_name}" = "adt-authenticator" ]  ||  [ "${firewall_name}" = "adt-reverseproxy" ] )
+if ( [ "${firewall_name}" = "adt-authenticator" ] )
+then
+        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+
+        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+        then
+                ruleset=${rule_vpc}','${rule_build_machine}','${rule_ssl}','${rule_icmp}${firewall_rules}
+        elif ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
+        then
+                ruleset=${rule_vpc}','${rule_ssl}','${rule_icmp}${firewall_rules}
+        fi
+fi
+
+if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" &&  [ "${firewall_name}" = "adt-reverseproxy" ] ) )
 then
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
