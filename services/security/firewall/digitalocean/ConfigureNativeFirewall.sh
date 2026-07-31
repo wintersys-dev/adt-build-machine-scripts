@@ -127,49 +127,33 @@ then
         rules="`/bin/echo ${rules} | /usr/bin/tr -s ' '`"                
 fi
 
-if ( [ "${firewall_name}" = "adt-webserver" ] ||  [ "${firewall_name}" = "adt-authenticator" ]  ||  [ "${firewall_name}" = "adt-reverseproxy" ] )
+if ( [ "${firewall_name}" = "adt-authenticator" ] )
+then
+		machine_identifier="auth-${REGION}-${BUILD_IDENTIFIER}"
+
+        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+        then
+                rules=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "                        
+        fi
+
+        rules="${rules} protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} protocol:icmp,address:0.0.0.0/0 protocol:tcp,ports:443,address:0.0.0.0/0 "
+        rules="`/bin/echo ${rules} | /usr/bin/tr -s ' '`"                
+fi
+
+if ( [ "${firewall_name}" = "adt-webserver" ] || [ "${firewall_name}" = "adt-reverseproxy" ] )
 then
         if ( [ "${firewall_name}" = "adt-webserver" ] )
         then
                 machine_identifier="ws-${REGION}-${BUILD_IDENTIFIER}"
-        elif ( [ "${firewall_name}" = "adt-authenticator" ] )
-        then
-                machine_identifier="auth-${REGION}-${BUILD_IDENTIFIER}"
         elif ( [ "${firewall_name}" = "adt-reverseproxy" ] )
         then
                 machine_identifier="rp-${REGION}-${BUILD_IDENTIFIER}"
 		fi
 
- #       if ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ||  [ "${firewall_name}" = "adt-authenticator" ] )
- #       then
- #               if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
- #               then
- #                       rules="protocol:tcp,ports:443,address:${build_machine_ip}/32 protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"
- #               else
- #                       rules="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"
- #               fi
- #       else
- #               if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
- #               then
- #                       if ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-webserver" ] )
- #                       then
- #                               rules="protocol:tcp,ports:443,address:${build_machine_ip}/32 protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "
- #                       fi
- #               fi
-  #      fi
-
 		if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
  		then
- 			rules=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"
+ 			rules=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "
  		fi
-
-    #    if ( ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxy" ] ) || ( [ "${NO_REVERSE_PROXIES}" = "0" ] &&  [ "${firewall_name}" = "adt-webserver" ] ) )
-    #    then
-    #            if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-    #            then
-    #                    rules="protocol:tcp,ports:443,address:${build_machine_ip}/32 protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"
-    #            fi
-    #    fi
 
 		secure_port="443"
 		if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ] )
@@ -179,7 +163,7 @@ then
 
         if ( [ "${all_dns_proxy_ips}" != "" ] )
         then
-                if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && ( [ "${firewall_name}" = "adt-reverseproxy" ] || [ "${firewall_name}" = "adt-authenticator" ] ) ) )
+                if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxy" ] ) )
                 then
                         for ip in ${all_dns_proxy_ips}
                         do
@@ -195,7 +179,7 @@ then
  							fi
 						fi
 				fi
-        elif ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && ( [ "${firewall_name}" = "adt-reverseproxy" ] || [ "${firewall_name}" = "adt-authenticator" ] ) ) )
+        elif ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && [ "${firewall_name}" = "adt-reverseproxy" ] ) )
         then
             rules=${rules}" protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} protocol:tcp,ports:22,address:${VPC_IP_RANGE} protocol:tcp,ports:443,address:0.0.0.0/0 "
        		
@@ -221,7 +205,7 @@ then
                 rules="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"
         fi
 
-        rules="${rules} protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} protocol:tcp,ports:${DB_PORT},address:${VPC_IP_RANGE} protocol:icmp,address:0.0.0.0/0"
+        rules="${rules} protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} protocol:tcp,ports:${DB_PORT},address:${VPC_IP_RANGE} protocol:icmp,address:0.0.0.0/0 "
         rules="`/bin/echo ${rules} | /usr/bin/tr -s ' '`"                
 fi
 
