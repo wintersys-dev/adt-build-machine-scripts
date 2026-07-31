@@ -172,6 +172,14 @@ else
         fi
 fi
 
+if ( [ "${firewall_name}" = "adt-authenticator" ] )
+then
+        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+        then
+                rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
+        fi
+fi
+
 if ( [ "${firewall_name}" = "adt-database" ] )
 then
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
