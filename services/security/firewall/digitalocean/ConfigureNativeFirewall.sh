@@ -49,6 +49,7 @@ CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
+AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
@@ -170,13 +171,19 @@ then
     #            fi
     #    fi
 
+		secure_port="443"
+		if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ] )
+		then
+			secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
+		fi
+
         if ( [ "${all_dns_proxy_ips}" != "" ] )
         then
                 if ( ( [ "${NO_REVERSE_PROXIES}" = "0" ] && [ "${firewall_name}" = "adt-webserver" ] ) || ( [ "${NO_REVERSE_PROXIES}" != "0" ] && ( [ "${firewall_name}" = "adt-reverseproxy" ] || [ "${firewall_name}" = "adt-authenticator" ] ) ) )
                 then
                         for ip in ${all_dns_proxy_ips}
                         do
-                                rules=${rules}" protocol:tcp,ports:443,address:${ip} " 
+                                rules=${rules}" protocol:tcp,ports:${secure_port},address:${ip} " 
                         done
                         rules=${rules}" protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} protocol:tcp,ports:22,address:${VPC_IP_RANGE} protocol:tcp,ports:443,address:0.0.0.0/0 "
                 		
@@ -184,7 +191,7 @@ then
  						then
 							if ( [ "${firewall_name}" = "adt-webserver" ] || [ "${firewall_name}" = "adt-reverseproxy" ] )
 							then
- 								rules=" protocol:tcp,ports:443,address:${build_machine_ip}/32 "
+ 								rules=" protocol:tcp,ports:${secure_port},address:${build_machine_ip}/32 "
  							fi
 						fi
 				fi
