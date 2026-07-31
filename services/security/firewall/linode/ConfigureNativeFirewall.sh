@@ -26,6 +26,7 @@ set -x
 linode_firewall_rules ()
 {
         firewall_ports="${1}"
+        #put paramter for firewall type here so can select on it for GetProxyIPs
         firewall_rules=""
         for firewall_port_token in ${firewall_ports}
         do
@@ -33,6 +34,7 @@ linode_firewall_rules ()
                 then
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
                         ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
+                        #check for cloudflare in here GetProxyIPs
                         if ( [ "`/bin/echo ${ip_address} | /bin/fgrep -o . | /usr/bin/wc -l`" = "3" ] )
                         then
                                 firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}'
