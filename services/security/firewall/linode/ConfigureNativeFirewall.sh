@@ -82,20 +82,20 @@ then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-        
+
         rule_build_machine=""
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-        
+
         ruleset=""
         if ( [ "${rule_build_machine}" != "" ] )
         then
-                ruleset="${rule_build_machine}','"
+                ruleset="${rule_build_machine},"
         fi
-        
-        ruleset="${ruleset}${rule_vpc_ssh}','${rule_icmp}${firewall_rules}"
+
+        ruleset="${ruleset}${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
@@ -108,13 +108,13 @@ then
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-        
+
         ruleset=""
         if ( [ "${rule_build_machine}" != "" ] )
         then
-                ruleset="${rule_build_machine}','"
+                ruleset="${rule_build_machine},"
         fi
-        ruleset="${ruleset}${rule_vpc_ssh}','${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
@@ -133,7 +133,7 @@ then
         else
                 rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
         fi
-        
+
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
 
         rule_build_machine=""
@@ -150,33 +150,33 @@ then
         ruleset=""
         if ( [ "${rule_secure_port_udp}" != "" ] )
         then
-                ruleset="${rule_secure_port_udp}','"
+                ruleset="${rule_secure_port_udp},"
         fi
-        
+
         if ( [ "${rule_build_machine}" != "" ] )
         then
-                ruleset="${ruleset}${rule_build_machine}','"
+                ruleset="${ruleset}${rule_build_machine},"
         fi
-        
+
         if ( [ "${rule_build_machine_ssl}" != "" ] )
         then
-                ruleset="${ruleset}${rule_build_machine_ssl}','"
+                ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
-        
-        ruleset="${ruleset}${rule_secure_port_tcp}','${rule_vpc_ssh}','${rule_icmp}${firewall_rules}"
+
+        ruleset="${ruleset}${rule_secure_port_tcp},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
-        
+
         if ( [ "${all_dns_proxy_ips}" = "" ] )
         then
                 rule_secure_port_tcp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
         else
                 rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
         fi
-        
+
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
 
         rule_build_machine=""
@@ -193,15 +193,15 @@ then
 
         if ( [ "${rule_build_machine}" != "" ] )
         then
-                ruleset="${ruleset}${rule_build_machine}','"
+                ruleset="${ruleset}${rule_build_machine},"
         fi
-        
+
         if ( [ "${rule_build_machine_ssl}" != "" ] )
         then
-                ruleset="${ruleset}${rule_build_machine_ssl}','"
+                ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
-        
-        ruleset="${ruleset}${rule_secure_port_tcp}','${rule_vpc_ssh}','${rule_icmp}${firewall_rules}"
+
+        ruleset="${ruleset}${rule_secure_port_tcp},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 
 fi
 
@@ -217,14 +217,14 @@ then
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-        
+
         ruleset=""
         if ( [ "${rule_build_machine}" != "" ] )
         then
-                ruleset="${rule_build_machine}','"
+                ruleset="${rule_build_machine},"
         fi
-        
-        ruleset="${ruleset}${rule_vpc_ssh}','${rule_vpc_db}','${rule_icmp}${firewall_rules}"
+
+        ruleset="${ruleset}${rule_vpc_ssh},${rule_vpc_db},${rule_icmp}${firewall_rules}"
 fi
 
 ruleset='['${ruleset}']'
@@ -238,7 +238,7 @@ else
         /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
 fi
 
-/usr/local/bin/linode-cli firewalls rules-update  --inbound "'${ruleset}'" ${firewall_id}
+/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
 
 if ( [ "$?" = "0" ] )
 then
