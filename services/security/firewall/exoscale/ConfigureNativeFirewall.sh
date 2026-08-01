@@ -94,12 +94,6 @@ else
         done
 fi
 
-secure_port="443"
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
-then
-        secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-fi
-
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
         exoscale_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"
@@ -129,6 +123,7 @@ then
 
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
+                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol udp --network 0.0.0.0/0 --port ${secure_port} &
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port ${secure_port} &
         else
@@ -164,15 +159,18 @@ then
         if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
                 all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
+                
                 if ( [ "${all_dns_proxy_ips}" = "" ] )
                 then
-                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port ${secure_port} &
+                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
                 else
                         for ip in ${all_dns_proxy_ips}
                         do
-                                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port ${secure_port} &
+                                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
                         done
                 done
+                
+                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port 443 &
         fi
         
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port ${SSH_PORT} &
