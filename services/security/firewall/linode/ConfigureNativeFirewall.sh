@@ -125,7 +125,7 @@ then
         rule_ssl=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
-                rule_secure_port_udp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                rule_wireguard='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
         else
                 if ( [ "${all_dns_proxy_ips}" = "" ] )
                 then
@@ -151,7 +151,7 @@ then
         ruleset=""
         if ( [ "${rule_secure_port_udp}" != "" ] )
         then
-                ruleset="${rule_secure_port_udp},"
+                ruleset="${rule_wireguard},"
         fi
 
         if ( [ "${rule_build_machine}" != "" ] )
