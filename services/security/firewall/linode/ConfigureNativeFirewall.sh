@@ -95,7 +95,7 @@ then
                 ruleset="${rule_build_machine},"
         fi
 
-        ruleset="${ruleset}${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_vpc_ssh},${rule_ssl},{rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
