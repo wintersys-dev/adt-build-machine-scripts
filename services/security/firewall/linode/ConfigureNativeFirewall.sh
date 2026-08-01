@@ -37,7 +37,7 @@ linode_firewall_rules ()
                         #Put  ipcalc in here?
                         if ( [ "`/bin/echo ${ip_address} | /bin/fgrep -o . | /usr/bin/wc -l`" = "3" ] )
                         then
-                                firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}'
+                                firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"},{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"UDP","ports":"'${port}'"}'
                         fi
                 fi
         done
