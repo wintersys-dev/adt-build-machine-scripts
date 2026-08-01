@@ -89,7 +89,16 @@ fi
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
 	vultr_firewall_rules "${firewall_id}" "${authenticator_firewall_ports}"
-	/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443 --size=32 --ip-type=v4 --subnet=0.0.0.0/0
+	
+	all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
+	
+	if ( [ "${all_dns_proxy_ips}" = "" ] )
+	then
+		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
+	else
+		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
+    fi	
+	
 	/usr/bin/vultr firewall rule create ${firewall_id} --protocol=icmp --size=32 --ip-type=v4 --subnet=0.0.0.0/0
 
 	if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
