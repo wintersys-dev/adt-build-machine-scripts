@@ -100,7 +100,18 @@ then
         exoscale_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port ${SSH_PORT} &
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol icmp --network 0.0.0.0/0 --icmp-code 0 --icmp-type 8 &
-        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
+       
+        if ( [ "${all_dns_proxy_ips}" = "" ] )
+        then
+                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
+        elif ( [ "${all_dns_proxy_ips}" != "" ] )
+        then
+                for ip in ${all_dns_proxy_ips}
+                do
+                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
+                done
+        fi
+           
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --network ${build_machine_ip}/32 --port ${SSH_PORT} &
@@ -148,7 +159,7 @@ then
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${build_machine_ip}/32 --port ${SSH_PORT} &
                 if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
                 then
-                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp--network ${build_machine_ip}/32 --port 443 &
+                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${build_machine_ip}/32 --port 443 &
                 fi
         fi
 fi
