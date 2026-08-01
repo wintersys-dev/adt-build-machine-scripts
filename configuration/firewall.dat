@@ -28,11 +28,11 @@
 # on your webservers and if you don't run reverse proxies then the reverse proxies setting is moot but for
 # neatness there is a configuration below for when you are running without reverse proxies
 #############################################################################################################
-#AUTHENTICATORPORTS:443|ipv4|cloudflare
-#REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
-#AUTOSCALERPORTS:
-#WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
-#DATABASEPORTS:
+AUTHENTICATORPORTS:443|ipv4|cloudflare
+REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
+AUTOSCALERPORTS:
+WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
+DATABASEPORTS:
 ############################################################################################################
 # CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
 # from any IP address on the Internet. If you are in development mode you can change this so that your 
@@ -97,8 +97,8 @@
 # swap 443|ipv4|cloudflare to 443|ipv4|0.0.0./0 if you don't want to use cloudflare to protect your authenticator
 # 1036 is the wireguard port with is SSH_PORT + 1 by default
 #############################################################################################################
-AUTHENTICATORPORTS:443|ipv4|cloudflare  
-REVERSEPROXYPORTS:1036|ipv4|0.0.0.0/0
-AUTOSCALERPORTS:
-WEBSERVERPORTS:
-DATABASEPORTS:
+#AUTHENTICATORPORTS:443|ipv4|cloudflare  
+#REVERSEPROXYPORTS:1036|ipv4|0.0.0.0/0
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:
+#DATABASEPORTS:
