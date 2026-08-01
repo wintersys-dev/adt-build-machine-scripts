@@ -149,21 +149,21 @@ then
         rule_vpc_ssh=" protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} "
         rule_icmp=" protocol:icmp,address:0.0.0.0/0 "
 
-        rule_secure_port=""
+        rule_wireguard=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
-                rule_secure_port=" protocol:udp,ports:${secure_port},address:0.0.0.0/0  protocol:tcp,ports:${secure_port},address:0.0.0.0/0 "
-        fi
-
-        if ( [ "${all_dns_proxy_ips}" = "" ] )
-        then
-                rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
-        elif ( [ "${all_dns_proxy_ips}" != "" ] )
-        then
-                for ip in ${all_dns_proxy_ips}
-                do
-                        rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} " 
-                done
+                rule_wireguard=" protocol:udp,ports:${secure_port},address:0.0.0.0/0  protocol:tcp,ports:${secure_port},address:0.0.0.0/0 "
+        else
+                if ( [ "${all_dns_proxy_ips}" = "" ] )
+                then
+                        rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
+                elif ( [ "${all_dns_proxy_ips}" != "" ] )
+                then
+                        for ip in ${all_dns_proxy_ips}
+                        do
+                                rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} " 
+                        done
+                fi
         fi
 
         rule_build_machine=""
@@ -177,7 +177,7 @@ then
                 fi
         fi
 
-        rules="${firewall_rules}${rule_vpc_ssh}${rule_icmp}${rule_secure_port}${rule_ssl}${rule_build_machine}${rule_build_machine_ssl}"
+        rules="${firewall_rules}${rule_vpc_ssh}${rule_icmp}${rule_wireguard}${rule_ssl}${rule_build_machine}${rule_build_machine_ssl}"
 
 fi
 
