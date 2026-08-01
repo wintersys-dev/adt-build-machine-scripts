@@ -130,18 +130,16 @@ then
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol udp --network 0.0.0.0/0 --port ${secure_port} &
-        fi
-
-        if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
-        then
+                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port ${secure_port} &
+        else
                 all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
                 if ( [ "${all_dns_proxy_ips}" = "" ] )
                 then
-                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port ${secure_port} &
+                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
                 else
                         for ip in ${all_dns_proxy_ips}
                         do
-                                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port ${secure_port} &
+                                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
                         done
                 done
         fi
