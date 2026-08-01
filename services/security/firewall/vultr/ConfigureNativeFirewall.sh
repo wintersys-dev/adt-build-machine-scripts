@@ -35,7 +35,8 @@ vultr_firewall_rules ()
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
                         ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
                         /usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=${port} --size=32 --ip-type=v4 --subnet=${ip_address}                      
-                fi
+                        /usr/bin/vultr firewall rule create ${firewall_id} --protocol=udp --port=${port} --size=32 --ip-type=v4 --subnet=${ip_address}                      
+				fi
         done
 }
 
