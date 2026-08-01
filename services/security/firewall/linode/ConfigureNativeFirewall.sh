@@ -122,16 +122,17 @@ then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}"`"
 
         rule_secure_port_udp=""
+        rule_ssl=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
-                rule_secure_port_udp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
-        fi
-
-        if ( [ "${all_dns_proxy_ips}" = "" ] )
-        then
-                rule_secure_port_tcp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                rule_secure_port_udp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
         else
-                rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                if ( [ "${all_dns_proxy_ips}" = "" ] )
+                then
+                        rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
+                else
+                        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
+                fi
         fi
 
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
@@ -163,7 +164,7 @@ then
                 ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
 
-        ruleset="${ruleset}${rule_secure_port_tcp},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
@@ -174,16 +175,16 @@ then
         then
                 if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
                 then
-                        rule_secure_port_tcp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                        rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 else
-                        rule_secure_port_tcp='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                        rrule_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 fi
         else
                 if  ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
                 then
-                        rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 else
-                        rule_secure_port_tcp='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
+                        rule_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 fi
         fi
 
@@ -211,7 +212,7 @@ then
                 ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
 
-        ruleset="${ruleset}${rule_secure_port_tcp},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 
 fi
 
