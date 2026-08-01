@@ -238,7 +238,7 @@ else
         /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
 fi
 
-/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
+/usr/local/bin/linode-cli firewalls rules-update  --inbound "'${ruleset}'" ${firewall_id}
 
 if ( [ "$?" = "0" ] )
 then
