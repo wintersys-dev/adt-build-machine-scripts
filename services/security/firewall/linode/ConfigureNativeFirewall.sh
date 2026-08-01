@@ -229,7 +229,16 @@ fi
 
 ruleset='['${ruleset}']'
 
-/usr/local/bin/linode-cli firewalls rules-update  --inbound_policy DROP --outbound_policy ACCEPT --inbound ${ruleset} ${firewall_id}
+firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
+
+if ( [ "${firewall_id}" = "" ] )
+then
+        firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
+else
+        /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
+fi
+
+/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
 
 if ( [ "$?" = "0" ] )
 then
