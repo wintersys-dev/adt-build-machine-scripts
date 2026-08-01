@@ -70,6 +70,13 @@ then
         database_firewall_ports="`/bin/grep "^DATABASEPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
 fi
 
+if ( [ "${firewall_name}" = "adt-authenticator" ] )
+then
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "auth"`"
+else
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh`"
+fi
+
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
