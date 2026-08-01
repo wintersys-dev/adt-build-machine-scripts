@@ -135,6 +135,7 @@ then
                 fi
         fi
 
+        rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
 
         rule_build_machine=""
@@ -164,28 +165,22 @@ then
                 ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
 
-        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_vpc_ssl},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
 
-        if ( [ "${all_dns_proxy_ips}" = "" ] )
+        if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
-                if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
+                if ( [ "${all_dns_proxy_ips}" = "" ] )
                 then
                         rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 else
-                        rrule_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
+                        rule_ssl='{"addresses":{"ipv4":["'${all_dns_proxy_ips}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 fi
-        else
-                if  ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
-                then
-                        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-                else
-                        rule_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-                fi
+                rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
         fi
 
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
@@ -212,7 +207,7 @@ then
                 ruleset="${ruleset}${rule_build_machine_ssl},"
         fi
 
-        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
+        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 
 fi
 
