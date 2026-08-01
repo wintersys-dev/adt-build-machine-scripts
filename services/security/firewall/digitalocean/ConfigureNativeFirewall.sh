@@ -87,12 +87,6 @@ done
 /usr/local/bin/doctl compute firewall create --name "${firewall_name}-${BUILD_IDENTIFIER}"  --outbound-rules "protocol:tcp,ports:all,protocol:tcp,ports:all,address:0.0.0.0/0 protocol:udp,ports:all,address:0.0.0.0/0 protocol:icmp,address:0.0.0.0/0"
 firewall_id="`/usr/local/bin/doctl -o json compute firewall list | /usr/bin/jq -r '.[] | select (.name == "'${firewall_name}'-'${BUILD_IDENTIFIER}'").id'`"
 
-secure_port="443"
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
-then
-        secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-fi
-
 firewall_rules=""
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
@@ -152,6 +146,7 @@ then
         rule_wireguard=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
+                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
                 rule_wireguard=" protocol:udp,ports:${secure_port},address:0.0.0.0/0  protocol:tcp,ports:${secure_port},address:0.0.0.0/0 "
         else
                 if ( [ "${all_dns_proxy_ips}" = "" ] )
