@@ -70,13 +70,6 @@ then
         database_firewall_ports="`/bin/grep "^DATABASEPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
 fi
 
-
-secure_port="443"
-if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
-then
-        secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-fi
-
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
@@ -125,6 +118,7 @@ then
         rule_ssl=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
+                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
                 rule_wireguard='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
         else
                 if ( [ "${all_dns_proxy_ips}" = "" ] )
