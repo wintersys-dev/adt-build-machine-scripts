@@ -25,8 +25,8 @@ set -x
 
 linode_firewall_rules ()
 {
-        firewall_ports="${1}"
-        #put paramter for firewall type here so can select on it for GetProxyIPs
+        firewall_name="${1}"
+        firewall_ports="${2}"
         firewall_rules=""
         for firewall_port_token in ${firewall_ports}
         do
@@ -34,7 +34,6 @@ linode_firewall_rules ()
                 then
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
                         ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
-                        #check for cloudflare in here GetProxyIPs
                         if ( [ "`/bin/echo ${ip_address} | /bin/fgrep -o . | /usr/bin/wc -l`" = "3" ] )
                         then
                                 firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}'
@@ -52,6 +51,7 @@ CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
+DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
@@ -69,51 +69,116 @@ then
         database_firewall_ports="`/bin/grep "^DATABASEPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
 fi
 
-if ( [ "${firewall_name}" = "adt-authenticator" ] )
-then
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "auth"`"
-else
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh`"
-fi
-
-
-ruleset=""
-rule_vpc='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"1-65535"}'
-rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-rule_build_machine_ssl='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
-rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-firewall_rules=""
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${authenticator_firewall_ports}"`"
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${reverseproxy_firewall_ports}"`"
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${autoscaler_firewall_ports}"`"
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${webserver_firewall_ports}"`"
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${database_firewall_ports}"`"
-fi
 
 secure_port="443"
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${firewall_name}" = "adt-reverseproxy" ]  )
 then
         secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
 fi
+
+if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
+then
+        firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
+        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+fi
+
+if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
+then
+        firewall_rules="`linode_firewall_rules "${firewall_name}" "${autoscaler_firewall_ports}"`"
+        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+        ruleset=${rule_vpc_ssh}','${rule_icmp}${firewall_rules}
+fi
+
+if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
+then
+        firewall_rules="`linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}"`"
+
+        rule_secure_port_udp=""
+        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
+        then
+                rule_secure_port_udp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+        fi
+
+        if ( [ "${all_dns_proxy_ips}" = "" ] )
+        then
+                rule_secure_port_tcp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+        else
+                rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+        fi
+        
+        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+
+        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+        then
+                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+                if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
+                then
+                        rule_build_machine_ssl='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
+                fi
+        fi
+        rule_icmp=',{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+        ruleset=""
+        if ( [ "${rule_secure_port_udp}" != "" ] )
+        then
+                ruleset="${rule_secure_port_udp}','"
+        fi
+        
+        if ( [ "${rule_build_machine}" != "" ] )
+        then
+                ruleset="${ruleset}${rule_build_machine}','"
+        fi
+        
+        if ( [ "${rule_build_machine_ssl}" != "" ] )
+        then
+                ruleset="${ruleset}${rule_build_machine_ssl}','"
+        fi
+        
+        ruleset=${ruleset}${rule_secure_port_tcp}${rule_vpc_ssh}${rule_icmp}${firewall_rules}
+fi
+
+fi
+
+if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
+then
+        firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
+        
+        if ( [ "${all_dns_proxy_ips}" = "" ] )
+        then
+                rule_secure_port_tcp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+        else
+                rule_secure_port_tcp='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"}'
+        fi
+        
+        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+
+        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+        then
+                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+                if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
+                then
+                        rule_build_machine_ssl='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
+                fi
+        fi
+        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+fi
+
+if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
+then
+        firewall_rules="`linode_firewall_rules "${firewall_name}" "${database_firewall_ports}"`"
+        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+        rule_vpc_db='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${DB_PORT}'"}'
+        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+
+
+fi
+
+
+
+
+
+
 
 if ( [ "${all_dns_proxy_ips}" = "" ] )
 then
