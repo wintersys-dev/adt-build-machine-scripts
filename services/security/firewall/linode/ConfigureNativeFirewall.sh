@@ -121,7 +121,7 @@ if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}"`"
 
-        rule_secure_port_udp=""
+        rule_wireguard=""
         rule_ssl=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
