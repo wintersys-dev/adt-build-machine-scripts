@@ -116,6 +116,8 @@ then
 		${BUILD_HOME}/installation/InstallSudo.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Installing/Updating Cron"
 		${BUILD_HOME}/installation/InstallCron.sh "ubuntu" >>${upgrade_log} 2>&1 
+		status "Installing/Updating IpCalc"
+		${BUILD_HOME}/installation/InstallIPCalc.sh "ubuntu" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Email Utilities"
 		${BUILD_HOME}/installation/InstallEmailUtils.sh "ubuntu" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Virus Scanner"
@@ -145,6 +147,8 @@ then
 		${BUILD_HOME}/installation/InstallSudo.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating Cron"
 		${BUILD_HOME}/installation/InstallCron.sh "debian" >>${upgrade_log} 2>&1 
+		status "Installing/Updating IpCalc"
+		${BUILD_HOME}/installation/InstallIPCalc.sh "debian" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Email Utilities"
 		${BUILD_HOME}/installation/InstallEmailUtils.sh "debian" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Virus Scanner"
