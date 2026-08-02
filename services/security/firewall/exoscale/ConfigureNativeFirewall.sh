@@ -105,14 +105,16 @@ then
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port ${SSH_PORT} &
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol icmp --network 0.0.0.0/0 --icmp-code 0 --icmp-type 8 &
        
-        if ( [ "${all_dns_proxy_ips}" = "" ] )
-        then
-                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
-        elif ( [ "${all_dns_proxy_ips}" != "" ] )
+   #     if ( [ "${all_dns_proxy_ips}" = "" ] )
+   #     then
+   #             /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
+   #     elif ( [ "${all_dns_proxy_ips}" != "" ] )
+        if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
         then
                 for ip in ${all_dns_proxy_ips}
                 do
                         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
+                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol udp --network ${ip} --port 443 &
                 done
         fi
            
@@ -144,10 +146,12 @@ then
                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port ${secure_port} &
         else
                 all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
-                if ( [ "${all_dns_proxy_ips}" = "" ] )
+             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
+             #   then
+             #           /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
+             #   else
+                if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
-                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
-                else
                         for ip in ${all_dns_proxy_ips}
                         do
                                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
@@ -176,10 +180,12 @@ then
         then
                 all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
                 
-                if ( [ "${all_dns_proxy_ips}" = "" ] )
+                #if ( [ "${all_dns_proxy_ips}" = "" ] )
+                #then
+                #        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
+                #else
+                if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
-                        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network 0.0.0.0/0 --port 443 &
-                else
                         for ip in ${all_dns_proxy_ips}
                         do
                                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
