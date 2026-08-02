@@ -151,6 +151,7 @@ fi
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
+        rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
 
         if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
@@ -164,8 +165,6 @@ then
                 fi
                 #        rule_ssl='{"addresses":{"ipv4":["'${all_dns_proxy_ips}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
                 #fi
-        else
-                rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
         fi
 
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
