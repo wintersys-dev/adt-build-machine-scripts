@@ -162,7 +162,7 @@ then
         fi
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
         ruleset=""
-        if ( [ "${rule_secure_port_udp}" != "" ] )
+        if ( [ "${rule_wireguard}" != "" ] )
         then
                 ruleset="${rule_wireguard},"
         fi
