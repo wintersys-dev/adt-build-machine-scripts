@@ -134,7 +134,7 @@ then
         rule_build_machine=""
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
-                rule_build_machine="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"                        
+                rule_build_machine=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "                        
         fi
 
         rules="${firewall_rules}${rule_vpc_ssh}${rule_icmp}${rule_build_machine}"
@@ -171,10 +171,10 @@ then
         rule_build_machine_ssl=""
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
-                rule_build_machine="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"                        
+                rule_build_machine=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "                        
                 if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
                 then
-                        rule_build_machine_ssl="protocol:tcp,ports:443,address:${build_machine_ip}/32"                        
+                        rule_build_machine_ssl=" protocol:tcp,ports:443,address:${build_machine_ip}/32 "                        
                 fi
         fi
 
@@ -187,6 +187,7 @@ then
         machine_identifier="wp-${REGION}-${BUILD_IDENTIFIER}"
         firewall_rules=" `digitalocean_firewall_rules "${webserver_firewall_ports}"` "
         rule_vpc_ssh=" protocol:tcp,ports:${SSH_PORT},address:${VPC_IP_RANGE} "
+        rule_vpc_ssl=" protocol:tcp,ports:443,address:${VPC_IP_RANGE} "       
 
         rule_icmp=" protocol:icmp,address:0.0.0.0/0 "
 
@@ -203,8 +204,6 @@ then
                                 rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} " 
                         done
                 fi
-                rule_vpc_ssl=" protocol:tcp,ports:443,address:${VPC_IP_RANGE} "
-                
         fi
 
         rule_build_machine=""
@@ -212,10 +211,10 @@ then
         
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
-                rule_build_machine="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"                        
+                rule_build_machine=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "                        
                 if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
                 then
-                        rule_build_machine_ssl="protocol:tcp,ports:443,address:${build_machine_ip}/32"                        
+                        rule_build_machine_ssl=" protocol:tcp,ports:443,address:${build_machine_ip}/32 "                        
                 fi
         fi
 
@@ -236,7 +235,7 @@ then
         rule_build_machine=""
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
-                rule_build_machine="protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32"                        
+                rule_build_machine=" protocol:tcp,ports:${SSH_PORT},address:${build_machine_ip}/32 "                        
         fi
 
         rules="${firewall_rules}${rule_vpc_ssh}${rule_vpc_db}${rule_icmp}${rule_build_machine}"              
