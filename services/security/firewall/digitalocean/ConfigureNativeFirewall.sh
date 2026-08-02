@@ -100,14 +100,16 @@ then
         rule_icmp=" protocol:icmp,address:0.0.0.0/0 "
 
         rule_ssl=""
-        if ( [ "${all_dns_proxy_ips}" = "" ] )
-        then
-                rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "   
-        elif ( [ "${all_dns_proxy_ips}" != "" ] )
+     #   if ( [ "${all_dns_proxy_ips}" = "" ] )
+     #   then
+     #           rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "   
+      #  elif ( [ "${all_dns_proxy_ips}" != "" ] )
+       
+        if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
         then
                 for ip in ${all_dns_proxy_ips}
                 do
-                        rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} " 
+                        rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} protocol:udp,ports:443,address:${ip} " 
                 done
         fi
 
@@ -152,14 +154,15 @@ then
                 secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
                 rule_wireguard=" protocol:udp,ports:${secure_port},address:0.0.0.0/0  protocol:tcp,ports:${secure_port},address:0.0.0.0/0 "
         else
-                if ( [ "${all_dns_proxy_ips}" = "" ] )
-                then
-                        rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
-                elif ( [ "${all_dns_proxy_ips}" != "" ] )
+             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
+             #   then
+             #           rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
+             #   elif ( [ "${all_dns_proxy_ips}" != "" ] )
+                if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         for ip in ${all_dns_proxy_ips}
                         do
-                                rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} " 
+                                rule_ssl="${rule_ssl} protocol:tcp,ports:443,address:${ip} protocol:udp,ports:443,address:${ip} " 
                         done
                 fi
         fi
@@ -189,10 +192,11 @@ then
 
         if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
-                if ( [ "${all_dns_proxy_ips}" = "" ] )
-                then
-                        rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
-                elif ( [ "${all_dns_proxy_ips}" != "" ] )
+              #  if ( [ "${all_dns_proxy_ips}" = "" ] )
+              #  then
+              #          rule_ssl=" protocol:tcp,ports:443,address:0.0.0.0/0 "
+              #  elif ( [ "${all_dns_proxy_ips}" != "" ] )
+                if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         for ip in ${all_dns_proxy_ips}
                         do
