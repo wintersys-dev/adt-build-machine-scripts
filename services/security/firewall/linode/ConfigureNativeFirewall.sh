@@ -201,47 +201,47 @@ fi
 ruleset=""
 if ( [ "${rule_build_machine}" != "" ] )
 then
-        ruleset="${rule_build_machine},"
+        rule_build_machine="${rule_build_machine},"
 fi
 
 if ( [ "${rule_build_machine_ssl}" != "" ] )
 then
-        ruleset="${rule_build_machine_ssl},"
+        rule_build_machine_ssl="${rule_build_machine_ssl},"
 fi
 
 if ( [ "${rule_wireguard}" != "" ] )
 then
-        ruleset="${rule_wireguard},"
+        rule_wireguard="${rule_wireguard},"
 fi
         
 if ( [ "${rule_vpc_ssh}" != "" ] )
 then
-        ruleset="${rule_vpc_ssh},"
+        rule_vpc_ssh="${rule_vpc_ssh},"
 fi
 
 if ( [ "${rule_vpc_db}" != "" ] )
 then
-        ruleset="${rule_vpc_db},"
+        rule_vpc_db="${rule_vpc_db},"
 fi
 
 if ( [ "${rule_vpc_ssl}" != "" ] )
 then
-        ruleset="${rule_vpc_ssl},"
+        rule_vpc_ssl="${rule_vpc_ssl},"
 fi
 
 if ( [ "${rule_ssl}" != "" ] )
 then
-        ruleset="${rule_ssl},"
+        rule_ssl="${rule_ssl},"
 fi
 
 if ( [ "${rule_icmp}" != "" ] )
 then
-        ruleset="${rule_icmp},"
+        rule_icmp="${rule_icmp},"
 fi
 
 if ( [ "${firewall_rules}" != "" ] )
 then
-        ruleset="${firewall_rules}},"
+        firewall_rules="${firewall_rules},"
 fi
 
 ruleset="`/bin/echo ${ruleset}${rule_vpc_ssh}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
