@@ -28,11 +28,11 @@
 # on your webservers and if you don't run reverse proxies then the reverse proxies setting is moot but for
 # neatness there is a configuration below for when you are running without reverse proxies
 #############################################################################################################
-#AUTHENTICATORPORTS:443|ipv4|cloudflare
-#REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
-#AUTOSCALERPORTS:
-#WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
-#DATABASEPORTS:
+AUTHENTICATORPORTS:443|ipv4|cloudflare
+REVERSEPROXYPORTS:443|ipv4|0.0.0.0/0 
+AUTOSCALERPORTS:
+WEBSERVERPORTS:443|ipv4|0.0.0.0/0 
+DATABASEPORTS:
 ############################################################################################################
 # CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
 # from any IP address on the Internet. If you are in development mode you can change this so that your 
@@ -48,11 +48,11 @@
 # CONFIGURATION 3: This is the firewall configuration you use when you want your webservers to be accessible
 # only from cloudflare ip addresses and you are not using an authentication server
 #############################################################################################################
-AUTHENTICATORPORTS:
-REVERSEPROXYPORTS:
-AUTOSCALERPORTS:
-WEBSERVERPORTS:443|ipv4|cloudflare
-DATABASEPORTS:
+#AUTHENTICATORPORTS:
+#REVERSEPROXYPORTS:
+#AUTOSCALERPORTS:
+#WEBSERVERPORTS:443|ipv4|cloudflare
+#DATABASEPORTS:
 ############################################################################################################
 # CONFIGURATION 4: This is the firewall configuration you use when you want your reverse proxy servers to be
 # accessible from any ip address on the Internet and you are not using an authentication server
