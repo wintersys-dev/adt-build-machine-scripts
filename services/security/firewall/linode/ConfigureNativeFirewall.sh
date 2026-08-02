@@ -37,7 +37,7 @@ linode_firewall_rules ()
                         
                         if ( [ "`/usr/bin/ipcalc ${ip_address} | /bin/grep "INVALID"`"  = "" ] )
                         then
-                                firewall_rules=${firewall_rules}',{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"},{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"UDP","ports":"'${port}'"}'
+                                firewall_rules=${firewall_rules}'{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"},{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"UDP","ports":"'${port}'"}'
                         fi
                 fi
         done
@@ -97,14 +97,6 @@ then
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-
-        ruleset=""
-        if ( [ "${rule_build_machine}" != "" ] )
-        then
-                ruleset="${rule_build_machine},"
-        fi
-
-        ruleset="${ruleset}${rule_vpc_ssh},${rule_ssl},{rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
@@ -117,13 +109,6 @@ then
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-
-        ruleset=""
-        if ( [ "${rule_build_machine}" != "" ] )
-        then
-                ruleset="${rule_build_machine},"
-        fi
-        ruleset="${ruleset}${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
@@ -161,23 +146,6 @@ then
                 fi
         fi
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-        ruleset=""
-        if ( [ "${rule_wireguard}" != "" ] )
-        then
-                ruleset="${rule_wireguard},"
-        fi
-
-        if ( [ "${rule_build_machine}" != "" ] )
-        then
-                ruleset="${ruleset}${rule_build_machine},"
-        fi
-
-        if ( [ "${rule_build_machine_ssl}" != "" ] )
-        then
-                ruleset="${ruleset}${rule_build_machine_ssl},"
-        fi
-
-        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssh},${rule_vpc_ssl},${rule_icmp}${firewall_rules}"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
@@ -213,18 +181,6 @@ then
         fi
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
 
-        if ( [ "${rule_build_machine}" != "" ] )
-        then
-                ruleset="${ruleset}${rule_build_machine},"
-        fi
-
-        if ( [ "${rule_build_machine_ssl}" != "" ] )
-        then
-                ruleset="${ruleset}${rule_build_machine_ssl},"
-        fi
-
-        ruleset="${ruleset}${rule_ssl},${rule_vpc_ssl},${rule_vpc_ssh},${rule_icmp}${firewall_rules}"
-
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
@@ -240,17 +196,56 @@ then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
 
-        ruleset=""
-        if ( [ "${rule_build_machine}" != "" ] )
-        then
-                ruleset="${rule_build_machine},"
-        fi
-
-        ruleset="${ruleset}${rule_vpc_ssh},${rule_vpc_db},${rule_icmp}${firewall_rules}"
 fi
 
-ruleset='['${ruleset}']'
+ruleset=""
+if ( [ "${rule_build_machine}" != "" ] )
+then
+        ruleset="${rule_build_machine},"
+fi
 
+if ( [ "${rule_build_machine_ssl}" != "" ] )
+then
+        ruleset="${rule_build_machine_ssl},"
+fi
+
+if ( [ "${rule_wireguard}" != "" ] )
+then
+        ruleset="${rule_wireguard},"
+fi
+        
+if ( [ "${rule_vpc_ssh}" != "" ] )
+then
+        ruleset="${rule_vpc_ssh},"
+fi
+
+if ( [ "${rule_vpc_db}" != "" ] )
+then
+        ruleset="${rule_vpc_db},"
+fi
+
+if ( [ "${rule_vpc_ssl}" != "" ] )
+then
+        ruleset="${rule_vpc_ssl},"
+fi
+
+if ( [ "${rule_ssl}" != "" ] )
+then
+        ruleset="${rule_ssl},"
+fi
+
+if ( [ "${rule_icmp}" != "" ] )
+then
+        ruleset="${rule_icmp},"
+fi
+
+if ( [ "${firewall_rules}" != "" ] )
+then
+        ruleset="${firewall_rules}},"
+fi
+
+ruleset="`/bin/echo ${ruleset}${rule_vpc_ssh}${rule_ssl}{rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
+ruleset='['${ruleset}']'
 firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
 
 if ( [ "${firewall_id}" = "" ] )
