@@ -96,11 +96,14 @@ then
 	
 	all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
 	
-	if ( [ "${all_dns_proxy_ips}" = "" ] )
-	then
-		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
-	else
+	#if ( [ "${all_dns_proxy_ips}" = "" ] )
+	#then
+#		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
+#	else
+    if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+    then
 		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
+		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=udp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
     fi	
 	
 	/usr/bin/vultr firewall rule create ${firewall_id} --protocol=icmp --size=32 --ip-type=v4 --subnet=0.0.0.0/0
@@ -133,12 +136,15 @@ then
 		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=${secure_port}--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
 	else
 		all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
-		if ( [ "${all_dns_proxy_ips}" = "" ] )
-		then
-			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
-		else
+	#	if ( [ "${all_dns_proxy_ips}" = "" ] )
+	#	then
+#			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
+#		else
+    	if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+    	then
 			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
-        fi
+       		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=udp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
+		fi
         
 		/usr/bin/vultr firewall rule create ${firewall_id} --protocol=icmp --size=32 --ip-type=v4 --subnet=0.0.0.0/0
 
@@ -160,12 +166,15 @@ then
 	if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
 	then
 		all_dns_proxy_ips="`/bin/echo ${all_dns_proxy_ips} | /bin/sed 's/,/ /g' | /bin/sed 's/^"//g' | /bin/sed 's/"$//g'`"
-		if ( [ "${all_dns_proxy_ips}" = "" ] )
-		then
-			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
-		else
+	#	if ( [ "${all_dns_proxy_ips}" = "" ] )
+#		then
+#			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443--size=32 --ip-type=v4 --subnet=0.0.0.0/0                      
+#		else
+    	if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+    	then
 			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=tcp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8
-        fi
+ 			/usr/bin/vultr firewall rule create ${firewall_id} --protocol=udp --port=443 --size=32 --ip-type=v4  --source=cloudflare --subnet=10.0.0.0/8      
+		fi
         
         /usr/bin/vultr firewall rule create ${firewall_id} --protocol=icmp --size=32 --ip-type=v4 --subnet=0.0.0.0/0
 
