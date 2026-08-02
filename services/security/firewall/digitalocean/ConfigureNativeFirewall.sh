@@ -33,8 +33,11 @@ digitalocean_firewall_rules ()
                 then
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
                         ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
-                        firewall_rules="${firewall_rules} protocol:tcp,ports:${port},address:${ip_address protocol:udp,ports:${port},address:${ip_address}}"
-               
+                        
+                        if ( [ "`/usr/bin/ipcalc ${ip_address} | /bin/grep "INVALID"`"  = "" ] )
+                        then
+                                firewall_rules="${firewall_rules} protocol:tcp,ports:${port},address:${ip_address protocol:udp,ports:${port},address:${ip_address}}"
+                        fi
                 fi
         done
         firewall_rules="`/bin/echo ${firewall_rules} | /bin/sed 's/,$//g'`"
