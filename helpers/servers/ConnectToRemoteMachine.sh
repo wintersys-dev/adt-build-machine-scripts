@@ -20,7 +20,7 @@
 #######################################################################################################
 #set -x
 
-if ( [ ! -f  ./ExecuteOnRemoteMachine.sh ] )
+if ( [ ! -f  ./ConnectToRemoteMachine.sh ] )
 then
         /bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/servers subdirectory"
         exit
