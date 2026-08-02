@@ -193,7 +193,7 @@ then
         rule_build_machine=""
         if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
         then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
+                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"},{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${DB_PORT}'"}'
         fi
 
 fi
