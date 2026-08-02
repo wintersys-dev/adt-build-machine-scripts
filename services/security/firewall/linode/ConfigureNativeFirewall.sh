@@ -244,7 +244,7 @@ then
         firewall_rules="${firewall_rules},"
 fi
 
-ruleset="`/bin/echo ${ruleset}${rule_vpc_ssh}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
+ruleset="`/bin/echo ${ruleset}${rule_vpc_ssh}${rule_vpc_ssl}${rule_vpc_db}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
 ruleset='['${ruleset}']'
 firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
 
