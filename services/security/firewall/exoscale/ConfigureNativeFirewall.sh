@@ -191,10 +191,9 @@ then
                                 /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${ip} --port 443 &
                         done
                 done
-                
-                /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port 443 &
         fi
-        
+
+        /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port 443 &
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol tcp --network ${VPC_IP_RANGE} --port ${SSH_PORT} &
         /usr/bin/exo compute security-group rule add ${firewall_name}-${BUILD_IDENTIFIER} --protocol icmp --network 0.0.0.0/0 --icmp-code 0 --icmp-type 8 &
 
