@@ -83,9 +83,16 @@ then
 fi
 
 #We can't be in production mode and also be deploying a virgin or a baseline application
-if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] || [ "${BUILD_ARCHIVE_CHOICE}" = "baseline" ] )
+if ( ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] || [ "${BUILD_ARCHIVE_CHOICE}" = "baseline" ] ) && [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then
+	status "The template set deployment mode to 'production' but your configuration requires 'development' so I am setting deployment mode to development"
 	${BUILD_HOME}/helpers/services/SetVariableValue.sh "DEPLOYMENT_MODE=DEVELOPMENT"
+fi
+
+if ( ( [ "${NO_REVERSE_PROXIES}" != "0" ] || [ "${NO_AUTOSCALERS}" != "0" ] || [ "${NO_WEBSERVERS}" != "1" ] ) && [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] )
+then
+	status "The template set deployment mode to 'development' but your configuration requires 'production' so I am setting deployment mode to production"
+	${BUILD_HOME}/helpers/services/SetVariableValue.sh "DEPLOYMENT_MODE=PRODUCTION"
 fi
 
 #If the database name has upper case characters in it when deploying to a DBaaS Postgres instance, set the database name to lower case
