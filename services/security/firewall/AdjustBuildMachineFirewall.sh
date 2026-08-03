@@ -153,7 +153,7 @@ then
 		do
 			if ( [ "`/bin/grep ${ip} /etc/ssh/sshd_config`" = "" ] )
 			then
-				/bin/echo "AllowUsers ${BUILDMACHINE_USER}@${ip}" >> /etc/ssh/sshd_config
+				/bin/echo "AllowUsers ${BUILDMACHINE_USER}@${ip}" >> /etc/ssh/sshd_config.d/99-hardening.conf
 				updated="1"
 			fi
 		done
