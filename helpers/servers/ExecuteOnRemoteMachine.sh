@@ -77,7 +77,7 @@ then
         fi  
 fi
 
-if ( [ "${command}" != "enable-wireguard-regeneration" ] )
+if ( [ "${command}" = "enable-wireguard-regeneration" ] )
 then
         /bin/echo "Please enter the IP address of the machine that you want to allow wireguard configuration to be regenerated for"
         read webserver_ip
