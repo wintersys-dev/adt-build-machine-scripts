@@ -151,7 +151,7 @@ then
 
 		for ip in ${ips}
 		do
-			if ( [ "`/bin/grep ${ip} /etc/ssh/sshd_config`" = "" ] )
+			if ( [ ! -f /etc/ssh/sshd_config.d/99-hardening.conf ] || [ "`/bin/grep ${ip} /etc/ssh/sshd_config.d/99-hardening.conf`" = "" ] )
 			then
 				/bin/echo "AllowUsers ${BUILDMACHINE_USER}@${ip}" >> /etc/ssh/sshd_config.d/99-hardening.conf
 				updated="1"
