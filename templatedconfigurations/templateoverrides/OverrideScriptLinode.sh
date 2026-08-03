@@ -62,8 +62,7 @@ then
 	BUILDMACHINE_SSH_PORT="22"
 fi
 
-/bin/sed -i "s/^Port.*$/Port ${BUILDMACHINE_SSH_PORT}/g" /etc/ssh/sshd_config
-/bin/sed -i "s/^#Port.*$/Port ${BUILDMACHINE_SSH_PORT}/g" /etc/ssh/sshd_config
+/bin/echo "Port ${BUILDMACHINE_SSH_PORT}" >> /etc/ssh/sshd_config.d/99-hardening.conf
 /bin/echo "AllowUsers ${BUILDMACHINE_USER}@${LAPTOP_IP}" >> /etc/ssh/sshd_config.d/99-hardening.conf
 
 /usr/bin/apt-get -qq -y update
