@@ -75,10 +75,12 @@ end_it_all() {
 			then
 				/bin/rm /tmp/END_IT_ALL_USER
 			fi
-			if ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
+			if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
 			then
 				/usr/bin/pkill -P ${pid}
-			#	/bin/sleep 2 && /usr/bin/kill 0 2>&1 >/dev/null
+			elif ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
+			then
+				/usr/bin/kill 0
 			fi
 		fi
 	done
