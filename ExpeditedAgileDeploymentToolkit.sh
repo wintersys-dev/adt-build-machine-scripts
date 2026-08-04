@@ -579,6 +579,7 @@ trap - EXIT INT
 if ( [ "${software_updated}" = "1" ] )
 then
 	/bin/touch /tmp/SHUTDOWN_INITIATED
-	/usr/sbin/shutdown -r now
+	status "Shutting down and rebooting as there has been a software update that requires a reboot"
+	/bin/sleep 5 && /usr/sbin/shutdown -r now
 fi 
 
