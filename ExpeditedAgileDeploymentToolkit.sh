@@ -76,7 +76,8 @@ end_it_all() {
 			fi
 			if ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
 			then
-				/usr/bin/kill 0 2>&1 >/dev/null
+				/bin/sleep 2 && /usr/bin/kill 0 2>&1 >/dev/null &
+				exit 
 			fi
 		fi
 	done
