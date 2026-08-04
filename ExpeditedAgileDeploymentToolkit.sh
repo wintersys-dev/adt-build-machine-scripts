@@ -43,6 +43,11 @@ end_it_all() {
 		/bin/rm /tmp/END_IT_ALL_USER
 	fi
 
+	if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+	then
+		/bin/rm /tmp/SHUTDOWN_INITIATED
+	fi
+
 	while ( [ 1 ] )
 	do
 		/bin/sleep 1
@@ -62,6 +67,11 @@ end_it_all() {
 			/bin/echo "USER INITIATED TERMINATION ... please wait"
 			/bin/echo "----------------------------------------------------------"
 			/bin/echo ""
+		fi
+
+		if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+		then
+				/usr/bin/pkill -P ${pid}
 		fi
 
 		if ( [ -f /tmp/END_IT_ALL ] || [ -f /tmp/END_IT_ALL_USER ] )
