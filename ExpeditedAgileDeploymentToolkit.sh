@@ -30,60 +30,57 @@
 #set -x
 
 end_it_all() {
-	cwd="`/usr/bin/pwd`"
-	pid="${1}"
+        cwd="`/usr/bin/pwd`"
+		
+        if ( [ -f /tmp/END_IT_ALL ] )
+        then
+                /bin/rm /tmp/END_IT_ALL
+        fi
 
-	if ( [ -f /tmp/END_IT_ALL ] )
-	then
-		/bin/rm /tmp/END_IT_ALL
-	fi
+        if ( [ -f /tmp/END_IT_ALL_USER ] )
+        then
+                /bin/rm /tmp/END_IT_ALL_USER
+        fi
 
-	if ( [ -f /tmp/END_IT_ALL_USER ] )
-	then
-		/bin/rm /tmp/END_IT_ALL_USER
-	fi
+        while ( [ 1 ] )
+        do
+                /bin/sleep 1
+                if ( [ -f /tmp/END_IT_ALL ] )
+                then
+                        cd ${cwd}
+                        /bin/echo ""
+                        /bin/echo "----------------------------------------------------------"
+                        /bin/echo "FAILURE INDUCED TERMINATION PLEASE CHECK THE ERROR LOGS"
+                        /bin/echo "----------------------------------------------------------"
+                        /bin/echo ""
+                elif ( [ -f /tmp/END_IT_ALL_USER ] )
+                then
+                        cd ${cwd}
+                        /bin/echo ""
+                        /bin/echo "----------------------------------------------------------"
+                        /bin/echo "USER INITIATED TERMINATION ... please wait"
+                        /bin/echo "----------------------------------------------------------"
+                        /bin/echo ""
+                fi
 
-	while ( [ 1 ] )
-	do
-		/bin/sleep 1
-		if ( [ -f /tmp/END_IT_ALL ] )
-		then
-			cd ${cwd}
-			/bin/echo ""
-			/bin/echo "----------------------------------------------------------"
-			/bin/echo "FAILURE INDUCED TERMINATION PLEASE CHECK THE ERROR LOGS"
-			/bin/echo "----------------------------------------------------------"
-			/bin/echo ""
-		elif ( [ -f /tmp/END_IT_ALL_USER ] )
-		then
-			cd ${cwd}
-			/bin/echo ""
-			/bin/echo "----------------------------------------------------------"
-			/bin/echo "USER INITIATED TERMINATION ... please wait"
-			/bin/echo "----------------------------------------------------------"
-			/bin/echo ""
-		fi
+                if ( [ -f /tmp/END_IT_ALL ] || [ -f /tmp/END_IT_ALL_USER ] )
+                then
+                        if ( [ -f /tmp/END_IT_ALL ] )
+                        then
+                                /bin/rm /tmp/END_IT_ALL
+                        fi
 
-		if ( [ -f /tmp/END_IT_ALL ] || [ -f /tmp/END_IT_ALL_USER ] )
-		then
-			if ( [ -f /tmp/END_IT_ALL ] )
-			then
-				/bin/rm /tmp/END_IT_ALL
-			fi
+                        if ( [ -f /tmp/END_IT_ALL_USER ] )
+                        then
+                                /bin/rm /tmp/END_IT_ALL_USER
+                        fi
 
-			if ( [ -f /tmp/END_IT_ALL_USER ] )
-			then
-				/bin/rm /tmp/END_IT_ALL_USER
-			fi
-
-			/usr/bin/pkill -P ${pid}
-			exit
-			#/usr/bin/kill 0
-		fi
-	done
+                        /usr/bin/kill 0
+                fi
+        done
 }
 
-end_it_all $$ &
+end_it_all &
 
 trap '/bin/sleep 2; /usr/bin/pwd' EXIT
 trap '/bin/touch /tmp/END_IT_ALL_USER; exit' INT
@@ -93,11 +90,6 @@ trap '/bin/touch /tmp/END_IT_ALL_USER; exit' INT
 if ( [ ! -d /root/logs ] )
 then
 	/bin/mkdir /root/logs
-fi
-
-if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
-then
-	/bin/rm /tmp/SHUTDOWN_INITIATED
 fi
 
 exec 3>&1
@@ -579,7 +571,6 @@ trap - EXIT INT
 
 if ( [ "${software_updated}" = "1" ] )
 then
-	/bin/touch /tmp/SHUTDOWN_INITIATED
 	status "Shutting down and rebooting as there has been a software update that requires a reboot"
 	/bin/sleep 5 && /usr/sbin/shutdown -r now
 fi 
