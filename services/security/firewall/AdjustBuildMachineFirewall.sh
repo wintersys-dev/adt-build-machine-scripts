@@ -94,14 +94,17 @@ then
 		/bin/rm ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/PRIME_FIREWALL
 	fi
 
-	if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "auth" "FIREWALL-EVENT" "${additional_specifier}"`" != "" ] )
+	if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/authorised-ips.dat ] &&  [ "`/usr/bin/find ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/authorised-ips.dat -mmin +1`" = "" ] )
 	then
-		${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "auth" "FIREWALL-EVENT" "local" "${additional_specifier}"
-	fi
+		if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "auth" "FIREWALL-EVENT" "${additional_specifier}"`" != "" ] )
+		then
+			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "auth" "FIREWALL-EVENT" "local" "${additional_specifier}"
+		fi
 
-	if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "auth" "authorised-ips.dat" "${additional_specifier}"`" != "" ] )
-	then
-		${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "auth" "authorised-ips.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips" "${additional_specifier}"
+		if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "auth" "authorised-ips.dat" "${additional_specifier}"`" != "" ] )
+		then
+			${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "auth" "authorised-ips.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips" "${additional_specifier}"
+		fi
 	fi
 
 	if ( [ "${laptop_ip}" = "" ] )
