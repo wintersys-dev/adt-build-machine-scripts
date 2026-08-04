@@ -54,7 +54,7 @@ PubkeyAuthentication yes
 PermitEmptyPasswords no
 KerberosAuthentication no
 GSSAPIAuthentication no
-UsePAM no
+UsePAM yes
 X11Forwarding no" >> /etc/ssh/sshd_config.d/99-hardening.conf
 
 if ( [ "${BUILDMACHINE_SSH_PORT}" = "" ] )
