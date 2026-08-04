@@ -31,6 +31,7 @@
 
 end_it_all() {
 	cwd="`/usr/bin/pwd`"
+	pid="${1}"
 
 	if ( [ -f /tmp/END_IT_ALL ] )
 	then
@@ -76,14 +77,14 @@ end_it_all() {
 			fi
 			if ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
 			then
-				/bin/sleep 2 && /usr/bin/kill 0 2>&1 >/dev/null
-				exit 
+				/usr/bin/pkill -P ${pid}
+			#	/bin/sleep 2 && /usr/bin/kill 0 2>&1 >/dev/null
 			fi
 		fi
 	done
 }
 
-end_it_all  &
+end_it_all $$  &
 
 trap '/bin/sleep 2; /usr/bin/pwd' EXIT
 trap '/bin/touch /tmp/END_IT_ALL_USER; exit' INT
