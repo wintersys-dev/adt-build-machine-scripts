@@ -31,7 +31,7 @@
 
 end_it_all() {
 	cwd="`/usr/bin/pwd`"
-	pid="${1}"
+#	pid="${1}"
 
 	if ( [ -f /tmp/END_IT_ALL ] )
 	then
@@ -43,10 +43,10 @@ end_it_all() {
 		/bin/rm /tmp/END_IT_ALL_USER
 	fi
 
-	if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
-	then
-		/bin/rm /tmp/SHUTDOWN_INITIATED
-	fi
+#	if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+#	then
+#		/bin/rm /tmp/SHUTDOWN_INITIATED
+#	fi
 
 	while ( [ 1 ] )
 	do
@@ -69,10 +69,10 @@ end_it_all() {
 			/bin/echo ""
 		fi
 
-		if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
-		then
-				/usr/bin/pkill -P ${pid}
-		fi
+	#	if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+#		then
+#				/usr/bin/pkill -P ${pid}
+#		fi
 
 		if ( [ -f /tmp/END_IT_ALL ] || [ -f /tmp/END_IT_ALL_USER ] )
 		then
@@ -85,18 +85,18 @@ end_it_all() {
 			then
 				/bin/rm /tmp/END_IT_ALL_USER
 			fi
-			if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
-			then
-				/usr/bin/pkill -P ${pid}
-			elif ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
-			then
-				/usr/bin/kill 0
-			fi
+#			if ( [ -f /tmp/SHUTDOWN_INITIATED ] )
+#			then
+#				/usr/bin/pkill -P ${pid}
+#			elif ( [ ! -f /tmp/SHUTDOWN_INITIATED ] )
+#			then
+#				/usr/bin/kill 0
+#			fi
 		fi
 	done
 }
 
-end_it_all $$  &
+end_it_all  &
 
 trap '/bin/sleep 2; /usr/bin/pwd' EXIT
 trap '/bin/touch /tmp/END_IT_ALL_USER; exit' INT
