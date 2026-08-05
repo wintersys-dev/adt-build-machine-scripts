@@ -314,14 +314,11 @@ wireguard_port="`/usr/bin/expr ${SSH_PORT} + 1`"
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
 then
-        if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep ${wireguard_port}`" = "" ] )
-        then
-                ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
-        fi
-
         if ( [ "`/bin/grep '^REVERSEPROXYPORTS:' ${BUILD_HOME}/configuration/firewall.dat | /bin/grep 443`" != "" ] )
         then
+				${log_command} "Detected that wireguard authenticator type has been set"
                 ${log_command} "Are you sure that your firewall is configured correctly in ${BUILD_HOME}/configuration/firewall.dat"
+				${log_command} "The whole point of the wireguard authenticator type is to keep port 443 closed"
         fi
 fi
 
