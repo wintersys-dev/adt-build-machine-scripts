@@ -255,6 +255,7 @@ if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "${interactive}" = "yes" ] )
 then    
 	status "You are configured to install your ${APPLICATION} application interactively"
 	status "The build will pause here until you have interactively completed the installation using your browser and the below credentials"
+	status "IF YOU GET AN ACCESS_DENIED MESSAGE TRY ADDING '_notls' TO THE END OF THE DATABASE USERNAME THAT IS GIVEN BELOW"
 	${BUILD_HOME}/helpers/database/ObtainDatabaseCredentials.sh ${BUILD_IDENTIFIER}
 else
 	status "Checking that the application configuration for ${APPLICATION} has fully installed....this can SOMETIMES take a while (in the order of 5 minutes)"
