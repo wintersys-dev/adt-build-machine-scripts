@@ -102,7 +102,7 @@ CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_serv
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your moodle application straight away
 #without providing any input
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:no
+INTERACTIVE_APPLICATION_INSTALL:yes
 
 #####################################################################################################################################################
 # Mandatory credential settings when making a non-interactive installation
