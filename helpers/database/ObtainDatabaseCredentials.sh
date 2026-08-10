@@ -1,16 +1,23 @@
+#!/bin/sh
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
+
 
 /bin/echo "What is the build identifier you want to obtain database credentials for?"
 /bin/echo "You have these builds to choose from: "
 
 /bin/ls ${BUILD_HOME}/runtime/${CLOUDHOST}
 
-/bin/echo "Please enter the name of the build of the server you wish to connect with"
-read BUILD_IDENTIFIER
+if ( [ "${1}" != "" ] )
+then
+        BUILD_IDENTIFIER="${1}"         
+else
+        /bin/echo "Please enter the name of the build of the server you wish to connect with"
+        read BUILD_IDENTIFIER
+fi
 
 /bin/echo "######################################################################################################################################################"
 /bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
