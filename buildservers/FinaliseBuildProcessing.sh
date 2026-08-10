@@ -247,22 +247,14 @@ then
 	done
 fi
 
-if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "`/bin/grep "INTERACTIVE_APPLICATION_INSTALL:yes" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`" != "" ] ) 
-then
-	status "Database credentials as you are in interactive mode enter these through https://${WEBSITE_URL}"
-	status "`/bin/grep "MANDATORY_INDIVIDUAL_SETTING:" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}' | /bin/sed 's/^MANDATORY_INDIVIDUAL_SETTING://g'`"
-	status "Database address is ${DB_IDENTIFIER}"
-	status "Database port is ${DB_PORT}"
-	status "YOU ARE PERFORMING AN INTERACTIVE INSTALLATION OF ${APPLICATION} THIS WILL BLOCK/PAUSE UNTIL YOU HAVE COMPLETED THE INSTALLATION OF ${APPLICATION} THROUGH YOUR WEB BROWSER AT https://${WEBSITE_URL} USING THE ABOVE CREDENTIALS"
-fi
-
 #This is where the application is configured either interactively or automatically
 
 interactive="`/bin/grep INTERACTIVE_APPLICATION_INSTALL ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-if ( [ "${interactive}" = "yes" ] )
+if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "${interactive}" = "yes" ] )
 then    
-	status "You are configured to install your ${APPLICATION} application interactively, the build will pause here until you have interactively completed the installation using your browser"
+	status "You are configured to install your ${APPLICATION} application interactively"
+	status "The build will pause here until you have interactively completed the installation using your browser and the below credentials"
 	${BUILD_HOME}/helpers/database/ObtainDatabaseCredentials.sh ${BUILD_IDENTIFIER}
 else
 	status "Checking that the application configuration for ${APPLICATION} has fully installed....this can SOMETIMES take a while (in the order of 5 minutes)"
