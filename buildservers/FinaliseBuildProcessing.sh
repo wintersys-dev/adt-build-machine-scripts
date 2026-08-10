@@ -263,6 +263,7 @@ interactive="`/bin/grep INTERACTIVE_APPLICATION_INSTALL ${BUILD_HOME}/runtime/${
 if ( [ "${interactive}" = "yes" ] )
 then    
 	status "You are configured to install your ${APPLICATION} application interactively, the build will pause here until you have interactively completed the installation using your browser"
+	${BUILD_HOME}/helpers/database/ObtainDatabaseCredentials.sh ${BUILD_IDENTIFIER}
 else
 	status "Checking that the application configuration for ${APPLICATION} has fully installed....this can SOMETIMES take a while (in the order of 5 minutes)"
 fi
