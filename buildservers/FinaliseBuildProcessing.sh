@@ -258,7 +258,15 @@ fi
 
 #This is where the application is configured either interactively or automatically
 
-status "Checking that the application configuration for ${APPLICATION} has fully installed....this can SOMETIMES take a while (in the order of 5 minutes)"
+interactive="`/bin/grep INTERACTIVE_APPLICATION_INSTALL ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
+
+if ( [ "${interactive}" = "yes" ] )
+then    
+	status "You are configured to install your ${APPLICATION} application interactively, the build will pause here until you have interactively completed the installation using your browser"
+else
+	status "Checking that the application configuration for ${APPLICATION} has fully installed....this can SOMETIMES take a while (in the order of 5 minutes)"
+fi
+
 application_configuration_installed=""
 notified=""
 while ( [ "${application_configuration_installed}" = "" ] )
@@ -275,8 +283,11 @@ do
 			notified="${notified} ${ws_active_ip}"
 			if ( [ "`/bin/echo ${notified} | /bin/grep ${ws_active_ip}`" = "" ] )
 			then
-				status "Waiting for ${APPLICATION} configuration settings on machine with ip address ${ws_active_ip}. If this goes on forever, there is a problem and you will need to investigate on the webserver that is blocking"
-				status "The script you will be interested in if this blocks is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh"
+				if ( [ "${interactive}" != "yes" ] )
+				then
+					status "Waiting for ${APPLICATION} configuration settings on machine with ip address ${ws_active_ip}. If this goes on forever, there is a problem and you will need to investigate on the webserver that is blocking"
+					status "The script you will be interested in if this blocks is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh"
+				fi
 			fi
 			application_configuration_installed=""
 		else
