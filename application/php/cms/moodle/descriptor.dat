@@ -32,7 +32,7 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 # moodle version and URL to download moodle sourcecode from (uncomment or modify according to which version of moodle you want to install)
 ##########################################################################################################################################
 #To install from a git branch, use this
-MOODLE:git-branch:MOODLE_501_STABLE
+MOODLE:git-branch:MOODLE_502_STABLE
 
 #To install from downloadable archives, use one of these sets
 #SOURCECODE_URL:download.moodle.org/download.php/direct/stable501/moodle-latest-501.tgz
