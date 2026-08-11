@@ -206,7 +206,7 @@ then
 fi
 
 
-/bin/echo "Your most up to date backup is:"
+/bin/echo "Your most up to date database backup is:"
 
 ${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-db" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
 
