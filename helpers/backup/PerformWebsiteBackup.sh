@@ -205,9 +205,11 @@ done
 
 if ( [ "${period}" = "MANUAL" ] )
 then
-        /usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} "${SERVER_USERNAME}@${WEB_IP}:/tmp/backup_archive/*.tar.gz" ${BUILD_HOME}/manualbackups
+        date="`/usr/bin/date | /bin/sed 's/ //g'`"
+        /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
+        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-web" "applicationsourcecode.tar.gz" "${BUILD_HOME}/manualbackups/${date}" "hourly"        
         /bin/echo"######################################################################"
-        /bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups"
+        /bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups/${date}"
         /bin/echo "#####################################################################"
 fi
 
