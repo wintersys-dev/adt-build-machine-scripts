@@ -32,12 +32,12 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 # moodle version and URL to download moodle sourcecode from (uncomment or modify according to which version of moodle you want to install)
 ##########################################################################################################################################
 #To install from a git branch, use this
-#MOODLE:git-branch:MOODLE_502_STABLE
+MOODLE:git-branch:MOODLE_502_STABLE
 
 #To install from downloadable archives, use one of these sets
-SOURCECODE_URL:download.moodle.org/download.php/direct/stable502/moodle-5.2.2.tgz
-SOURCECODE_MD5:6bea4b4540982d4a3a86abc2faadeeca
-SOURCECODE_SHA256:72be209e7c0f5341b87de0bc993b2430087fda2769d8c3cc2f32736d1513e88c
+#SOURCECODE_URL:download.moodle.org/download.php/direct/stable502/moodle-5.2.2.tgz
+#SOURCECODE_MD5:6bea4b4540982d4a3a86abc2faadeeca
+#SOURCECODE_SHA256:72be209e7c0f5341b87de0bc993b2430087fda2769d8c3cc2f32736d1513e88c
 
 #SOURCECODE_URL:download.moodle.org/download.php/direct/stable502/moodle-5.2.2.zip
 #SOURCECODE_MD5:bacd011fc5427486a0c69a5eb42843aa
@@ -102,7 +102,7 @@ CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_serv
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your moodle application straight away
 #without providing any input
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:yes
+INTERACTIVE_APPLICATION_INSTALL:no
 
 #####################################################################################################################################################
 # Mandatory credential settings when making a non-interactive installation
