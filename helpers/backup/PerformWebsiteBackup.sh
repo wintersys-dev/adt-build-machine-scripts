@@ -211,10 +211,6 @@ then
         /bin/echo "#####################################################################"
 fi
 
-/bin/echo "Your most up to date webroot backup is:"
-
-${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
-
 /bin/echo "Your most up to date ${periodicity} webroot backup is:"
 
 ${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
