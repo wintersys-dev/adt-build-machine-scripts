@@ -100,6 +100,9 @@ then
 elif ( [ "${bucket_type}" = "backup-web" ] )
 then
         active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
+elif ( [ "${bucket_type}" = "backup-db" ] )
+then
+        active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-db-${additional_specifier}"
 elif ( [ "${bucket_type}" = "scaling" ] )
 then
         active_bucket="`/bin/echo ${additional_specifier} | /bin/sed 's/\./-/g'`"
