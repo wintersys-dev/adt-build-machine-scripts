@@ -203,16 +203,20 @@ do
         /usr/bin/ssh -o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=${WEBSERVER_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${WEB_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} build-machine" 2>/dev/null
 done
 
-if ( [ "${period}" = "MANUAL" ] )
-then
-        date="`/usr/bin/date | /bin/sed 's/ //g'`"
-        /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
-        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-web" "applicationsourcecode.tar.gz" "${BUILD_HOME}/manualbackups/${date}" "hourly"        
-        /bin/echo"######################################################################"
-        /bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups/${date}"
-        /bin/echo "#####################################################################"
-fi
-
 /bin/echo "Your most up to date ${periodicity} webroot backup is:"
 
 ${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
+
+if ( [ "${period}" = "MANUAL" ] )
+then
+        date="`/usr/bin/date | /bin/sed 's/ //g'`-web"
+        /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
+        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+        backup_name="applicationsourcecode.tar.gz"        
+        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-web" "${backup_name}" "${BUILD_HOME}/manualbackups/${date}" "hourly"
+
+        if ( [ -f ${BUILD_HOME}/manualbackups/${date}/${backup_name} ] )
+        then
+                /bin/echo "Manual Backup stored at: ${BUILD_HOME}/manualbackups/${date}/${backup_name}"
+        fi
+fi
