@@ -197,16 +197,21 @@ do
         /usr/bin/ssh -o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} build-machine" 2>/dev/null
 done
 
-if ( [ "${periodicity}" = "MANUAL" ] )
-then
-        /usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} "${SERVER_USERNAME}@${DB_IP}:/tmp/backup_archive/*.tar.gz" ${BUILD_HOME}/manualbackups
-        /bin/echo"######################################################################"
-        /bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups"
-        /bin/echo "#####################################################################"
-fi
-
 
 /bin/echo "Your most up to date ${periodicity} database backup is:"
 
 ${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-db" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
 
+if ( [ "${periodicity}" = "MANUAL" ] )
+then
+        date="`/usr/bin/date | /bin/sed 's/ //g'`"
+        /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
+        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+        backup_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $2}' | /bin/sed 's/\./-/g'`-DB-backup.tar.gz"
+        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-db" "${backup_name}" "${BUILD_HOME}/manualbackups/${date}" "hourly"
+
+        if ( [ -f ${BUILD_HOME}/manualbackups/${date}/${backup_name} ] )
+        then
+                /bin/echo "Manual Backup stored at: ${BUILD_HOME}/manualbackups/${date}/${backup_name}"
+        fi
+fi
