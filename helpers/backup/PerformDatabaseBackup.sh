@@ -22,8 +22,8 @@
 
 if ( [ ! -f  ./PerformDatabaseBackup.sh ] )
 then
-	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/backup subdirectory"
-	exit
+        /bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/backup subdirectory"
+        exit
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -32,30 +32,30 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 read response
 if ( [ "${response}" = "1" ] )
 then
-	CLOUDHOST="digitalocean"
+        CLOUDHOST="digitalocean"
 elif ( [ "${response}" = "2" ] )
 then
-	CLOUDHOST="exoscale"
+        CLOUDHOST="exoscale"
 elif ( [ "${response}" = "3" ] )
 then
-	CLOUDHOST="linode"
+        CLOUDHOST="linode"
 elif ( [ "${response}" = "4" ] )
 then
-	CLOUDHOST="vultr"
+        CLOUDHOST="vultr"
 else
-	/bin/echo "Unrecognised  cloudhost. Exiting ...."
-	exit
+        /bin/echo "Unrecognised  cloudhost. Exiting ...."
+        exit
 fi
 
 if ( [ "${CLOUDHOST}" != "`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`" ] )
 then
-	/bin/echo "Your chosen cloudhost provider is different to your active cloudhost provider on this build machine"
-	/bin/echo "Do you want to set your chosen cloudhost to be the active cloudhost provider (Y|y)"
-	read response
-	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-	then
-		/bin/echo "${CLOUDHOST}" > ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST
-	fi
+        /bin/echo "Your chosen cloudhost provider is different to your active cloudhost provider on this build machine"
+        /bin/echo "Do you want to set your chosen cloudhost to be the active cloudhost provider (Y|y)"
+        read response
+        if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+        then
+                /bin/echo "${CLOUDHOST}" > ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST
+        fi
 fi
 
 /bin/echo "What is the build identifier you want to connect to?"
@@ -69,22 +69,22 @@ read BUILD_IDENTIFIER
 
 if ( [ "${CLOUDHOST}" = "vultr" ] )
 then
-	export VULTR_API_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/TOKEN`"
+        export VULTR_API_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/TOKEN`"
 fi
 
 token_to_match="db-`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`-${BUILD_IDENTIFIER}"
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/VPC-ACTIVE ] )
 then
-	ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
 else
-	ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
 fi
 
 if ( [ "${ips}" = "" ] )
 then
-	/bin/echo "There doesn't seem to be any databases running"
-	exit
+        /bin/echo "There doesn't seem to be any databases running"
+        exit
 fi
 
 DIR="`/bin/pwd`"
@@ -93,16 +93,16 @@ DIR="`/bin/pwd`"
 count=1
 for ip in ${ips}
 do
-	/bin/echo "${count}:   ${ip}"
-	/bin/echo "Press Y/N to connect..."
-	read response
+        /bin/echo "${count}:   ${ip}"
+        /bin/echo "Press Y/N to connect..."
+        read response
 
-	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-	then
-		DB_IP=${ip}
-		break
-	fi
-	count="`/usr/bin/expr ${count} + 1`"
+        if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
+        then
+                DB_IP=${ip}
+                break
+        fi
+        count="`/usr/bin/expr ${count} + 1`"
 done
 
 
@@ -112,47 +112,47 @@ read periodicity
 
 while ( [ "`/bin/echo '1 2 3 4 5 6 7' | /bin/grep ${periodicity}`" = "" ] )
 do
-	/bin/echo "Sorry, that's not a valid selection, please try again"
-	read periodicity
+        /bin/echo "Sorry, that's not a valid selection, please try again"
+        read periodicity
 done
 
 if ( [ "${periodicity}" = "1" ] )
 then
-	periodicity="HOURLY"
+        periodicity="HOURLY"
 fi
 
 if ( [ "${periodicity}" = "2" ] )
 then
-	periodicity="DAILY"
+        periodicity="DAILY"
 fi
 
 if ( [ "${periodicity}" = "3" ] )
 then
-	periodicity="WEEKLY"
+        periodicity="WEEKLY"
 fi
 
 if ( [ "${periodicity}" = "4" ] )
 then
-	periodicity="MONTHLY"
+        periodicity="MONTHLY"
 fi
 
 if ( [ "${periodicity}" = "5" ] )
 then
-	periodicity="BIMONTHLY"
+        periodicity="BIMONTHLY"
 fi
 
 if ( [ "${periodicity}" = "6" ] )
 then
-	periodicity="MANUAL"
-	if ( [ ! -d ${BUILD_HOME}/manualbackups ] )
-	then
-		/bin/mkdir -p ${BUILD_HOME}/manualbackups/backup.$$
-		/bin/mv ${BUILD_HOME}/manualbackups/* ${BUILD_HOME}/manualbackups/backup.$$
-	fi
+        periodicity="MANUAL"
+        if ( [ ! -d ${BUILD_HOME}/manualbackups ] )
+        then
+                /bin/mkdir -p ${BUILD_HOME}/manualbackups/backup.$$
+                /bin/mv ${BUILD_HOME}/manualbackups/* ${BUILD_HOME}/manualbackups/backup.$$
+        fi
 fi
 if ( [ "${periodicity}" = "7" ] )
 then
-	periodicity="HOURLY DAILY WEEKLY MONTHLY BIMONTHLY"
+        periodicity="HOURLY DAILY WEEKLY MONTHLY BIMONTHLY"
 fi
 
 SERVER_USERNAME="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
@@ -164,25 +164,25 @@ DATABASE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/key
 
 if ( [ ! -f ${DATABASE_PUBLIC_KEYS} ] )
 then
-	/usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
-	if ( [ "`/bin/cat ${DATABASE_PUBLIC_KEYS}`" = "" ] )
-	then
-		/usr/bin/ssh-keyscan ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
-	fi
+        /usr/bin/ssh-keyscan  -p ${SSH_PORT} ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
+        if ( [ "`/bin/cat ${DATABASE_PUBLIC_KEYS}`" = "" ] )
+        then
+                /usr/bin/ssh-keyscan ${DB_IP} > ${DATABASE_PUBLIC_KEYS}    
+        fi
 fi
 
 if ( [ "`/bin/cat ${DATABASE_PUBLIC_KEYS}`" = "" ] )
 then
-	/bin/echo "Couldn't initiate ssh key scan please try again (make sure the machine is online"
-	/bin/rm ${DATABASE_PUBLIC_KEYS}
-	exit
+        /bin/echo "Couldn't initiate ssh key scan please try again (make sure the machine is online"
+        /bin/rm ${DATABASE_PUBLIC_KEYS}
+        exit
 fi
 
 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
 then
-	ALGORITHM="rsa"
+        ALGORITHM="rsa"
 else
-	ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
+        ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 fi
 
 build_identifier="`/usr/bin/ssh -o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${SUDO} /home/${SERVER_USERNAME}/utilities/config/ExtractConfigValue.sh 'BUILDIDENTIFIER'" 2>/dev/null`"
@@ -192,16 +192,21 @@ read x
 
 for period in ${periodicity}
 do
-	/bin/echo "Making database backup for ${period} backup"
-	/bin/sleep 5
-	/usr/bin/ssh -o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} ${build_identifier}" 2>/dev/null
+        /bin/echo "Making database backup for ${period} backup"
+        /bin/sleep 5
+        /usr/bin/ssh -o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -p ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} ${SERVER_USERNAME}@${DB_IP} "${SUDO} /home/${SERVER_USERNAME}/application/backup/Backup.sh ${period} build-machine" 2>/dev/null
 done
 
 if ( [ "${periodicity}" = "MANUAL" ] )
 then
-	/usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} "${SERVER_USERNAME}@${DB_IP}:/tmp/backup_archive/*.tar.gz" ${BUILD_HOME}/manualbackups
-	/bin/echo"######################################################################"
-	/bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups"
-	/bin/echo "#####################################################################"
+        /usr/bin/scp -o ConnectTimeout=5 -o ConnectionAttempts=2 -o UserKnownHostsFile=${DATABASE_PUBLIC_KEYS} -o StrictHostKeyChecking=yes -P ${SSH_PORT} -i ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} "${SERVER_USERNAME}@${DB_IP}:/tmp/backup_archive/*.tar.gz" ${BUILD_HOME}/manualbackups
+        /bin/echo"######################################################################"
+        /bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups"
+        /bin/echo "#####################################################################"
 fi
+
+
+/bin/echo "Your most up to date backup is:"
+
+${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-db" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
 
