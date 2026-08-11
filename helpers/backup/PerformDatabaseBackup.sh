@@ -204,7 +204,7 @@ ${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-db" "ro
 
 if ( [ "${periodicity}" = "MANUAL" ] )
 then
-        date="`/usr/bin/date | /bin/sed 's/ //g'`"
+        date="`/usr/bin/date | /bin/sed 's/ //g'`-db"
         /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
         backup_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $2}' | /bin/sed 's/\./-/g'`-DB-backup.tar.gz"
