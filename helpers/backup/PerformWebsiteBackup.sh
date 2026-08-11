@@ -210,3 +210,7 @@ then
 	/bin/echo "BACKUP STORED IN ${BUILD_HOME}/manualbackups"
 	/bin/echo "#####################################################################"
 fi
+
+/bin/echo "Your most up to date webroot backup is:"
+
+${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
