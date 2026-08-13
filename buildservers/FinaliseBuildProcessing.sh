@@ -274,9 +274,10 @@ do
 
 		if ( [ "${application_configuration_installed}" = "" ] )
 		then
-			notified="${notified} ${ws_active_ip}"
-			if ( [ "`/bin/echo ${notified} | /bin/grep ${ws_active_ip}`" = "" ] )
+			if ( [ "`/bin/echo ${notified} | /bin/grep ${ws_active_ip}`" = "" ] || [ "${notified}" = "" ] )
 			then
+				notified="${notified} ${ws_active_ip}"
+
 				if ( [ "${interactive}" != "yes" ] )
 				then
 					status "Waiting for ${APPLICATION} configuration settings on machine with ip address ${ws_active_ip}. If this goes on forever, there is a problem and you will need to investigate on the webserver that is blocking"
