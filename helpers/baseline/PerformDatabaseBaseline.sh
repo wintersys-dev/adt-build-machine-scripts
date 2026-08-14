@@ -173,7 +173,7 @@ fi
 
 if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_DB_REPOSITORY} ${APPLICATION_REPOSITORY_TOKEN}`" = "" ] )
 then
-	/bin/echo "I am not sure that your baselined repository ${APPLICATION_DB_REPOSITORY} generated successful, please double check using the GUI account for ${APPLICATION_REPOSITORY_USERNAME} on ${APPLICATION_REPOSITORY_PROVIDER}"
+	/bin/echo "I am not sure that your baselined repository ${APPLICATION_DB_REPOSITORY} generated successfully, please double check using the GUI account for ${APPLICATION_REPOSITORY_USERNAME} on ${APPLICATION_REPOSITORY_PROVIDER}"
 else
 	if ( [ "${generated}" = "ok" ] )
 	then
