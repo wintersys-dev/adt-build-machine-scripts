@@ -38,4 +38,8 @@ fi
 /bin/sed -i "s/XXXXWEBSITE_PASSWORDXXXX/${WEBSITE_PASSWORD}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXWEBSITE_URLXXXX/${WEBSITE_URL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
+/bin/sed -i "s/XXXXWEBSITE_URLXXXX/${WEBSITE_URL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+
+/bin/cat /dev/urandom | /usr/bin/base64 | /usr/bin/tr -dc 'A-Za-z0-9' | /usr/bin/head -c32
+
 
