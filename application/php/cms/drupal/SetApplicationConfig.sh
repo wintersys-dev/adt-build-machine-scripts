@@ -26,7 +26,7 @@ WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'S3_ACCESS
 WEBSITE_URL="^`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'WEBSITE_URL' | /bin/sed 's/\./\\\\\\\./g'`$"
 APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION'`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'CLOUDHOST'`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'BUILD_IDENTIFIERT'`"
+BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'BUILD_IDENTIFIER'`"
 
 if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application ] )
 then
