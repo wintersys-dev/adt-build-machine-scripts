@@ -136,7 +136,7 @@ MANDATORY_INDIVIDUAL_SETTING:username=XXXXAPPLICATION_USERNAMEXXXX
 MANDATORY_INDIVIDUAL_SETTING:password=XXXXAPPLICATION_PASSWORDXXXX
 MANDATORY_INDIVIDUAL_SETTING:database=XXXXAPPLICATION_DATABASEXXXX
 MANDATORY_INDIVIDUAL_SETTING:collation=utf8mb4_general_ci
-MANDATORY_INDIVIDUAL_SETTING:hash_salt=XXXXSALT_HASHXXXX
+MANDATORY_INDIVIDUAL_SETTING:hash_salt=XXXXHASH_SALTXXXX
 
 #########################################################################################################################################################
 # General individual settings for your drupal install
