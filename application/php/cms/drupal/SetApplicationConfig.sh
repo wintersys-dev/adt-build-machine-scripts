@@ -44,7 +44,7 @@ fi
 
 /bin/sed -i "s/XXXXHASH_SALTXXXX/`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-32`/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
-weboot_directory="`/bin/grep "WEBROOT_DIRECTORT" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
+weboot_directory="`/bin/grep "WEBROOT_DIRECTORY" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 /bin/sed -i "s/XXXXWEBROOT_DIRECTORYXXXX/${webroot_directory}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
 
