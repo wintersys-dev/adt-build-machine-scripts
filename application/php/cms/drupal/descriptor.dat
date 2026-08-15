@@ -83,8 +83,8 @@ CONFIG_FILE:/var/www/html/settings.php
 #the assts directory in LINK_INSIDE_WEBROOT
 #########################################################################################################################
 ASSETS_OUTSIDE_WEBROOT:yes
-WEBROOT_ASSET_DIRECTORIES:sites/default/files
-LINK_INSIDE_WEBROOT:sites/default/files
+WEBROOT_ASSET_DIRECTORIES:
+LINK_INSIDE_WEBROOT:
 
 ####################################################################################################################################
 #filesystem configuration settings
