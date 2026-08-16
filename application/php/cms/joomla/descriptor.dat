@@ -48,6 +48,7 @@ SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_P
 SOURCECODE_MD5:d306e61affe62b37245ffddad1361a4f
 SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
 
+####NOT NEEDED######
 ####################################################################################################################################
 #filesystem configuration settings
 #This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
@@ -60,6 +61,8 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
 EXCLUDE_FROM_BACKUP:logs:tmp:cache:configuration.php
+####NOT NEEDED#####
+
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
@@ -68,7 +71,6 @@ EXCLUDE_FROM_BACKUP:logs:tmp:cache:configuration.php
 ######################################################################################################################################################
 APPLICATION_INTEGRITY_DIRECTORIES:administrator:api:cache:cli:components:files:includes:language:layouts:libraries:media:modules:plugins:templates
 APPLICATION_INTEGRITY_FILES:index.php
-
 
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
@@ -80,6 +82,7 @@ WEBROOT_DIRECTORY:/var/www/html/joomla
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/configuration.php
 
+#####IS THIS NEEDED#######
 #########################################################################################################################
 #If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
 #You can list multiple assets directories like this:
@@ -90,6 +93,9 @@ CONFIG_FILE:/var/www/html/configuration.php
 ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_ASSET_DIRECTORIES:images
 LINK_INSIDE_WEBROOT:images
+####IS THIS NEEDED######
+
+DIRECTORIES_TO_LINK=XXXXWEBROOT_DIRXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRXXXX/cache|/var/www/outside_webroot/cache
 
 #####################################################################################################################################################
 #Interactive install or not
