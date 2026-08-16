@@ -90,9 +90,9 @@ CONFIG_FILE:/var/www/html/configuration.php
 #If assets are outside of webroot for organisational reasons you can link to the assets from inside the webroot by listing
 #the assts directory in LINK_INSIDE_WEBROOT
 #########################################################################################################################
-ASSETS_OUTSIDE_WEBROOT:yes
-WEBROOT_ASSET_DIRECTORIES:images
-LINK_INSIDE_WEBROOT:images
+#ASSETS_OUTSIDE_WEBROOT:yes
+#WEBROOT_ASSET_DIRECTORIES:images
+#LINK_INSIDE_WEBROOT:images
 ####IS THIS NEEDED######
 
 DIRECTORIES_TO_LINK=XXXXWEBROOT_DIRXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRXXXX/cache|/var/www/outside_webroot/cache
