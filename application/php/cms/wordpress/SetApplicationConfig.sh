@@ -44,5 +44,6 @@ fi
 /bin/sed -i "s/XXXXWEBSITE_PASSWORDXXXX/${WEBSITE_PASSWORD}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXWEBMASTER_EMAILXXXX/${WEBMASTER_EMAIL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
+webroot_directory="`/bin/grep "^WEBROOT_DIRECTORY" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 /bin/sed -i "s;XXXXWEBROOT_DIRECTORYXXXX;${webroot_directory};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
