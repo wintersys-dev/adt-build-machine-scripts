@@ -47,14 +47,6 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 ######################################################################################################################################################
 #WEBROOT_DIRECTORY:/var/www/html/drupal
 
-####################################################################################################################################
-#filesystem configuration settings
-#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
-#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
-#configuring it in the plugin
-####################################################################################################################################
-#DIRECTORIES_TO_CREATE:logs:tmp:cache:drupal/sites/default/files:private
-
 ##########################################################
 #2. To install drupal CMS
 APPLICATION_TYPE:cms
@@ -74,14 +66,6 @@ CMS_VERSION:drupal/cms
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/cms
-
-####################################################################################################################################
-#filesystem configuration settings
-#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
-#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
-#configuring it in the plugin
-####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:cache:cms/sites/default/files:private
 
 ###############################################
 
@@ -126,6 +110,14 @@ APPLICATION_INTEGRITY_FILES:autoload.php:index.php:update.php
 #without providing any input
 #####################################################################################################################################################
 INTERACTIVE_APPLICATION_INSTALL:no
+
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:logs:tmp:cache:private
 
 
 ###########################################################################################
