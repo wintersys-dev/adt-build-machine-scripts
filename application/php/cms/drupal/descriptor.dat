@@ -47,6 +47,14 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 ######################################################################################################################################################
 #WEBROOT_DIRECTORY:/var/www/html/drupal
 
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+#DIRECTORIES_TO_CREATE:logs:tmp:cache:drupal/sites/default/files:private
+
 ##########################################################
 #2. To install drupal CMS
 APPLICATION_TYPE:cms
@@ -67,6 +75,14 @@ CMS_VERSION:drupal/cms
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/cms
 
+####################################################################################################################################
+#filesystem configuration settings
+#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
+#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
+#configuring it in the plugin
+####################################################################################################################################
+DIRECTORIES_TO_CREATE:logs:tmp:cache:cms/sites/default/files:private
+
 ###############################################
 
 
@@ -86,13 +102,6 @@ ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_ASSET_DIRECTORIES:
 LINK_INSIDE_WEBROOT:
 
-####################################################################################################################################
-#filesystem configuration settings
-#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
-#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
-#configuring it in the plugin
-####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:cache:drupal/sites/default/files:private
 
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
