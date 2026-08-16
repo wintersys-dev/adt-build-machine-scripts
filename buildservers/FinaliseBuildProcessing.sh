@@ -280,8 +280,8 @@ do
 
 				if ( [ "${interactive}" != "yes" ] )
 				then
-					status "Waiting for ${APPLICATION} configuration settings on machine with ip address ${ws_active_ip}. If this goes on forever, there is a problem and you will need to investigate on the webserver that is blocking"
-					status "The script you will be interested in if this blocks is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh"
+					status "I failed in my initial attempt to configure your application, I will keep trying but in the meantime:"
+					status "The script you will be interested is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh on machine with ip address ${ws_active_ip}"
 				fi
 			fi
 			application_configuration_installed=""
