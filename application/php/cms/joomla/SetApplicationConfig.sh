@@ -77,4 +77,7 @@ fi
 /bin/sed -i "s/XXXXSMTP_PORTXXXX/${smtp_port}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXSMTP_HOSTXXXX/${smtp_host}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
+/bin/sed -i "s;XXXXWEBROOT_DIRECTORYXXXX;${webroot_directory};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+
+
 
