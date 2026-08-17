@@ -95,7 +95,7 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 #LINK_INSIDE_WEBROOT:images
 ####IS THIS NEEDED######
 
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/images
+ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
 
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
 
