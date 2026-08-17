@@ -96,7 +96,9 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 ####IS THIS NEEDED######
 
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
+#DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
+DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
+
 DIRECTORIES_OUTSIDE_WEBROOT:cache:log:tmp
 OPEN_PERMS_DIRECTORIES:XXXXWEBROOT_DIRECTORYXXXX/api
 
