@@ -95,7 +95,7 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 #LINK_INSIDE_WEBROOT:images
 ####IS THIS NEEDED######
 
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
 
 #####################################################################################################################################################
 #Interactive install or not
