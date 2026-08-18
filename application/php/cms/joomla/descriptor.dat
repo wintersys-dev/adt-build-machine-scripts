@@ -100,7 +100,7 @@ ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_web
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
 
 DIRECTORIES_OUTSIDE_WEBROOT:cache:log:tmp
-OPEN_PERMS_DIRECTORIES:XXXXWEBROOT_DIRECTORYXXXX/api
+#OPEN_PERMS_DIRECTORIES:XXXXWEBROOT_DIRECTORYXXXX/api
 
 #####################################################################################################################################################
 #Interactive install or not
