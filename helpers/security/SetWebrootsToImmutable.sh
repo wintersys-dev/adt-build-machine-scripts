@@ -79,6 +79,8 @@ fi
 
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
 
+/bin/echo "Marker file ${marker_file} written to datastore"
+
 if ( [ -f ${marker_file} ] )
 then
         /bin/rm ${marker_file}
