@@ -33,12 +33,12 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 SYSTEM_EMAIL_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_USERNAME`"
 SYSTEM_EMAIL_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PASSWORD`"
 SYSTEM_EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PROVIDER`"
-SYSTEM_TOEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TOEMAIL_ADDRESS`"
-SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROMEMAIL_ADDRESS`"
+SYSTEM_TOEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
+SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
 
 update="0"
 
-if ( ( [ "${SYSTEM_EMAIL_USERNAME}" = "" ] || [ "${SYSTEM_EMAIL_PASSWORD}" = "" ] || [ "${SYSTEM_EMAIL_PROVIDER}" = "" ] || [ "${SYSTEM_TOEMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_FROMEMAIL_ADDRESS}" = "" ] ) && [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
+if ( ( [ "${SYSTEM_EMAIL_USERNAME}" = "" ] || [ "${SYSTEM_EMAIL_PASSWORD}" = "" ] || [ "${SYSTEM_EMAIL_PROVIDER}" = "" ] || [ "${SYSTEM_TO_EMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] ) && [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
 then
 	status ""
 	status ""
@@ -63,7 +63,7 @@ then
 	status "So, please enter the email address where you wish system messages to be sent"
 	read SYSTEM_TOEMAIL_ADDRESS
 
-	while ( [ "${SYSTEM_TOEMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_TOEMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
+	while ( [ "${SYSTEM_TO_EMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_TO_EMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
 	do
 		status "That seems to be an invalid email address, please try again"
 		read SYSTEM_TOEMAIL_ADDRESS
@@ -86,7 +86,7 @@ then
 	status "Please enter 1) The Address you would like system emails to be sent from"
 	read SYSTEM_FROMEMAIL_ADDRESS
 
-	while ( [ "${SYSTEM_FROMEMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_FROMEMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
+	while ( [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_FROM_EMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
 	do
 		status "That seems to be an invalid email address, please try again"
 		read SYSTEM_FROMEMAIL_ADDRESS
@@ -110,8 +110,8 @@ then
 	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_EMAIL_USERNAME=${SYSTEM_EMAIL_USERNAME}"
 	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_EMAIL_PASSWORD=${SYSTEM_EMAIL_PASSWORD}"
 	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_EMAIL_PROVIDER=${SYSTEM_EMAIL_PROVIDER}"
-	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_TOEMAIL_ADDRESS=${SYSTEM_TOEMAIL_ADDRESS}"
-	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_FROMEMAIL_ADDRESS=${SYSTEM_FROMEMAIL_ADDRESS}"
+	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_TO_EMAIL_ADDRESS=${SYSTEM_TO_EMAIL_ADDRESS}"
+	${BUILD_HOME}/helpers/services/SetVariableValue.sh "SYSTEM_FROM_EMAIL_ADDRESS=${SYSTEM_FROM_EMAIL_ADDRESS}"
 
 	/bin/echo ${SYSTEM_EMAIL_USERNAME} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SYSTEMEMAILUSERNAME.dat
 	/bin/echo ${SYSTEM_EMAIL_PROVIDER} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SYSTEMEMAILPROVIDER.dat
