@@ -22,7 +22,7 @@
 #set -x
 
 WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'S3_ACCESS_KEY' | /usr/bin/head -c 12`"
-WEBMASTER_EMAIL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_TOEMAIL_ADDRESS'`"
+WEBMASTER_EMAIL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_TO_EMAIL_ADDRESS'`"
 
 if ( [ "${WEBMASTER_EMAIL}" = "" ] )
 then
