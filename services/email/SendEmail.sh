@@ -42,9 +42,9 @@ then
         message="MESSAGE RELATED TO MACHINE WITH IP ADDRESS: ${ip_address}: ${message}"
 fi
 
-FROM_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROMEMAIL_ADDRESS`"
+FROM_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
 FROM_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_DISPLAYNAME | /usr/bin/sed 's/_//g'`"
-TO_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TOEMAIL_ADDRESS`"
+TO_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
 
 
 if ( [ "${to_address}" != "" ] )
