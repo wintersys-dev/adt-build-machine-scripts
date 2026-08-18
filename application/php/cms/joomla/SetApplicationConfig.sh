@@ -38,8 +38,8 @@ fi
 /bin/cp ${BUILD_HOME}/application/php/cms/${APPLICATION}/descriptor.dat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
 SYSTEM_EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_EMAIL_PROVIDER'`"
-SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROMEMAIL_ADDRESS' | /bin/sed 's/_/ /g'`"
-SYSTEM_TOEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_TOEMAIL_ADDRESS' | /bin/sed 's/_/ /g'`"
+SYSTEM_FROM_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROM_EMAIL_ADDRESS' | /bin/sed 's/_/ /g'`"
+SYSTEM_TO_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_TO_EMAIL_ADDRESS' | /bin/sed 's/_/ /g'`"
 WEBSITE_DISPLAY_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'WEBSITE_DISPLAY_NAME'` Webmaster"
 SYSTEM_EMAIL_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_EMAIL_USERNAME'`"
 SYSTEM_EMAIL_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_EMAIL_PASSWORD'`"
@@ -66,8 +66,8 @@ fi
 /bin/sed -i "s/XXXXWEBMASTER_EMAILXXXX/${WEBMASTER_EMAIL}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
 /bin/sed -i "s/XXXXMAILERXXXX/smtp/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
-/bin/sed -i "s/XXXXMAIL_FROMXXXX/${SYSTEM_FROMEMAIL_ADDRESS}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
-/bin/sed -i "s/XXXXREPLY_TOXXXX/${SYSTEM_TOEMAIL_ADDRESS}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+/bin/sed -i "s/XXXXMAIL_FROMXXXX/${SYSTEM_FROM_EMAIL_ADDRESS}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+/bin/sed -i "s/XXXXREPLY_TOXXXX/${SYSTEM_TO_EMAIL_ADDRESS}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXFROM_NAMEXXXX/${WEBSITE_DISPLAY_NAME}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXREPLY_TO_NAMEXXXX/${WEBSITE_DISPLAY_NAME}/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 /bin/sed -i "s/XXXXSMTP_AUTHXXXX/1/" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
