@@ -41,7 +41,7 @@ website_url="${1}"
 auth="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROMEMAIL_ADDRESS'`"
+SYSTEM_FROM_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROM_EMAIL_ADDRESS'`"
 ROOT_DOMAIN="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f2-`"
 DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
@@ -78,9 +78,9 @@ then
         server="letsencrypt"
 fi
 
-if ( [ "${SYSTEM_FROMEMAIL_ADDRESS}" = "" ] )
+if ( [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] )
 then
-        SYSTEM_FROMEMAIL_ADDRESS="${DNS_USERNAME}"
+        SYSTEM_FROM_EMAIL_ADDRESS="${DNS_USERNAME}"
 fi
 
 if ( [ -d ~/.acme.sh/${WEBSITE_URL}_ecc ] )
