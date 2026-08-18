@@ -61,12 +61,12 @@ if ( [ "${update}" = "1" ] && [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild
 then
 	status "You have chosen to override the email addresses on the fly rather than in your template for this build so now you must tell me what values you want to use"
 	status "So, please enter the email address where you wish system messages to be sent"
-	read SYSTEM_TOEMAIL_ADDRESS
+	read SYSTEM_TO_EMAIL_ADDRESS
 
 	while ( [ "${SYSTEM_TO_EMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_TO_EMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
 	do
 		status "That seems to be an invalid email address, please try again"
-		read SYSTEM_TOEMAIL_ADDRESS
+		read SYSTEM_TO_EMAIL_ADDRESS
 	done
 
 	status "##################################################################################################################################"
