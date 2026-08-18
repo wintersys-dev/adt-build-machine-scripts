@@ -24,7 +24,7 @@ WEBSITE_FULLNAME:Vanilla Moodle Website
 WEBSITE_SHORTNAME:Vanilla Moodle
 
 #####################################################################################################################################################
-#This is taken from the value of "SYSTEM_FROMEMAIL_ADDRESS" and it needs to be a live email.
+#This is taken from the value of "SYSTEM_FROM_EMAIL_ADDRESS" and it needs to be a live email.
 #####################################################################################################################################################
 WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 
