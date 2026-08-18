@@ -55,10 +55,10 @@ read BUILD_IDENTIFIER
 read response
 
 while ( [ "`/bin/echo 1 2 | /bin/grep ${response}`" = "" ] )
-then
+do
 	/bin/echo "That's not a valid response please enter 1 or 2"
 	read response
-fi
+done
 
 if ( [ "${response}" = "1" ] )
 then
