@@ -195,7 +195,7 @@ then
 	${log_command} "Your value for the variable LOADBALANCER (${LOADBALANCER}) doesn't appear to be valid please review"
 fi
 
-if ( [ "${NO_AUTHENTICATORS}" != "0" ] && ( [ "${SYSTEM_EMAIL_PROVIDER}" = "" ] || [ "${SYSTEM_TOEMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_FROMEMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_EMAIL_USERNAME}" = "" ] || [ "${SYSTEM_EMAIL_PASSWORD}" = "" ] ) )
+if ( [ "${NO_AUTHENTICATORS}" != "0" ] && ( [ "${SYSTEM_EMAIL_PROVIDER}" = "" ] || [ "${SYSTEM_TO_EMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] || [ "${SYSTEM_EMAIL_USERNAME}" = "" ] || [ "${SYSTEM_EMAIL_PASSWORD}" = "" ] ) )
 then
 	${log_command} "You are deploying an authentication server and so SMTP must be fully setup and it looks like it isn't"
 fi
@@ -579,12 +579,12 @@ then
 	${log_command} "It looks to me like the email address for the variable DNS_USERNAME (${DNS_USERNAME}) doesn't appear to be valid please review"
 fi
 
-if ( [ "`/bin/echo "${SYSTEM_TOEMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_TOEMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
+if ( [ "`/bin/echo "${SYSTEM_TO_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_TO_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
 then
 	${log_command} "It looks to me like the email address for the variable SYSTEM_TOEMAIL_ADDRESS (${SYSTEM_TOEMAIL_ADDRESS}) doesn't appear to be valid please review"
 fi
 
-if ( [ "`/bin/echo "${SYSTEM_FROMEMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_FROMEMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
+if ( [ "`/bin/echo "${SYSTEM_FROM_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_FROM_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
 then
 	${log_command} "It looks to me like the email address for the variable SYSTEM_FROMEMAIL_ADDRESS (${SYSTEM_FROMEMAIL_ADDRESS}) doesn't appear to be valid please review"
 fi
