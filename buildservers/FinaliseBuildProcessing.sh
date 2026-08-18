@@ -287,6 +287,8 @@ do
 			application_configuration_installed=""
 		else
 			status "Configuration settings for ${APPLICATION} on machine with ip address ${ws_active_ip} validated and verified successfully"
+			status "Enforcing permissions policy for ip address ${ws_active_ip}"
+			/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${ws_active_ip} "${SUDO} /home/${SERVER_USER}/utilities/security/EnforcePermissions.sh"
 		fi
 	done
 done
