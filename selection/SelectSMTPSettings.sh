@@ -33,8 +33,8 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 SYSTEM_EMAIL_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_USERNAME`"
 SYSTEM_EMAIL_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PASSWORD`"
 SYSTEM_EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PROVIDER`"
-SYSTEM_TOEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
-SYSTEM_FROMEMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
+SYSTEM_TO_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
+SYSTEM_FROM_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
 
 update="0"
 
@@ -84,12 +84,12 @@ then
 	done
 
 	status "Please enter 1) The Address you would like system emails to be sent from"
-	read SYSTEM_FROMEMAIL_ADDRESS
+	read SYSTEM_FROM_EMAIL_ADDRESS
 
 	while ( [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] || [ "`/bin/echo ${SYSTEM_FROM_EMAIL_ADDRESS} | /bin/grep -E "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"`" = "" ] )
 	do
 		status "That seems to be an invalid email address, please try again"
-		read SYSTEM_FROMEMAIL_ADDRESS
+		read SYSTEM_FROM_EMAIL_ADDRESS
 	done
 
 	status "Please enter your email address or username (api key for some providers) for your SMTP provider"
@@ -115,7 +115,7 @@ then
 
 	/bin/echo ${SYSTEM_EMAIL_USERNAME} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SYSTEMEMAILUSERNAME.dat
 	/bin/echo ${SYSTEM_EMAIL_PROVIDER} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SYSTEMEMAILPROVIDER.dat
-	/bin/echo ${SYSTEM_TOEMAIL_ADDRESS} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/TOEMAILADDRESS.dat
-	/bin/echo ${SYSTEM_FROMEMAIL_ADDRESS} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/FROMEMAILADDRESS.dat
+	/bin/echo ${SYSTEM_TO_EMAIL_ADDRESS} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/TOEMAILADDRESS.dat
+	/bin/echo ${SYSTEM_FROM_EMAIL_ADDRESS} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/FROMEMAILADDRESS.dat
 	/bin/echo ${SYSTEM_EMAIL_PASSWORD} > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SYSTEMEMAILPASSWORD.dat
 fi
