@@ -69,12 +69,18 @@ fi
 
 /bin/touch ${marker_file}
 
-if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "IMMUTABLE-WEBROOT"`" != "" ] )
+if ( [ "${response}" = "1" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "IMMUTABLE-WEBROOT" "local"
-elif ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "MUTABLE-WEBROOT"`" != "" ] )
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "IMMUTABLE-WEBROOT"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "IMMUTABLE-WEBROOT" "local"
+        fi
+elif ( [ "${response}" = "2" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "MUTABLE-WEBROOT" "local"
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "MUTABLE-WEBROOT"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "MUTABLE-WEBROOT" "local"
+        fi
 fi
 
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
