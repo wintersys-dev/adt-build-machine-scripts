@@ -581,12 +581,12 @@ fi
 
 if ( [ "`/bin/echo "${SYSTEM_TO_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_TO_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
 then
-	${log_command} "It looks to me like the email address for the variable SYSTEM_TOEMAIL_ADDRESS (${SYSTEM_TOEMAIL_ADDRESS}) doesn't appear to be valid please review"
+	${log_command} "It looks to me like the email address for the variable SYSTEM_TO_EMAIL_ADDRESS (${SYSTEM_TO_EMAIL_ADDRESS}) doesn't appear to be valid please review"
 fi
 
 if ( [ "`/bin/echo "${SYSTEM_FROM_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${SYSTEM_FROM_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
 then
-	${log_command} "It looks to me like the email address for the variable SYSTEM_FROMEMAIL_ADDRESS (${SYSTEM_FROMEMAIL_ADDRESS}) doesn't appear to be valid please review"
+	${log_command} "It looks to me like the email address for the variable SYSTEM_FROM_EMAIL_ADDRESS (${SYSTEM_FROM_EMAIL_ADDRESS}) doesn't appear to be valid please review"
 fi
 
 if ( [ "`/bin/echo "${GIT_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] && [ "`/bin/echo "${GIT_EMAIL_ADDRESS}" | /bin/grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*$'`" = "" ] )
