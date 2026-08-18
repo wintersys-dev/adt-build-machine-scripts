@@ -22,8 +22,8 @@
 
 if ( [ ! -f  ./SetWebrootMutability.sh ] )
 then
-	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/security subdirectory"
-	exit
+        /bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/securitysubdirectory"
+        exit
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -32,19 +32,19 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 read response
 if ( [ "${response}" = "1" ] )
 then
-	CLOUDHOST="digitalocean"
+        CLOUDHOST="digitalocean"
 elif ( [ "${response}" = "2" ] )
 then
-	CLOUDHOST="exoscale"
+        CLOUDHOST="exoscale"
 elif ( [ "${response}" = "3" ] )
 then
-	CLOUDHOST="linode"
+        CLOUDHOST="linode"
 elif ( [ "${response}" = "4" ] )
 then
-	CLOUDHOST="vultr"
+        CLOUDHOST="vultr"
 else
-	/bin/echo "Unrecognised  cloudhost. Exiting ...."
-	exit
+        /bin/echo "Unrecognised  cloudhost. Exiting ...."
+        exit
 fi
 
 /bin/echo "Please enter the name of the build of the server you wish to connect with"
@@ -56,22 +56,30 @@ read response
 
 while ( [ "`/bin/echo 1 2 | /bin/grep ${response}`" = "" ] )
 do
-	/bin/echo "That's not a valid response please enter 1 or 2"
-	read response
+        /bin/echo "That's not a valid response please enter 1 or 2"
+        read response
 done
 
 if ( [ "${response}" = "1" ] )
 then
-	marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/MUTABLE"
+        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/MUTABLE"
 else
-	marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE"
+        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE"
 fi
 
 /bin/touch ${marker_file}
+
+if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "IMMUTABLE"`" != "" ] )
+then
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "IMMUTABLE" "local"
+elif ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "MUTABLE"`" != "" ] )
+then
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "MUTABLE" "local"
+fi
 
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
 
 if ( [ -f ${marker_file} ] )
 then
-	/bin/rm ${marker_file}
+        /bin/rm ${marker_file}
 fi
