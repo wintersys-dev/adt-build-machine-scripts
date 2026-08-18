@@ -279,15 +279,15 @@ Enter "3" - AWS SES.
 
 -----
 
-### SYSTEM_TOEMAIL_ADDRESS 
+### SYSTEM_TO_EMAIL_ADDRESS 
 
 The email address that system emails will be sent to this can be any email address that you have access to. MAYBE, the emails get marked as spam depending on your provider. If you take them out of the spam folder, then, the system should learn they are not spam. Most likely you will want to have a dedicated email address for your system emails for your deployed application as they will likely fill up your inbox otherwise.
 
 -----
 
-### SYSTEM_FROMEMAIL_ADDRESS
+### SYSTEM_FROM_EMAIL_ADDRESS
 
-The email address that system emails will be sent from. This should be an email address that the system emails are sent from. In your SYSTEM_TOEMAIL_ADDRESS inbox, this will be the email address that the system messages are seen to be sent from or to have originated from.
+The email address that system emails will be sent from. This should be an email address that the system emails are sent from. In your SYSTEM_TO_EMAIL_ADDRESS inbox, this will be the email address that the system messages are seen to be sent from or to have originated from.
 
 -----
 
