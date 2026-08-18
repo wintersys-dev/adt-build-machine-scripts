@@ -20,7 +20,7 @@
 #######################################################################################################
 #set -x
 
-if ( [ ! -f  ./SetWebrootMutability.sh ] )
+if ( [ ! -f  ./SetWebrootsToImmutable.sh ] )
 then
         /bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/securitysubdirectory"
         exit
@@ -62,19 +62,19 @@ done
 
 if ( [ "${response}" = "1" ] )
 then
-        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/MUTABLE"
+        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/MUTABLE-WEBROOT"
 else
-        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE"
+        marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE-WEBROOT"
 fi
 
 /bin/touch ${marker_file}
 
-if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "IMMUTABLE"`" != "" ] )
+if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "IMMUTABLE-WEBROOT"`" != "" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "IMMUTABLE" "local"
-elif ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "MUTABLE"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "IMMUTABLE-WEBROOT" "local"
+elif ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "config" "MUTABLE-WEBROOT"`" != "" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "MUTABLE" "local"
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "MUTABLE-WEBROOT" "local"
 fi
 
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
