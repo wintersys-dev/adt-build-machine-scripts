@@ -90,7 +90,9 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 #a colon separated list of asset directories that you want to be linked to actual assets directories outside of your webroot for example:
 #ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/members|/var/www/outside_webroot/images/members:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/user/system
 #You aren't only limied to linking assets directories outside of your webroot you can also link regular directories using DIRECTORIES_TO_LINK
+#WEBROOT_ASSET_DIRECTORIES must be a one to one correlation with ASSETS_DIRECTORIES_TO_LINK
 ######################################################################################################################################################
+WEBROOT_ASSET_DIRECTORIES:images
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
 
