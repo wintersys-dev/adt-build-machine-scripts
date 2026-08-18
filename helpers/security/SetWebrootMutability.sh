@@ -67,6 +67,8 @@ else
 	marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE"
 fi
 
+/bin/touch ${marker_file}
+
 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
 
 if ( [ -f ${marker_file} ] )
