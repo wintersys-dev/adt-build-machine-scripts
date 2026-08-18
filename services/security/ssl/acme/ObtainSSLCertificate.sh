@@ -89,13 +89,13 @@ then
 fi
 
 ${BUILD_HOME}/installation/InstallSocat.sh ${BUILDOS}
-${BUILD_HOME}/installation/InstallAcme.sh ${BUILDOS} ${SYSTEM_FROMEMAIL_ADDRESS} #"https://acme-v02.api.letsencrypt.org/directory "
+${BUILD_HOME}/installation/InstallAcme.sh ${BUILDOS} ${SYSTEM_FROM_EMAIL_ADDRESS} #"https://acme-v02.api.letsencrypt.org/directory "
 
-if ( [ "`/bin/grep -r ${SYSTEM_FROMEMAIL_ADDRESS} ~/.acme.sh`" = "" ] )
+if ( [ "`/bin/grep -r ${SYSTEM_FROM_EMAIL_ADDRESS} ~/.acme.sh`" = "" ] )
 then
-        ~/.acme.sh/acme.sh --register-account -m "${SYSTEM_FROMEMAIL_ADDRESS}" 
+        ~/.acme.sh/acme.sh --register-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" 
 else
-        ~/.acme.sh/acme.sh --update-account -m "${SYSTEM_FROMEMAIL_ADDRESS}" --force
+        ~/.acme.sh/acme.sh --update-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --force
 fi
 
 ~/.acme.sh/acme.sh --set-default-ca --server "${server}"
