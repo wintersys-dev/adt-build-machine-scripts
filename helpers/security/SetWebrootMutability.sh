@@ -2,8 +2,7 @@
 ########################################################################################################
 # Author: Peter Winter
 # Date  : 13/01/2022
-# Description : This script will adjust the webserver scaling settings for your utoscaler(s). In other words
-# if you use this script to set a scaling value of "5" then 5 webservers will be provisioned in short order
+# Description : This script will make your webroot(s) mutable or immutable
 ########################################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -21,19 +20,13 @@
 #######################################################################################################
 #set -x
 
-if ( [ ! -f  ./AdjustScaling.sh ] )
+if ( [ ! -f  ./SetWebrootMutability.sh ] )
 then
-	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/services subdirectory"
+	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/securitysubdirectory"
 	exit
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if ( [ "`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`" != "PRODUCTION" ] )
-then
-	/bin/echo "You are not in PRODUCTION mode, cannot set scaling parameters"
-	exit
-fi
 
 /bin/echo "Which cloudhost service are you using? 1) Digital Ocean 2) Exoscale 3) Linode 4) Vultr. Please Enter the number for your cloudhost"
 read response
@@ -58,55 +51,25 @@ fi
 /bin/ls ${BUILD_HOME}/runtime/${CLOUDHOST}
 read BUILD_IDENTIFIER
 
-/bin/echo "Please enter the full URL of the website you want to alter the scaling configuration for, for example, www.testwebsite.uk"
-read website_url
-website_url="`/bin/echo  ${website_url} | /bin/sed 's/\./-/g'`"
+/bin/echo "Do you want to make your webroot(s) 1) Mutable or 2)Immutable"
+read response
 
-NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
-
-regions="`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "scaling" "${website_url}-scaling-${CLOUDHOST}" | /bin/sed "s/.*${CLOUDHOST}//g" | /bin/sed 's/^-//g'`"
-
-
-if ( [ "${regions}" != "" ] )
+while ( [ "`/bin/echo 1 2 | /bin/grep ${response}`" = "" ] )
 then
-	/bin/echo "I have found scaling profiles in the following regions for cloudhost ${CLOUDHOST}:"
-	/bin/echo "${regions}"
-	/bin/echo "Please type the region (exactly) that you want to update"
-	read region
-	autoscalers="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "scaling" "autoscaler*/STATIC_SCALE*" "${website_url}-scaling-${CLOUDHOST}-${region}" | /usr/bin/awk '{print $NF}' | /bin/sed 's/.*autoscaler/autoscaler/g'`"
-	no_operational_autoscalers="`/bin/echo ${autoscalers} | /usr/bin/wc -w`"
-	no_inactive_autoscalers="`/usr/bin/expr ${NO_AUTOSCALERS} - ${no_operational_autoscalers}`"
-	/bin/echo "There are ${NO_AUTOSCALERS} autoscalers provisioned ${no_operational_autoscalers} of which is/are operational and  ${no_inactive_autoscalers} of which is/are inactive. The active scaling profiles as listed below"
-	/bin/echo "${autoscalers}"
-	/bin/echo "Please enter the full name of the autoscaler you want to update the scaling profile for, for example, 'autoscaler-1'"
-	read autoscaler
-	while ( [ "`/bin/echo ${autoscaler} | /bin/grep 'autoscaler-[0-9]'`" = "" ] )
-	do
-		/bin/echo "That doesn't seem like a valid value for an autoscaler, try again"
-		read autoscaler
-	done
-	/bin/echo "Please enter the number of webservers you want to update to for ${autoscaler}, for example, '5' if you want your autoscaler to spin up 5 webservers"
-	read no_webservers
-	/bin/echo "I am updating autoscaler ${autoscaler} to provision ${no_webservers} webservers, is this correct (Y|N)"
+	/bin/echo "That's not a valid response please enter 1 or 2"
 	read response
+fi
 
-	if ( [ "${response}" = "Y" ] || [ "${response}" = "y" ] )
-	then
-		if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/${autoscaler} ] )
-		then
-			/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/${autoscaler}
-		else
-			/bin/rm ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/${autoscaler}/*
-		fi
-		if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "scaling" "autoscaler*/STATIC_SCALE*" "${website_url}-scaling-${CLOUDHOST}-${region}" | /usr/bin/awk '{print $NF}'`" != "" ] )
-		then
-			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "scaling" "${autoscaler}/STATIC_SCALE:*" "local" "${website_url}-scaling-${CLOUDHOST}-${region}"
-		fi
-		/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/${autoscaler}/STATIC_SCALE:${no_webservers}
-		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "scaling" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/${autoscaler}/STATIC_SCALE:${no_webservers}" "${autoscaler}" "local" "no" "scaling-${CLOUDHOST}-${region}"
-		/bin/echo "Number of webservers now set to: `${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "scaling" "autoscaler*/STATIC_SCALE*" "${website_url}-scaling-${CLOUDHOST}-${region}" | /usr/bin/awk '{print $NF}'`"
-	else
-		/bin/echo "Aborting the setting of webserver scaling process"
-		exit
-	fi
+if ( [ "${response}" = "1" ] )
+then
+	marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/MUTABLE"
+else
+	marker_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/IMMUTABLE"
+fi
+
+${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${marker_file}" "root" "distributed" "no"
+
+if ( [ -f ${marker_file} ] )
+then
+	/bin/rm ${marker_file}
 fi
