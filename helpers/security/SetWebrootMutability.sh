@@ -22,7 +22,7 @@
 
 if ( [ ! -f  ./SetWebrootMutability.sh ] )
 then
-	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/securitysubdirectory"
+	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/security subdirectory"
 	exit
 fi
 
