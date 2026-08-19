@@ -282,6 +282,7 @@ do
 				then
 					status "I failed in my initial attempt to configure your application, I will keep trying but in the meantime:"
 					status "The script you will be interested is: /home/${SERVER_USER}/application/configuration/InitialiseApplicationConfiguration.sh on machine with ip address ${ws_active_ip}"
+					status "I will keep probing if you fix the issue by correcting the mentioned file on the webserver, the build will then continue"
 				fi
 			fi
 			application_configuration_installed=""
