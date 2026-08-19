@@ -81,7 +81,6 @@ WEBROOT_DIRECTORY:/var/www/html/joomla
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/outside_webroot/configuration.php
 
-#####IS THIS NEEDED#######
 #########################################################################################################################
 #The assets for your CMS are to be located outside of your webroot. This means makes it easy to give them different access
 #permissions to the rest of the application as they are to be dynamically updatable at all times and you might therefore
