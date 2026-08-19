@@ -45,10 +45,12 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 #SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 
 #Sourced from joomla.org using tar archives
-SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.tar.gz
-SOURCECODE_MD5:d306e61affe62b37245ffddad1361a4f
-SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
+#SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.tar.gz
+#SOURCECODE_MD5:d306e61affe62b37245ffddad1361a4f
+#SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
 
+#Example quickstart package from joomshaper which may or may not be a live url by the time you read this it works at the current time
+SOURCECODE_URL:www.joomshaper.com/downloads/template/helix3/1-quickstart-pack-joomla-6
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
