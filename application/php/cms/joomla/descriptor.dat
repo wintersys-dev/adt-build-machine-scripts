@@ -66,7 +66,7 @@ EXCLUDE_FROM_BACKUP:configuration.php:administrator/cache
 #in order for the verification process to succeed fully. I check for quite a lot of different directories or files if you want to make it a less stringent
 #check you can check for more or less files and directories according to your taste. 
 ######################################################################################################################################################
-APPLICATION_INTEGRITY_DIRECTORIES:administrator:api:cache:cli:components:files:includes:language:layouts:libraries:media:modules:plugins:templates
+APPLICATION_INTEGRITY_DIRECTORIES:administrator:api:cli:components:files:includes:language:layouts:libraries:media:modules:plugins:templates
 APPLICATION_INTEGRITY_FILES:index.php
 
 ######################################################################################################################################################
