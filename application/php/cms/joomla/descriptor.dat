@@ -90,6 +90,8 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 #ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/members|/var/www/outside_webroot/images/members:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/user/system
 #You aren't only limied to linking assets directories outside of your webroot you can also link regular directories using DIRECTORIES_TO_LINK
 #WEBROOT_ASSET_DIRECTORIES must be a one to one correlation with ASSETS_DIRECTORIES_TO_LINK
+#These links aren't actioned for virgin or baseline builds all the asset files are of a baseline or a virgin build are directly under the webroot
+#without any symlinks to directories outside of the webroot
 ######################################################################################################################################################
 WEBROOT_ASSET_DIRECTORIES:images
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
