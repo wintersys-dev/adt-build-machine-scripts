@@ -40,9 +40,9 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 #SOURCECODE_URL:github.com/joomla/joomla-cms/releases/download/XXXXAPPLICATION_VERSIONXXXX/Joomla_XXXXAPPLICATION_VERSIONXXXX-Stable-Full_Package.zip
 
 #Sourced from joomla.org using zip archives
-#SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.zip
-#SOURCECODE_MD5:a3eaae4a62d2313de01d7ff7ba5417e9
-#SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
+SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.zip
+SOURCECODE_MD5:a3eaae4a62d2313de01d7ff7ba5417e9
+SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 
 #Sourced from joomla.org using tar archives
 #SOURCECODE_URL:downloads.joomla.org/cms/joomla6/6-0-3/Joomla_6-0-3-Stable-Full_Package.tar.gz
@@ -50,7 +50,7 @@ WEBMASTER_EMAIL:XXXXWEBMASTER_EMAILXXXX
 #SOURCECODE_SHA1:df41236826fdcaa889c5ee3f9bc35ed94114ee0a
 
 #Example quickstart package from joomshaper which may or may not be a live url by the time you read this it works at the current time
-SOURCECODE_URL:www.joomshaper.com/downloads/template/helix3/1-quickstart-pack-joomla-6
+#SOURCECODE_URL:www.joomshaper.com/downloads/template/helix3/1-quickstart-pack-joomla-6
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
