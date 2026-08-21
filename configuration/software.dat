@@ -133,15 +133,17 @@
 #Pick one build style for each component you want to enable installation for. The choice of which to install e.g. NGINX or APACHE is made in the template or the cloud-init script or the Stackscript
 #All this does is tell us how to build it not whether to build it
 
-#----------------------------------------------------APACHE----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------APACHE---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------
 #To build APACHE you should comment in only one option set based on your needs and the other option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
 ##############################################################
 #INSTALL OPTION 1: Install APACHE using the cloud-init default
 ##############################################################
-APACHE:cloud-init
-APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
-APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+#APACHE:cloud-init
+#APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+#APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 ##################################################
@@ -162,17 +164,17 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 ################################################
 #Uncomment this to activate a build from source
 ################################################
-#APACHE:source
+APACHE:source
 
 ##################################################################################################################################################
 # If you want to perform a build using the github repos uncomment all 3 of these git based options and comment out the 7 sourcecode options below
 ##################################################################################################################################################
-#APACHE:git-branch:2.4.66
-#APACHE:apr:git-branch:1.7.6
-#APACHE:apr-util:git-branch:1.6.3
+APACHE:git-branch:2.4.66
+APACHE:apr:git-branch:1.7.6
+APACHE:apr-util:git-branch:1.6.3
 
 #########################################################################################################################################
-#If you want to perform a build based on apache.org sourcecode archives, uncomment all of these and comment the 3 git based options above
+#If you want to perform a build based on apache.org sourcecode archives, uncomment all of these and comment the git based options above
 ##########################################################################################################################################
 #APACHE:sourcecode_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz
 #APACHE:sha256_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz.sha256
@@ -185,12 +187,14 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 ##############################################################################################################################
 #Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
 ##############################################################################################################################
-#APACHE:modules-list:ssl:rewrite:alias:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi:socache_shmcb:log_config:log_debug:logio:dir:unixd:authn_core:authn_file:authz_user:authz_core:http2:slotmem_shm:cache:deflate:mime:filter
-#APACHE:static-modules-list:mpm_event
-#APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
-#APACHE:software-packages:libtool-bin:autoconf:libpcre2-dev:build-essential:zlib1g-dev:libssl-dev:libnghttp2-dev:libexpat1-dev
+APACHE:modules-list:ssl:rewrite:alias:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi:socache_shmcb:log_config:log_debug:logio:dir:unixd:authn_core:authn_file:authz_user:authz_core:http2:slotmem_shm:cache:deflate:mime:filter
+APACHE:static-modules-list:mpm_event
+APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+APACHE:software-packages:libtool-bin:autoconf:libpcre2-dev:build-essential:zlib1g-dev:libssl-dev:libnghttp2-dev:libexpat1-dev
 
+#-------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------NGINX---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------
 #To build NGINX you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
 ##############################################################
@@ -275,8 +279,9 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
-
+#----------------------------------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------LIGHTTPD----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
 #To build LIGHTTPD you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
 
