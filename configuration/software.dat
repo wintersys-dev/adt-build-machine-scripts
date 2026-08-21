@@ -139,11 +139,14 @@
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
 #Install NGINX from a repository
-# One of repo:os or repo:official 
+# Choose whether you want to install from the standard repo or the official repo (comment on out and comment in the other according to your needs)
 NGINX:repo:os
 #NGINX:repo:official
-#leave mainline commented to install the stable version when configured for official repos uncomment mainline to install mainline version
+
+#leave mainline commented to install the stable version 
+#If you are installing from the official repoo uncomment mainline to install mainline version
 #NGINX:mainline
+
 NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
