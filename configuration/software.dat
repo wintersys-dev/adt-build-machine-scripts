@@ -133,7 +133,8 @@
 #Pick one build style for each component you want to enable installation for. The choice of which to install e.g. NGINX or APACHE is made elsewhere
 #All this does is tell us how to build it not whether to build it
 #-----------------------------------------------------NGINX---------------------------------------------------------------------------------
-
+#To build NGINX you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
+#-------------------------------------------------------------------------------------------------------------------------------------------
 ##############################################################
 #INSTALL OPTION 1: Install NGINX using the cloud-init default
 ##############################################################
@@ -141,7 +142,7 @@
 #NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
-
+#--------------------------------------------------------------------------------------------------------------------------------------------
 ##################################################
 #INSTALL OPTION 2: Install NGINX from a repository
 ##################################################
@@ -163,6 +164,7 @@ NGINX:repo:os
 NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
+#------------------------------------------------------------------------------------------------------------------------------------------------
 ####################################################################
 #INSTALL OPTION 3: Install NGINX from source based on the f5 version
 ####################################################################
@@ -188,6 +190,7 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 ############################################################################
 #INSTALL OPTION 4: Install NGINX from source based on the freenginx version
 ############################################################################
@@ -215,6 +218,8 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
 #----------------------------------------------------APACHE----------------------------------------------------------------------------------
+#To build APACHE you should comment in only one option set based on your needs and the other option sets should be entirely commented out
+#-------------------------------------------------------------------------------------------------------------------------------------------
 ##############################################################
 #INSTALL OPTION 1: Install APACHEusing the cloud-init default
 ##############################################################
@@ -222,6 +227,7 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
 #APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
+#------------------------------------------------------------------------------------------------------------------------------------------
 ##################################################
 #INSTALL OPTION 2: Install APACHE from a repository
 ##################################################
@@ -229,23 +235,25 @@ APACHE:repo
 APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
 APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
-
+#-------------------------------------------------------------------------------------------------------------------------------------------
 ####################################################################
 #INSTALL OPTION 3: Install NGINX from source
 ####################################################################
+################################################
 #Uncomment this to activate a build from source
+################################################
 #APACHE:source
 
-##############################################################################
-# If you want to perform a build using the github repos uncomment all of these
-##############################################################################
+##################################################################################################################################################
+# If you want to perform a build using the github repos uncomment all 3 of these git based options and comment out the 7 sourcecode options below
+##################################################################################################################################################
 #APACHE:git-branch:2.4.66
 #APACHE:apr:git-branch:1.7.6
 #APACHE:apr-util:git-branch:1.6.3
 
-#########################################################################################
-#If you want to perform a build based on apache.org sourcecode archives, uncomment these
-##########################################################################################
+#########################################################################################################################################
+#If you want to perform a build based on apache.org sourcecode archives, uncomment all of these and comment the 3 git based options above
+##########################################################################################################################################
 #APACHE:sourcecode_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz
 #APACHE:sha256_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz.sha256
 #APACHE:sha512_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz.sha512
@@ -254,7 +262,9 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 #APACHE:apr_util_sourcecode_url:dlcdn.apache.org//apr/apr-util-1.6.3.tar.gz
 #APACHE:apr_util_sha256_url:www.apache.org/dist/apr/apr-util-1.6.3.tar.gz.sha256
 
+##############################################################################################################################
 #Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
+##############################################################################################################################
 #APACHE:modules-list:ssl:rewrite:alias:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi:socache_shmcb:log_config:log_debug:logio:dir:unixd:authn_core:authn_file:authz_user:authz_core:http2:slotmem_shm:cache:deflate:mime:filter
 #APACHE:static-modules-list:mpm_event
 #APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
