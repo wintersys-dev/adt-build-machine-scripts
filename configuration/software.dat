@@ -357,19 +357,29 @@ DATASTORETOOL:s3cmd:repo
 #DATASTORETOOL:s5cmd:source
 #DATASTORETOOL:rclone:binary
 #---------------------------------------------CLOUD CLI TOOL----------------------------------------------------------------------------------
+#Digital Ocean CLI tool
 #CLOUDCLITOOL:doctl:binary
 CLOUDCLITOOL:doctl:snap
-CLOUDCLITOOL:linode-cli:pip
-#CLOUDCLITOOL:linode-cli:snap
+
+#Exoscale CLI tool
 #CLOUDCLITOOL:exo:repo
 CLOUDCLITOOL:exo:source
+
+#Linode CLI tool
+CLOUDCLITOOL:linode-cli:pip
+#CLOUDCLITOOL:linode-cli:snap
+
+#Vult CLI tool
 #CLOUDCLITOOL:vultr:binary
 CLOUDCLITOOL:vultr:source
 #---------------------------------------------GO----------------------------------------------------------------------------------
 #GO:repo
 GO:binary
 #---------------------------------------------PACKAGE MANAGER----------------------------------------------------------------------
-PACKAGEMANAGER:aptitude
+#PACKAGEMANAGER:apt
+#PACKAGEMANAGER:apt-get
+PACKAGEMANAGER:nala
+#PACKAGEMANAGER:aptitude
 #---------------------------------------------FIREWALL-----------------------------------------------------------------------------
 FIREWALL:ufw
 #FIREWALL:iptables:20:30
