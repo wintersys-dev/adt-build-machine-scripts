@@ -133,39 +133,65 @@
 #Pick one build style for each component you want to enable installation for. The choice of which to install e.g. NGINX or APACHE is made elsewhere
 #All this does is tell us how to build it not whether to build it
 #-----------------------------------------------------NGINX---------------------------------------------------------------------------------
-#Install NGINX using the cloud-init default
+
+##############################################################
+#INSTALL OPTION 1: Install NGINX using the cloud-init default
+##############################################################
 #NGINX:cloud-init
 #NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
-#Install NGINX from a repository
+################################################################################################################################################
+##################################################
+#INSTALL OPTION 2: Install NGINX from a repository
+##################################################
 # Choose whether you want to install from the standard repo or the official repo (comment on out and comment in the other according to your needs)
 NGINX:repo:os
 #NGINX:repo:official
 
 #leave mainline commented to install the stable version 
 #If you are installing from the official repoo uncomment mainline to install mainline version
+#mainline: The NGINX mainline version is the active development branch of the NGINX web server that contains the newest features, performance enhancements, and latest bug fixes
 #NGINX:mainline
 
+#These are the nginx modules to install along with various configuration settings that you want to have set for this deployment
 NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
 NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
-#Install NGINX from source based on the f5 version (you can do it from github or from the f5 archives (comment in one and comment out the other))
+#############################################################################################################################################
+####################################################################
+#INSTALL OPTION 3: Install NGINX from source based on the f5 version
+####################################################################
+You can make the install based on github repos or from the f5 sourcecode archives (comment in one and comment out the other)
+#Uncomment this to activate a build from source
 #NGINX:source
+
+#Uncomment this as this is an f5 sourced build
 #NGINX:fork:f5
-# One of git-branch or sourcecode_url (git takes precedence if both are present)
+
+# Choose whether we want to base our build on github f5 repos or directly on sourcecode archives (comment in one and comment out the other)
 #NGINX:git-branch:release-1.29.0
 #NGINX:sourcecode_url:nginx.org/download/nginx-1.29.0.tar.gz
+
+#Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
 #NGINX:static-modules-list:select:poll:http_v2:http_ssl:http_v2:http_realip:http_addition:http_sub:http_dav:http_flv:http_mp4:http_gunzip:http_gzip_static:http_auth_request:http_random_index:http_secure_link:http_degradation:http_slice:http_stub_status:stream_ssl_preread:mail_ssl:stream_ssl:stream_realip:http_realip
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
-#Install NGINX from source based on freenginx version (you can do it from github or from the freenginx archives (comment in one and comment out the other))
+############################################################################
+#INSTALL OPTION 4: Install NGINX from source based on the freenginx version
+############################################################################
+#Uncomment this to activate a build from source
 #NGINX:source
+
+#Uncomment this as this is a freenginx sourced build
 #NGINX:fork:free
-# One of git-branch or sourcecode_url (git takes precedence if both are present)
+
+#Choose whether we want to base our build on github freenginx repos or directly on sourcecode archives (comment in one and comment out the other)
 #NGINX:git-branch:release-1.29.0
-#NGINX:sourcecode_url:freenginx.org/download/freenginx-1.29.0.tar.gz 
+#NGINX:sourcecode_url:freenginx.org/download/freenginx-1.29.0.tar.gz
+
+#Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
 #NGINX:static-modules-list:select:poll:http_v2:http_ssl:http_v2:http_realip:http_addition:http_sub:http_dav:http_flv:http_mp4:http_gunzip:http_gzip_static:http_auth_request:http_random_index:http_secure_link:http_degradation:http_slice:http_stub_status:stream_ssl_preread:mail_ssl:stream_ssl:stream_realip:http_realip
 #NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
