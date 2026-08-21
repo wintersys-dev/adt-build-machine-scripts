@@ -139,21 +139,21 @@
 ##############################################################
 #INSTALL OPTION 1: Install APACHEusing the cloud-init default
 ##############################################################
-#APACHE:cloud-init
-#APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
-#APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+APACHE:cloud-init
+APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 ##################################################
 #INSTALL OPTION 2: Install APACHE from a repository
 ##################################################
-APACHE:repo
+#APACHE:repo
 
 ##############################################################################################################################
 #Uncomment and modify these to configure what modules and settings you want to install as part of the build
 ##############################################################################################################################
-APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
-APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+#APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+#APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
 ####################################################################
@@ -189,6 +189,7 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 #APACHE:static-modules-list:mpm_event
 #APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 #APACHE:software-packages:libtool-bin:autoconf:libpcre2-dev:build-essential:zlib1g-dev:libssl-dev:libnghttp2-dev:libexpat1-dev
+
 #-----------------------------------------------------NGINX---------------------------------------------------------------------------------
 #To build NGINX you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
