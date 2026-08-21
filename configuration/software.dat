@@ -232,12 +232,16 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #INSTALL OPTION 2: Install APACHE from a repository
 ##################################################
 APACHE:repo
+
+##############################################################################################################################
+#Uncomment and modify these to configure what modules and settings you want to install as part of the build
+##############################################################################################################################
 APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
 APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
 ####################################################################
-#INSTALL OPTION 3: Install NGINX from source
+#INSTALL OPTION 3: Install APACHE from source
 ####################################################################
 ################################################
 #Uncomment this to activate a build from source
@@ -272,22 +276,55 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 
 
 #----------------------------------------------------LIGHTTPD----------------------------------------------------------------------------------
-#Install lighttpd from cloud-init defaults
+#To build LIGHTTPD you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#############################################################
+#INSTALL OPTION 1: Install lighttpd from cloud-init defaults
+#############################################################
 #LIGHTTPD:cloud-init
+
+###########################################################################################################
+#Uncomment and modify these to configure what modules and settings you want to install as part of the build
+###########################################################################################################
 #LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 #LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
 
-#Install lighttpd from repos
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+###############################################
+#INSTALL OPTION 2: Install lighttpd from repos
+###############################################
 #LIGHTTPD:repo
+
+###########################################################################################################
+#Uncomment and modify these to configure what modules and settings you want to install as part of the build
+###########################################################################################################
 #LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 #LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 
-#Install LIGHTTPD from source (you can do it from github or from the lighttpd archives (comment in one and comment out the other))
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+
+##############################################
+#INSTALL OPTION 3: Install LIGHTTPD from source
+##############################################
 LIGHTTPD:source
+
+#######################################################################################################################################
+# If you want to perform a build using the github repos uncomment this git based option and comment out the 3 sourcecode options below
+#######################################################################################################################################
 #LIGHTTPD:git-branch:lighttpd-1.4.85
+
+#########################################################################################################################################
+#If you want to perform a build based on lighttpd.net sourcecode archives, uncomment all of these and comment the  git based option above
+#########################################################################################################################################
 LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
 LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
 LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
+
+
+################################################################################################################################
+#Uncomment and modify these to configure what modules, settings and  software packages you want to install as part of the build
+################################################################################################################################
 LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
 LIGHTTPD:static-modules-list:zlib:libxml:openssl:gnutls
 LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
