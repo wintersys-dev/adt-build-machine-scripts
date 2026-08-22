@@ -74,12 +74,17 @@
 # Developers could define other chain node types such as caching for example and then caching would deploy a caching node such as memcached or redis and so on
 # BUILDCHAINTYPE:standard|webserver|database
 # The tool used for datastore access is an abstraction and you can use other tools rclone, s4cmd and to implement the interface if you want
-# DATASTORETOOL:s3cmd:repo
+# DATASTORETOOL:<provider>:repo|source|binary|script
+# DATASTORETOOL:s3cmd:repo 
 # DATASTORETOOL:s3cmd:source
-# DATASTORETOOL:s5cmd:binary
 # DATASTORETOOL:s5cmd:source
-# CLOUDCLITOOL:repo|binary
+# DATASTORETOOL:s5cmd:binary
+# DATASTORETOOL:rclone:repo
+# DATASTORETOOL:rclone:script
+# DATASTORETOOL:rclone:binary
+# DATASTORETOOL:rclone:source
 # You can set how you want to install your cloud cli tool from the different available installation methods
+# CLOUDCLITOOL:<provider>:snap|binary|pip|repo|source
 # CLOUDCLITOOL:doctl:snap
 # CLOUDCLITOOL:doctl:binary
 # CLOUDCLITOOL:linode-cli:pip
@@ -297,6 +302,7 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
+
 ###############################################
 #INSTALL OPTION 2: Install lighttpd from repos
 ###############################################
@@ -326,7 +332,6 @@ LIGHTTPD:source
 LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
 LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
 LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
-
 
 ################################################################################################################################
 #Uncomment and modify these to configure what modules, settings and  software packages you want to install as part of the build
@@ -360,8 +365,13 @@ POSTGRES:repo:18
 BUILDCHAINTYPE:standard
 #---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
 DATASTORETOOL:s3cmd:repo 
+#DATASTORETOOL:s3cmd:source
 #DATASTORETOOL:s5cmd:source
+#DATASTORETOOL:s5cmd:binary
+#DATASTORETOOL:rclone:repo
+#DATASTORETOOL:rclone:script
 #DATASTORETOOL:rclone:binary
+#DATASTORETOOL:rclone:source
 #---------------------------------------------CLOUD CLI TOOL----------------------------------------------------------------------------------
 #Digital Ocean CLI tool
 #CLOUDCLITOOL:doctl:binary
