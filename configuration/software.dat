@@ -139,7 +139,7 @@
 #All this does is tell us how to build it not whether to build it
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
-#--APACHE (Uncomment your chosen option type and comment all other option settings) --------------------------------------------------------
+#--APACHE ----------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------
 #To build APACHE you should comment in only one option set based on your needs and the other option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
@@ -198,9 +198,9 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 #APACHE:software-packages:libtool-bin:autoconf:libpcre2-dev:build-essential:zlib1g-dev:libssl-dev:libnghttp2-dev:libexpat1-dev
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
-#---NGINX (Uncomment your chosen option type and comment all other option settings) --------------------------------------------------------
+#---NGINX ----------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------
-#To build NGINX you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
+#To build NGINX you should comment in only one option set based on your needs and the other option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
 ##############################################################
 #INSTALL OPTION 1: Install NGINX using the cloud-init default
@@ -285,7 +285,7 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #NGINX:software-packages:build-essential:libpcre2-dev:libssl-dev:zlib1g-dev:libgd-dev:gnupg2
 
 #----------------------------------------------------------------------------------------------------------------------------------------------
-#--LIGHTTPD (Uncomment your chosen option type and comment all other option settings) ---------------------------------------------------------
+#--LIGHTTPD -----------------------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------------------------------------------------
 #To build LIGHTTPD you should comment in only one option set based on your needs and the other three option sets should be entirely commented out
 #-------------------------------------------------------------------------------------------------------------------------------------------
