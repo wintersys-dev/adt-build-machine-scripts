@@ -205,9 +205,9 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 ##############################################################
 #INSTALL OPTION 1: Install NGINX using the cloud-init default
 ##############################################################
-#NGINX:cloud-init
-#NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
-#NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
+NGINX:cloud-init
+NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
+NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
 ##################################################
@@ -216,8 +216,8 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 ##################################################################################################################################################
 # Choose whether you want to install from the standard repo or the official repo (comment one out and comment in the other according to your needs)
 ##################################################################################################################################################
-NGINX:repo:os
-#NGINX:repo:official
+#NGINX:repo:os
+##NGINX:repo:official
 
 ###########################################################################################################################################################
 #If you are installing from the official repoo uncomment mainline to install mainline version leave mainline commented to install the stable version
@@ -228,8 +228,8 @@ NGINX:repo:os
 ################################################################################################################################
 #These are the nginx modules to install along with various configuration settings that you want to have set for this deployment
 #################################################################################################################################
-NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
-NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
+#NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxyproxy_http:remoteip:proxy_fcgi
+#NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
 
 #------------------------------------------------------------------------------------------------------------------------------------------------
 ####################################################################
