@@ -176,14 +176,6 @@ APACHE:source
 #########################################################################################################################################
 #If you want to perform a build based on apache.org sourcecode archives, uncomment all of these and comment the git based options above
 ##########################################################################################################################################
-APACHE:sourcecode_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz
-APACHE:sha256_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz.sha256
-APACHE:sha512_url:downloads.apache.org/httpd/httpd-2.4.66.tar.gz.sha512
-APACHE:apr_sourcecode_url:dlcdn.apache.org//apr/apr-1.7.6.tar.gz
-APACHE:apr_sha256_url:www.apache.org/dist/apr/apr-1.7.6.tar.gz.sha256
-APACHE:apr_util_sourcecode_url:dlcdn.apache.org//apr/apr-util-1.6.3.tar.gz
-APACHE:apr_util_sha256_url:www.apache.org/dist/apr/apr-util-1.6.3.tar.gz.sha256
-
 APACHE:sourcecode_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz
 APACHE:sha256_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz.sha256
 APACHE:sha512_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz.sha512
