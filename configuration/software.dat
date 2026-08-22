@@ -184,6 +184,14 @@ APACHE:apr_sha256_url:www.apache.org/dist/apr/apr-1.7.6.tar.gz.sha256
 APACHE:apr_util_sourcecode_url:dlcdn.apache.org//apr/apr-util-1.6.3.tar.gz
 APACHE:apr_util_sha256_url:www.apache.org/dist/apr/apr-util-1.6.3.tar.gz.sha256
 
+APACHE:sourcecode_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz
+APACHE:sha256_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz.sha256
+APACHE:sha512_url:archive.apache.org/dist/httpd/httpd-2.4.66.tar.gz.sha512
+APACHE:apr_sourcecode_url:archive.apache.org/dist/apr/apr-1.7.6.tar.gz
+APACHE:apr_sha256_url:archive.apache.org/dist/apr/apr-1.7.6.tar.gz.sha256
+APACHE:apr_util_sourcecode_url:archive.apache.org/dist/apr/apr-util-1.6.3.tar.gz
+APACHE:apr_util_sha256_url:archive.apache.org/dist/apr/apr-util-1.6.3.tar.gz.sha256
+
 ##############################################################################################################################
 #Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
 ##############################################################################################################################
