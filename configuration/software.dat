@@ -393,6 +393,7 @@ FIREWALL:ufw
 #FAIL2BAN:active
 #---------------------------------------------EMAIL---------------------------------------------------------------------------------
 EMAILUTIL:sendemail
+#EMAILUTIL:ssmtp
 #---------------------------------------------SSL CERT CLIENT-----------------------------------------------------------------------
 #SSLCERTCLIENT:acme:github.com
 SSLCERTCLIENT:lego:snap
