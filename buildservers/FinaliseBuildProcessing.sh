@@ -425,7 +425,7 @@ then
 		#Make an actual attempt to access the website, if this goes through we should consider ourselves fully primed
 		. ${BUILD_HOME}/application/SetHeadFile.sh
 
-		status "The Website isn't online yet. It can take a minute for the software on your machines to settle down post install. I will keep trying...please wait"
+		status "The Website isn't online yet. It can take up to a minute for the software on your machines to settle down post install. I will keep trying...please wait"
 
 		if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
 		then
