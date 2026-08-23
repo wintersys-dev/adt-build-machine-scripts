@@ -247,8 +247,8 @@ NGINX:fork:free
 #################################################################################################################################################
 #Choose whether we want to base our build on github freenginx repos or directly on sourcecode archives (comment in one and comment out the other)
 ##################################################################################################################################################
-NGINX:git-branch:release-1.29.0
-#NGINX:sourcecode_url:freenginx.org/download/freenginx-1.29.0.tar.gz
+#NGINX:git-branch:release-1.29.0
+NGINX:sourcecode_url:freenginx.org/download/freenginx-1.29.0.tar.gz
 
 ###############################################################################################################################
 #Uncomment and modify these to configure what modules, settings and software packages you want to install as part of the build
