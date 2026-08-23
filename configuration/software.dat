@@ -44,20 +44,9 @@
 # You can define what extensions PHP will be built with by modifying the line starting PHP: as shown below
 # PHP:<extension1>:<extension2>|port
 # If you have PERSIST_ASSETS_TO_DATASTORE=1 then you need a datastore mount tool, you can install from repo or from source and your options are:
-# DATASTOREMOUNTTOOL:s3fs:repo
-# DATASTOREMOUNTTOOL:s3fs:source
-# DATASTOREMOUNTTOOL:goof:binary
-# DATASTOREMOUNTTOOL:goof:source
-# DATASTOREMOUNTTOOL:rclone:repo
-# DATASTOREMOUNTTOOL:rclone:binary
-# DATASTOREMOUNTTOOL:rclone:script
-# DATASTOREMOUNTTOOL:rclone:source
-# DATASTOREMOUNTTOOL:geesefs:binary
-# DATASTOREMOUNTTOOL:geesefs:source
+# DATASTOREMOUNTTOOL:<tool>:<source|binary|repo|script>
 # There are three different methods for maintaining the state of your configuration system and you can set which one to use as follows:
-# DATASTORECONFIGSTYLE:tool
-# DATASTORECONFIGSTYLE:lightweight
-# DATASTORECONFIGSTYLE:heavyweight
+# DATASTORECONFIGSTYLE:<tool|lightweight|heavyweight>
 # When installing mariadb on your VPS systems you can give it a verion number to install like this 
 # If you put 'cloud-init' here then cloud-init will install the default version of mariadb
 # MARIADB:cloud-init
@@ -74,52 +63,36 @@
 # Developers could define other chain node types such as caching for example and then caching would deploy a caching node such as memcached or redis and so on
 # BUILDCHAINTYPE:standard|webserver|database
 # The tool used for datastore access is an abstraction and you can use other tools rclone, s4cmd and to implement the interface if you want
-# DATASTORETOOL:<provider>:repo|source|binary|script
-# DATASTORETOOL:s3cmd:repo 
-# DATASTORETOOL:s3cmd:source
-# DATASTORETOOL:s5cmd:source
-# DATASTORETOOL:s5cmd:binary
-# DATASTORETOOL:rclone:repo
-# DATASTORETOOL:rclone:script
-# DATASTORETOOL:rclone:binary
-# DATASTORETOOL:rclone:source
+# DATASTORETOOL:<tool>:<repo|source|binary|script>
 # You can set how you want to install your cloud cli tool from the different available installation methods
 # CLOUDCLITOOL:<provider>:snap|binary|pip|repo|source
-# CLOUDCLITOOL:doctl:snap
-# CLOUDCLITOOL:doctl:binary
-# CLOUDCLITOOL:linode-cli:pip
-# CLOUDCLITOOL:linode-cli:snap
-# CLOUDCLITOOL:exo:repo
-# CLOUDCLITOOL:exo:source
-# CLOUDCLITOOL:vultr:binary
-# CLOUDCLITOOL:vultr:source
 # You can install the GO language from binary or repo
 # GO:repo
 # GO:binary
 # You can choose which package manager you want to use. Currently apt apt-get, nala and aptitude are supported mostly as an example of how multiple package managers can be implemented. 
 # PACKAGEMANAGER:apt|apt-get|nala|aptitude
 # You can choose what style of firewall you would like to have by setting the FIREWALL. You can choose ufw or iptables
-# FIREWALL:ufw|iptables
+# FIREWALL:<ufw|iptables>
 # By default there is no rate limiting if you want to set rate limiting for ports open to the Internet such as 443 (possibly) then
 # you can rate limit as follows
 # FIREWALL:ufw:limit (when limit is set ufw will deny connections if an IP address attempts to initiate six or more connections within thirty seconds)
 # FIREALL:iptables:20:30 (20 represents the limit on the number of connections per minute from a single ip address and 30 represenets the burst rate limit)
 # if you want to use fail2ban you can set this will install fail2ban on all your machines
-# FAIL2BAN:active|inactive
+# FAIL2BAN:<active|inactive>
 # You can choose which email utility you want to send your system emails using sendemail or ssmtp
-# EMAILUTIL:sendemail|ssmtp
+# EMAILUTIL:<sendemail|ssmtp>
 # You can choose which tool you want to use to generate your ssl certificates
 # SSLCERTCLIENT:lego|acme (note: if you are using letsencrypt you must set this to 'lego' if you are using zerossl you must set this to 'acme')
 # For letsencrypt you have to install lego
-# SSLCERTCLIENT:lego:binary
-# SSLCERTCLIENT:lego:snap
+# SSLCERTCLIENT:<lego:binary>
+# SSLCERTCLIENT:<lego:snap>
 # For zerossl you have to install acme.sh - You can install from acme.sh or github.com
-# SSLCERTCLIENT:acme:acme.sh
-# SSLCERTCLIENT:acme:github.com
-# GITBRANCH:main|dev
+# SSLCERTCLIENT:<acme:acme.sh>
+# SSLCERTCLIENT:<acme:github.com>
+# GITBRANCH:<main|dev>
 # You can create branches as you need to but currently there is a main branch and a dev branch to work with
 # You can scan for viruses on your servers on a periodic basis VIRUSSCANNER:clamav:hourly|daily|weekly|monthly
-# VIRUSSCANNER:clamav:daily
+# VIRUSSCANNER:<clamav:daily>
 ###############################################################################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
