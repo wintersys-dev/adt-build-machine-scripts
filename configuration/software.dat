@@ -297,14 +297,14 @@ LIGHTTPD:source
 #######################################################################################################################################
 # If you want to perform a build using the github repos uncomment this git based option and comment out the 3 sourcecode options below
 #######################################################################################################################################
-#LIGHTTPD:git-branch:lighttpd-1.4.85
+LIGHTTPD:git-branch:lighttpd-1.4.85
 
 #########################################################################################################################################
 #If you want to perform a build based on lighttpd.net sourcecode archives, uncomment all of these and comment the  git based option above
 #########################################################################################################################################
-LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
-LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
-LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
+#LIGHTTPD:sourcecode_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.tar.gz
+#LIGHTTPD:sha256_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha256sum
+#LIGHTTPD:sha512_url:download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.85.sha512sum
 
 ################################################################################################################################
 #Uncomment and modify these to configure what modules, settings and  software packages you want to install as part of the build
