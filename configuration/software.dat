@@ -266,13 +266,13 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #############################################################
 #INSTALL OPTION 1: Install lighttpd from cloud-init defaults
 #############################################################
-#LIGHTTPD:cloud-init
+LIGHTTPD:cloud-init
 
 ###########################################################################################################
 #Uncomment and modify these to configure what modules and settings you want to install as part of the build
 ###########################################################################################################
-#LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
-#LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
+LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
+LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -292,12 +292,12 @@ You can make the install based on github repos or from the f5 sourcecode archive
 ##############################################
 #INSTALL OPTION 3: Install LIGHTTPD from source
 ##############################################
-LIGHTTPD:source
+#LIGHTTPD:source
 
 #######################################################################################################################################
 # If you want to perform a build using the github repos uncomment this git based option and comment out the 3 sourcecode options below
 #######################################################################################################################################
-LIGHTTPD:git-branch:lighttpd-1.4.85
+#LIGHTTPD:git-branch:lighttpd-1.4.85
 
 #########################################################################################################################################
 #If you want to perform a build based on lighttpd.net sourcecode archives, uncomment all of these and comment the  git based option above
@@ -309,10 +309,10 @@ LIGHTTPD:git-branch:lighttpd-1.4.85
 ################################################################################################################################
 #Uncomment and modify these to configure what modules, settings and  software packages you want to install as part of the build
 ################################################################################################################################
-LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
-LIGHTTPD:static-modules-list:zlib:libxml:openssl:gnutls
-LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
-LIGHTTPD:software-packages:autoconf:build-essential:automake:libtool:pkg-config:libssl-dev:libgnutls28-dev:libpcre2-dev:zlib1g-dev
+#LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
+#LIGHTTPD:static-modules-list:zlib:libxml:openssl:gnutls
+#LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
+#LIGHTTPD:software-packages:autoconf:build-essential:automake:libtool:pkg-config:libssl-dev:libgnutls28-dev:libpcre2-dev:zlib1g-dev
 
 #----------------------------------------------------PHP---------------------------------------------------------------------------------
 ###Set what base PHP libraries you want installed. Install application specific libraries in your application descriptor####
