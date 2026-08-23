@@ -189,14 +189,14 @@ APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestW
 ##################################################################################################################################################
 # Choose whether you want to install from the standard repo or the official repo (comment one out and comment in the other according to your needs)
 ##################################################################################################################################################
-NGINX:repo:os
-##NGINX:repo:official
+#NGINX:repo:os
+NGINX:repo:official
 
 ###########################################################################################################################################################
 #Only if you are installing from the official repoo uncomment mainline to install mainline version leave mainline commented to install the stable version
 #mainline: The NGINX mainline version is the active development branch of the NGINX web server that contains the newest features, performance enhancements, and latest bug fixes
 ###########################################################################################################################################################
-#NGINX:mainline
+NGINX:mainline
 
 ################################################################################################################################
 #These are the nginx modules to install along with various configuration settings that you want to have set for this deployment
