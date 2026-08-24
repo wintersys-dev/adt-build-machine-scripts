@@ -266,26 +266,26 @@ You can make the install based on github repos or from the f5 sourcecode archive
 #############################################################
 #INSTALL OPTION 1: Install lighttpd from cloud-init defaults
 #############################################################
-LIGHTTPD:cloud-init
+#LIGHTTPD:cloud-init
 
 ###########################################################################################################
 #Uncomment and modify these to configure what modules and settings you want to install as part of the build
 ###########################################################################################################
-LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
-LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
+#LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
+#LIGHTTPD:settings:server.use-ipv6="disable":server.bind="localhost":server.max-fds=2048:server.stat-cache-engine="simple"
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 ###############################################
 #INSTALL OPTION 2: Install lighttpd from repos
 ###############################################
-#LIGHTTPD:repo
+LIGHTTPD:repo
 
 ###########################################################################################################
 #Uncomment and modify these to configure what modules and settings you want to install as part of the build
 ###########################################################################################################
-#LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
-#LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
+LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv::mod_redirect:mod_rewrite:mod_authn_file
+LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 
