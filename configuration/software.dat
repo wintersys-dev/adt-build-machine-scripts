@@ -316,7 +316,11 @@ LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cach
 
 #----------------------------------------------------PHP---------------------------------------------------------------------------------
 ###Set what base PHP libraries you want installed. Install application specific libraries in your application descriptor####
-PHP:cli:fpm|9176  
+###You can use a port or a socket for php-fpm based on how you configure this "fpm|<port no>" will configure a port for use and "fpm" nakedly will 
+#use a socket for example
+####PHP:fpm|9176 = use port 9176
+####PHP:fpm = use a socket and not a port
+PHP:cli:fpm  
 #---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
 # DATASTOREMOUNTTOOL:s3fs:repo
 # DATASTOREMOUNTTOOL:s3fs:source
