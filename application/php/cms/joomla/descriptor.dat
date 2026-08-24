@@ -117,7 +117,7 @@ DIRECTORIES_OUTSIDE_WEBROOT:cache:logs:tmp
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your joomla application straight away
 #without providing any dynamic input at build time
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:no
+INTERACTIVE_APPLICATION_INSTALL:yes
 
 ##################################################################################################################################################
 #Here you can list PHP modules that are required by joomla and the system will install them. You can alter the configuration of your PHP setup by
