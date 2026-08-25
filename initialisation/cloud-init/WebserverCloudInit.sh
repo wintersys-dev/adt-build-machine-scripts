@@ -78,7 +78,9 @@ firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /b
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
 then
-        dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+    dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+else
+	dbaas_cert="NOT PROVISIONED"
 fi
 
 ${BUILD_HOME}/application/SetApplicationConfig.sh
