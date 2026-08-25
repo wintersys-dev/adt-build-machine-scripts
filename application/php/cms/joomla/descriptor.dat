@@ -97,7 +97,7 @@ CONFIG_FILE:/var/www/outside_webroot/configuration.php
 ######################################################################################################################################################
 WEBROOT_ASSET_DIRECTORIES:images
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache
+DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
 ######################################################################################################################################################
 #These are directories which you want to be ourside or your webroot but not to be linked to. If you want directories outside of your webroot
@@ -107,7 +107,7 @@ DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outsi
 #INDIVIDUAL_SETTING:cache_path='/var/www/outside_webroot/cache'
 #which will set these as live values in the configuration.php file. So, "/var/www/outside_webroot/logs" in configuration.php maps to "logs" lited here
 ######################################################################################################################################################
-DIRECTORIES_OUTSIDE_WEBROOT:cache:logs:tmp
+#DIRECTORIES_OUTSIDE_WEBROOT:cache:logs:tmp
 
 #####################################################################################################################################################
 #Interactive install or not
