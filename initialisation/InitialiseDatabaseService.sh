@@ -403,7 +403,7 @@ fi
 				fi
 
 				#take a certificate copy in case we need it
-				/bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
+				/bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --text --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 			elif ( [ "${database_type}" = "Postgres" ] )
 			then
 				#if we are here then this is a postgres build
