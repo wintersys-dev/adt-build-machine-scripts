@@ -150,7 +150,7 @@ INDIVIDUAL_SETTING:smtpauth=1
 INDIVIDUAL_SETTING:smtpuser='XXXXSMTP_USERXXXX'
 INDIVIDUAL_SETTING:smtppass='XXXXSMTP_PASSXXXX'
 INDIVIDUAL_SETTING:smtpsecure='tls'
-INDIVIDUAL_SETTING:smtp_port=XXXXSMTP_PORTXXXX
+INDIVIDUAL_SETTING:smtpport=XXXXSMTP_PORTXXXX
 INDIVIDUAL_SETTING:smtphost=XXXXSMTP_HOSTXXXX
 
 ##########################################################################################################################################################
