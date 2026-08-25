@@ -70,15 +70,9 @@ done < ${BUILD_HOME}/descriptors/database_descriptor.dat
 # get the database configuration settings zipped up and base64 encoded so that it takes up less space in the cloud-init script which is size limited
 database_configuration_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/database_configuration_settings.dat | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
-
 # get the build style settings zipped up and base64 encoded so that it takes up less space in the cloud-init script which is size limited
 build_styles_settings="`/bin/cat ${BUILD_HOME}/configuration/software.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
-
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
-then
-        dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
-fi
 
 from_snapshot=""
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
@@ -89,6 +83,14 @@ fi
 # take the packaged cloud-init scripts and make them live ready
 /bin/cp ${BUILD_HOME}/services/server/cloud-init/${CLOUDHOST}/database${from_snapshot}.yaml ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml
 
+
+if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
+then
+	/bin/sed -i 's/#DBAAS_CERT//g' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml
+    dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+else
+	/bin/sed -i '/#DBAAS_CERT/d' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml
+fi
 
 #The same technique is used for database installations as is used for webserver installations
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
