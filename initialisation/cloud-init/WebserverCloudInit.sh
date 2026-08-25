@@ -76,13 +76,6 @@ webserver_configuration_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/$
 build_styles_settings="`/bin/cat ${BUILD_HOME}/configuration/software.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
-then
-    dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
-else
-	dbaas_cert="NOT PROVISIONED"
-fi
-
 ${BUILD_HOME}/application/SetApplicationConfig.sh
 application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
@@ -94,6 +87,15 @@ fi
 
 # take the packaged cloud-init scripts and make them live ready
 /bin/cp ${BUILD_HOME}/services/server/cloud-init/${CLOUDHOST}/webserver${from_snapshot}.yaml ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
+
+
+if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
+then
+	/bin/sed -i 's/#DBAAS_CERT//g' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
+    dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+else
+	/bin/sed -i '/#DBAAS_CERT/d' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
+fi
 
 #Configure the cloud-init script for the relevant application language
 #APPLICATION_LANGUAGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_LANGUAGE`"
