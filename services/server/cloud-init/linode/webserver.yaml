@@ -50,6 +50,11 @@ write_files:
   path: /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz
   permissions: '0644'
 - encoding: b64
+  content: XXXXDBAAS_CERTXXXX
+  owner: root:root
+  path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
+  permissions: '0644'
+- encoding: b64
   content: XXXXAPPLICATION_SETTINGSXXXX
   owner: root:root
   path: /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz
@@ -104,6 +109,8 @@ runcmd:
   - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/software.dat /home/XXXXSERVER_USERXXXX/runtime/software.dat'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz'
   - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat /home/XXXXSERVER_USERXXXX/runtime/firewall.dat'
+  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz'
+  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz'
   - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/application.dat /home/XXXXSERVER_USERXXXX/runtime/application.dat'
   - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type d -exec chmod 755 {} \;' 
