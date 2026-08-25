@@ -472,7 +472,7 @@ fi
 				fi
 
 				#grab the cert, why not, we might need it
-				/bin/echo "`/usr/local/bin/linode-cli databases postgresql-ssl-cert ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
+				/bin/echo "`/usr/local/bin/linode-cli databases postgresql-ssl-cert ${database_id} --text --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 			fi
 		fi
 	fi
