@@ -74,7 +74,7 @@ APPLICATION_INTEGRITY_FILES:index.php
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this and the webroot will install under a different subdirectory
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/joomla2
+WEBROOT_DIRECTORY:/var/www/html/joomla
 
 ########################################################################################################################################################
 #This is where the joomla configuration file is actually located (outside of the webroot) which makes backup processes easier as well as enhancing
