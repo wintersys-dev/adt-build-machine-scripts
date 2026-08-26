@@ -85,7 +85,7 @@ WEBROOT_DIRECTORY:/var/www/html/wordpress
 #The actual name of the config file must literally contain the word 'config' this is for pattern matching reasons.
 #For example config-a1287.php or x179-config.php but most likely you will just want to call it wp-config.php
 ######################################################################################################################################################
-CONFIG_FILE:/var/www/html/wp-config.php
+CONFIG_FILE:/var/www/outside_webroot/wp-config.php
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a wordpress installation. What that means is that if there is a partial
