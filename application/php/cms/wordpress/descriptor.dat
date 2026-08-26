@@ -107,8 +107,8 @@ APPLICATION_INTEGRITY_FILES:index.php:wp-activate.php:wp-blog-header.php:wp-comm
 #These links aren't actioned for virgin or baseline builds all the asset files are of a baseline or a virgin build are directly under the webroot
 #without any symlinks to directories outside of the webroot
 ######################################################################################################################################################
-WEBROOT_ASSET_DIRECTORIES:wp-content
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/wp-content|/var/www/outside_webroot/wp-content
+WEBROOT_ASSET_DIRECTORIES:wp-content/uploads
+ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/wp-content/uploads|/var/www/outside_webroot/wp-content/uploads
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
 ###########################################################################################
