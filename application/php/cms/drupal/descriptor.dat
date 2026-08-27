@@ -164,4 +164,4 @@ ADDITIONAL_SETTING:$settings["trusted_host_patterns"] = [ "XXXXWEBSITE_URLXXXX",
 ADDITIONAL_SETTING:$settings["config_sync_directory"] = "XXXXWEBROOT_DIRECTORYXXXX/web/sites/default";
 ADDITIONAL_SETTING:$config["system.performance"]["css"]["preprocess"] = FALSE;
 ADDITIONAL_SETTING:$config["system.performance"]["js"]["preprocess"] = FALSE;
-ADDITIONAL_SETTING:$settings["file_private_path"] = "/var/www/outside_webroot/private";
+ADDITIONAL_SETTING:$settings["file_private_path"] = "XXXXWEBROOT_DIRECTORYXXXX/private";
