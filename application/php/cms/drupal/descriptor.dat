@@ -87,9 +87,9 @@ CONFIG_FILE:/var/www/outside_webroot/settings.php
 #These links aren't actioned for virgin or baseline builds all the asset files are of a baseline or a virgin build are directly under the webroot
 #without any symlinks to directories outside of the webroot
 ######################################################################################################################################################
-WEBROOT_ASSET_DIRECTORIES:images
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images|/var/www/outside_webroot/images
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outside_webroot/administrator/cache:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+WEBROOT_ASSET_DIRECTORIES:web/sites/default/files
+ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/var/www/outside_webroot/sites/default/files
+DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
