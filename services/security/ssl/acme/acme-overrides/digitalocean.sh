@@ -39,7 +39,12 @@ dns_dgon_add() {
                 return 0
         fi
 
-        _err "Add txt record error."
+        if ( [ "${txtvalie}" = "" ] )
+        then
+                _err "No txt record provided, have you reached your certificate issuance limit?"
+        else
+                _err "Add txt record error"
+        fi
         return 1
 
 }
@@ -64,6 +69,7 @@ dns_dgon_rm() {
                 _info "Removed, OK"
                 return 0
         fi
+
 
         _err "Remove txt record error."
         return 1
