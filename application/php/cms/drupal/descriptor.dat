@@ -94,7 +94,7 @@ DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:X
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:settings.php
+EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
