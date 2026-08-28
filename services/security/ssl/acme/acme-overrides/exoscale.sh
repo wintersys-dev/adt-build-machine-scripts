@@ -36,7 +36,7 @@ dns_exoscale_add() {
                 return 0
         fi
 
-        if ( [ "${txtvalie}" = "" ] )
+        if ( [ "${txtvalue}" = "" ] )
         then
                 _err "No txt record provided, have you reached your certificate issuance limit?"
         else
