@@ -35,7 +35,13 @@ dns_vultr_add() {
                 return 0
         fi
 
-        _err "Add txt record error."
+        if ( [ "${txtvalue}" = "" ] )
+        then
+                _err "No txt record provided, have you reached your certificate issuance limit?"
+        else
+                _err "Add txt record error"
+        fi
+        
         return 1
 }
 
