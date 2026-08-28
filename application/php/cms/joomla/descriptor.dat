@@ -58,7 +58,7 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 #process won't archive symlinks but having the configuration file listed here makes us double sure that it won't appear inadvertently in a 
 #baseline or a backup and leak senstive information about our infrastructure
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:configuration.php:administrator/cache
+EXCLUDE_FROM_BACKUP:joomla/configuration.php:administrator/cache
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
