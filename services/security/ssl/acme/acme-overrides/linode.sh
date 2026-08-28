@@ -39,7 +39,12 @@ dns_linode_v4_add() {
 
         unset LINODE_CLI_CONFIG
 
-        _err "Add txt record error."
+        if ( [ "${txtvalie}" = "" ] )
+        then
+                _err "No txt record provided, have you reached your certificate issuance limit?"
+        else
+                _err "Add txt record error"
+        fi
         return 1
 }
 
