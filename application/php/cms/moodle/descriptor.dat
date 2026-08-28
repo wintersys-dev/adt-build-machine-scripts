@@ -54,7 +54,7 @@ DIRECTORIES_TO_CREATE:logs:tmp:cache:moodledata
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:logs:tmp:cache:config.php
+EXCLUDE_FROM_BACKUP:moodle/config.php
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a moodle installation. What that means is that if there is a partial
