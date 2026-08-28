@@ -24,6 +24,7 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 ###################################################################
 #Application Type (only uncomment one of these 2 depending on whether you want to install "drupal" or "drupal cms")
 ###################################################################
+#############################DRUPAL##############################################
 # 1. To install drupal uncomment as required
 APPLICATION_TYPE:drupal
 
@@ -47,7 +48,16 @@ DRUPAL_VERSION:drupal/recommended-project
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/drupal
 
-##########################################################
+####################################################################################################################################
+#This tells the system which files to exclude when a backup or baseline is made
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
+
+#############################DRUPAL##############################################
+
+#---------------------------------------------------------------------------------------------------
+
+###########################DRUPAL CMS########################################################
 #2. To install drupal CMS
 #APPLICATION_TYPE:cms
 
@@ -66,6 +76,14 @@ WEBROOT_DIRECTORY:/var/www/html/drupal
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
 #WEBROOT_DIRECTORY:/var/www/html/cms
+
+####################################################################################################################################
+#This tells the system which files to exclude when a backup or baseline is made
+####################################################################################################################################
+#EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php
+###############################DRUPAL CMS####################################################
+
+#---------------------------------------------------------------------------------------------------
 
 
 ########################################################################################################################################################
@@ -91,10 +109,7 @@ WEBROOT_ASSET_DIRECTORIES:web/sites/default/files
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/var/www/outside_webroot/sites/default/files
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
-####################################################################################################################################
-#This tells the system which files to exclude when a backup or baseline is made
-####################################################################################################################################
-EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php
+
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
