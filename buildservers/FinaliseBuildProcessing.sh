@@ -319,7 +319,7 @@ then
 	#This checks that the webserver itself has been fully installed and is running. 
 	status "If this blocks forever, what is your firewall set to in ${BUILD_HOME}/configuration/firewall.dat"
 	status "Checking that the webserver ${WEBSERVER_CHOICE} has fully installed....(this may take a while, but not forever, if compiling from source)"
-	
+	status "If this does block forever please be aware that the application you are installing may have failed its integrity check and to look into that"
 	while ( [ "${webserver_installed}" = "" ] )
 	do
 		/bin/sleep 1
