@@ -320,7 +320,7 @@ LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cach
 #use a socket for example
 ####PHP:fpm|9176 = use port 9176
 ####PHP:fpm = use a socket and not a port
-PHP:cli:fpm  
+PHP:cli:fpm|9176
 #---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
 # DATASTOREMOUNTTOOL:s3fs:repo
 # DATASTOREMOUNTTOOL:s3fs:source
