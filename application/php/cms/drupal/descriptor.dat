@@ -85,6 +85,25 @@ EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
 
 #---------------------------------------------------------------------------------------------------
 
+3. To install OpenSocial
+#APPLICATION_TYPE=opensocial
+
+#(pick which version of opensocial you want to install by uncommenting one of these)
+OPENSOCIAL_VERSION=goalgorilla/social_template:dev-master
+OPENSOCIAL_VERSION=goalgorilla/social_template:13.0.2
+
+######################################################################################################################################################
+#This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
+######################################################################################################################################################
+#WEBROOT_DIRECTORY:/var/www/html/opensocial
+
+####################################################################################################################################
+#This tells the system which files to exclude when a backup or baseline is made
+####################################################################################################################################
+#EXCLUDE_FROM_BACKUP:opensocial/web/sites/default/settings.php
+###############################OPENSOCIAL####################################################
+
+#---------------------------------------------------------------------------------------------------
 
 ########################################################################################################################################################
 #This is where the joomla configuration file is actually located (outside of the webroot) which makes backup processes easier as well as enhancing
