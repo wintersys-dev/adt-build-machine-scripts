@@ -38,10 +38,9 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #Install themes or modules during the build rather than through the gui. 
 #here the webform module (https://www.drupal.org/project/webform) is shown as an example of how to install a module)
 #You can chain modules to install as a colon separated list DRUPAL_MODULES_TO_INSTALL:<module1>:<module2>:<module3>....<module n>
-#and the gin theme (https://www.drupal.org/project/gin) is shown as an example of how to install a theme. 
-#You can chain themes to install as a colon separated list DRUPAL_THEMES_TO_INSTALL:<theme1>:<theme2>:<theme3>....<theme n>
-#DRUPAL_MODULES_TO_INSTALL:webform
-#DRUPAL_THEMES_TO_INSTALL:gin
+#and the gin theme (https://www.drupal.org/project/bootstrap) is shown as an example of how to install a theme. 
+DRUPAL_MODULES_TO_INSTALL:webform:^6.3
+DRUPAL_THEMES_TO_INSTALL:bootstrap:^5.0
 
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal this shouldn't be changed for the application to work properly
