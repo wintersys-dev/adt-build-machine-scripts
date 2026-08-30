@@ -30,12 +30,10 @@ write_files:
   path: /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz
   permissions: '0644'
 
-package_update: true
-package_upgrade: true
-
 runcmd:
   - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
   - '/usr/sbin/locale-gen'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME/installation/Update.sh'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/database_configuration_settings.dat.gz'
   - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/database_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/database_configuration_settings.dat'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz'
