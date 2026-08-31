@@ -93,6 +93,8 @@ packages:
   - bc
   - curl
   - whois
+  - zip
+  - unzip
 
 runcmd:
   - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
