@@ -79,6 +79,8 @@ packages:
   - jq
   - rsync
   - cron
+  - zip
+  - unzip
 #XXXXMARIADB_SERVERXXXX  - mariadb-server
 #XXXXMARIADB_CLIENTXXXX  - mariadb-client
 
