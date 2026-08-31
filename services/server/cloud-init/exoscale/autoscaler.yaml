@@ -94,6 +94,8 @@ packages:
   - bc
   - curl
   - whois
+  - zip
+  - unzip
 
 runcmd:
   - [ netplan, apply ]
