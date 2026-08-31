@@ -67,6 +67,8 @@ packages:
   - jq
   - rsync
   - cron
+  - zip
+  - unzip
 #XXXXNGINXXXXX  - nginx
 #XXXXAPACHEXXXX  - apache2
 #XXXXAPACHEXXXX  - apache2-utils
