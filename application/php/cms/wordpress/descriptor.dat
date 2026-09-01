@@ -109,14 +109,14 @@ APPLICATION_INTEGRITY_FILES:index.php:wp-activate.php:wp-blog-header.php:wp-comm
 ######################################################################################################################################################
 WEBROOT_ASSET_DIRECTORIES:wp-content/uploads
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/wp-content/uploads|/var/www/outside_webroot/wp-content/uploads
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+DIRECTORIES_TO_LINK:/var/www/outside_webroot/tmp:/var/www/outside_webroot/logs:/var/www/outside_webroot/cache
 
 ###########################################################################################
 #Here you can list PHP modules that are required by wordpress and the system will install them 
 ###########################################################################################
 #PHP_VERSION=8.5
 PHP_MODULES:apcu:json:mysqli:curl:dom:exif:fileinfo:hash:imagick:igbinary:intl:mbstring:openssl:pdo:xml:zip
-CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:session.save_path=/var/run/session:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=Off:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html##/var/www/outside_webroot:upload_tmp_dir=/var/www/html/tmp:sys_temp_dir=/var/www/html/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
+CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:session.save_path=/var/run/session:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=Off:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html##/var/www/outside_webroot:upload_tmp_dir=/var/www/outside_webroot/tmp:sys_temp_dir=/var/www/outside_webroot/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
 CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_servers=10:pm.min_spare_servers=5:pm.max_spare_servers=20:pm.process_idle_timeout=10s
 
 #####################################################################################################################################################
@@ -154,6 +154,6 @@ INDIVIDUAL_SETTING::WP_CACHE=true
 INDIVIDUAL_SETTING::EMPTY_TRASH_DAYS=30
 INDIVIDUAL_SETTING::WP_ALLOW_REPAIR=true
 INDIVIDUAL_SETTING::FORCE_SSL_ADMIN=true
-INDIVIDUAL_SETTING::WP_DEBUG_LOG=XXXXWEBROOT_DIRECTORYXXXX/logs/debug.log
-INDIVIDUAL_SETTING::WP_TEMP_DIR=XXXXWEBROOT_DIRECTORYXXXX/tmp
+INDIVIDUAL_SETTING::WP_DEBUG_LOG=/var/www/outside_webroot/logs/debug.log
+INDIVIDUAL_SETTING::WP_TEMP_DIR=/var/www/outside_webroot/tmp
 INDIVIDUAL_SETTING_UNQUOTED::MYSQL_CLIENT_FLAGS=MYSQLI_CLIENT_SSL
