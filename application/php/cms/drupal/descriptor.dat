@@ -39,12 +39,12 @@ DRUPAL_VERSION:drupal/recommended-project
 #You can chain themes to install as a list DRUPAL_MODULES_TO_INSTALL:<module1> <module2> <module3>....<module n>
 #You can chain modules to install as a list DRUPAL_MODULES_TO_INSTALL:<module1> <module2> <module3>....<module n>
 #Only activate one of these examples at a time or configure your own according to you needs
-#Example 1 - install the tara theme 
+#Example 1 - install the tara theme (https://www.drupal.org/project/tara)
 DRUPAL_THEMES_TO_INSTALL:tara:^11.0
-#Example 2 - install the mercury theme
+#Example 2 - install the mercury theme (https://www.drupal.org/project/mercury)
 #DRUPAL_THEMES_TO_INSTALL:mercury:^1.0
 #DRUPAL_MODULES_TO_INSTALL:cva:^1.0
-#Example 3 - install the bootstrap theme
+#Example 3 - install the bootstrap theme (https://www.drupal.org/project/bootstrap)
 DRUPAL_THEMES_TO_INSTALL:bootstrap:^3.40
 DRUPAL_MODULES_TO_INSTALL:jquery_ui:^1.8 jquery_ui_draggable:^2.1 jquery_ui_resizable:^2.1
 
