@@ -106,6 +106,8 @@ DATABASE_PROFILE:standard
 #Example 3 - install the bootstrap theme (https://www.drupal.org/project/bootstrap)
 #DRUPALCMS_THEMES_TO_INSTALL:bootstrap:^3.40
 #DRUPALCMS_MODULES_TO_INSTALL:jquery_ui:^1.8 jquery_ui_draggable:^2.1 jquery_ui_resizable:^2.1
+#Example 4 - install the corporate theme (https://www.drupal.org/project/corporateclean)
+#DRUPAL_THEMES_TO_INSTALL:basecore:^1.0 corporateclean:^1.0 
 
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
