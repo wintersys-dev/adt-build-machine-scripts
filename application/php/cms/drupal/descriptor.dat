@@ -130,8 +130,6 @@ WEBROOT_ASSET_DIRECTORIES:web/sites/default/files
 ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/var/www/outside_webroot/sites/default/files
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
-
-
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
 #download or extraction of drupal and some files are missing by using these files to check the intergrity of the installtion we can detect this
