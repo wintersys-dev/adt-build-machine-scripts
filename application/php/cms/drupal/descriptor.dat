@@ -34,7 +34,8 @@ WEBSITE_NAME:Vanilla Drupal Website
 APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
-DRUPAL_VERSION:drupal/recommended-project
+#DRUPAL_VERSION:drupal/recommended-project
+DRUPAL_VERSION:drupal/localgov_project:4.0 
 #DRUPAL_VERSION:drupal/recommended-project:11.4.3
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
@@ -69,7 +70,8 @@ EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
 ###################################################################################################################################
-DATABASE_PROFILE:standard
+#DATABASE_PROFILE:standard
+DATABASE_PROFILE:localgov
 
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL --------------------------------------------
