@@ -6,8 +6,6 @@
 # parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
 ##########################################################################################################################################
 
-
-
 #################################################################################################################################################
 # Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
 #################################################################################################################################################
