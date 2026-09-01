@@ -104,7 +104,7 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #****MAKE SURE ALL THE DRUPAL VARBASE OPTIONS ABOVE ARE COMMENTED OUT OR THINGS WILL FAIL*****#
 #----------------------------------------------------------------------------------------------
 #2. To install drupal VARBASE
-#APPLICATION_TYPE:varbase
+APPLICATION_TYPE:varbase
 
 #(pick which version of drupal cms you want to install by uncommenting one of these)
 #VARBASE_VERSION:drupal/cms
