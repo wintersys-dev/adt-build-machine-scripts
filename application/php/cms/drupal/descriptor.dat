@@ -55,6 +55,7 @@ DRUPAL_MODULES_TO_INSTALL:jquery_ui:^1.8 jquery_ui_draggable:^2.1 jquery_ui_resi
 #This sets the webroot of your application. For drupal this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/drupal
+WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
