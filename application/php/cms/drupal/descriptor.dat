@@ -52,7 +52,7 @@ DRUPAL_VERSION:drupal/recommended-project
 #Example 3 - install the bootstrap theme (https://www.drupal.org/project/bootstrap)
 DRUPAL_THEMES_TO_INSTALL:bootstrap:^3.40
 DRUPAL_MODULES_TO_INSTALL:jquery_ui:^1.8 jquery_ui_draggable:^2.1 jquery_ui_resizable:^2.1
-#Example 4 - install the corporate theme (https://www.drupal.org/project/corporate)
+#Example 4 - install the corporate theme (https://www.drupal.org/project/corporateclean)
 DRUPAL_THEMES_TO_INSTALL:drupal/corporateclean:^1.0
 
 ######################################################################################################################################################
