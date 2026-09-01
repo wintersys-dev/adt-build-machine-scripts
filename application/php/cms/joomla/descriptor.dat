@@ -124,6 +124,7 @@ INTERACTIVE_APPLICATION_INSTALL:no
 #tweaking these values and the system will tweak your PHP configuration. I am not an expert in tuning PHP so you may well want to alter these settings
 #to fit your particular use case for optimal performance and security and so on. 
 ##################################################################################################################################################
+PHP_VERSION:8.5
 PHP_MODULES:apcu:xml:dom:gd:intl:zip:mysqli:pdo:pgsql:mbstring:curl:soap
 CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:session.save_path=/var/run/session:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=On:cgi.fix_pathinfo=0:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=Off:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html##/var/www/outside_webroot:upload_tmp_dir=/var/www/outside_webroot/tmp:sys_temp_dir=/var/www/outside_webroot/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
 CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_servers=10:pm.min_spare_servers=5:pm.max_spare_servers=20:pm.process_idle_timeout=10s
