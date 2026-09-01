@@ -45,4 +45,9 @@ fi
 webroot_directory="`/bin/grep "^WEBROOT_DIRECTORY" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 /bin/sed -i "s;XXXXWEBROOT_DIRECTORYXXXX;${webroot_directory};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
+php_version="`/bin/grep "^PHP_VERSION" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
+if ( [ "${php_version}" != "" ] )
+then
+        ${BUILD_HOME}/helpers/services/SetVariableValue.sh "PHP_VERSION=${php_version}"
+fi
