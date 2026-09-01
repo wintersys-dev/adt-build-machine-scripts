@@ -6,8 +6,7 @@
 # parameters are used in a way that keeps the senstive details private in all circumstances using placeholders which can be substituted out. 
 ##########################################################################################################################################
 
-#The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Drupal Website
+
 
 #################################################################################################################################################
 # Application credentials/descriptions (if you make an interactive installation these settings will be overridden by what you enter interactively)
@@ -29,6 +28,10 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #****MAKE SURE ALL THE DRUPAL CMS OPTIONS BELOW ARE COMMENTED OUT OR THINGS WILL FAIL*****#
 #------------------------------------------------------------------------------------------
 # 1. To install drupal uncomment as required
+
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Drupal Website
+
 APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
@@ -68,6 +71,9 @@ EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
 #****MAKE SURE ALL THE DRUPAL OPTIONS ABOVE ARE COMMENTED OUT OR THINGS WILL FAIL*****#
 #--------------------------------------------------------------------------------------
 #2. To install drupal CMS
+#The description of your website as it will appear on your webpage
+#WEBSITE_NAME:Vanilla Drupal CMS Website
+
 #APPLICATION_TYPE:cms
 
 #(pick which version of drupal cms you want to install by uncommenting one of these)
