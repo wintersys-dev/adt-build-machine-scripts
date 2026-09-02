@@ -55,7 +55,7 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
-REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+REQUIRED_SOFTWARE_LIBRARIES:
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
