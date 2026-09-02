@@ -67,7 +67,7 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-#EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php:drupal/web/sites/default/files
+#EXCLUDE_FROM_BACKUP:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
