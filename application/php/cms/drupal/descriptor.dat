@@ -67,7 +67,7 @@ APPLICATION_TYPE:drupal
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-#EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files
+#EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php:drupal/web/sites/default/files
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
@@ -122,7 +122,7 @@ WEBROOT_SUBDIRECTORY:web
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files
+EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php:cms/web/sites/default/files
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
