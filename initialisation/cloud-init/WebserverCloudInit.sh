@@ -56,6 +56,10 @@ git_provider_domain="`${BUILD_HOME}/services/git/GitProviderDomain.sh ${INFRASTR
 
 /bin/cp /dev/null ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/webserver_configuration_settings.dat
 
+${BUILD_HOME}/application/SetApplicationConfig.sh
+application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+
+
 # source in the environment from the filesystem
 set -o allexport
 . ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment 2>/dev/null
@@ -76,8 +80,8 @@ webserver_configuration_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/$
 build_styles_settings="`/bin/cat ${BUILD_HOME}/configuration/software.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 firewall_port_settings="`/bin/cat ${BUILD_HOME}/configuration/firewall.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
-${BUILD_HOME}/application/SetApplicationConfig.sh
-application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+#${BUILD_HOME}/application/SetApplicationConfig.sh
+#application_settings="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat  | /bin/grep -v "^#" | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 
 from_snapshot=""
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
