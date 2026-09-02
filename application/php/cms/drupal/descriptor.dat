@@ -122,7 +122,7 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-#EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php:cms/web/sites/default/files
+#EXCLUDE_FROM_BACKUP:cms/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:cms/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
@@ -209,7 +209,7 @@ WEBROOT_ASSET_DIRECTORIES:web/sites/default/files
 #and so in the example given above that might look like:
 # ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/users|/var/www/outside_webroot/images/users:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/system
 ###############################################################################################################################
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/var/www/outside_webroot/sites/default/files
+ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files|/var/www/outside_webroot/sites/default/files
 
 ###################################################################################################################################
 # This option enables you to link system directories and so on to outside your webroot which makes it easier to manage because you 
@@ -271,7 +271,7 @@ ADDITIONAL_SETTING:$settings['package_manager_rsync_path'] = '/usr/bin/rsync';
 ADDITIONAL_SETTING:$settings['testing_package_manager'] = TRUE;
 ADDITIONAL_SETTING:$config["system.logging"]["error_level"] = "error";
 ADDITIONAL_SETTING:$settings["trusted_host_patterns"] = [ preg_quote('XXXXWEBSITE_URLXXXX'),"localhost",preg_quote('127.0.0.1'),preg_quote('XXXXBUILD_MACHINE_IPXXXX'),preg_quote('XXXXPRIVATE_IPXXXX') ];
-ADDITIONAL_SETTING:$settings["config_sync_directory"] = "XXXXWEBROOT_DIRECTORYXXXX/web/sites/default";
+ADDITIONAL_SETTING:$settings["config_sync_directory"] = "XXXXWEBROOT_DIRECTORYXXXX/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default";
 ADDITIONAL_SETTING:$config["system.performance"]["css"]["preprocess"] = FALSE;
 ADDITIONAL_SETTING:$config["system.performance"]["js"]["preprocess"] = FALSE;
 ADDITIONAL_SETTING:$settings["file_private_path"] = "XXXXWEBROOT_DIRECTORYXXXX/private";
