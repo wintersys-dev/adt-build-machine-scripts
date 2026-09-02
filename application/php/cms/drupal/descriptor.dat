@@ -185,7 +185,6 @@ ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/va
 ####################################################################################################################################
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
-
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
 #download or extraction of drupal and some files are missing by using these files to check the intergrity of the installtion we can detect this
@@ -203,22 +202,6 @@ APPLICATION_INTEGRITY_FILES:autoload.php:index.php:update.php
 #without providing any input
 #####################################################################################################################################################
 INTERACTIVE_APPLICATION_INSTALL:no
-
-#########################################################################################################################
-#The assets for your CMS are to be located outside of your webroot. This means makes it easy to give them different access
-#permissions to the rest of the application as they are to be dynamically updatable at all times and you might therefore
-#want to use a different permission set. 
-#ASSETS_DIRECTORIES_TO_LINK links a subdirectory of the webroot to the actual assets directory outside of the webroot. You can provide
-#a colon separated list of asset directories that you want to be linked to actual assets directories outside of your webroot for example:
-#ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/members|/var/www/outside_webroot/images/members:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/user/system
-#You aren't only limied to linking assets directories outside of your webroot you can also link regular directories using DIRECTORIES_TO_LINK
-#WEBROOT_ASSET_DIRECTORIES must be a one to one correlation with ASSETS_DIRECTORIES_TO_LINK
-#These links aren't actioned for virgin or baseline builds all the asset files are of a baseline or a virgin build are directly under the webroot
-#without any symlinks to directories outside of the webroot
-######################################################################################################################################################
-WEBROOT_ASSET_DIRECTORIES:sites/default/files
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/web/sites/default/files|/var/www/outside_webroot/sites/default/files
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
 ###########################################################################################
 #Here you can list PHP modules that are required by drupal and the system will install them 
