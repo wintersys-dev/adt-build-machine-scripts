@@ -122,9 +122,7 @@ DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outsi
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
-#from within your webroot can be excluded from the backup or baseline here. Note: this file will be a symlink by default and the backup
-#process won't archive symlinks but having the configuration file listed here makes us double sure that it won't appear inadvertently in a 
-#baseline or a backup and leak senstive information about our infrastructure
+#from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
 EXCLUDE_FROM_BACKUP:joomla/configuration.php:joomla/administrator/cache
 
