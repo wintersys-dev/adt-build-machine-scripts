@@ -23,7 +23,7 @@ OSSN:git-branch:master
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
-REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+REQUIRED_SOFTWARE_LIBRARIES:
 
 #This is the special data directory that will be set in the configuration of open source social network
 DATA_DIRECTORY:/var/www/html/ossn_data
