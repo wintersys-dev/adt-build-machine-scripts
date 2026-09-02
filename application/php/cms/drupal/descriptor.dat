@@ -31,12 +31,12 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 # 1. To install drupal uncomment as required
 
 #The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Drupal Website
+#WEBSITE_NAME:Vanilla Drupal Website
 
 APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
-DRUPAL_VERSION:drupal/recommended-project
+#DRUPAL_VERSION:drupal/recommended-project
 #DRUPAL_VERSION:drupal/recommended-project:11.4.3
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
@@ -60,18 +60,18 @@ DRUPAL_VERSION:drupal/recommended-project
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/drupal
-WEBROOT_SUBDIRECTORY:web
+#WEBROOT_DIRECTORY:/var/www/html/drupal
+#WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
+#EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
 ###################################################################################################################################
-DATABASE_PROFILE:standard
+#DATABASE_PROFILE:standard
 
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL --------------------------------------------
@@ -85,12 +85,12 @@ DATABASE_PROFILE:standard
 #--------------------------------------------------------------------------------------
 #2. To install drupal CMS
 #The description of your website as it will appear on your webpage
-#WEBSITE_NAME:Vanilla Drupal CMS Website
+WEBSITE_NAME:Vanilla Drupal CMS Website
 
-#APPLICATION_TYPE:cms
+APPLICATION_TYPE:cms
 
 #(pick which version of drupal cms you want to install by uncommenting one of these)
-#CMS_VERSION:drupal/cms
+CMS_VERSION:drupal/cms
 #CMS_VERSION:drupal/cms:2.1.4
 #CMS_VERSION:drupal/cms:^2.1@alpha
 #CMS_VERSION:drupal/cms:^2.1@beta
@@ -114,18 +114,18 @@ DATABASE_PROFILE:standard
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
-#WEBROOT_DIRECTORY:/var/www/html/cms
-#WEBROOT_SUBDIRECTORY:web
+WEBROOT_DIRECTORY:/var/www/html/cms
+WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files to exclude when a backup or baseline is made
 ####################################################################################################################################
-#EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php
+EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
 #########################################################################################################
-#DATABASE_PROFILE:standard
+DATABASE_PROFILE:standard
 
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL CMS-----------------------------------------
