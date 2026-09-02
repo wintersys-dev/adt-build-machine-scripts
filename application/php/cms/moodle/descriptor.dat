@@ -43,6 +43,11 @@ MOODLE:git-branch:MOODLE_502_STABLE
 #SOURCECODE_MD5:bacd011fc5427486a0c69a5eb42843aa
 #SOURCECODE_SHA256:4ebd1be6116458672f94c66563fdead8979ffff8573ae0a645b4a625d5c64b70
 
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+
 ####################################################################################################################################
 #filesystem configuration settings
 #This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
