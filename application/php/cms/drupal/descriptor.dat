@@ -12,6 +12,8 @@
 #You most likely want to set this to something unique because setting it to unique is another thing that a hacker doesn't know where as if it's
 #just webmaster or admin that's easy to guess or assume
 WEBSITE_USERNAME:adt-webmaster
+#The WEBSITE_USERNAME needs to have its roles defined. Drush  will apply these roles to the user its created
+APPLICATION_ROLES:administrator
 
 #The initial website password (which you should change as soon as installation is complete) is taken from whatever the first 12 characters of your
 #S3_ACCESS_KEY variable is set to. So, to find the initial password for your application you need to find  your S3_ACCESS_KEY and extract the first
