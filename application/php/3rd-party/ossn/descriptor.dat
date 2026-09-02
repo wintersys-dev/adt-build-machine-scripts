@@ -20,6 +20,11 @@ OSSN:git-branch:master
 #SOUCECODE_URL:www.opensource-socialnetwork.org/download_ossn/latest/build.zip
 (no checksum using this method)
 
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+
 #This is the special data directory that will be set in the configuration of open source social network
 DATA_DIRECTORY:/var/www/html/ossn_data
 
