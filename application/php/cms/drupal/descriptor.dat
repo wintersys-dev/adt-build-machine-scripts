@@ -42,7 +42,7 @@ APPLICATION_TYPE:drupal
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
 
-DRUPAL_VERSION:goalgorilla/social_template:^11
+DRUPAL_VERSION:goalgorilla/social_template:^13
 
 #Install themes or modules during the build rather than through the gui. 
 #You can chain themes to install as a list DRUPAL_MODULES_TO_INSTALL:<module1> <module2> <module3>....<module n>
