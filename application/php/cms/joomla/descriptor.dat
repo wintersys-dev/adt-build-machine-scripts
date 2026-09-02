@@ -57,8 +57,6 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 ###############################################################################
 REQUIRED_SOFTWARE_LIBRARIES:
 
-
-
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a joomla installation. What that means is that if there is a partial
 #download or extraction of joomla and some files are missing by using these files to check the intergrity of the installtion we can detect this
@@ -126,16 +124,6 @@ DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/administrator/cache|/var/www/outsi
 ####################################################################################################################################
 EXCLUDE_FROM_BACKUP:joomla/configuration.php:joomla/administrator/cache
 
-
-######################################################################################################################################################
-#These are directories which you want to be ourside or your webroot but not to be linked to. If you want directories outside of your webroot
-#that are to be symlinked to  you should use DIRECTORIES_TO_LINK. And so the directories I show you here are accessed by configuring:
-#INDIVIDUAL_SETTINGlog_path='/var/www/outside_webroot/logs'
-#INDIVIDUAL_SETTING:tmp_path='/var/www/outside_webroot/tmp'
-#INDIVIDUAL_SETTING:cache_path='/var/www/outside_webroot/cache'
-#which will set these as live values in the configuration.php file. So, "/var/www/outside_webroot/logs" in configuration.php maps to "logs" lited here
-######################################################################################################################################################
-#DIRECTORIES_OUTSIDE_WEBROOT:cache:logs:tmp
 
 #####################################################################################################################################################
 #Interactive install or not
