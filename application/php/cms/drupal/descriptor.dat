@@ -158,7 +158,7 @@ WEBROOT_SUBDIRECTORY:html
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:opensocial/html/sites/default/settings.php:opensocial/html/sites/default/files
+EXCLUDE_FROM_BACKUP:opensocial/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:opensocial/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
