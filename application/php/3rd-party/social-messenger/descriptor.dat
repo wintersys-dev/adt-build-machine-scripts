@@ -12,6 +12,11 @@
 #To install from a git branch, use this
 SOCIAL-MESSENGER:git-branch:main
 
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:
+
 ######################################################################################################################################################
 #This sets the webroot of your application. You can change this according to your taste. 
 ######################################################################################################################################################
