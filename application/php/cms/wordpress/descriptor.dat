@@ -65,6 +65,12 @@ PLUGINS_TO_INSTALL:wp-mail-smtp
 INTERACTIVE_APPLICATION_INSTALL:no
 
 
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+
+
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made
 ####################################################################################################################################
