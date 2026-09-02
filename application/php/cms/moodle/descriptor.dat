@@ -54,12 +54,8 @@ REQUIRED_SOFTWARE_LIBRARIES:
 #If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
 #configuring it in the plugin
 ####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:cache:moodledata
+#DIRECTORIES_TO_CREATE:logs:tmp:cache:moodledata
 
-####################################################################################################################################
-#This tells the system which files or directories to exclude when a backup or baseline is made
-####################################################################################################################################
-EXCLUDE_FROM_BACKUP:moodle/config.php
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a moodle installation. What that means is that if there is a partial
@@ -75,16 +71,50 @@ APPLICATION_INTEGRITY_FILES:admin/cli/install.php:public/behat.yml.dist:public/b
 WEBROOT_DIRECTORY:/var/www/html/moodle
 WEBROOT_SUBDIRECTORY:public
 
+
 #########################################################################################################################
-#If you want your assets to be outside of the webroot of your website set this to yes, if not set it to no
-#You can list multiple assets directories like this:
-#WEBROOT_ASSET_DIRECTORIES:dir1:dir2:dir3
-#If assets are outside of webroot for organisational reasons you can link to the assets from inside the webroot by listing
-#the assts directory in LINK_INSIDE_WEBROOT
+#These next three settings only operate when you deploy in production mode from a temporal backup. They are ignored if you 
+# are deploying from a baseline or making a virgin installation
+########################################################################################################################
+
+########################################################################################################################
+# WEBROOT_ASSET_DIRECTORIES lists the directories that you want to mount S3 buckets to for increased capacity.
+# Each entry in the : separated list is a different bucket. So, you could, have two buckets mounted into your webroot
+# by setting: WEBROOT_ASSET_DIRECTORIES:images/users:images/system
+# You need to be mindful that if these directories are in your webroot they will be included in any backup you make so you certainly
+# don't want many  GB or more of assets in your backup achive so you need to include these directories in your list of directories
+# to exclude from your backup which you can do by setting for the examples given:
+# EXCLUDE_FROM_BACKUP:joomla/images  or EXCLUDE_FROM_BACKUP:joomla/images/users:joomla/images/system
+# If you configure your webroot assets to be outside of your webroot they won't be stored in your backup because symlinks are ignored by
+# the backup process that runs against your webroot but its still recommended that you add them to your EXCLUDE_FROM_BACKUP: configuration
+# to give you doube protection 
 #########################################################################################################################
-ASSETS_OUTSIDE_WEBROOT:yes
 WEBROOT_ASSET_DIRECTORIES:moodledata
-LINK_INSIDE_WEBROOT:
+
+##############################################################################################################################
+#If you want your assets to be outside of your webroot because that can be easier to manage as for example you might want your
+#webroot to be immutable but your assets directory to be mutable (in other words users can generate files there) then you can 
+#simply set ASSETS_DIRECTORIES_TO_LINK: and that will create a symlink to your assets directory outside of your webroot
+#and so in the example given above that might look like:
+# ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/users|/var/www/outside_webroot/images/users:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/system
+###############################################################################################################################
+ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/moodledata|/var/www/outside_webroot/moodledata
+
+###################################################################################################################################
+# This option enables you to link system directories and so on to outside your webroot which makes it easier to manage because you 
+# don't want log files and so on in your baselines and backups and the backup process ignores symlinks and so doesn't archive them
+# and so if you want to have a logging directory accessible from within the webroot but linked to a directory outside of the webroot
+# then you can define a logging directory thus:
+# DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logging|/var/www/outside_webroot/logging
+# and the system will action the same thing as ln -s /var/www/outside_webroot/logging XXXXWEBROOT_DIRECTORYXXXX/logging
+####################################################################################################################################
+DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup or baseline here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:moodle/config.php:moodle/moodledata
 
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
