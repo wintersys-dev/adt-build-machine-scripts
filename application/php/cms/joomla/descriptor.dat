@@ -52,6 +52,11 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 #Example quickstart package from joomshaper which may or may not be a live url by the time you read this it works at the current time
 #SOURCECODE_URL:www.joomshaper.com/downloads/template/helix3/1-quickstart-pack-joomla-6
 
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. Note: this file will be a symlink by default and the backup
