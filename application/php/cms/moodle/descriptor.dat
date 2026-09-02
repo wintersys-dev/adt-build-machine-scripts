@@ -46,7 +46,7 @@ MOODLE:git-branch:MOODLE_502_STABLE
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
-REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+REQUIRED_SOFTWARE_LIBRARIES:
 
 ####################################################################################################################################
 #filesystem configuration settings
