@@ -31,9 +31,9 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 # 1. To install drupal uncomment as required
 
 #The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Drupal Website
+#WEBSITE_NAME:Vanilla Drupal Website
 
-APPLICATION_TYPE:drupal
+#APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
 #DRUPAL_VERSION:drupal/recommended-project
@@ -41,8 +41,6 @@ APPLICATION_TYPE:drupal
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
-
-DRUPAL_VERSION:goalgorilla/social_template:^13
 
 #Install themes or modules during the build rather than through the gui. 
 #You can chain themes to install as a list DRUPAL_MODULES_TO_INSTALL:<module1> <module2> <module3>....<module n>
@@ -62,19 +60,19 @@ DRUPAL_VERSION:goalgorilla/social_template:^13
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/drupal
-WEBROOT_SUBDIRECTORY:html
+#WEBROOT_DIRECTORY:/var/www/html/drupal
+#WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php:drupal/web/sites/default/files
+#EXCLUDE_FROM_BACKUP:drupal/web/sites/default/settings.php:drupal/web/sites/default/files
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
 ###################################################################################################################################
-DATABASE_PROFILE:standard
+#DATABASE_PROFILE:standard
 
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL --------------------------------------------
@@ -88,12 +86,12 @@ DATABASE_PROFILE:standard
 #--------------------------------------------------------------------------------------
 #2. To install drupal CMS
 #The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Drupal CMS Website
+#WEBSITE_NAME:Vanilla Drupal CMS Website
 
-APPLICATION_TYPE:cms
+#APPLICATION_TYPE:cms
 
 #(pick which version of drupal cms you want to install by uncommenting one of these)
-CMS_VERSION:drupal/cms
+#CMS_VERSION:drupal/cms
 #CMS_VERSION:drupal/cms:2.1.4
 #CMS_VERSION:drupal/cms:^2.1@alpha
 #CMS_VERSION:drupal/cms:^2.1@beta
@@ -117,22 +115,58 @@ CMS_VERSION:drupal/cms
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/cms
-WEBROOT_SUBDIRECTORY:web
+#WEBROOT_DIRECTORY:/var/www/html/cms
+#WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php:cms/web/sites/default/files
+#EXCLUDE_FROM_BACKUP:cms/web/sites/default/settings.php:cms/web/sites/default/files
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
 #########################################################################################################
-DATABASE_PROFILE:standard
+#DATABASE_PROFILE:standard
 
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL CMS-----------------------------------------
+#--------------------------------------------------------------------------------------
+
+#===============================================================================================
+
+#--------------------------------------------------------------------------------------
+#-----------------------------------OPENSOCIAL-----------------------------------------
+#----MAKE SURE ALL THE DRUPAL OPTIONS ABOVE ARE COMMENTED OUT OR THINGS WILL FAIL------
+#--------------------------------------------------------------------------------------
+#3. To install drupal CMS
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Opensocial CMS Website
+
+APPLICATION_TYPE:opensocial
+
+#(pick which version of opensocial you want to install by uncommenting one of these)
+OPENSOCIAL_VERSION:goalgorilla/social_template:dev-master
+
+######################################################################################################################################################
+#This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
+######################################################################################################################################################
+WEBROOT_DIRECTORY:/var/www/html/opensocial
+WEBROOT_SUBDIRECTORY:html
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup or baseline here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:opensocial/html/sites/default/settings.php:opensocial/html/sites/default/files
+
+#########################################################################################################
+# If you are installing a virgin application you can set the database profile to install using drush here
+#########################################################################################################
+DATABASE_PROFILE:social
+
+#--------------------------------------------------------------------------------------
+#-----------------------------------OPENSOCIAL-----------------------------------------
 #--------------------------------------------------------------------------------------
 
 #===============================================================================================
@@ -208,7 +242,7 @@ INTERACTIVE_APPLICATION_INSTALL:no
 ###########################################################################################
 #Here you can list PHP modules that are required by drupal and the system will install them 
 ###########################################################################################
-PHP_VERSION:8.3
+PHP_VERSION:8.1
 PHP_MODULES:apcu:curl:dom:gd:mbstring:mysqli:common:pgsql:xml:tokenizer:zip
 CONFIG_PHP_INI:memory_limit=128M:file_uploads=On:session.save_handler=files:session.save_path=/var/run/session:upload_max_filesize=64M:post_max_size=64M:max_input_vars=5000:zlib.output_compression=Off:cgi.fix_pathinfo=1:output_buffering=Off:disable_functions=exec,passthru,shell_exec,system,popen,parse_ini_file,show_source:allow_url_fopen=Off:allow_url_include=Off:memory_limit=256M:opcache.enable=1:opcache.memory_consumption=256:open_basedir=/var/log##/var/run##/var/cache##/var/www/html##/tmp##/var/www/outside_webroot:upload_tmp_dir=/var/www/html/tmp:sys_temp_dir=/var/www/html/tmp:expose_php=Off:date.timezone='Europe/London':cgi.force_redirect=On   
 CONFIG_PHP_POOL:pm=ondemand:pm.max_children=10:pm.max_requests=200:pm.start_servers=10:pm.min_spare_servers=5:pm.max_spare_servers=20:pm.process_idle_timeout=10s
