@@ -202,7 +202,7 @@ CONFIG_FILE:/var/www/outside_webroot/settings.php
 # the backup process that runs against your webroot but its still recommended that you add them to your EXCLUDE_FROM_BACKUP: configuration
 # to give you doube protection 
 #########################################################################################################################
-WEBROOT_ASSET_DIRECTORIES:web/sites/default/files
+WEBROOT_ASSET_DIRECTORIES:XXXXWEBROOT_SUBDIRECTORYXXXXX/sites/default/files
 
 ##############################################################################################################################
 #If you want your assets to be outside of your webroot because that can be easier to manage as for example you might want your
