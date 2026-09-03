@@ -148,7 +148,7 @@ DATABASE_PROFILE:social
 #APPLICATION_TYPE:opensocial
 
 #(pick which version of opensocial you want to install by uncommenting one of these)
-#OPENSOCIAL_VERSION:goalgorilla/social_template:dev-master
+#OPENSOCIAL_VERSION:goalgorilla/social_template:dev-main
 
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
