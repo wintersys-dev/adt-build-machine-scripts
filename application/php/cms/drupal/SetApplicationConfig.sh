@@ -56,8 +56,6 @@ fi
 
 /bin/sed -i "s;XXXXWEBROOT_SUBDIRECTORYXXXX;${webroot_subdirectory};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 
-
-XXXXWEBROOT_SUBDIRECTORYXXXX
 # The application can override the system wide value for the PHP version you might want to do this if an application is behind on PHP version updates
 # and a particular application needs an older version of PHP then you want to set by default in your template/StackScript
 php_version="`/bin/grep "^PHP_VERSION" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
