@@ -139,7 +139,7 @@ DATABASE_PROFILE:standard
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
-REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp
+REQUIRED_SOFTWARE_LIBRARIES:libpng-dev:libonig-dev:libxml2-dev:libzip-dev:webp:imagemagick:exif:gd
 
 ########################################################################################################################################################
 #This is where the joomla configuration file is actually located (outside of the webroot) which makes backup processes easier as well as enhancing
