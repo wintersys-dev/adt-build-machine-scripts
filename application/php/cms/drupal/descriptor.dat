@@ -12,8 +12,7 @@
 #You most likely want to set this to something unique because setting it to unique is another thing that a hacker doesn't know where as if it's
 #just webmaster or admin that's easy to guess or assume
 WEBSITE_USERNAME:adt-webmaster
-#The WEBSITE_USERNAME needs to have its roles defined. Drush  will apply these roles to the user its created
-APPLICATION_ROLES:administrator
+
 
 #The initial website password (which you should change as soon as installation is complete) is taken from whatever the first 12 characters of your
 #S3_ACCESS_KEY variable is set to. So, to find the initial password for your application you need to find  your S3_ACCESS_KEY and extract the first
@@ -31,13 +30,13 @@ WEBSITE_PASSWORD:XXXXWEBSITE_PASSWORDXXXX
 # 1. To install drupal uncomment as required
 
 #The description of your website as it will appear on your webpage
-WEBSITE_NAME:Vanilla Drupal Website
+#WEBSITE_NAME:Vanilla Drupal Website
 
-APPLICATION_TYPE:drupal
+#APPLICATION_TYPE:drupal
 
 #(pick which version of drupal you want to install by uncommenting one of these)
 #DRUPAL_VERSION:drupal/recommended-project
-DRUPAL_VERSION:drupal/recommended-project:11.4.6
+#DRUPAL_VERSION:drupal/recommended-project:11.4.6
 #DRUPAL_VERSION:drupal/recommended-project:^11@alpha
 #DRUPAL_VERSION:drupal/recommended-project:^11@beta
 #DRUPAL_VERSION:drupal/recommended-project:^11@rc
@@ -57,22 +56,25 @@ DRUPAL_VERSION:drupal/recommended-project:11.4.6
 #Example 4 - install the corporate theme (https://www.drupal.org/project/corporateclean)
 #DRUPAL_THEMES_TO_INSTALL:basecore:^1.0 corporateclean:^1.0 
 
+#The WEBSITE_USERNAME needs to have its roles defined. Drush will apply these roles to the user its created
+#APPLICATION_ROLES:administrator
+
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
-WEBROOT_DIRECTORY:/var/www/html/drupal
-WEBROOT_SUBDIRECTORY:web
+#WEBROOT_DIRECTORY:/var/www/html/drupal
+#WEBROOT_SUBDIRECTORY:web
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup or baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
+#EXCLUDE_FROM_BACKUP:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
 ###################################################################################################################################
-DATABASE_PROFILE:standard
+#DATABASE_PROFILE:standard
 
 
 #--------------------------------------------------------------------------------------
@@ -113,6 +115,9 @@ DATABASE_PROFILE:standard
 #Example 4 - install the corporate theme (https://www.drupal.org/project/corporateclean)
 #DRUPAL_THEMES_TO_INSTALL:basecore:^1.0 corporateclean:^1.0 
 
+#The WEBSITE_USERNAME needs to have its roles defined. Drush will apply these roles to the user its created
+#APPLICATION_ROLES:administrator
+
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
 ######################################################################################################################################################
@@ -133,6 +138,41 @@ DATABASE_PROFILE:standard
 #--------------------------------------------------------------------------------------
 #-----------------------------------DRUPAL CMS-----------------------------------------
 #--------------------------------------------------------------------------------------
+
+#===============================================================================================
+
+#--------------------------------------------------------------------------------------
+#-----------------------------------OPENSOCIAL-----------------------------------------
+#----MAKE SURE ALL THE DRUPAL OPTIONS ABOVE ARE COMMENTED OUT OR THINGS WILL FAIL------
+#--------------------------------------------------------------------------------------
+#3. To install drupal CMS
+#The description of your website as it will appear on your webpage
+WEBSITE_NAME:Vanilla Opensocial CMS Website
+
+APPLICATION_TYPE:opensocial
+
+#(pick which version of opensocial you want to install by uncommenting one of these)
+#OPENSOCIAL_VERSION:goalgorilla/social_template:dev-master
+
+#The WEBSITE_USERNAME needs to have its roles defined. Drush will apply these roles to the user its created
+APPLICATION_ROLES:sitemanager
+
+######################################################################################################################################################
+#This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
+######################################################################################################################################################
+WEBROOT_DIRECTORY:/var/www/html/opensocial
+WEBROOT_SUBDIRECTORY:
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup or baseline here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:opensocial/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:opensocial/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
+
+#########################################################################################################
+# If you are installing a virgin application you can set the database profile to install using drush here
+#########################################################################################################
+DATABASE_PROFILE:social
 
 #===============================================================================================
 
