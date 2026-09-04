@@ -155,7 +155,7 @@ APPLICATION_TYPE:opensocial
 #OPENSOCIAL_VERSION:goalgorilla/social_template:dev-master
 
 #The WEBSITE_USERNAME needs to have its roles defined. Drush will apply these roles to the user its created
-APPLICATION_ROLES:sitemanager
+APPLICATION_ROLES:administrator
 
 ######################################################################################################################################################
 #This sets the webroot of your application. For drupal cms this shouldn't be changed for the application to work properly
