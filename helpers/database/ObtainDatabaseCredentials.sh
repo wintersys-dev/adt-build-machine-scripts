@@ -4,7 +4,8 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
-
+APPLICATION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION`"
+tls_suffix=""
 
 /bin/echo "What is the build identifier you want to obtain database credentials for?"
 /bin/echo "You have these builds to choose from: "
@@ -14,6 +15,11 @@ DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
 if ( [ "${1}" != "" ] )
 then
         BUILD_IDENTIFIER="${1}"         
+
+        if ( [ "${APPLICATION}" = "drupal" ] )
+        then
+                tls_suffix="_notls"
+        fi
 else
         /bin/echo "Please enter the name of the build of the server you wish to connect with"
         read BUILD_IDENTIFIER
@@ -28,8 +34,9 @@ if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environme
 then
         /bin/grep "^DB_NAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_NAME=/Database name: /'
         /bin/grep "^DB_PASSWORD" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_PASSWORD=/Database password: /'
-        /bin/grep "^DB_USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_USERNAME=/Database username: /'
+        /bin/grep "^DB_USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_USERNAME=/Database username: /' -e "s/$/${tls_suffix}/"
 else
         /bin/echo "Database credentials not available"
 fi
+
 /bin/echo "######################################################################################################################################################"
