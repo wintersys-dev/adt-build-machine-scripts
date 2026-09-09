@@ -70,5 +70,5 @@ interactive="`/bin/grep "^INTERACTIVE_APPLICATION_INSTALL" ${BUILD_HOME}/runtime
 
 if ( [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] && [ "${interactive}" = "yes" ] )
 then
-        /bin/sed -i "s/^INTERACTIVE_APPLICATION_INSTALL.*/INTERACTIVE_APPLICATION_INSTALL=no/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+        /bin/sed -i "s/^INTERACTIVE_APPLICATION_INSTALL.*/INTERACTIVE_APPLICATION_INSTALL:no/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
 fi
