@@ -62,7 +62,7 @@ PLUGINS_TO_INSTALL:wp-mail-smtp
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your wordpress application straight away
 #without providing any input
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:no
+INTERACTIVE_APPLICATION_INSTALL:yes
 
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
