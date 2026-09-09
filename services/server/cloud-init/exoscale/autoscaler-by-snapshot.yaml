@@ -37,7 +37,7 @@ write_files:
 runcmd:
   - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
   - '/usr/sbin/locale-gen'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME/installation/Update.sh'
+  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat.gz'
   - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/autoscaler_configuration_settings.dat'
   - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz'
