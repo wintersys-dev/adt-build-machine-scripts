@@ -90,5 +90,9 @@ then
 fi
 
 BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
-interactive="`/bin/grep "^WEBROOT_DIRECTORY" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
+interactive="`/bin/grep "^INTERACTIVE_APPLICATION_INSTALL" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
+if ( [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] && [ "${interactive}" = "yes" ] )
+then
+        /bin/sed -i "s/^INTERACTIVE_APPLICATION_INSTALL.*/INTERACTIVE_APPLICATION_INSTALL=no/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat
+fi
