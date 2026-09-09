@@ -88,3 +88,5 @@ if ( [ "${php_version}" != "" ] )
 then
         ${BUILD_HOME}/helpers/services/SetVariableValue.sh "PHP_VERSION=${php_version}"
 fi
+
+BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
