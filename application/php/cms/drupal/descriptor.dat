@@ -250,6 +250,7 @@ ADDITIONAL_SETTING:$settings["trusted_host_patterns"] = [ preg_quote('XXXXWEBSIT
 #ADDITIONAL_SETTING:$settings["config_sync_directory"] = "XXXXWEBROOT_DIRECTORYXXXX/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default";
 ADDITIONAL_SETTING:$config["system.performance"]["css"]["preprocess"] = FALSE;
 ADDITIONAL_SETTING:$config["system.performance"]["js"]["preprocess"] = FALSE;
-ADDITIONAL_SETTING:$settings["file_private_path"] = "XXXXWEBROOT_DIRECTORYXXXX/private";
+#ADDITIONAL_SETTING:$settings["file_private_path"] = "XXXXWEBROOT_DIRECTORYXXXX/private";
+ADDITIONAL_SETTING:$settings['file_private_path'] = $app_root . '/../private';
 
  
