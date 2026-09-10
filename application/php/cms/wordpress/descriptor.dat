@@ -94,11 +94,6 @@ CONFIG_FILE:/var/www/outside_webroot/wp-config.php
 APPLICATION_INTEGRITY_DIRECTORIES:wp-admin:wp-content:wp-includes
 APPLICATION_INTEGRITY_FILES:index.php:wp-activate.php:wp-blog-header.php:wp-comments-post.php:wp-config-sample.php:wp-cron.php:wp-links-opml.php:wp-load.php:wp-login.php:wp-mail.php:wp-settings.php:wp-signup.php:wp-trackback.php:xmlrpc.php
 
-#########################################################################################################################
-#These next three settings only operate when you deploy in production mode from a temporal backup. They are ignored if you 
-# are deploying from a baseline or making a virgin installation
-########################################################################################################################
-
 #############################################################################################################################################
 #This will only apply for a temporal build not for a baseline build or a virgin build
 #Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/wp-content/uploads
