@@ -56,7 +56,6 @@ DRUPAL_VERSION:drupal/recommended-project:11.4.6
 #Example 4 - install the corporate theme (https://www.drupal.org/project/corporateclean)
 #DRUPAL_THEMES_TO_INSTALL:basecore:^1.0 corporateclean:^1.0 
 
-
 DRUPAL_MODULES_TO_INSTALL:upgrade_status:^4.3
 
 #The WEBSITE_USERNAME needs to have its roles defined. Drush will apply these roles to the user its created
@@ -67,12 +66,6 @@ APPLICATION_ROLES:administrator
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/drupal
 WEBROOT_SUBDIRECTORY:web
-
-####################################################################################################################################
-#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
-#from within your webroot can be excluded from the backup or baseline here. 
-####################################################################################################################################
-EXCLUDE_FROM_BACKUP:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:drupal/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 ###################################################################################################################################
 # If you are installing a virgin application you can set the database profile (for example demo_umami) to install using drush here
@@ -128,12 +121,6 @@ DRUPAL_MODULES_TO_INSTALL:upgrade_status:^4.3
 ######################################################################################################################################################
 #WEBROOT_DIRECTORY:/var/www/html/cms
 #WEBROOT_SUBDIRECTORY:web
-
-####################################################################################################################################
-#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
-#from within your webroot can be excluded from the backup or baseline here. 
-####################################################################################################################################
-#EXCLUDE_FROM_BACKUP:cms/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/settings.php:cms/XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 #########################################################################################################
 # If you are installing a virgin application you can set the database profile to install using drush here
@@ -196,6 +183,19 @@ ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/XXXXWEBROOT_SUBDIRECTORYXXX
 # and the system will action the same thing as ln -s /var/www/outside_webroot/logging XXXXWEBROOT_DIRECTORYXXXX/logging
 ####################################################################################################################################
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the baseline here. 
+####################################################################################################################################
+EXCLUDE_FROM_BASELINE:sites/default/settings.php
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:sites/default/settings.php:XXXXWEBROOT_SUBDIRECTORYXXXX/sites/default/files
 
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a drupal installation. What that means is that if there is a partial
