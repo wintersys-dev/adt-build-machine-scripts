@@ -139,13 +139,13 @@ DIRECTORIES_OUTSIDE_WEBROOT:logs:tmp:cache
 #This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BASELINE:wordpress/wp-config.php
+EXCLUDE_FROM_BASELINE:wp-config.php
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:wordpress/wp-config.php:wordpress/wp-content/uploads
+EXCLUDE_FROM_BACKUP:wp-config.php:wp-content/uploads
 
 ###########################################################################################
 #Here you can list PHP modules that are required by wordpress and the system will install them 
