@@ -322,16 +322,16 @@ LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cach
 ####PHP:fpm = use a socket and not a port
 PHP:cli:fpm|9176
 #---------------------------------------------DATASTORE MOUNT TOOL----------------------------------------------------------------------
-# DATASTOREMOUNTTOOL:s3fs:repo
-# DATASTOREMOUNTTOOL:s3fs:source
-# DATASTOREMOUNTTOOL:goof:binary
-# DATASTOREMOUNTTOOL:goof:source
-# DATASTOREMOUNTTOOL:rclone:repo
-# DATASTOREMOUNTTOOL:rclone:binary
-# DATASTOREMOUNTTOOL:rclone:script
-# DATASTOREMOUNTTOOL:rclone:source
+#DATASTOREMOUNTTOOL:s3fs:repo
+#DATASTOREMOUNTTOOL:s3fs:source
+#DATASTOREMOUNTTOOL:goof:binary
+#DATASTOREMOUNTTOOL:goof:source
+#DATASTOREMOUNTTOOL:rclone:repo
+#DATASTOREMOUNTTOOL:rclone:binary
+#DATASTOREMOUNTTOOL:rclone:script
+#DATASTOREMOUNTTOOL:rclone:source
 DATASTOREMOUNTTOOL:geesefs:binary
-# DATASTOREMOUNTTOOL:geesefs:source
+#DATASTOREMOUNTTOOL:geesefs:source
 
 #---------------------------------------------DATASTORE CONFIG TOOL OPERATION STYLE-------------------------------------------------------
 DATASTORECONFIGSTYLE:tool
