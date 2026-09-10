@@ -49,4 +49,10 @@ then
                         fi
                 fi
         done
+        
+        if ( [ "`/bin/grep "^DATASTOREMOUNTTOOL:" ${BUILD_HOME}/configuration/software.dat`" = "" ] )
+        then
+                #If PERSIST_ASSETS_TO_CLOUD is enabled and no DATASTOREMOUNTTOOL is configured for use default back to the rclone:binary install
+                /bin/sed 's/#DATASTOREMOUNTTOOL:rclone:binary/DATASTOREMOUNTTOOL:rclone:binary/g' ${BUILD_HOME}/configuration/software.dat
+        fi
 fi
