@@ -111,16 +111,21 @@ ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/moodledata|/var/www/outside
 DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
 
 ####################################################################################################################################
-#This tells the system which files or directories to exclude when a backup or baseline is made. Anything that contains sensitive information
-#from within your webroot can be excluded from the backup or baseline here. 
+#This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:moodle/config.php:moodle/moodledata
+EXCLUDE_FROM_BASELINE:config.php
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:config.php:moodledata
 
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
 ######################################################################################################################################################
 CONFIG_FILE:/var/www/html/config.php
-
 
 ###########################################################################################
 #Here you can list PHP modules that are required by moodle and the system will install them 
