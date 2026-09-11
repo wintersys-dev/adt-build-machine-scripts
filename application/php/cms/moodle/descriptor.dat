@@ -125,7 +125,7 @@ EXCLUDE_FROM_BACKUP:config.php:moodledata
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
 ######################################################################################################################################################
-CONFIG_FILE:/var/www/html/config.php
+CONFIG_FILE:/var/www/outside_webroot/config.php
 
 ###########################################################################################
 #Here you can list PHP modules that are required by moodle and the system will install them 
