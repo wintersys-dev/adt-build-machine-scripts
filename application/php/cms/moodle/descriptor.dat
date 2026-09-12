@@ -48,15 +48,6 @@ MOODLE:git-branch:MOODLE_502_STABLE
 ###############################################################################
 REQUIRED_SOFTWARE_LIBRARIES:
 
-####################################################################################################################################
-#filesystem configuration settings
-#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
-#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
-#configuring it in the plugin
-####################################################################################################################################
-#DIRECTORIES_TO_CREATE:logs:tmp:cache:moodledata
-
-
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a moodle installation. What that means is that if there is a partial
 #download or extraction of moodle and some files are missing by using these files to check the intergrity of the installtion we can detect this
@@ -70,12 +61,6 @@ APPLICATION_INTEGRITY_FILES:admin/cli/install.php:public/behat.yml.dist:public/b
 ######################################################################################################################################################
 WEBROOT_DIRECTORY:/var/www/html/moodle
 WEBROOT_SUBDIRECTORY:public
-
-
-#########################################################################################################################
-#These next three settings only operate when you deploy in production mode from a temporal backup. They are ignored if you 
-# are deploying from a baseline or making a virgin installation
-########################################################################################################################
 
 #############################################################################################################################################
 #This will only apply for a temporal build not for a baseline build or a virgin build
