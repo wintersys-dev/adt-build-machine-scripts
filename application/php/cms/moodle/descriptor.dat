@@ -77,38 +77,41 @@ WEBROOT_SUBDIRECTORY:public
 # are deploying from a baseline or making a virgin installation
 ########################################################################################################################
 
-########################################################################################################################
-# WEBROOT_ASSET_DIRECTORIES lists the directories that you want to mount S3 buckets to for increased capacity.
-# Each entry in the : separated list is a different bucket. So, you could, have two buckets mounted into your webroot
-# by setting: WEBROOT_ASSET_DIRECTORIES:images/users:images/system
-# You need to be mindful that if these directories are in your webroot they will be included in any backup you make so you certainly
-# don't want many  GB or more of assets in your backup achive so you need to include these directories in your list of directories
-# to exclude from your backup which you can do by setting for the examples given:
-# EXCLUDE_FROM_BACKUP:joomla/images  or EXCLUDE_FROM_BACKUP:joomla/images/users:joomla/images/system
-# If you configure your webroot assets to be outside of your webroot they won't be stored in your backup because symlinks are ignored by
-# the backup process that runs against your webroot but its still recommended that you add them to your EXCLUDE_FROM_BACKUP: configuration
-# to give you doube protection 
-#########################################################################################################################
-WEBROOT_ASSET_DIRECTORIES:moodledata
+#############################################################################################################################################
+#This will only apply for a temporal build not for a baseline build or a virgin build
+#Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/wp-content/uploads
+#to /var/www/outside_webroot/wp-content/uploads which will be a mountpoint where an S3 bucket is mounted for assets to be offloaded to S3
+#Again, if it is a baseline or a virgin build this setting is ignored. 
+############################################################################################################################################
+ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:moodledata
 
-##############################################################################################################################
-#If you want your assets to be outside of your webroot because that can be easier to manage as for example you might want your
-#webroot to be immutable but your assets directory to be mutable (in other words users can generate files there) then you can 
-#simply set ASSETS_DIRECTORIES_TO_LINK: and that will create a symlink to your assets directory outside of your webroot
-#and so in the example given above that might look like:
-# ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/images/users|/var/www/outside_webroot/images/users:XXXXWEBROOT_DIRECTORYXXXX/images/system|/var/www/outside_webroot/images/system
-###############################################################################################################################
-ASSETS_DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/moodledata|/var/www/outside_webroot/moodledata
+#############################################################################################################################################
+#This will link any directory to a directory outside of the webroot. This is useful from a management point of view meaning that you can link
+#(for example) a directory with logs or a caching directory to a directory outside of your webroot and it will definitely not be included in 
+#the any backups that are made because the backup process doesn't follow symlinks (that said you should still also add it to the 
+#EXCLUDE_FROM_BACKUP setting to be very sure that its not included in any backup process
+#If you had a plugin that requires you create your cache directory under wp-content/cache then you can arrange for the content of that directory
+#to be outside of your webroot for management reasons by setting a value as shown below
+#and that will symlink ${webroot_directory}/wp-content/cache to /var/www/outside-webroot/cache
+#############################################################################################################################################
+DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
 
-###################################################################################################################################
-# This option enables you to link system directories and so on to outside your webroot which makes it easier to manage because you 
-# don't want log files and so on in your baselines and backups and the backup process ignores symlinks and so doesn't archive them
-# and so if you want to have a logging directory accessible from within the webroot but linked to a directory outside of the webroot
-# then you can define a logging directory thus:
-# DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/logging|/var/www/outside_webroot/logging
-# and the system will action the same thing as ln -s /var/www/outside_webroot/logging XXXXWEBROOT_DIRECTORYXXXX/logging
-####################################################################################################################################
-DIRECTORIES_TO_LINK:XXXXWEBROOT_DIRECTORYXXXX/tmp|/var/www/outside_webroot/tmp:XXXXWEBROOT_DIRECTORYXXXX/logs|/var/www/outside_webroot/logs:XXXXWEBROOT_DIRECTORYXXXX/cache|/var/www/outside_webroot/cache
+#################################################################################################################################################
+#directories to be created outside of the webroot that you don't want linked to from with the webroot. You might want to access these directories
+#by setting, for example in your wp-config.php  
+#define('WP_TEMP_DIR', '/var/www/outside_webroot/tmp/');
+#Or if you install a caching plugin that wants to use your filesystem you might want a directory to be created outside the webroot called "cache"
+#that you can point the plugin to such as /var/www/outside_webroot/cache
+#Or for logging you might want to set 
+#define( 'WP_DEBUG_LOG', '/var/www/outside_webroot/logs/debug.log' );
+# So simply setting these values shown below will automatically create these directories for you without any symlinks from with the webroot
+#
+# /var/www/outside_webroot/logs
+# /var/www/outside_webroot/tmp
+# /var/www/outside_webroot/cache
+#
+#################################################################################################################################################
+DIRECTORIES_OUTSIDE_WEBROOT:logs:tmp:cache
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
