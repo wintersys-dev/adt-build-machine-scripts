@@ -64,8 +64,8 @@ WEBROOT_SUBDIRECTORY:public
 
 #############################################################################################################################################
 #This will only apply for a temporal build not for a baseline build or a virgin build
-#Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/wp-content/uploads
-#to /var/www/outside_webroot/wp-content/uploads which will be a mountpoint where an S3 bucket is mounted for assets to be offloaded to S3
+#Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/moodledata
+#to /var/www/outside_webroot/moodledata which will be a mountpoint where an S3 bucket is mounted for assets to be offloaded to S3
 #Again, if it is a baseline or a virgin build this setting is ignored. 
 ############################################################################################################################################
 ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:moodledata
@@ -75,9 +75,10 @@ ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:moodledata
 #(for example) a directory with logs or a caching directory to a directory outside of your webroot and it will definitely not be included in 
 #the any backups that are made because the backup process doesn't follow symlinks (that said you should still also add it to the 
 #EXCLUDE_FROM_BACKUP setting to be very sure that its not included in any backup process
-#If you had a plugin that requires you create your cache directory under wp-content/cache then you can arrange for the content of that directory
-#to be outside of your webroot for management reasons by setting a value as shown below
-#and that will symlink ${webroot_directory}/wp-content/cache to /var/www/outside-webroot/cache
+#If you had a plugin that requires you create youre cache directory under ${webroot_directory}/cache then you can arrange for the content of 
+#that directory to be outside of your webroot for management reasons by setting a value as shown below
+#and that will symlink ${webroot_directory}/cache to /var/www/outside-webroot/cache
+#DIRECTORIES_LINKED_OUTSIDE_WEBROOT:cache
 #############################################################################################################################################
 DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
 
