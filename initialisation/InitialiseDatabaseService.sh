@@ -49,7 +49,7 @@ DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
 
-if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
 then
 	status "You are attempting to provision a managed database in development mode, this isn't supported you need to redeploy in production mode"
 	exit
