@@ -102,13 +102,13 @@ DIRECTORIES_OUTSIDE_WEBROOT:logs:tmp:cache
 #This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BASELINE:config.php
+EXCLUDE_FROM_BASELINE:config.php:tmp
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:config.php:moodledata
+EXCLUDE_FROM_BACKUP:config.php:moodledata:tmp
 
 ########################################################################################################################################################
 #This sets the moodle config file to be outside of the webroot. 
