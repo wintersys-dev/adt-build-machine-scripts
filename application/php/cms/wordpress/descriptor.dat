@@ -99,8 +99,9 @@ APPLICATION_INTEGRITY_FILES:index.php:wp-activate.php:wp-blog-header.php:wp-comm
 #Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/wp-content/uploads
 #to /var/www/outside_webroot/wp-content/uploads which will be a mountpoint where an S3 bucket is mounted for assets to be offloaded to S3
 #Again, if it is a baseline or a virgin build this setting is ignored. 
+#ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:wp-content/uploads
 ############################################################################################################################################
-ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:wp-content/uploads
+ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
 
 #############################################################################################################################################
 #This will link any directory to a directory outside of the webroot. This is useful from a management point of view meaning that you can link
@@ -109,9 +110,10 @@ ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:wp-content/uploads
 #EXCLUDE_FROM_BACKUP setting to be very sure that its not included in any backup process
 #If you had a plugin that requires you create your cache directory under wp-content/cache then you can arrange for the content of that directory
 #to be outside of your webroot for management reasons by setting a value as shown below
-#and that will symlink ${webroot_directory}/wp-content/cache to /var/www/outside-webroot/cache
+#and that will symlink ${webroot_directory}/wp-content/cache to /var/www/outside-webroot/wp-content/cache
+#DIRECTORIES_LINKED_OUTSIDE_WEBROOT:wp-content/cache
 #############################################################################################################################################
-DIRECTORIES_LINKED_OUTSIDE_WEBROOT:wp-content/cache
+DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
 
 #################################################################################################################################################
 #directories to be created outside of the webroot that you don't want linked to from with the webroot. You might want to access these directories
