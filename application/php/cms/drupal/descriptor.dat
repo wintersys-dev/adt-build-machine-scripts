@@ -254,5 +254,6 @@ ADDITIONAL_SETTING:$config["system.performance"]["css"]["preprocess"] = FALSE;
 ADDITIONAL_SETTING:$config["system.performance"]["js"]["preprocess"] = FALSE;
 #ADDITIONAL_SETTING:$settings["file_private_path"] = "XXXXWEBROOT_DIRECTORYXXXX/private";
 ADDITIONAL_SETTING:$settings['file_private_path'] = $app_root . '/../private';
+ADDITIONAL_SETTING:$config['image.settings']['allow_insecure_derivatives'] = FALSE;
 
  
