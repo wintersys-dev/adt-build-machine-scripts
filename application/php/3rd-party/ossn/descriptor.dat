@@ -28,18 +28,10 @@ REQUIRED_SOFTWARE_LIBRARIES:
 #This is the special data directory that will be set in the configuration of open source social network
 DATA_DIRECTORY:/var/www/html/ossn_data
 
-####################################################################################################################################
-#filesystem configuration settings
-#This will create a logging directory a temporary directory and a caching directory outside of the weboot for increased security
-#If you install a filesystem cache plugin at any point then you can use this caching directory to store your cached files/assets by 
-#configuring it in the plugin
-####################################################################################################################################
-DIRECTORIES_TO_CREATE:logs:tmp:ossn_data
-
-####################################################################################################################################
-#This tells the system which files or directories to exclude when a backup or baseline is made
-####################################################################################################################################
-EXCLUDE_FROM_BACKUP:logs:tmp:ossn.config.db.php:ossn.config.site.php
+###############################################################################
+#A list of any libraries that need to be installed for your application to work
+###############################################################################
+REQUIRED_SOFTWARE_LIBRARIES:
   
 #####################################################################################################################################################
 #These settings pick various directories and files which should be present in a ossn installation. What that means is that if there is a partial
@@ -57,8 +49,56 @@ WEBROOT_DIRECTORY:/var/www/html/ossn
 ########################################################################################################################################################
 #This sets the ossn config file(s) to be outside of the webroot. 
 ######################################################################################################################################################
-CONFIG_FILE:/var/www/html/ossn.config.db.php
-CONFIG_FILE_SITE:/var/www/html/ossn.config.site.php
+CONFIG_FILE:/var/www/outside_webroot//ossn.config.db.php
+CONFIG_FILE_SITE:/var/www/outside_webroot//ossn.config.site.php
+
+#############################################################################################################################################
+#This will only apply for a temporal build not for a baseline build or a virgin build
+#Configured as shown and with PERSIST_ASSETS_TO_DATASTORE=1 or 2 the system will create a symlink from ${webroot_directory}/images
+#to /var/www/outside_webroot/images which will be a mountpoint where an S3 bucket is mounted for assets to be offloaded to S3
+#Again, if it is a baseline or a virgin build this setting is ignored. 
+#ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:images
+############################################################################################################################################
+ASSET_DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
+
+#############################################################################################################################################
+#This will link any directory to a directory outside of the webroot. This is useful from a management point of view meaning that you can link
+#(for example) a directory with logs or a caching directory to a directory outside of your webroot and it will definitely not be included in 
+#the any backups that are made because the backup process doesn't follow symlinks (that said you should still also add it to the 
+#EXCLUDE_FROM_BACKUP setting to be very sure that its not included in any backup process
+#If you had a plugin that requires you create your cache directory under ${webroot_directory}/cache then you can arrange for the content of that directory
+#to be outside of your webroot for management reasons by setting a value as shown below
+#and that will symlink ${webroot_directory}/cache to /var/www/outside-webroot/cache
+#DIRECTORIES_LINKED_OUTSIDE_WEBROOT:cache
+#############################################################################################################################################
+DIRECTORIES_LINKED_OUTSIDE_WEBROOT:
+
+#################################################################################################################################################
+#directories to be created outside of the webroot that you don't want linked to from with the webroot. You might want to access these directories
+#by setting, for example in your configuration.php  file
+# log_path='/var/www/outside_webroot/logs'
+# tmp_path='/var/www/outside_webroot/tmp'
+# cache_path='/var/www/outside_webroot/cache'
+# So simply setting these values shown below will automatically create these directories for you without any symlinks from with the webroot
+#
+# /var/www/outside_webroot/logs
+# /var/www/outside_webroot/tmp
+# /var/www/outside_webroot/cache
+#
+#################################################################################################################################################
+DIRECTORIES_OUTSIDE_WEBROOT:logs:tmp:cache
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the baseline here. 
+####################################################################################################################################
+EXCLUDE_FROM_BASELINE:ossn.config.db.php:ossn.config.site.php
+
+####################################################################################################################################
+#This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
+#from within your webroot can be excluded from the backup here. 
+####################################################################################################################################
+EXCLUDE_FROM_BACKUP:ossn.config.db.php:ossn.config.site.php
 
 #####################################################################################################################################################
 #Interactive install or not
