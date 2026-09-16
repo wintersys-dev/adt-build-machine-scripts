@@ -21,7 +21,13 @@
 #####################################################################################
 #set -x
 
-#WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'S3_ACCESS_KEY' | /usr/bin/head -c 12`" 
+WEBSITE_PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'S3_ACCESS_KEY' | /usr/bin/head -c 12`" 
+WEBMASTER_EMAIL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_TO_EMAIL_ADDRESS'`"
+
+if ( [ "${WEBMASTER_EMAIL}" = "" ] )
+then
+        WEBMASTER_EMAIL="changeme@adt-installation-bootstrap.uk"
+fi
 
 if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application ] )
 then
