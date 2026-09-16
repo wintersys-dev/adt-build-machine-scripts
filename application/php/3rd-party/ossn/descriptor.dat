@@ -108,13 +108,13 @@ DIRECTORIES_OUTSIDE_WEBROOT:logs:tmp:cache
 #This tells the system which files or directories to exclude when a baseline is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the baseline here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BASELINE:ossn.config.db.php:ossn.config.site.php
+EXCLUDE_FROM_BASELINE:configurations/ossn.config.db.php:configurations/ossn.config.site.php
 
 ####################################################################################################################################
 #This tells the system which files or directories to exclude when a backup is made. Anything that contains sensitive information
 #from within your webroot can be excluded from the backup here. 
 ####################################################################################################################################
-EXCLUDE_FROM_BACKUP:ossn.config.db.php:ossn.config.site.php
+EXCLUDE_FROM_BACKUP:configurations/ossn.config.db.php:configurations/ossn.config.site.php
 
 #####################################################################################################################################################
 #Interactive install or not
