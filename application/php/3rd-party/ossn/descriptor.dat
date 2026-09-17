@@ -126,7 +126,7 @@ EXCLUDE_FROM_BACKUP:configurations/ossn.config.db.php:configurations/ossn.config
 #If this is set to "no" then the installtion should complete without pausing and you will be able to access your ossn application straight away
 #without providing any input
 #####################################################################################################################################################
-INTERACTIVE_APPLICATION_INSTALL:yes
+INTERACTIVE_APPLICATION_INSTALL:no
 
 ###########################################################################################
 #Here you can list PHP modules that are required by ossn and the system will install them 
