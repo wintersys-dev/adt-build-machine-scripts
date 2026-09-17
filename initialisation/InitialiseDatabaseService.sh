@@ -343,6 +343,14 @@ fi
 				#  db_scope_prefix="private-"
 			fi
 
+			available_engines="`/usr/local/bin/linode-cli databases engines --json | /usr/bin/jq -r '.[].id'`"
+
+            if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
+            then
+            	status "The database engine you have selected is not available please correct and re deploy"
+            	/bin/touch /tmp/END_IT_ALL
+            fi
+
 			if ( [ "${database_type}" = "MySQL" ] )
 			then
 				#We are obviously a MYSQL database type so check if there is an existing database
