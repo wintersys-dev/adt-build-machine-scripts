@@ -20,6 +20,11 @@ else
         read BUILD_IDENTIFIER
 fi
 
+if ( [ "${APPLICATION}" = "ossn" ] )
+then
+        tls_suffix="_notls"
+fi
+
 /bin/echo "######################################################################################################################################################"
 /bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
 /bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"` (try this one first from your application if it timesout, try the public one)"
@@ -27,7 +32,7 @@ fi
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
 then
-        /bin/grep "^DB_NAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_NAME=/Database name: /'
+        /bin/grep "^DB_NAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_NAME=/Database name: /' -e 's/$/'${tls_suffix}'/'
         /bin/grep "^DB_PASSWORD" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_PASSWORD=/Database password: /'
         /bin/grep "^DB_USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_USERNAME=/Database username: /'
 else
