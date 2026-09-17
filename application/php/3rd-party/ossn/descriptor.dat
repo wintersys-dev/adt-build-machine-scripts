@@ -67,8 +67,8 @@ WEBROOT_DIRECTORY:/var/www/html/ossn
 ########################################################################################################################################################
 #This sets the ossn config file(s) to be outside of the webroot. 
 ######################################################################################################################################################
-CONFIG_FILE:/var/www/outside_webroot//ossn.config.db.php
-CONFIG_FILE_SITE:/var/www/outside_webroot//ossn.config.site.php
+CONFIG_FILE:/var/www/outside_webroot/ossn.config.db.php
+CONFIG_FILE_SITE:/var/www/outside_webroot/ossn.config.site.php
 
 #############################################################################################################################################
 #This will only apply for a temporal build not for a baseline build or a virgin build
