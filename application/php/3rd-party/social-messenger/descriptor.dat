@@ -25,7 +25,7 @@ WEBROOT_DIRECTORY:/var/www/html/social-messenger
 ########################################################################################################################################################
 #This sets the social messenger config file(s) to be outside of the webroot. 
 ######################################################################################################################################################
-CONFIG_FILE:/var/www/html/config.php
+CONFIG_FILE:/var/www/outside_webroot/config.php
 
 #############################################################################################################################################
 #This will only apply for a temporal build not for a baseline build or a virgin build
