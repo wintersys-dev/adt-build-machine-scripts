@@ -32,9 +32,9 @@ fi
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
 then
-        /bin/grep "^DB_NAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_NAME=/Database name: /' -e 's/$/'${tls_suffix}'/'
+        /bin/grep "^DB_NAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_NAME=/Database name: /' 
         /bin/grep "^DB_PASSWORD" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed 's/DB_PASSWORD=/Database password: /'
-        /bin/grep "^DB_USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_USERNAME=/Database username: /'
+        /bin/grep "^DB_USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment | /bin/sed -e 's/DB_USERNAME=/Database username: /' -e 's/$/'${tls_suffix}'/'
 else
         /bin/echo "Database credentials not available"
 fi
