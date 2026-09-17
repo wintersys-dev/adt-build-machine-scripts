@@ -6,6 +6,8 @@
 # aim for consistent installation processes which takes some of the potential for error out of the installation process.
 ##########################################################################################################################################
 
+#The name of your website (change this to reflect the name you want your website to have)
+WEBSITE_NAME:ADT Website
 
 #You most likely want to set this to something unique because setting it to something unique is another thing that a hacker doesn't know 
 # where as if it's just webmaster or admin that's easier to guess or assume
