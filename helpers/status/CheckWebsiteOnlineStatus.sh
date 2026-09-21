@@ -28,7 +28,7 @@ checked="0"
 if ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep lynx`" != "" ] )
 then
         checked="1"
-        timeout 23 /usr/bin/lynx -dump -accept_all_cookies https://${ip}:443 2>&1 >/dev/null
+        timeout 23 /usr/bin/lynx -dump -accept_all_cookies https://${ip} 2>&1 >/dev/null
         status="$?"
 fi
 
