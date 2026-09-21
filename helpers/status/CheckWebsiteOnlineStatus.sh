@@ -20,20 +20,27 @@
 ###################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 ip="${1}"
 
-if ( [ "`${HOME}/utilities/config/CheckBuildStyle.sh 'TEXTBROWSER:lynx'`" = "1" ] )
+checked="0"
+if ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep lynx`" != "" ] )
 then
-        /usr/bin/lynx -dump -accept_all_cookies https://${ip}:443 2>&1 >/dev/null
-        if ( [ "$?" = "0" ] )
-        then
-                /bin/echo "success"
-        else
-                /bin/echo "failure"
-        fi
+        checked="1"
+        timeout 23 /usr/bin/lynx -dump -accept_all_cookies https://${ip}:443 2>&1 >/dev/null
+        status="$?"
 fi
 
-if ( [ "`${HOME}/utilities/config/CheckBuildStyle.sh 'TEXTBROWSER:w3m'`" = "1" ] )
+if ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep w3m`" != "" ] )
 then
+        checked="1"
         :
+fi
+
+if ( [ "${status}" = "0" ] && [ "${checked}" = "1" ] )
+then
+        /bin/echo "success"
+else
+        /bin/echo "failure"
 fi
