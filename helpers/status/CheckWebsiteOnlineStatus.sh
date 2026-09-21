@@ -35,7 +35,7 @@ fi
 if ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep w3m`" != "" ] )
 then
         checked="1"
-        :
+        /usr/bin/yes | timeout 23 /usr/bin/w3m -dump -o ssl_verify_server=0  https://10.0.1.3/index.php
 fi
 
 if ( [ "${status}" = "0" ] && [ "${checked}" = "1" ] )
