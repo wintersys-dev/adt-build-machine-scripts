@@ -392,8 +392,8 @@ FIREWALL:ufw
 EMAILUTIL:sendemail
 #EMAILUTIL:ssmtp
 #---------------------------------------------TEXTBROWSER---------------------------------------------------------------------------------
-EMAILUTIL:lynx
-#EMAILUTIL:w3m
+TEXTBROWSER:lynx
+#TEXTBROWSER:w3m
 #---------------------------------------------SSL CERT CLIENT-----------------------------------------------------------------------
 #SSLCERTCLIENT:acme:github.com
 SSLCERTCLIENT:lego:snap
