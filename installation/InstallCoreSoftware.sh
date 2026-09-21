@@ -122,6 +122,8 @@ then
 		${BUILD_HOME}/installation/InstallEmailUtils.sh "ubuntu" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Virus Scanner"
 		${BUILD_HOME}/installation/InstallVirusScanner.sh "ubuntu" >>${upgrade_log} 2>&1 
+		status "Installing/Updating Text Browser"
+		${BUILD_HOME}/installation/InstallTextBrowser.sh "ubuntu" >>${upgrade_log} 2>&1 
 		/bin/touch ${BUILD_HOME}/runtime/EXUPDATEDSOFTWARE
 	elif ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Debian"`" != "" ] )
 	then     
@@ -153,6 +155,8 @@ then
 		${BUILD_HOME}/installation/InstallEmailUtils.sh "debian" >>${upgrade_log} 2>&1 
 		status "Installing/Updating Virus Scanner"
 		${BUILD_HOME}/installation/InstallVirusScanner.sh "debian" >>${upgrade_log} 2>&1 
+		status "Installing/Updating Text Browser"
+		${BUILD_HOME}/installation/InstallTextBrowser.sh "debian" >>${upgrade_log} 2>&1 
 		/bin/touch ${BUILD_HOME}/runtime/EXUPDATEDSOFTWARE
 	fi
 	/bin/touch /root/UPDATEDSOFTWARE
