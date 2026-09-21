@@ -56,14 +56,14 @@ then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
 		eval ${install_command} lynx ${tail_options}
-		/bin/sed -i "s/#FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
-		/bin/sed -i "s/FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
+	#	/bin/sed -i "s/#FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
+#		/bin/sed -i "s/FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
 		eval ${install_command} lynx ${tail_options}
-		/bin/sed -i "s/#FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
-		/bin/sed -i "s/FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
+#		/bin/sed -i "s/#FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
+#		/bin/sed -i "s/FORCE_SSL_PROMPT:PROMPT/FORCE_SSL_PROMPT:YES/" /etc/lynx/lynx.cfg
 	fi
 fi
