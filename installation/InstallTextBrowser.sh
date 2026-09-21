@@ -33,4 +33,7 @@ then
 elif ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep w3m`" != "" ] )
 then
 	${BUILD_HOME}/installation/InstallW3M.sh ${buildos}
+elif ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep elinks`" != "" ] )
+then
+	${BUILD_HOME}/installation/InstallELinks.sh ${buildos}
 fi
