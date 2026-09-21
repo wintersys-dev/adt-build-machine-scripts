@@ -79,6 +79,8 @@
 # FIREALL:iptables:20:30 (20 represents the limit on the number of connections per minute from a single ip address and 30 represenets the burst rate limit)
 # if you want to use fail2ban you can set this will install fail2ban on all your machines
 # FAIL2BAN:<active|inactive>
+# The system needs a text browser for its operation so you can set which one you want to install
+# TEXTBROWSER:<lynx|w3m>
 # You can choose which email utility you want to send your system emails using sendemail or ssmtp
 # EMAILUTIL:<sendemail|ssmtp>
 # You can choose which tool you want to use to generate your ssl certificates
@@ -389,6 +391,9 @@ FIREWALL:ufw
 #---------------------------------------------EMAIL---------------------------------------------------------------------------------
 EMAILUTIL:sendemail
 #EMAILUTIL:ssmtp
+#---------------------------------------------TEXTBROWSER---------------------------------------------------------------------------------
+EMAILUTIL:lynx
+#EMAILUTIL:w3m
 #---------------------------------------------SSL CERT CLIENT-----------------------------------------------------------------------
 #SSLCERTCLIENT:acme:github.com
 SSLCERTCLIENT:lego:snap
