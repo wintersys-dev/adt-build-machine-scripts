@@ -45,8 +45,8 @@ then
 elif ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep elinks`" != "" ] )
 then
         checked="1"
-        error="`/usr/bin/yes | timeout 23 /usr/bin/elinks -dump -o ssl_verify_server=0  https://${website} | /bin/grep 'error'`"
-        /usr/bin/yes | timeout 23 /usr/bin/elinks -dump -o ssl_verify_server=0  https://${website}
+        error="`/usr/bin/yes | timeout 23 /usr/bin/elinks -dump https://${website} | /bin/grep 'error'`"
+        /usr/bin/yes | timeout 23 /usr/bin/elinks -dump https://${website}
         status="$?"
         if ( [ "${error}" != "" ] )
         then
