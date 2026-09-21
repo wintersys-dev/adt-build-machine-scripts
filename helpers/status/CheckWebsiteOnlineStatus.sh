@@ -37,8 +37,13 @@ fi
 if ( [ "`/bin/grep "^TEXTBROWSER:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep w3m`" != "" ] )
 then
         checked="1"
-        /usr/bin/yes | timeout 23 /usr/bin/w3m -dump -o ssl_verify_server=0  https://${website} 2>&1 >/dev/null
+        error="`/usr/bin/yes | timeout 23 /usr/bin/w3m -dump -o ssl_verify_server=0  https://${website} | /bin/grep 'error'`"
+        /usr/bin/yes | timeout 23 /usr/bin/w3m -dump -o ssl_verify_server=0  https://${website}
         status="$?"
+        if ( [ "${error}" != "" ] )
+        then
+                status="1"
+        fi
 fi
 
 if ( [ "${status}" = "0" ] && [ "${checked}" = "1" ] )
