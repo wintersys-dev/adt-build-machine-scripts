@@ -61,9 +61,6 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 #EXTENSION_URL:https://github.com/PhocaCz/PhocaGallery/releases/download/6.1.4/com_phocagallery_v6.1.4.zip
 #EXTENSION_URL:https://www.tassos.gr/tower/download/convert-forms
 
-
-https://github.com/moodleou/moodle-quiz_gradingstudents/archive/refs/heads/main.zip
-
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
