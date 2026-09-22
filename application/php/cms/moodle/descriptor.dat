@@ -43,6 +43,14 @@ MOODLE:git-branch:MOODLE_502_STABLE
 #SOURCECODE_MD5:bacd011fc5427486a0c69a5eb42843aa
 #SOURCECODE_SHA256:4ebd1be6116458672f94c66563fdead8979ffff8573ae0a645b4a625d5c64b70
 
+##################################################################################################################################################
+#URLs to extensions that you want installed by default. These modules will have  to be publically available (no login required to access)
+#If you have purchased an extension that is behind a login to download and you want it automatically installed on your websites you can 
+#upload the sourcecode of your extension to an S3 bucket that you have access to and define the URL to that S3 location here and that
+#extension will then be installed from YOUR S3 location rather than the location of the vendor which is behind a login and therefore inaccessible
+##################################################################################################################################################
+EXTENSION_URL:https://github.com/moodleou/moodle-quiz_gradingstudents/archive/refs/heads/main.zip
+
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
 ###############################################################################
