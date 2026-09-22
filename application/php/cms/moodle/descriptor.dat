@@ -50,9 +50,9 @@ MOODLE:git-branch:MOODLE_502_STABLE
 #extension will then be installed from YOUR S3 location rather than the location of the vendor which is behind a login and therefore inaccessible
 ##################################################################################################################################################
 ACTIVITY_EXTENSION_URL:https://github.com/bycs-lp/moodle-mod_mootimeter/archive/refs/heads/master.zip
-#BLOCKS_EXTENSION_URL:https://github.com/catalyst/moodle-block_multiblock/archive/refs/heads/MOODLE_500_STABLE.zip
+BLOCKS_EXTENSION_URL:https://github.com/bdecentgmbh/moodle-block_timetable/archive/refs/heads/main.zip
 THEMES_EXTENSION_URL:https://github.com/lmsace/academi/archive/refs/heads/v5.2.zip
-#ENROL_EXTENSION_URL:https://github.com/michael-milette/moodle-enrol_invitation/archive/refs/heads/master.zip
+ENROL_EXTENSION_URL:https://github.com/ralferlebach/moodle-enrol_flexaccess/archive/refs/heads/main.zip
 
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
