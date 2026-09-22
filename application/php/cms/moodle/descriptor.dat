@@ -49,7 +49,10 @@ MOODLE:git-branch:MOODLE_502_STABLE
 #upload the sourcecode of your extension to an S3 bucket that you have access to and define the URL to that S3 location here and that
 #extension will then be installed from YOUR S3 location rather than the location of the vendor which is behind a login and therefore inaccessible
 ##################################################################################################################################################
-EXTENSION_URL:https://github.com/moodleou/moodle-quiz_gradingstudents/archive/refs/heads/main.zip
+ACTIVITY_EXTENSION_URL:https://github.com/moodleou/moodle-quiz_gradingstudents/archive/refs/heads/main.zip
+BLOCKS_EXTENSION_URL:
+THEMES_EXTENSION_URL:
+ENROL_EXTENSION_URL:
 
 ###############################################################################
 #A list of any libraries that need to be installed for your application to work
