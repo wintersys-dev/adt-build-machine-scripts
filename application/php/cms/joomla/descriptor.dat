@@ -52,11 +52,12 @@ SOURCECODE_SHA1:5ab47253f669a86e8002e524d8218dfbd79bf88e
 #Example quickstart package from joomshaper which may or may not be a live url by the time you read this it works at the current time
 #SOURCECODE_URL:www.joomshaper.com/downloads/template/helix3/1-quickstart-pack-joomla-6
 
-
+###################################################################################################################################################
 #URLs to extensions that you want installed by default. These modules will have  to be publically available (no login required to access)
 #If you have purchased an extension that is behind a login to download and you want it automatically installed on your websites you can 
 #upload the sourcecode of your extension to an S3 bucket that you have access to and define the URL to that S3 location here and that
 #extension will then be installed from YOUR S3 location rather than the location of the vendor which is behind a login and therefore inaccessible
+####################################################################################################################################################
 #EXTENSION_URL:https://github.com/PhocaCz/PhocaGallery/releases/download/6.1.4/com_phocagallery_v6.1.4.zip
 #EXTENSION_URL:https://www.tassos.gr/tower/download/convert-forms
 
