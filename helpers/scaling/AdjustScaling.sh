@@ -15,5 +15,22 @@ fi
 /bin/echo "Please enter the number of webservers you want to be provisioned and active"
 read no_webservers
 
+case "${no_webservers}" in
+    # Check if empty or contains anything other than digits
+    ''|*[!0-9]*) 
+        /bin/echo "Error: Number of webservers must be a positive integer." 
+		;;
+    *) 
+        # Check if the no_webservers is within the 1-${MAX_WEBSERVERS} range
+        if ( [ "${no_webservers}" -ge "1" ] && [ "${no_webservers}" -le "${MAX_WEBSERVERS}" ] )
+		then
+            /bin/echo "Valid number of webservers set: ${no_webservers}"
+        else
+            /bin/echo "Error: number of webservers must be between 1 and ${MAX_WEBSERVERS}"
+			exit
+        fi
+        ;;
+esac
+#Put the number of webservers into the scaling file
 ${BUILD_HOME}/helpers/scaling/TestIfScalingAllowed.sh
 
