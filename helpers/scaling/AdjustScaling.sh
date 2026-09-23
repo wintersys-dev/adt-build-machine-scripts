@@ -1,3 +1,9 @@
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
+BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
+
+sourcefile="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/scaling.conf"
+
 if ( [ ! -f  ./AdjustScaling.sh ] )
 then
 	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/services subdirectory"
@@ -32,5 +38,7 @@ case "${no_webservers}" in
         ;;
 esac
 #Put the number of webservers into the scaling file
+/bin/echo "${no_webservers}" > ${sourcefile}
+
 ${BUILD_HOME}/helpers/scaling/TestIfScalingAllowed.sh
 
