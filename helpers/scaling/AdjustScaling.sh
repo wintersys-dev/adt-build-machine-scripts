@@ -12,3 +12,8 @@ then
 	exit
 fi
 
+/bin/echo "Please enter the number of webservers you want to be provisioned and active"
+read no_webservers
+
+${BUILD_HOME}/helpers/scaling/TestIfScalingAllowed.sh
+
