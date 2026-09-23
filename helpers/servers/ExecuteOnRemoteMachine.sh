@@ -267,6 +267,7 @@ do
         SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
         SUDO="DEBIAN_FRONTEND=noninteractive /bin/echo ${SERVER_USER_PASSWORD} | /usr/bin/sudo -S "
         SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
+        ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
         MACHINE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/${machine_type}_${MACHINE_IP}keys"
 
         if ( [ ! -f ${MACHINE_PUBLIC_KEYS} ] )
@@ -279,13 +280,6 @@ do
                 /bin/echo "Couldn't initiate ssh key scan please try again (make sure the machine is online"
                 /bin/rm ${MACHINE_PUBLIC_KEYS}
                 exit
-        fi
-
-        if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
-        then
-                ALGORITHM="rsa"
-        else
-                ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
         fi
 
         /bin/echo
