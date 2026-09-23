@@ -1,6 +1,8 @@
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
+REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
+
 
 sourcefile="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/scaling.conf"
 
@@ -37,6 +39,10 @@ case "${no_webservers}" in
         fi
         ;;
 esac
+
+no_autoscalers="`${BUILD_HOME}/services/server/NumberOfServers.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`"
+
+
 #Put the number of webservers into the scaling file
 /bin/echo "${no_webservers}" > ${sourcefile}
 
