@@ -40,11 +40,41 @@ case "${no_webservers}" in
         ;;
 esac
 
+if ( [ -f ${sourcefile} ] )
+then
+	/bin/rm ${sourcefile}
+fi
+
+start_index="1"
 no_autoscalers="`${BUILD_HOME}/services/server/NumberOfServers.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`"
 
+span="`/usr/bin/expr ${no_webservers} - ${start_index} + 1`"
+base="`/usr/bin/expr ${span} / ${no_autoscalers}`"
+remainder="`/usr/bin/expr ${span} % ${no_autoscalers}`"
 
-#Put the number of webservers into the scaling file
-/bin/echo "${no_webservers}" > ${sourcefile}
+current_start="${start_index}"
+count="0"
+
+while ( [ "${count}" -lt "${no_autoscalers}" ] )
+do
+    if ( [ "${count}" -lt "${remainder}" ] )
+    then
+        current_size="`/usr/bin/expr ${base} + 1`"
+    else
+        current_size="${base}"
+    fi
+
+    if ( [ "${current_size}" -gt "0" ] )
+    then
+        current_end="`/usr/bin/expr ${current_start} + ${current_size}`"
+        /bin/echo "Autoscaler `/usr/bin/expr ${count} + 1` is responsible for provisioning `/usr/bin/expr ${current_end} - ${current_start}` webservers" >> ${sourcefile}
+        current_start="`/usr/bin/expr ${current_end} + 1`"
+    fi
+
+    count="`/usr/bin/expr ${count} + 1`"
+done
+
+
 
 ${BUILD_HOME}/helpers/scaling/TestIfScalingAllowed.sh
 
