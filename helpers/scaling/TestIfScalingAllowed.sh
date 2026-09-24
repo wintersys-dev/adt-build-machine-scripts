@@ -15,14 +15,6 @@ machine_type_token="as"
 
 ip="${1}"
 
-if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/scaling.conf ] )
-then
-        exit
-else
-        sourcefile="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/scaling/scaling.conf"
-        /bin/cp ${sourcefile} ${sourcefile}-incoming
-fi
-
 MACHINE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/${machine_type}_${ip}keys"
 
 if ( [ ! -f ${MACHINE_PUBLIC_KEYS} ] )
