@@ -104,7 +104,7 @@ do
         fi
 done
 
-if ( [ "`/usr/bin/wc -l ${authorised_to_scale_file}`" = "${no_autoscalers}" ] )
+if ( [ "`/usr/bin/wc -l ${authorised_to_scale_file} | /usr/bin/awk '{print $1}'`" = "${no_autoscalers}" ] )
 then
         for ip in `/bin/cat ${authorised_to_scale_file}`
         do
