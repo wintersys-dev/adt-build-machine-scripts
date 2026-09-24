@@ -40,8 +40,8 @@ case "${no_webservers}" in
         exit
         ;;
 *) 
-        # Check if the no_webservers is within the 1-${MAX_WEBSERVERS} range
-        if ( [ "${no_webservers}" -ge "1" ] && [ "${no_webservers}" -le "${MAX_WEBSERVERS}" ] )
+        # Check if the no_webservers is within the 0-${MAX_WEBSERVERS} range
+        if ( [ "${no_webservers}" -ge "0" ] && [ "${no_webservers}" -le "${MAX_WEBSERVERS}" ] )
         then
                 /bin/echo "Valid number of webservers set: ${no_webservers}"
         else
@@ -75,7 +75,7 @@ do
                 current_size="${base}"
         fi
 
-        if ( [ "${current_size}" -gt "0" ] )
+        if ( [ "${current_size}" -ge "0" ] )
         then
                 current_end="`/usr/bin/expr ${current_start} + ${current_size}`"
                 /bin/echo "Autoscaler `/usr/bin/expr ${count} + 1` is responsible for provisioning `/usr/bin/expr ${current_end} - ${current_start}` webservers" >> ${sourcefile}
