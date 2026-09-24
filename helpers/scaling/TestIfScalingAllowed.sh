@@ -2,6 +2,8 @@
 
 #set -x
 
+ip="${1}"
+
 machine_type="autoscaler"
 machine_type_token="as"
 
@@ -13,8 +15,6 @@ MACHINE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys
 ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 MACHINE_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/${machine_type}_${ip}keys"
-
-ip="${1}"
 
 if ( [ ! -f ${MACHINE_PUBLIC_KEYS} ] )
 then
