@@ -60,7 +60,7 @@ PLUGINS_TO_INSTALL:wp-mail-smtp
 #value of "secret-login" here then you would go to <website-url>/secret-login to access your admin area rather
 #than <website-url>/wp-admin
 #############################################################################################################
-HIDDEN_ADMIN_LOGIN:secret
+#HIDDEN_ADMIN_LOGIN:secret
 
 #####################################################################################################################################################
 #Interactive install or not
