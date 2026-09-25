@@ -54,6 +54,14 @@ WORDPRESS_LOCALE:
 ############################################################################################################
 PLUGINS_TO_INSTALL:wp-mail-smtp
 
+
+#############################################################################################################
+#You can set up a secret login URL for your admin area here, this makes it harder for hackers. If you set a 
+#value of "secret-login" here then you would go to <website-url>/secret-login to access your admin area rather
+#than <website-url>/wp-admin
+#############################################################################################################
+HIDDEN_ADMIN_LOGIN:secret
+
 #####################################################################################################################################################
 #Interactive install or not
 #If this is set to "yes" then during installation the build will pause until you navigate to your website and enter database credentials and so on.
