@@ -49,7 +49,8 @@ then
 fi
 
 export DEBIAN_FRONTEND=noninteractive 
-install_command="${manager} ${options} install "  
+install_command="${manager} ${options} install "
+update_command="${manager} ${options} update "
 
 if ( [ "${manager}" != "" ] )
 then
