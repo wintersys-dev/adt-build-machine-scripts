@@ -267,7 +267,7 @@ then
 	user_data="--metadata.user_data ${cloud_config}"	
 
 
-	#ansible-playbook -i ${HOME}/inventory.ini deploy.yml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id}"
+	#ansible-playbook -i ${HOME}/services/server/ansible/linode/inventory.ini ${HOME}/deploy.yml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id}"
 
 	if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
 	then
