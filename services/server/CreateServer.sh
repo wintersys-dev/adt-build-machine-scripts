@@ -266,6 +266,11 @@ then
 
 	user_data="--metadata.user_data ${cloud_config}"	
 
+	#Build with linode-cli as normal
+	#swap to linode-api:ansible in the software.dat file
+	#Install ansible
+	#run this script with the linode-cli parts commented out and see how ansible gets on
+	#If it works, then, work out how to get the varaibles defined above using ansible
 
 	#ansible-playbook -i ${HOME}/services/server/ansible/linode/inventory.ini ${HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id}"
 
