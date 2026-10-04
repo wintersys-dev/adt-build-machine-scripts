@@ -1,0 +1,22 @@
+---
+- name: Get Linode VPC ID natively
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vpc_name: "my-target-vpc"  # Replace with your actual VPC name
+
+  tasks:
+    - name: Gather information about Linode VPCs
+      linode.cloud.vpc_info:
+        # api_token: "{{ lookup('ansible.builtin.env', 'LINODE_API_TOKEN') }}" # Optional if already set in environment
+      register: vpcs_list
+
+    - name: Extract the specific VPC ID by matching the label
+      ansible.builtin.set_fact:
+        vpc_id: "{{ (vpcs_list.vpcs | selectattr('label', 'equalto', vpc_name) | first).id }}"
+      # Fails gracefully if the VPC name is not found in the list
+      failed_when: vpc_id is undefined
+
+    - name: Display the retrieved VPC ID
+      ansible.builtin.debug:
+        msg: "The ID for VPC '{{ vpc_name }}' is: {{ vpc_id }}"
