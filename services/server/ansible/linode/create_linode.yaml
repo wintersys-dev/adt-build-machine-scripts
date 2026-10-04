@@ -11,6 +11,9 @@
         type: "{{ server_size }}"
         image: "{{ image }}"
         root_pass: "{{ emergency_password }}"
+        encrypt_disk: true
+        metadata:
+          user_data: "{{ lookup('ansible.builtin.file', 'path/to/cloud-config.yaml') | b64encode }}"
         interfaces:
           - purpose: public
             firewall_id: "{{ firewall_id | int }}"
