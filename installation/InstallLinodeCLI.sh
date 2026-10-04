@@ -103,7 +103,6 @@ then
         	/usr/bin/pipx install linode-api
 			ansible-galaxy collection install linode.cloud
 			ansible-galaxy collection install ansible.utils
-        fi
 		fi
 	fi
 fi
