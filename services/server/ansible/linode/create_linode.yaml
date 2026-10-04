@@ -1,0 +1,42 @@
+---
+- name: Provision Linode Infrastructure
+  hosts: localhost
+  gather_facts: false
+  vars:
+    server_name: "my-app-server"
+    region: "us-east"
+    server_size: "g6-standard-2"
+    image: "linode/ubuntu22.04"
+    emergency_password: "SuperSecretPassword123!"
+    firewall_id: 12345
+    subnet_id: 67890
+
+  tasks:
+    - name: Create Linode instance with custom interfaces
+      linode.cloud.instance:
+        label: "{{ server_name }}"
+        region: "{{ region }}"
+        type: "{{ server_size }}"
+        image: "{{ image }}"
+        root_pass: "{{ emergency_password }}"
+        interfaces:
+          - purpose: public
+            firewall_id: "{{ firewall_id | int }}"
+            primary: true
+            ipv4:
+              vpc_nat_1_1: auto
+          - purpose: vpc
+            subnet_id: "{{ subnet_id | int }}"
+            ipv4:
+              address: auto
+      register: linode_instance
+
+    - name: Print Full Network Routing Information
+      ansible.builtin.debug:
+        msg:
+          - "----------------- IPv4 ALLOCATIONS -----------------"
+          - "Public IPv4:       {{ linode_instance.instance.ipv4 | select('ansible.utils.ip', 'public') | list }}"
+          - "Private/VPC IPv4:  {{ linode_instance.instance.ipv4 | select('ansible.utils.ip', 'private') | list }}"
+          - "----------------- IPv6 ALLOCATIONS -----------------"
+          - "Public IPv6 SLAAC: {{ linode_instance.instance.ipv6 }}"
+          - "Link-Local IPv6:   fe80::{{ (linode_instance.instance.ipv6.split('::')[1] | default('')) if linode_instance.instance.ipv6 else 'Pending' }}"
