@@ -49,7 +49,6 @@ then
 fi
 
 export DEBIAN_FRONTEND=noninteractive 
-add_repository_command="/usr/bin/add-apt-repository -y "
 install_command="${manager} ${options} install "
 update_command="${manager} ${options} update "
 
@@ -58,17 +57,13 @@ then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
     	eval ${update_command}
-    	eval ${install_command} software-properties-common
-    	eval ${add_repository_command} --yes --update ppa:ansible/ansible
-    	eval ${install_command} ansible
+    	eval ${install_command} ansible-core
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-    	UBUNTU_CODENAME=resolute
-    	/usr/bin/wget -O- "https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=get&search=0x6125E2A8C77F2818FB7BD15B93C4A3FD7BB9C367" | /usr/bin/gpg --dearmor -o /usr/share/keyrings/ansible-archive-keyring.gpg
-    	/bin/echo "deb [signed-by=/usr/share/keyrings/ansible-archive-keyring.gpg] http://ppa.launchpad.net/ansible/ansible/ubuntu ${UBUNTU_CODENAME} main" | sudo /usr/bin/tee /etc/apt/sources.list.d/ansible.list
-    	/usr/bin/apt update && /usr/bin/apt install ansible	
+    	eval ${update_command}
+		eval ${install_command} ansible-core
   	fi
 fi
 
