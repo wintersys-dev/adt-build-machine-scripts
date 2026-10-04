@@ -68,7 +68,7 @@ then
     	UBUNTU_CODENAME=resolute
     	/usr/bin/wget -O- "https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=get&search=0x6125E2A8C77F2818FB7BD15B93C4A3FD7BB9C367" | /usr/bin/gpg --dearmor -o /usr/share/keyrings/ansible-archive-keyring.gpg
     	/bin/echo "deb [signed-by=/usr/share/keyrings/ansible-archive-keyring.gpg] http://ppa.launchpad.net/ansible/ansible/ubuntu ${UBUNTU_CODENAME} main" | sudo /usr/bin/tee /etc/apt/sources.list.d/ansible.list
-    	/usr/bin/apt update && sudo apt install ansible	
+    	/usr/bin/apt update && /usr/bin/apt install ansible	
   	fi
 fi
 
