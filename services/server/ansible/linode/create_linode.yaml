@@ -13,7 +13,9 @@
         root_pass: "{{ emergency_password }}"
         encrypt_disk: true
         metadata:
-          user_data: "{{ lookup('ansible.builtin.file', 'path/to/cloud-config.yaml') | b64encode }}"
+        #  user_data: "{{ lookup('ansible.builtin.file', cloud_config_path) | b64encode }}"
+           user_data: "{{ lookup('ansible.builtin.file', cloud_config_path) | b64encode }}"
+
         interfaces:
           - purpose: public
             firewall_id: "{{ firewall_id | int }}"
