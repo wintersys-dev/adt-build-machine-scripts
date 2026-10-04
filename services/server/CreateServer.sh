@@ -272,7 +272,7 @@ then
 	#run this script with the linode-cli parts commented out and see how ansible gets on
 	#If it works, then, work out how to get the varaibles defined above using ansible
 
-	#ansible-playbook -i ${HOME}/services/server/ansible/linode/inventory.ini ${HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id}"
+	#ansible-playbook -i ${HOME}/services/server/ansible/linode/inventory.ini ${HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config}"
 
 	if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
 	then
