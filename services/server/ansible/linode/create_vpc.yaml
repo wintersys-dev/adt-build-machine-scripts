@@ -1,0 +1,26 @@
+---
+- name: Create Linode VPC and Subnet Natively
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Replace these or pass them via --extra-vars at runtime
+    vpc_name: "my-target-vpc"
+    region: "us-east"
+    vpc_ip_range: "10.0.0.0/24"
+
+  tasks:
+    - name: Provision a new VPC with a sub-network
+      linode.cloud.vpc:
+        label: "{{ vpc_name }}"
+        region: "{{ region }}"
+        subnets:
+          - label: "adt-subnet"
+            ipv4: "{{ vpc_ip_range }}"
+        state: present
+      register: vpc_creation_result
+
+    - name: Display the newly created VPC details
+      ansible.builtin.debug:
+        msg: 
+          - "VPC ID: {{ vpc_creation_result.vpc.id }}"
+          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}"
