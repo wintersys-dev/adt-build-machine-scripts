@@ -2,14 +2,6 @@
 - name: Provision Linode Infrastructure
   hosts: localhost
   gather_facts: false
-  vars:
-    server_name: "my-app-server"
-    region: "us-east"
-    server_size: "g6-standard-2"
-    image: "linode/ubuntu22.04"
-    emergency_password: "SuperSecretPassword123!"
-    firewall_id: 12345
-    subnet_id: 67890
 
   tasks:
     - name: Create Linode instance with custom interfaces
