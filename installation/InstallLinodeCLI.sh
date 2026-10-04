@@ -96,7 +96,7 @@ then
   				/usr/bin/pipx ensurepath
 				/usr/bin/ln -s /root/.local/bin/linode-cli /usr/local/bin/linode-cli
 			fi
-		elif ( [ "`/bin/grep "^CLOUDCLITOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep CLOUDCLITOOL:linode-cli:ansible`" != "" ] )
+		elif ( [ "`/bin/grep "^CLOUDCLITOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep CLOUDCLITOOL:linode-api:ansible`" != "" ] )
         then
 			#make this work on ubuntu too and ansible is always being installed need to make it so that ansible is only installed when needed
         	eval ${install_command} pipx ${tail_options}
