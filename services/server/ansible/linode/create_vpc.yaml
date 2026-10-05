@@ -1,35 +1,54 @@
 ---
-- name: Create Linode VPC and Subnet Natively
+- name: Provision Linode VPC and Subnetwork
   hosts: localhost
+  connection: local
   gather_facts: false
+  
   vars:
-    # Replace these or pass them via --extra-vars at runtime
-    vpc_name: "my-target-vpc"
-    region: "us-east"
-    vpc_ip_range: "10.0.0.0/24"
+    # CRITICAL: Forces local execution to use your pipx virtualenv with 'polling'
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    
+    # Configuration Details
+    vpc_label: "production-vpc"
+    vpc_region: "gb-lon"  # Change to your preferred Linode region
+    vpc_desc: "Main infrastructure VPC created via Ansible"
+    
+    subnetwork_label: "frontend-subnet"
+    subnetwork_ipv4: "10.0.1.0/24"
+    subnetwork_desc: "Subnet for application servers"
 
   tasks:
-    - name: Provision a new VPC with a sub-network
+    - name: Create a Linode VPC
       linode.cloud.vpc:
-        label: "{{ vpc_name }}"
-        region: "{{ region }}"
-        subnets:
-          - label: "adt-subnet"
-            ipv4: "{{ vpc_ip_range }}"
+        api_token: "{{ linode_api_token }}"
+        label: "{{ vpc_label }}"
+        region: "{{ vpc_region }}"
+        description: "{{ vpc_desc }}"
         state: present
-      register: vpc_creation_result
 
-    #- name: Export clean variables to a local environment file
-    #  ansible.builtin.copy:
-    #    content: |
-    #      PUBLIC_IP={{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}
-    #      PRIVATE_IP={{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}
-    #    dest: "{{ server_ips_file }}"
-    #  delegate_to: localhost
-    #  changed_when: false
+    - name: Look up my Linode VPC
+      linode.cloud.vpc_info:
+        api_token: "{{ linode_api_token }}"
+        label: "{{ vpc_label }}"
+      register: vpc_results
 
-    - name: Display the newly created VPC details
-      ansible.builtin.debug:
-        msg: 
-          - "VPC ID: {{ vpc_creation_result.vpc.id }}"
-          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}" 
+    - name: Fail if the VPC was not found
+      fail:
+        msg: "VPC with label '{{ vpc_label }}' could not be found."
+      when: vpc_results.vpc is not defined or not vpc_results.vpc
+
+    - name: Set VPC ID as a fact
+      set_fact:
+        my_vpc_id: "{{ vpc_results.vpc.id }}"
+
+    - name: Display the VPC ID
+      debug:
+        msg: "The ID for VPC '{{ vpc_label }}' is {{ my_vpc_id }}"
+
+    - name: Create the Subnetwork inside the VPC
+      linode.cloud.vpc_subnet:
+        api_token: "{{ linode_api_token }}"
+        vpc_id: "{{ my_vpc_id }}"
+        label: "{{ subnetwork_label }}"
+        ipv4: "{{ subnetwork_ipv4 }}"
+        state: present
