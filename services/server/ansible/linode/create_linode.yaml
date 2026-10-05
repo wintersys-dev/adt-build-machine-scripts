@@ -33,38 +33,11 @@
               ipv4: true
       register: linode_instance
 
-
- #   - name: Dump the full returned dictionary to the screen
- #     ansible.builtin.debug:
- #       var: linode_instance
-    - name: Display Instance IP Information
-      ansible.builtin.debug:
-        msg:
-          - "Public IP (NAT 1:1):  {{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}"
-          - "Private VPC IP:       {{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
----
-- name: Create Linode VPC and Subnet Natively
-  hosts: localhost
-  gather_facts: false
-  vars:
-    # Replace these or pass them via --extra-vars at runtime
-    vpc_name: "my-target-vpc"
-    region: "us-east"
-    vpc_ip_range: "10.0.0.0/24"
-
-  tasks:
-    - name: Provision a new VPC with a sub-network
-      linode.cloud.vpc:
-        label: "{{ vpc_name }}"
-        region: "{{ region }}"
-        subnets:
-          - label: "adt-subnet"
-            ipv4: "{{ vpc_ip_range }}"
-        state: present
-      register: vpc_creation_result
-
-    - name: Display the newly created VPC details
-      ansible.builtin.debug:
-        msg: 
-          - "VPC ID: {{ vpc_creation_result.vpc.id }}"
-          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}"
+    - name: Export clean variables to a local environment file
+      ansible.builtin.copy:
+        content: |
+          PUBLIC_IP="{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}"
+          PRIVATE_IP="{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+        dest: "{{ server_ips_file }}"
+      delegate_to: localhost
+      changed_when: false
