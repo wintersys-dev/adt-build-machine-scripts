@@ -41,3 +41,31 @@
         dest: "{{ server_ips_file }}"
       delegate_to: localhost
       changed_when: false
+
+#need to test if the build machine is outside the VPC and also parameterise 1035
+    - name: Pause until the custom port is open
+      ansible.builtin.wait_for:
+        host: "{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+        port: 1035
+        state: started
+        timeout: 300
+
+    - name: Fetch SSH host keys from remote machine and add to known_hosts
+      ansible.builtin.shell: |
+        ssh-keyscan -p 1035 -H {{  linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }} >> ~/.ssh/known_hosts
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Pause until file exists on the new remote instance
+      ansible.builtin.wait_for:
+        path: "/home/{{ server_user }}/runtime/WEBSERVER_READY"
+        state: present
+        timeout: 1200
+      delegate_to: "{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+      remote_user: "{{ server_user }}" 
+      vars:
+        ansible_port: 1035
+
+    - name: Continue with next task
+      ansible.builtin.debug:
+        msg: "The file exists on the remote target. Continuing..."
