@@ -1,12 +1,17 @@
 ---
+# ==========================================
+# PLAY 1: Provision Infrastructure (Localhost)
+# ==========================================
 - name: Provision Linode Infrastructure
   hosts: localhost
   gather_facts: false
+  vars:
+    user_data_path: "{{ path_to_user_data }}"
 
   tasks:
     - name: Create Linode instance with custom interfaces
       linode.cloud.instance:
-        state: present 
+        state: present
         api_token: "{{ linode_api_token }}"
         label: "{{ server_name }}"
         region: "{{ region }}"
@@ -16,19 +21,16 @@
         disk_encryption: enabled
         metadata:
           user_data: "{{ lookup('ansible.builtin.file', user_data_path) }}"
-        # 1. Enable modern interface object generation
         interface_generation: linode
-        
-        # 2. Structural conversion of your custom --interfaces JSON payload
         linode_interfaces:
           - vpc:
-              subnet_id: "{{ subnet_id | int }}"
+              subnet_id: "{{ subnet_id }}"
               ipv4:
                 addresses:
                   - address: auto
                     primary: true
-                    nat_1_1_address: auto   # <-- This automatically provisions your ONE allowed public IP
-            firewall_id: "{{ firewall_id | int }}"
+                    nat_1_1_address: auto
+            firewall_id: "{{ firewall_id }}"
             default_route:
               ipv4: true
       register: linode_instance
@@ -42,8 +44,16 @@
       delegate_to: localhost
       changed_when: false
 
-#need to test if the build machine is outside the VPC and also parameterise 1035
-    - name: Pause until the custom port is open
+    - name: Add newly created host dynamically to memory inventory
+      ansible.builtin.add_host:
+        name: "{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+        groups: newly_created_vms
+        ansible_port: 1035
+        ansible_user: "{{ server_user }}"
+        ansible_ssh_private_key_file: "{{ build_key }}"
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Pause until the custom port is open (Using Private IP)
       ansible.builtin.wait_for:
         host: "{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
         port: 1035
@@ -52,20 +62,35 @@
 
     - name: Fetch SSH host keys from remote machine and add to known_hosts
       ansible.builtin.shell: |
-        ssh-keyscan -p 1035 -H {{  linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }} >> ~/.ssh/known_hosts
+        ssh-keyscan -p 1035 -H {{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }} >> ~/.ssh/known_hosts
       delegate_to: localhost
       changed_when: true
 
-    - name: Pause until file exists on the new remote instance
-      ansible.builtin.wait_for:
-        path: "/home/{{ server_user }}/runtime/WEBSERVER_READY"
-        state: present
-        timeout: 1200
-      delegate_to: "{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
-      remote_user: "{{ server_user }}" 
-      vars:
-        ansible_port: 1035
+# ==========================================
+# PLAY 2: Verify Remote Installation Success
+# ==========================================
+
+- name:  Verify Remote Installation Success
+  hosts: newly_created_vms
+  gather_facts: false
+
+  tasks:
+    - name: Use RAW ssh shell loop (No python required on remote machine)
+      ansible.builtin.raw: |
+        timeout=1200
+        elapsed=0
+        count=0
+        while [ ! -f "/home/{{ ansible_user }}/runtime/WEBSERVER_READY" ]; do
+          if [ $elapsed -ge $timeout ]; then
+            echo "Timeout waiting for file" >&2
+            exit 1
+          fi
+          echo "Report ${count} : File /home/{{ ansible_user }}/runtime/WEBSERVER_READY not yet generated on your new machine I will pause for 60 seconds and try again up to a maximum of 20 minutes"
+          sleep 20
+          elapsed=$((elapsed + 20))
+          count=$((count + 1))
+        done
 
     - name: Continue with next task
       ansible.builtin.debug:
-        msg: "The file exists on the remote target. Continuing..."
+        msg: "The marker file indicating that the machine has correctly provisioned has been found...Continuing"
