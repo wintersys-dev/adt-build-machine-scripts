@@ -266,19 +266,16 @@ then
 
         user_data="--metadata.user_data ${cloud_config}"
 
-        #Build with linode-cli as normal
-        #swap to linode-api:ansible in the software.dat file
-        #Install ansible
-        #run this script with the linode-cli parts commented out and see how ansible gets on
-        #If it works, then, work out how to get the varaibles defined above using ansible
-
         ansible-galaxy collection install linode.cloud
         ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/install_python_sdk.yaml
         pipx inject ansible linode-api4 --force
         pipx inject ansible ansible-specdoc --force
-        #ANSIBLE_STDOUT_CALLBACK=ansible.posix.json ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`" 
-        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=`/bin/echo ${image} | /bin/sed 's/.*image //g'` emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`" 
+        linode_api_token="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
+        image="`/bin/echo ${image} | /bin/sed 's/.*image //g'`"
+        server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
+        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_ips_file=${server_ips_file}"
 
+        /bin/cat ${server_ips_file}
 
         #ansible_python_interpreter=~/.local/share/pipx/venvs/ansible/bin/python"
 
