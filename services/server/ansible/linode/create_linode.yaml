@@ -1,0 +1,70 @@
+---
+- name: Provision Linode Infrastructure
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Create Linode instance with custom interfaces
+      linode.cloud.instance:
+        state: present 
+        api_token: "{{ linode_api_token }}"
+        label: "{{ server_name }}"
+        region: "{{ region }}"
+        type: "{{ server_size }}"
+        image: "{{ image }}"
+        root_pass: "{{ emergency_password }}"
+        disk_encryption: enabled
+        metadata:
+          user_data: "{{ lookup('ansible.builtin.file', user_data_path) }}"
+        # 1. Enable modern interface object generation
+        interface_generation: linode
+        
+        # 2. Structural conversion of your custom --interfaces JSON payload
+        linode_interfaces:
+          - vpc:
+              subnet_id: "{{ subnet_id | int }}"
+              ipv4:
+                addresses:
+                  - address: auto
+                    primary: true
+                    nat_1_1_address: auto   # <-- This automatically provisions your ONE allowed public IP
+            firewall_id: "{{ firewall_id | int }}"
+            default_route:
+              ipv4: true
+      register: linode_instance
+
+
+ #   - name: Dump the full returned dictionary to the screen
+ #     ansible.builtin.debug:
+ #       var: linode_instance
+    - name: Display Instance IP Information
+      ansible.builtin.debug:
+        msg:
+          - "Public IP (NAT 1:1):  {{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}"
+          - "Private VPC IP:       {{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+---
+- name: Create Linode VPC and Subnet Natively
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Replace these or pass them via --extra-vars at runtime
+    vpc_name: "my-target-vpc"
+    region: "us-east"
+    vpc_ip_range: "10.0.0.0/24"
+
+  tasks:
+    - name: Provision a new VPC with a sub-network
+      linode.cloud.vpc:
+        label: "{{ vpc_name }}"
+        region: "{{ region }}"
+        subnets:
+          - label: "adt-subnet"
+            ipv4: "{{ vpc_ip_range }}"
+        state: present
+      register: vpc_creation_result
+
+    - name: Display the newly created VPC details
+      ansible.builtin.debug:
+        msg: 
+          - "VPC ID: {{ vpc_creation_result.vpc.id }}"
+          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}"
