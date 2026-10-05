@@ -1,0 +1,10 @@
+---
+- name: Configure Pipx Ansible Environment with Linode Dependencies
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Ensure the core Ansible package is installed via pipx
+      community.general.pipx:
+        name: ansible
+        state: present
+        install_deps: true # Installs all foundational ansible binaries
