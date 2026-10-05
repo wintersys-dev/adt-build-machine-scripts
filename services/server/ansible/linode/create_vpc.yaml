@@ -23,4 +23,4 @@
       ansible.builtin.debug:
         msg: 
           - "VPC ID: {{ vpc_creation_result.vpc.id }}"
-          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}"
+          - "Subnet ID: {{ vpc_creation_result.vpc.subnets[0].id }}" 
