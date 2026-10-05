@@ -36,8 +36,8 @@
     - name: Export clean variables to a local environment file
       ansible.builtin.copy:
         content: |
-          PUBLIC_IP="{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}"
-          PRIVATE_IP="{{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}"
+          PUBLIC_IP={{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].nat_1_1_address }}
+          PRIVATE_IP={{ linode_instance.linode_interfaces[0].vpc.ipv4.addresses[0].address }}
         dest: "{{ server_ips_file }}"
       delegate_to: localhost
       changed_when: false
