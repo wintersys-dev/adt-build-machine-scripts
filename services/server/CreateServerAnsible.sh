@@ -45,6 +45,7 @@ ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
 SERVER_USER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER`"
 OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
+BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 
 if ( [ "`/bin/echo ${server_name} | /bin/grep -E "\-as-"`" != "" ] )
 then
@@ -276,21 +277,10 @@ then
         image="`/bin/echo ${image} | /bin/sed 's/.*image //g'`"
         server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
         webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
-        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_user=${SERVER_USER} server_ips_file=${server_ips_file}"
-        #ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_ips_file=${server_ips_file} webserver_ready_file=${webserver_ready_file}"
+        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} path_to_user_data=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_user=${SERVER_USER} server_ips_file=${server_ips_file} build_key=${BUILD_KEY}"
 
         /bin/cat ${server_ips_file}
 
-
-
-        #if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
-        #then
-        #       /usr/local/bin/linode-cli linodes create  --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "firewall_id": '${firewall_id}', "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true, "nat_1_1_address": "auto" } ] } } }, { "purpose": "vpc", "firewall_id": '${firewall_id}',  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-        ##      #/usr/local/bin/linode-cli linodes create  --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "firewall_id": '${firewall_id}', "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } } }, { "purpose": "vpc", "firewall_id": '${firewall_id}',  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-        #else
-        #       /usr/local/bin/linode-cli linodes create  --authorized_keys "${key}" --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true, "nat_1_1_address": "auto" } ] } } }, { "purpose": "vpc",  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-        #/usr/local/bin/linode-cli linodes create  --authorized_keys "${key}" --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } } }, { "purpose": "vpc",  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-        #fi        
 fi
 
 if (  [ "${CLOUDHOST}" = "vultr" ] )
