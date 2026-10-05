@@ -43,6 +43,7 @@ VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
 ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
+SERVER_USER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER`"
 OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
 
 if ( [ "`/bin/echo ${server_name} | /bin/grep -E "\-as-"`" != "" ] )
@@ -266,6 +267,7 @@ then
 
         user_data="--metadata.user_data ${cloud_config}"
 
+
         ansible-galaxy collection install linode.cloud
         ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/install_python_sdk.yaml
         pipx inject ansible linode-api4 --force
@@ -273,11 +275,13 @@ then
         linode_api_token="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
         image="`/bin/echo ${image} | /bin/sed 's/.*image //g'`"
         server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
-        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_ips_file=${server_ips_file}"
+        webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
+        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_user=${SERVER_USER} server_ips_file=${server_ips_file}"
+        #ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} user_data_path=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_ips_file=${server_ips_file} webserver_ready_file=${webserver_ready_file}"
 
         /bin/cat ${server_ips_file}
 
-        #ansible_python_interpreter=~/.local/share/pipx/venvs/ansible/bin/python"
+
 
         #if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
         #then
