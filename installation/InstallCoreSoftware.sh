@@ -144,7 +144,7 @@ then
 		status "Installing/Updating JQ"
 		${BUILD_HOME}/installation/InstallJQ.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating Ansible"
-		${BUILD_HOME}/installation/InstallAnsible.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallAnsible.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating Ruby"
 		${BUILD_HOME}/installation/InstallRuby.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating SSHPass"
