@@ -252,6 +252,16 @@ then
                 /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
         fi
 
+        ansible-galaxy collection install linode.cloud
+        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/install_python_sdk.yaml
+        pipx inject ansible linode-api4 --force
+        pipx inject ansible ansible-specdoc --force
+        linode_api_token="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
+
+        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/install_python_sdk.yaml
+
+
+
         if ( [ "`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
         then
                 /usr/local/bin/linode-cli vpcs create --no-defaults --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
@@ -260,21 +270,14 @@ then
         vpc_id="`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
         subnet_id="`/usr/local/bin/linode-cli vpcs subnets-list ${vpc_id} --no-defaults --json  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
 
-        image="--image ${OS_CHOICE}" 
+        image="${OS_CHOICE}" 
         if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
         then
-                image="--image ${snapshot_id}"
+                image="${snapshot_id}"
         fi
 
-        user_data="--metadata.user_data ${cloud_config}"
 
-
-        ansible-galaxy collection install linode.cloud
-        ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/install_python_sdk.yaml
-        pipx inject ansible linode-api4 --force
-        pipx inject ansible ansible-specdoc --force
-        linode_api_token="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
-        image="`/bin/echo ${image} | /bin/sed 's/.*image //g'`"
+     #   image="`/bin/echo ${image} | /bin/sed 's/.*image //g'`"
         server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
         webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
         ansible-playbook -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} path_to_user_data=${cloud_config} ansible_python_interpreter=${HOME}/.local/share/pipx/venvs/ansible/bin/python linode_api_token=${linode_api_token} server_user=${SERVER_USER} server_ips_file=${server_ips_file} build_key=${BUILD_KEY}"
