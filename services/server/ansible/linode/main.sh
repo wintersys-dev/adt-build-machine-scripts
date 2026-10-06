@@ -12,7 +12,7 @@ fi
 python_version="`python3 --version | /usr/bin/awk '{print $NF}' | cut -d. -f1,2`"
 
 apt update
-apt install python${python_version}-venv
+apt install -yy -q python${python_version}-venv
 
 # 1. Create a virtual environment (e.g., named 'ansible-env')
 python3 -m venv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
@@ -35,6 +35,8 @@ EOF
 fi
 
 pip install --upgrade -r ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
+
+apt install -yy -q ansible-core
 
 
 server_size="${1}"
