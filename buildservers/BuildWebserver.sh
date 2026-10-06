@@ -2,9 +2,6 @@
 
 set -x
 
-server_size="${1}"
-server_name="${2}"
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
@@ -16,6 +13,8 @@ DDOS_PROTECTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ENABLE_DDOS
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
+NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
+WS_SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WS_SERVER_TYPE`"
 ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
@@ -23,6 +22,33 @@ SERVER_USER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER`"
 OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 
+webserver_no="${1}"
+	
+if ( [ "${NO_AUTOSCALERS}" = "" ] )
+then
+        NO_AUTOSCALERS="0"
+fi
+
+no_autoscalers="${NO_AUTOSCALERS}"
+webserver_index="${webserver_no}"
+
+if ( [ "${no_autoscalers}" = "0" ] )
+then
+        autoscaler_no="0"
+elif ( [ "${webserver_index}" -gt "${no_autoscalers}" ] )
+then
+        autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
+        while ( [ "${autoscaler_no}" -gt "${no_autoscalers}" ] )
+        do
+                autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
+                webserver_index="${autoscaler_no}"
+        done
+else
+        autoscaler_no="${webserver_index}"
+fi
+
+RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
+webserver_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${webserver_no}"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
@@ -89,9 +115,9 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-${machine_type}.yaml"
-server_name: ${server_name} 
+server_name: ${webserver_name}
 region: ${REGION} 
-server_size: ${server_size} 
+server_size: "${WS_SERVER_TYPE}" 
 image: ${image} 
 emergency_password: ${emergency_password} 
 firewall_id: ${firewall_id} 
