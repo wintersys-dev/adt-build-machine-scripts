@@ -68,23 +68,11 @@ then
 
     	eval ${update_command}
 		eval ${install_command} python${python_version}-venv ${tail_options}
-		eval ${install_command} ansible-core
+		eval ${install_command} ansible-core ${tail_options}
 		
 		python3 -m venv ${BUILD_HOME}/runtime/ansible-env
 		. ${BUILD_HOME}/runtime/ansible-env/bin/activate
 		pip install --upgrade pip
-
-		/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/ansible-env/requirements.txt
-
-		if [ $? -eq 0 ] 
-		then
-        	cat << 'EOF' > "${BUILD_HOME}/runtime/ansible-env/requirements.txt"
-linode_api4>=5.46.1
-polling==0.3.2
-ansible-specdoc>=0.0.20
-EOF
-		fi
-		pip install --upgrade -r ${BUILD_HOME}/runtime/ansible-env/requirements.txt
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
@@ -99,23 +87,11 @@ EOF
 
     	eval ${update_command}
 		eval ${install_command} python${python_version}-venv ${tail_options}
-		eval ${install_command} ansible-core
+		eval ${install_command} ansible-core ${tail_options}
 		
 		python3 -m venv ${BUILD_HOME}/runtime/ansible-env
 		. ${BUILD_HOME}/runtime/ansible-env/bin/activate
 		pip install --upgrade pip
-
-		/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/ansible-env/requirements.txt
-
-		if [ $? -eq 0 ] 
-		then
-        	cat << 'EOF' > "${BUILD_HOME}/runtime/ansible-env/requirements.txt"
-linode_api4>=5.46.1
-polling==0.3.2
-ansible-specdoc>=0.0.20
-EOF
-		fi
-		pip install --upgrade -r ${BUILD_HOME}/runtime/ansible-env/requirements.txt
   	fi
 fi
 
