@@ -1,5 +1,8 @@
 set -x
 
+#TODO: parameterise SSH_PORT in the playbook
+# 
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ ! -d ${BUILD_HOME}/runtime/ansible-env ] )
