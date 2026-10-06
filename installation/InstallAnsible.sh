@@ -26,6 +26,8 @@ then
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
 manager=""
 options=""
@@ -56,14 +58,62 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
+		if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env ] )
+		then
+        	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
+		fi
+
+		python_version="`python3 --version | /usr/bin/awk '{print $NF}' | cut -d. -f1,2`"
+
     	eval ${update_command}
-    	eval ${install_command} ansible-core
+		eval ${install_command} python${python_version}-venv ${tail_options}
+		eval ${install_command} ansible-core
+		
+		python3 -m venv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
+		. ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/bin/activate
+		pip install --upgrade pip
+
+		/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
+
+		if [ $? -eq 0 ] 
+		then
+        	cat << 'EOF' > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt"
+linode_api4>=5.46.1
+polling==0.3.2
+ansible-specdoc>=0.0.20
+EOF
+		fi
+		pip install --upgrade -r ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
+		if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env ] )
+		then
+        	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
+		fi
+
+		python_version="`python3 --version | /usr/bin/awk '{print $NF}' | cut -d. -f1,2`"
+
     	eval ${update_command}
+		eval ${install_command} python${python_version}-venv ${tail_options}
 		eval ${install_command} ansible-core
+		
+		python3 -m venv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
+		. ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/bin/activate
+		pip install --upgrade pip
+
+		/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
+
+		if [ $? -eq 0 ] 
+		then
+        	cat << 'EOF' > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt"
+linode_api4>=5.46.1
+polling==0.3.2
+ansible-specdoc>=0.0.20
+EOF
+		fi
+		pip install --upgrade -r ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
   	fi
 fi
 
