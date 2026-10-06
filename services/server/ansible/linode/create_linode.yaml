@@ -87,7 +87,7 @@
       until: file_status.stat.exists
       retries: 40
       delay: 30
-      ignore_errors: true  # Prevents hard-crashing during the retry loops
+      ignore_errors: true  
       loop_control:
         label: >-
           [Attempt {{ file_status.attempts | default(1) }} of 40]
