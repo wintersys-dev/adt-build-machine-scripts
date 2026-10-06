@@ -2,6 +2,7 @@
 # ==========================================
 # PLAY 1: Provision Infrastructure (Localhost)
 # ==========================================
+
 - name: Provision Linode Infrastructure
   hosts: localhost
   gather_facts: false
@@ -74,24 +75,27 @@
 
 - name:  Verify Remote Installation Success
   hosts: newly_created_vms
-  gather_facts: false
+  
+  vars:
+    target_file: /home/{{ ansible_user }}/runtime/WEBSERVER_READY
+    max_attempts: 40  # 40 attempts * 30 seconds = 20 minutes maximum wait
 
   tasks:
-    - name: Use RAW ssh shell loop (No python required on remote machine)
-      ansible.builtin.raw: |
-        timeout=1200
-        elapsed=0
-        count=0
-        while [ ! -f "/home/{{ ansible_user }}/runtime/WEBSERVER_READY" ]; do
-          if [ $elapsed -ge $timeout ]; then
-            echo "Timeout waiting for file" >&2
-            exit 1
-          fi
-          echo "Report ${count} : File /home/{{ ansible_user }}/runtime/WEBSERVER_READY not yet generated on your new machine I will pause for 60 seconds and try again up to a maximum of 20 minutes"
-          sleep 20
-          elapsed=$((elapsed + 20))
-          count=$((count + 1))
-        done
+    - name: Loop to check for file existence
+      ansible.builtin.include_tasks: check_file.yaml
+      loop: "{{ range(1, (max_attempts | int) + 1) | list }}"
+      loop_control:
+        loop_var: attempt
+      when: not (file_check.stat.exists | default(false))
+
+    - name: Notify that the marker file was not found
+      ansible.builtin.debug:
+        msg: "The marker file indicating that the machine has correctly provisioned has not been found...Exiting"
+      when: not (file_check.stat.exists | default(false))
+
+    - name: Gracefully exit play for this host if file was not found
+      ansible.builtin.meta: end_host
+      when: not (file_check.stat.exists | default(false))
 
     - name: Continue with next task
       ansible.builtin.debug:
