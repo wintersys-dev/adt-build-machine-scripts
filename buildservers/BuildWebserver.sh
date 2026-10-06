@@ -69,7 +69,7 @@ echo "1234" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_va
 chown root:root ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 chmod 600 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 
-if ( [ "`/bin/echo ${server_name} | /bin/grep -E "^ws-"`" != "" ] )
+if ( [ "`/bin/echo ${webserver_name} | /bin/grep -E "^ws-"`" != "" ] )
 then
         if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml ] )
         then
