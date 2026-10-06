@@ -80,7 +80,7 @@
     target_file_path: "/home/{{ ansible_user }}/runtime/WEBSERVER_READY"
 
   tasks:
-    - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, the build is successful"
+    - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, {{ server_name }} is built successfully"
       ansible.builtin.stat:
         path: "{{ target_file_path }}"
       register: file_status
