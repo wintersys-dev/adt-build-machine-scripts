@@ -1,13 +1,12 @@
-set -x
-
-#TODO: parameterise SSH_PORT in the playbook
-# 
+#set -x
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
-if ( [ ! -d ${BUILD_HOME}/runtime/ansible-env ] )
+if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env ] )
 then
-        /bin/mkdir -p ${BUILD_HOME}/runtime/ansible-env
+        /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
 fi
 
 python_version="`python3 --version | /usr/bin/awk '{print $NF}' | cut -d. -f1,2`"
@@ -16,27 +15,26 @@ apt update
 apt install python${python_version}-venv
 
 # 1. Create a virtual environment (e.g., named 'ansible-env')
-python3 -m venv ${BUILD_HOME}/runtime/ansible-env
+python3 -m venv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env
 
 # 2. Activate the virtual environment
-. ${BUILD_HOME}/runtime/ansible-env/bin/activate
+. ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/bin/activate
 
 # 3. Upgrade pip and install the requirements securely
 pip install --upgrade pip
 
-/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/ansible-env/requirements.txt
+/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
 
 if [ $? -eq 0 ] 
 then
-        cat << 'EOF' > "${BUILD_HOME}/runtime/ansible-env/requirements.txt"
+        cat << 'EOF' > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt"
 linode_api4>=5.46.1
 polling==0.3.2
 ansible-specdoc>=0.0.20
 EOF
 fi
 
-pip install --upgrade -r ${BUILD_HOME}/runtime/ansible-env/requirements.txt
-
+pip install --upgrade -r ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
 
 server_size="${1}"
 server_name="${2}"
@@ -59,20 +57,22 @@ OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHO
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 
 
-echo "1234" > ${BUILD_HOME}/runtime/.ansible_vault_pass
-chown root:root ${BUILD_HOME}/runtime/.ansible_vault_pass
-chmod 600 ${BUILD_HOME}/runtime/.ansible_vault_pass
+echo "1234" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
+chown root:root ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
+chmod 600 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 
 cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml"
 machine_type="adt-webserver"
 firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
 
 linode_api_key="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
-echo "linode_api_key: ${linode_api_key}" > ${BUILD_HOME}/runtime/.ansible_vault.yml
+echo "linode_api_key: ${linode_api_key}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 unset linode_api_key
 
-ansible-vault encrypt --vault-password-file=${BUILD_HOME}/runtime/.ansible_vault_pass "${BUILD_HOME}/runtime/.ansible_vault.yml"
 
+ansible-vault encrypt --vault-password-file=${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+
+#linode_api_token="`/bin/cat /root/.config/linode-cli | /bin/grep '^token' | /usr/bin/awk '{print $NF}'`"
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
 then
         emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
@@ -100,4 +100,21 @@ fi
 
 server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
 webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "server_name=${server_name} region=${REGION} server_size=${server_size} image=${image} emergency_password=${emergency_password} firewall_id=${firewall_id} subnet_id=${subnet_id} path_to_user_data=${cloud_config} server_user=${SERVER_USER} server_ips_file=${server_ips_file} build_key=${BUILD_KEY} path_to_vault_file=${BUILD_HOME}/runtime/.ansible_vault.yml"
+
+
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible.yaml"
+server_name: ${server_name} 
+region: ${REGION} 
+server_size: ${server_size} 
+image: ${image} 
+emergency_password: ${emergency_password} 
+firewall_id: ${firewall_id} 
+subnet_id: ${subnet_id} 
+path_to_user_data: ${cloud_config} 
+server_user: ${SERVER_USER} 
+server_ips_file: ${server_ips_file} 
+build_key: ${BUILD_KEY} 
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible.yaml"
