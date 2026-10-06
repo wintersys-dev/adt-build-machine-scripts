@@ -4,6 +4,15 @@
     path: "{{ target_file }}"
   register: file_check
 
+- name: "Success Update"
+  ansible.builtin.debug:
+    msg: "Success! The file [{{ target_file }}] was successfully found on attempt {{ attempt }}."
+  when: file_check.stat.exists
+
+- name: "Exit loop immediately if file is found"
+  ansible.builtin.meta: end_host
+  when: file_check.stat.exists
+
 - name: "Status Update (Attempt {{ attempt }}/{{ max_attempts }})"
   ansible.builtin.debug:
     msg: "File [{{ target_file }}] is still missing. Retrying in 30 seconds..."
