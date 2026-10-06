@@ -499,8 +499,7 @@ status ""
 #This option will perform a standard build process (autoscaler, webserver, database)
 if ( [ "`/bin/grep "^BUILDCHAINTYPE:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "standard" ] )
 then
-${BUILD_HOME}/buildservers/BuildWebserver.sh
-	#${BUILD_HOME}/buildservers/PerformStandardBuildChain.sh
+	${BUILD_HOME}/buildservers/PerformStandardBuildChain.sh
 fi
 
 #This option will only build a webserver (which you might want if you are building a static site)
