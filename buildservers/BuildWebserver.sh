@@ -124,12 +124,12 @@ EOF
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-vpc-${machine_type}-${webserver_no}.yaml"
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-dns-${machine_type}-${webserver_no}.yaml"
-target_domain=${WEBSITE_URL}
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-delete-dns-${machine_type}-${webserver_no}.yaml"
+target_domain: ${WEBSITE_URL}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/linode_delete_dns_records.yml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-dns-${machine_type}-${webserver_no}.yaml"
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/linode_delete_dns_records.yml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-delete-dns-${machine_type}-${webserver_no}.yaml"
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-${machine_type}-${webserver_no}.yaml"
 server_name: ${webserver_name}
@@ -149,3 +149,16 @@ EOF
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-${machine_type}-${webserver_no}.yaml"
 
 cat ${server_ips_file}
+
+sub_domain="$(echo "${WEBSITE_URL}" | cut -d'.' -f1)"
+
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-add-dns-${machine_type}-${webserver_no}.yaml"
+target_domain: ${WEBSITE_URL}
+ip_file_path: ${server_ips_file}
+ record_subdomain: ${sub_domain}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/linode_delete_dns_records.yml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-add-dns-${machine_type}-${webserver_no}.yaml"
+
+
