@@ -7,12 +7,14 @@
   gather_facts: false
   vars:
     user_data_path: "{{ path_to_user_data }}"
+  vars_files:
+    - "{{ path_to_vault_file }}"
 
   tasks:
     - name: Create Linode instance with custom interfaces
       linode.cloud.instance:
         state: present
-        api_token: "{{ linode_api_token }}"
+        api_token: "{{ linode_api_key }}"
         label: "{{ server_name }}"
         region: "{{ region }}"
         type: "{{ server_size }}"
