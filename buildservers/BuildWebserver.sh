@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 server_size="${1}"
 server_name="${2}"
 
