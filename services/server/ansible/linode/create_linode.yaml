@@ -73,7 +73,6 @@
 # PLAY 2: Verify Remote Installation Success
 # ==========================================
 
----
 - name:  Verify Remote Installation Success
   hosts: newly_created_vms
   gather_facts: false
