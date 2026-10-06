@@ -80,7 +80,7 @@
     target_file_path: "/home/{{ ansible_user }}/runtime/WEBSERVER_READY"
 
   tasks:
-    - name: "Checking for file..."
+    - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, the build is successful"
       ansible.builtin.stat:
         path: "{{ target_file_path }}"
       register: file_status
@@ -94,11 +94,10 @@
           Host: {{ inventory_hostname }} |
           Status: {{ 'FOUND' if file_status.stat.exists | default(false) else 'NOT FOUND' }}
 
-    - name: Exit playbook with success message if file is found
-      ansible.builtin.fail:
-        msg: "SUCCESS: Found '{{ target_file_path }}' on {{ inventory_hostname }}! Exiting play."
+    - name: Print success message
+      ansible.builtin.debug:
+        msg: "SUCCESS: Found '{{ target_file_path }}' on {{ inventory_hostname }}!"
       when: file_status.stat.exists
-      any_errors_fatal: true
 
     - name: Final error block if the file was never found
       ansible.builtin.fail:
