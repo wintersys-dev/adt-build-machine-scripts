@@ -1,0 +1,47 @@
+---
+- name: Manage Linode Firewalls natively
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # It is recommended to use an Environment Variable for your Token, 
+    # but you can define it here if needed.
+    linode_api_token: "{{ lookup('ansible.builtin.env', 'LINODE_API_TOKEN') }}"
+
+  tasks:
+    - name: Create or Update a Cloud Firewall with standard rules
+      linode.cloud.firewall:
+        api_token: "{{ linode_api_token }}"
+        label: "production-web-firewall"
+        status: "enabled"
+        # Inbound structural logic (Allow SSH and HTTP/S traffic)
+        inbound_policy: "drop"
+        inbound:
+          - label: "allow-ssh"
+            action: "accept"
+            protocol: "tcp"
+            ports: "22"
+            addresses:
+              ipv4: ["0.0.0.0/0"]
+          - label: "allow-http-https"
+            action: "accept"
+            protocol: "tcp"
+            ports: "80, 443"
+            addresses:
+              ipv4: ["0.0.0.0/0"]
+        # Outbound structural logic (Allow all egress traffic)
+        outbound_policy: "accept"
+        outbound: []
+        state: present
+      register: firewall_output
+
+    - name: Print the newly generated or matched Firewall details
+      ansible.builtin.debug:
+        msg: "The Firewall ID is: {{ firewall_output.firewall.id }}"
+
+    - name: List accessible Firewalls to confirm configuration
+      linode.cloud.firewall_list:
+        api_token: "{{ linode_api_token }}"
+        filters:
+          - name: label
+            values: "production-web-firewall"
+      register: firewall_search_results
