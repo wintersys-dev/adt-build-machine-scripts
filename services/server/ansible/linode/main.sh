@@ -25,6 +25,8 @@ pip install --upgrade pip
 
 /usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
 
+apt install ansible-core
+
 if [ $? -eq 0 ] 
 then
         cat << 'EOF' > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt"
