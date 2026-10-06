@@ -106,7 +106,7 @@ then
         image="${snapshot_id}"
 fi
 
-server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
+server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${webserver_name}"
 webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
 subnet_id_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id"
 
