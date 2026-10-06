@@ -51,3 +51,12 @@
         label: "{{ subnetwork_label }}"
         ipv4: "{{ subnetwork_ipv4 }}"
         state: present
+      register: subnet_results
+
+    - name: Export subnet ID to a local environment file
+      ansible.builtin.copy:
+        content: |
+          SUBNET_ID={{ subnet_results.subnet.id }}
+        dest: "{{ subnet_id_file }}"
+      delegate_to: localhost
+      changed_when: false
