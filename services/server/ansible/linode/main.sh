@@ -1,4 +1,4 @@
-#set -x
+set -x
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
@@ -35,6 +35,7 @@ EOF
 fi
 
 pip install --upgrade -r ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-env/requirements.txt
+
 
 server_size="${1}"
 server_name="${2}"
@@ -84,13 +85,14 @@ fi
 #is this needed
 ansible-galaxy collection install linode.cloud
 
-if ( [ "`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
-then
-        /usr/local/bin/linode-cli vpcs create --no-defaults --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
-fi
-
-vpc_id="`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
-subnet_id="`/usr/local/bin/linode-cli vpcs subnets-list ${vpc_id} --no-defaults --json  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
+#if ( [ "`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
+#then
+#       /usr/local/bin/linode-cli vpcs create --no-defaults --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
+#fi
+#
+#vpc_id="`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
+#subnet_id="`/usr/local/bin/linode-cli vpcs subnets-list ${vpc_id} --no-defaults --json  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
+#
 
 image="${OS_CHOICE}" 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
@@ -101,8 +103,17 @@ fi
 server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${server_name}"
 webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
 
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-vpc.yaml"
+vpc_label: ${VPC_NAME}
+vpc_region: ${REGION}
+vpc_desc: "Main ADT infrastructure VPC created via Ansible"
+subnetwork_label: "adt-subnet"
+subnetwork_ipv4: "${VPC_IP_RANGE}"
+subnetwork_desc: "Subnet for infrastructure servers"
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-${machine_type}.yaml"
 server_name: ${server_name} 
 region: ${REGION} 
 server_size: ${server_size} 
@@ -117,4 +128,6 @@ build_key: ${BUILD_KEY}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible.yaml"
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-vpc.yaml"
+
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ansible-${machine_type}.yaml"
