@@ -175,6 +175,6 @@ ip_addresses="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{pr
 
 for ip_address in ${ip_addresses}
 do
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml ip_address=${ip_address}"
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml" -e "ip_address=${ip_address}"
 done
 
