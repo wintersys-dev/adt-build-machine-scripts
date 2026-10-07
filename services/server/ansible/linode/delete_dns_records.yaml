@@ -1,0 +1,44 @@
+---
+- name: Purge all IP records using the official Linode collection
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Ensure Linode API token is present
+      ansible.builtin.fail:
+        msg: "The LINODE_API_TOKEN environment variable is missing."
+      when: linode_api_token is not defined or linode_api_token | trim == ""
+
+    - name: Lookup target domain details
+      linode.cloud.domain_info:
+        api_token: "{{ linode_api_token }}"
+        domain: "{{ target_domain }}"
+      register: target_domain_details
+
+    - name: Fetch all DNS records associated with the domain
+      linode.cloud.domain_record_info:
+        api_token: "{{ linode_api_token }}"
+        domain_id: "{{ target_domain_details.domains[0].id }}"
+      register: dns_records_list
+      when: target_domain_details.domains | length > 0
+
+    - name: Filter down to IP mapping records (A & AAAA)
+      ansible.builtin.set_fact:
+        target_ip_records: "{{ dns_records_list.domain_records | selectattr('type', 'in', ['A', 'AAAA']) | list }}"
+      when: dns_records_list.domain_records is defined
+
+    - name: Delete filtered A and AAAA records
+      linode.cloud.domain_record:
+        api_token: "{{ linode_api_token }}"
+        domain_id: "{{ target_domain_details.domains[0].id }}"
+        id: "{{ item.id }}"
+        state: absent
+      loop: "{{ target_ip_records }}"
+      loop_control:
+        label: "Removing Record ID {{ item.id }} ({{ item.type }} -> {{ item.name or '@' }})"
+      when: target_ip_records is defined and target_ip_records | length > 0
+
+    - name: Report completion status
+      ansible.builtin.debug:
+        msg: "Successfully removed {{ target_ip_records | length }} IP records from {{ target_domain }}."
+      when: target_ip_records is defined
