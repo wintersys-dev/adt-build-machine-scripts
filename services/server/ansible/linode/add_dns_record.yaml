@@ -15,5 +15,5 @@
         name: "{{ target_subdomain }}"
         type: "{{ new_record_type }}"
         target: "{{ ip_address }}"
-        ttl_sec: 300
+        ttl_sec: 60
         state: present
