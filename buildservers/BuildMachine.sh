@@ -23,35 +23,49 @@ OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHO
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
-machine_type="adt-webserver"
 
-webserver_no="${1}"
+machine_type="${1}" #for example adt-webserver
+machine_identifier="${2}"  # for example ws
+machine_no="${3}" # 1
+machine_label="`/bin/echo ${machine_type} | /bin/sed 's/adt-//g'`"
 
-if ( [ "${NO_AUTOSCALERS}" = "" ] )
+if ( [ "${machine_type}" = "adt-webserver" ] )
 then
-        NO_AUTOSCALERS="0"
-fi
+        if ( [ "${NO_AUTOSCALERS}" = "" ] )
+        then
+                NO_AUTOSCALERS="0"
+        fi
 
-no_autoscalers="${NO_AUTOSCALERS}"
-webserver_index="${webserver_no}"
+        no_autoscalers="${NO_AUTOSCALERS}"
+        webserver_index="${machine_no}"
 
-if ( [ "${no_autoscalers}" = "0" ] )
-then
-        autoscaler_no="0"
-elif ( [ "${webserver_index}" -gt "${no_autoscalers}" ] )
-then
-        autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
-        while ( [ "${autoscaler_no}" -gt "${no_autoscalers}" ] )
-        do
+        if ( [ "${no_autoscalers}" = "0" ] )
+        then
+                autoscaler_no="0"
+        elif ( [ "${webserver_index}" -gt "${no_autoscalers}" ] )
+        then
                 autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
-                webserver_index="${autoscaler_no}"
-        done
-else
-        autoscaler_no="${webserver_index}"
+                while ( [ "${autoscaler_no}" -gt "${no_autoscalers}" ] )
+                do
+                        autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
+                        webserver_index="${autoscaler_no}"
+                done
+        else
+                autoscaler_no="${webserver_index}"
+        fi
 fi
 
 RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
-webserver_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${webserver_no}"
+
+if ( [ "${machine_type}" = "adt-webserver" ] )
+then
+        machine_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${machine_no}"
+fi
+
+if ( [ "${machine_type}" = "adt-database" ] )
+then
+        machine_name="db-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+fi
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
