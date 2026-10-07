@@ -25,7 +25,7 @@ NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVER
 
 machine_type="${1}" #for example adt-webserver
 machine_identifier="${2}"  # for example ws
-machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]' | /bin/sed 's/-//g'`"
+machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]'`"
 machine_no="${3}" # 1
 subnet_id="${4}"
 machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
