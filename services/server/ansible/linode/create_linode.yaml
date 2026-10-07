@@ -77,7 +77,7 @@
   hosts: newly_created_vms
   gather_facts: false
   vars:
-    target_file_path: "/home/{{ ansible_user }}/runtime/WEBSERVER_READY"
+    target_file_path: "{{ ready_file }}"
 
   tasks:
     - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, {{ server_name }} is built successfully"
