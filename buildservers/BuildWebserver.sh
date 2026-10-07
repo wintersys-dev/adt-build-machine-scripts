@@ -114,7 +114,7 @@ then
 fi
 
 server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${webserver_name}"
-webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
+#webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
 subnet_id_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id"
 
 if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks ] )
