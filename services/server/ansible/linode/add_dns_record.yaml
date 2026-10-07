@@ -3,15 +3,8 @@
   hosts: localhost
   gather_facts: false
   vars:
-    # Pass your token in your environment shell: export LINODE_API_TOKEN="your_token"
-    linode_api_token: "{{ lookup('ansible.builtin.env', 'LINODE_API_TOKEN') }}"
-    target_domain: "example.com"
-    
-    # Define the record details you want to add
     new_record_type: "A"            # Use "A" for IPv4 or "AAAA" for IPv6
-    new_record_name: "www"          # Leave blank/omitted or use "@" for the root domain
-    new_record_target: "192.0.2.5"  # The IP address you are adding
-
+ 
   tasks:
     - name: Verify Linode API token presence
       ansible.builtin.fail:
@@ -29,8 +22,8 @@
         api_token: "{{ linode_api_token }}"
         domain_id: "{{ target_domain_details.domains.id }}"
         type: "{{ new_record_type }}"
-        name: "{{ new_record_name }}"
-        target: "{{ new_record_target }}"
+        name: "{{ sub_domain }}"
+        target: "{{ ip_address }}"
         state: present
       register: record_creation_result
       when: target_domain_details.domains | length > 0
