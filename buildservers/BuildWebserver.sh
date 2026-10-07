@@ -23,6 +23,8 @@ OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHO
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
+machine_type="adt-webserver"
+
 webserver_no="${1}"
 
 if ( [ "${NO_AUTOSCALERS}" = "" ] )
@@ -71,8 +73,6 @@ webserver_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${
 #chmod 600 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
-
-machine_type="adt-webserver"
 
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml ] )
 then
