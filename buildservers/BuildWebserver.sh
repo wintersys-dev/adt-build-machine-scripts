@@ -154,6 +154,9 @@ if ( [ "$?" = "0" ] )
 then
         /bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED
 fi
+
+ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
+
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_type}-${webserver_no}.yaml"
 server_name: ${webserver_name}
 region: ${REGION} 
@@ -166,6 +169,7 @@ path_to_user_data: ${cloud_config}
 server_user: ${SERVER_USER} 
 server_ips_file: ${server_ips_file} 
 build_key: ${BUILD_KEY} 
+ready_file: ${ready_file}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
