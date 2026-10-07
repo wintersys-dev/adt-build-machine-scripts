@@ -14,7 +14,6 @@ VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
 NO_AUTOSCALERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_AUTOSCALERS`"
-WS_SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WS_SERVER_TYPE`"
 ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
@@ -27,7 +26,10 @@ WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 machine_type="${1}" #for example adt-webserver
 machine_identifier="${2}"  # for example ws
 machine_no="${3}" # 1
-machine_label="`/bin/echo ${machine_type} | /bin/sed 's/adt-//g'`"
+machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
+
+SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh `/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]'`_SERVER_TYPE`"
+
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
@@ -59,24 +61,24 @@ RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
-        machine_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${machine_no}"
+        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${machine_no}"
 fi
 
 if ( [ "${machine_type}" = "adt-database" ] )
 then
-        machine_name="db-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
 fi
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml ] )
+        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
         then
-                webserver_name_match="`/bin/echo ${webserver_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
-                /bin/sed -i "s/XXXXWEBSERVER_HOSTNAMEXXXX/${webserver_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
-                /bin/sed -i "s/${webserver_name_match}.*$/${webserver_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
-                cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml"
+                machine_name_match="`/bin/echo ${machine_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
+                /bin/sed -i "s/XXXXWEBSERVER_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
+                /bin/sed -i "s/${machine_name_match}.*$/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
+                cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml"
         fi
 fi
 
@@ -103,8 +105,7 @@ then
         image="${snapshot_id}"
 fi
 
-server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${webserver_name}"
-#webserver_ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
+server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${machine_name}"
 subnet_id_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id"
 
 if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks ] )
@@ -114,29 +115,32 @@ fi
 
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
-root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
-target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
+if ( [ "${machine_type}" = "adt-webserver" ] )
+then
+        root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
+        target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_type}-${webserver_no}.yaml"
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED ] )
-then
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_type}-${webserver_no}.yaml"
+        if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED ] )
+        then
+                ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
+        fi
+
+        if ( [ "$?" = "0" ] )
+        then
+                /bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED
+        fi
 fi
 
-if ( [ "$?" = "0" ] )
-then
-        /bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED
-fi
+ready_file="/home/${SERVER_USER}/runtime/`/bin/echo ${machine_label} | /usr/bin/tr '[:lower:]' '[:upper:]'`_READY"
 
-ready_file="/home/${SERVER_USER}/runtime/WEBSERVER_READY"
-
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_type}-${webserver_no}.yaml"
-server_name: ${webserver_name}
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
+server_name: ${machine_name}
 region: ${REGION} 
 server_size: "${WS_SERVER_TYPE}" 
 image: ${image} 
@@ -151,20 +155,23 @@ ready_file: ${ready_file}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_type}-${webserver_no}.yaml"
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
 
-/bin/echo "Server IP Addresses for machine ${webserver_name} are available"
+/bin/echo "Server IP Addresses for machine ${machine_name} are available"
 cat ${server_ips_file}
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml"
+if ( [ "${machine_type}" = "adt-webserver" ] )
+then
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-ip_addresses="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{print $NF}'`"
+        ip_addresses="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{print $NF}'`"
 
-for ip_address in ${ip_addresses}
-do
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml" -e "ip_address=${ip_address}"
-done
+        for ip_address in ${ip_addresses}
+        do
+                ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml" -e "ip_address=${ip_address}"
+        done
+fi
