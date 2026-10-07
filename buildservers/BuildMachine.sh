@@ -21,43 +21,31 @@ SERVER_USER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER`"
 OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
 BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 
 
 machine_type="${1}" #for example adt-webserver
 machine_identifier="${2}"  # for example ws
+machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]'`"
 machine_no="${3}" # 1
 machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
+SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ${machine_identifier_upper}_SERVER_TYPE`"
+RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
 
-SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh `/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]'`_SERVER_TYPE`"
-
-
-if ( [ "${machine_type}" = "adt-webserver" ] )
+if ( [ "${machine_type}" = "adt-authenticator" ] )
 then
-        if ( [ "${NO_AUTOSCALERS}" = "" ] )
-        then
-                NO_AUTOSCALERS="0"
-        fi
-
-        no_autoscalers="${NO_AUTOSCALERS}"
-        webserver_index="${machine_no}"
-
-        if ( [ "${no_autoscalers}" = "0" ] )
-        then
-                autoscaler_no="0"
-        elif ( [ "${webserver_index}" -gt "${no_autoscalers}" ] )
-        then
-                autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
-                while ( [ "${autoscaler_no}" -gt "${no_autoscalers}" ] )
-                do
-                        autoscaler_no="`/usr/bin/expr ${webserver_index} - ${no_autoscalers}`"
-                        webserver_index="${autoscaler_no}"
-                done
-        else
-                autoscaler_no="${webserver_index}"
-        fi
+        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
 fi
 
-RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
+if ( [ "${machine_type}" = "adt-autoscaler" ] )
+then
+        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+fi
+
+if ( [ "${machine_type}" = "adt-reverseproxy" ] )
+then
+        machine_name="NO-${reverse_proxy_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+fi
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
@@ -115,7 +103,7 @@ fi
 
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
-if ( [ "${machine_type}" = "adt-webserver" ] )
+if ( ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
         root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
         target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
@@ -142,7 +130,7 @@ ready_file="/home/${SERVER_USER}/runtime/`/bin/echo ${machine_label} | /usr/bin/
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
 server_name: ${machine_name}
 region: ${REGION} 
-server_size: "${WS_SERVER_TYPE}" 
+server_size: "${SERVER_TYPE}" 
 image: ${image} 
 emergency_password: ${emergency_password} 
 firewall_id: ${firewall_id} 
@@ -160,7 +148,7 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 /bin/echo "Server IP Addresses for machine ${machine_name} are available"
 cat ${server_ips_file}
 
-if ( [ "${machine_type}" = "adt-webserver" ] )
+if ( ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
