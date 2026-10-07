@@ -30,31 +30,32 @@ machine_no="${3}" # 1
 subnet_id="${4}"
 machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
 SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ${machine_identifier_upper}_SERVER_TYPE`"
-RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
+unique_identifier="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
+emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
 
 if ( [ "${machine_type}" = "adt-authenticator" ] )
 then
-        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
 fi
 
 if ( [ "${machine_type}" = "adt-autoscaler" ] )
 then
-        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
 fi
 
 if ( [ "${machine_type}" = "adt-reverseproxy" ] )
 then
-        machine_name="NO-${reverse_proxy_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+        machine_name="NO-${reverse_proxy_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
 fi
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
-        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-0-${RND}-init-${machine_no}"
+        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-0-${unique_identifier}-init-${machine_no}"
 fi
 
 if ( [ "${machine_type}" = "adt-database" ] )
 then
-        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
+        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
 fi
 
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
