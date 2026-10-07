@@ -70,9 +70,13 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 /bin/echo "Subnet ID set to: ${subnet_id}"
 
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}"
+
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-authenticator" "auth" "1" "${subnet_id}" &
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-autoscaler" "as" "1" "${subnet_id}" &
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-reverseproxy" "rp" "1" "${subnet_id}" &
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}" &
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}" &
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}" &
 
 
 
