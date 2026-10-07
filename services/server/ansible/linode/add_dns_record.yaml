@@ -6,33 +6,14 @@
       new_record_type: "A"            # Use "A" for IPv4 or "AAAA" for IPv6
   vars_files:
     - "{{ path_to_vault_file }}"
- 
+
   tasks:
-    - name: Verify Linode API token presence
-      ansible.builtin.fail:
-        msg: "The LINODE_API_TOKEN environment variable is missing."
-      when: linode_api_token is not defined or linode_api_token | trim == ""
-
-    - name: Fetch domain metadata to extract internal ID
-      linode.cloud.domain_info:
-        api_token: "{{ linode_api_token }}"
-        domain: "{{ target_domain }}"
-      register: target_domain_details
-
-    - name: Add the new IP address record to the DNS zone
+    - name: Create or update A record for the subdomain
       linode.cloud.domain_record:
         api_token: "{{ linode_api_token }}"
-        domain_id: "{{ target_domain_details.domains.id }}"
+        domain: "{{ root_domain }}"
+        name: "{{ target_subdomain }}"
         type: "{{ new_record_type }}"
-        name: "{{ sub_domain }}"
         target: "{{ ip_address }}"
+        ttl_sec: 300
         state: present
-      register: record_creation_result
-      when: target_domain_details.domains | length > 0
-
-    - name: Print success summary
-      ansible.builtin.debug:
-        msg: >
-          Successfully added {{ new_record_type }} record for 
-          {{ new_record_name }}.{{ target_domain }} pointing to {{ new_record_target }}.
-      when: record_creation_result.changed
