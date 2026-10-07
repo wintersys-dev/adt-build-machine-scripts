@@ -50,7 +50,7 @@ fi
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
-        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${machine_no}"
+        machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-0-${RND}-init-${machine_no}"
 fi
 
 if ( [ "${machine_type}" = "adt-database" ] )
