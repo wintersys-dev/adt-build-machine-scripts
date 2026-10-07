@@ -124,18 +124,18 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks
 fi
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
-vpc_label: ${VPC_NAME}
-vpc_region: ${REGION}
-vpc_desc: "Main ADT infrastructure VPC created via Ansible"
-subnetwork_label: "adt-subnet"
-subnetwork_ipv4: "${VPC_IP_RANGE}"
-subnetwork_desc: "Subnet for infrastructure servers"
-subnet_id_file: ${subnet_id_file}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
-EOF
+#cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
+#vpc_label: ${VPC_NAME}
+#vpc_region: ${REGION}
+#vpc_desc: "Main ADT infrastructure VPC created via Ansible"
+#subnetwork_label: "adt-subnet"
+#subnetwork_ipv4: "${VPC_IP_RANGE}"
+#subnetwork_desc: "Subnet for infrastructure servers"
+#subnet_id_file: ${subnet_id_file}
+#path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+#EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
+#ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
 root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
