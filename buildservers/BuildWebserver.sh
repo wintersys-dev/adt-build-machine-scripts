@@ -167,7 +167,7 @@ sub_domain="$(echo "${WEBSITE_URL}" | cut -d'.' -f1)"
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml"
 target_domain: ${WEBSITE_URL}
 ip_file_path: ${server_ips_file}
- record_subdomain: ${sub_domain}
+record_subdomain: ${sub_domain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
