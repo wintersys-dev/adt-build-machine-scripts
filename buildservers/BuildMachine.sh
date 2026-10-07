@@ -23,7 +23,6 @@ BUILD_KEY="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGO
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
 
-
 machine_type="${1}" #for example adt-webserver
 machine_identifier="${2}"  # for example ws
 machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]' | /bin/sed 's/-//g'`"
@@ -41,10 +40,6 @@ fi
 if ( [ "${machine_type}" = "adt-autoscaler" ] )
 then
         machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
-	#server_name_match="`/bin/grep "^hostname: " ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml | /usr/bin/awk '{print $NF}'`"
-	#/bin/sed -i "s/XXXXAUTOSCALER_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
-	#/bin/sed -i "s/${server_name_match}/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
-	#cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml"
 fi
 
 if ( [ "${machine_type}" = "adt-reverseproxy" ] )
@@ -55,20 +50,12 @@ fi
 if ( [ "${machine_type}" = "adt-webserver" ] )
 then
         machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-0-${RND}-init-${machine_no}"
-     #   if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
-     #   then
-     #           machine_name_match="`/bin/echo ${machine_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
-     #           /bin/sed -i "s/XXXXWEBSERVER_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
-     #           /bin/sed -i "s/${machine_name_match}.*$/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
-     #           cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml"
-     #   fi
 fi
 
 if ( [ "${machine_type}" = "adt-database" ] )
 then
         machine_name="${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${RND}"
 fi
-
 
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
 then
@@ -80,8 +67,6 @@ fi
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
-
-
 if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 then
         snapshot_id="`/bin/grep ${machine_type} ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
@@ -89,15 +74,6 @@ then
 fi
 
 firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
-
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
-then
-        emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
-else
-        emergency_password="`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16`"
-        /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
-fi
-
 
 image="${OS_CHOICE}" 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
