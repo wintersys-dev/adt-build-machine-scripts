@@ -29,6 +29,7 @@ machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lowe
 machine_no="${3}" # 1
 subnet_id="${4}"
 machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
+machine_label_upper="`/bin/echo ${machine_label} | /usr/bin/tr '[:lower:]' '[:upper:]'`"
 SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ${machine_identifier_upper}_SERVER_TYPE`"
 unique_identifier="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
 emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
@@ -61,7 +62,7 @@ fi
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
 then
         machine_name_match="`/bin/echo ${machine_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
-        /bin/sed -i "s/XXXX${machine_identifier_upper}_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
+        /bin/sed -i "s/XXXX${machine_label_upper}_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
         /bin/sed -i "s/${machine_name_match}.*$/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
         cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml"
 fi
