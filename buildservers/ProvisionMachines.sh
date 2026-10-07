@@ -6,6 +6,7 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 
@@ -69,7 +70,6 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 /bin/echo "Subnet ID set to: ${subnet_id}"
-
 
 ${BUILD_HOME}/buildservers/BuildMachine.sh "adt-authenticator" "auth" "1" "${subnet_id}"
 ${BUILD_HOME}/buildservers/BuildMachine.sh "adt-autoscaler" "as" "1" "${subnet_id}" 
