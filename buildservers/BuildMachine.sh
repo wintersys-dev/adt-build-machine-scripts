@@ -28,6 +28,7 @@ machine_type="${1}" #for example adt-webserver
 machine_identifier="${2}"  # for example ws
 machine_identifier_upper="`/bin/echo ${machine_identifier} | /usr/bin/tr '[:lower:]' '[:upper:]'`"
 machine_no="${3}" # 1
+subnet_id="${4}"
 machine_label="`/bin/echo ${machine_type} | /bin/sed 's/^adt-//'`"
 SERVER_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ${machine_identifier_upper}_SERVER_TYPE`"
 RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
@@ -101,7 +102,7 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks
 fi
 
-subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
+#subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
 if ( ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
