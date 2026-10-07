@@ -45,7 +45,7 @@ fi
 
 if ( [ "${machine_type}" = "adt-reverseproxy" ] )
 then
-        machine_name="NO-${reverse_proxy_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
+        machine_name="NO-${machine_no}-${machine_identifier}-${REGION}-${BUILD_IDENTIFIER}-${unique_identifier}"
 fi
 
 if ( [ "${machine_type}" = "adt-webserver" ] )
