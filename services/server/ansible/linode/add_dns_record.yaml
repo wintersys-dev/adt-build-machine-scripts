@@ -3,7 +3,9 @@
   hosts: localhost
   gather_facts: false
   vars:
-    new_record_type: "A"            # Use "A" for IPv4 or "AAAA" for IPv6
+      new_record_type: "A"            # Use "A" for IPv4 or "AAAA" for IPv6
+  vars_files:
+    - "{{ path_to_vault_file }}"
  
   tasks:
     - name: Verify Linode API token presence
