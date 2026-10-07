@@ -160,12 +160,12 @@ EOF
 
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_type}-${webserver_no}.yaml"
 
+/bin/echo "Server IP Addresses for machine ${webserver_name} are available"
 cat ${server_ips_file}
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml"
-target_domain: ${WEBSITE_URL}
-ip_file_path: ${server_ips_file}
-record_subdomain: ${target_subdomain}
+root_domain: ${root_domain}
+target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
@@ -173,6 +173,6 @@ ip_addresses="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{pr
 
 for ip_address in ${ip_addresses}
 do
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml" -e "ip_address=${ip_address}"
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_type}-${webserver_no}.yaml" -e "ip_address=${ip_address}"
 done
 
