@@ -53,25 +53,6 @@ fi
 RND="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1`"
 webserver_name="ws-${REGION}-${BUILD_IDENTIFIER}-${autoscaler_no}-${RND}-init-${webserver_no}"
 
-#. ${BUILD_HOME}/runtime/ansible-env/bin/activate
-#
-#/usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/ansible-env/requirements.txt
-#
-#if [ $? -eq 0 ] 
-#then
-#        cat << 'EOF' > "${BUILD_HOME}/runtime/ansible-env/requirements.txt"
-#linode_api4>=5.46.1
-#polling==0.3.2
-#ansible-specdoc>=0.0.20
-#EOF
-#fi
-
-#pip install --upgrade -r ${BUILD_HOME}/runtime/ansible-env/requirements.txt
-
-#echo "1234" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
-#chown root:root ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
-#chmod 600 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
-
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml ] )
@@ -98,16 +79,6 @@ else
         /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
-#cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
-#linode_api_token: ${TOKEN}
-#emergency_password: ${emergency_password} 
-#path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
-#EOF
-
-#ansible-vault encrypt --vault-password-file=${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
-
-#is this needed
-#ansible-galaxy collection install linode.cloud
 
 image="${OS_CHOICE}" 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
@@ -124,18 +95,6 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks
 fi
 
-#cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
-#vpc_label: ${VPC_NAME}
-#vpc_region: ${REGION}
-#vpc_desc: "Main ADT infrastructure VPC created via Ansible"
-#subnetwork_label: "adt-subnet"
-#subnetwork_ipv4: "${VPC_IP_RANGE}"
-#subnetwork_desc: "Subnet for infrastructure servers"
-#subnet_id_file: ${subnet_id_file}
-#path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
-#EOF
-
-#ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}-${webserver_no}.yaml"
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
 root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
