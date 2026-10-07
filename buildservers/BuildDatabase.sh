@@ -87,7 +87,6 @@ then
 fi
 
 server_ips_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ips/${database_name}"
-ready_file="/home/${SERVER_USER}/runtime/DATABASE_READY"
 subnet_id_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id"
 
 if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks ] )
@@ -103,7 +102,6 @@ subnetwork_label: "adt-subnet"
 subnetwork_ipv4: "${VPC_IP_RANGE}"
 subnetwork_desc: "Subnet for infrastructure servers"
 subnet_id_file: ${subnet_id_file}
-ready_file: ${ready_file}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
@@ -112,6 +110,7 @@ subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 
 root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
 target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
+ready_file="/home/${SERVER_USER}/runtime/DATABASE_READY"
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_type}.yaml"
 server_name: ${database_name}
@@ -125,6 +124,7 @@ path_to_user_data: ${cloud_config}
 server_user: ${SERVER_USER} 
 server_ips_file: ${server_ips_file} 
 build_key: ${BUILD_KEY} 
+ready_file: ${ready_file}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
