@@ -59,4 +59,12 @@ EOF
 
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
 
-/bin/echo "Subnet ID set to: `/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id`"
+subnet_id="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id`"
+/bin/echo "Subnet ID set to: ${subnet_id}"
+
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}"
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}"
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}"
+
+
+
