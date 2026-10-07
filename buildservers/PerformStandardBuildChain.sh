@@ -49,6 +49,8 @@ SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cr
 
 pids=""
 
+${BUILD_HOME}/buildservers/PreBuildInitialisation.sh
+
 if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] )
 then
 	if ( [ "${NO_AUTOSCALERS}" = "" ] )
