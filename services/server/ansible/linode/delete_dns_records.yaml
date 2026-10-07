@@ -1,44 +1,25 @@
 ---
-- name: Purge all IP records using the official Linode collection
+- name: Delete all A records for a specific subdomain
   hosts: localhost
   gather_facts: false
+  vars_files:
+    - "{{ path_to_vault_file }}"
 
   tasks:
-    - name: Ensure Linode API token is present
-      ansible.builtin.fail:
-        msg: "The LINODE_API_TOKEN environment variable is missing."
-      when: linode_api_token is not defined or linode_api_token | trim == ""
-
-    - name: Lookup target domain details
-      linode.cloud.domain_info:
-        api_token: "{{ linode_api_token }}"
-        domain: "{{ target_domain }}"
-      register: target_domain_details
-
-    - name: Fetch all DNS records associated with the domain
+    - name: Fetch DNS records matching the target subdomain name
       linode.cloud.domain_record_info:
         api_token: "{{ linode_api_token }}"
-        domain_id: "{{ target_domain_details.domains[0].id }}"
-      register: dns_records_list
-      when: target_domain_details.domains | length > 0
+        domain: "{{ root_domain }}"
+        name: "{{ target_subdomain }}"  
+      register: all_records
 
-    - name: Filter down to IP mapping records (A & AAAA)
-      ansible.builtin.set_fact:
-        target_ip_records: "{{ dns_records_list.domain_records | selectattr('type', 'in', ['A', 'AAAA']) | list }}"
-      when: dns_records_list.domain_records is defined
-
-    - name: Delete filtered A and AAAA records
+    - name: Delete matching subdomain A records
       linode.cloud.domain_record:
         api_token: "{{ linode_api_token }}"
-        domain_id: "{{ target_domain_details.domains[0].id }}"
-        id: "{{ item.id }}"
+        domain: "{{ root_domain }}"       
+        record_id: "{{ item.id }}"       
         state: absent
-      loop: "{{ target_ip_records }}"
+      loop: "{{ all_records.record | default([]) }}" 
+      when: item.type == 'A'
       loop_control:
-        label: "Removing Record ID {{ item.id }} ({{ item.type }} -> {{ item.name or '@' }})"
-      when: target_ip_records is defined and target_ip_records | length > 0
-
-    - name: Report completion status
-      ansible.builtin.debug:
-        msg: "Successfully removed {{ target_ip_records | length }} IP records from {{ target_domain }}."
-      when: target_ip_records is defined
+        label: "Deleting A record ID: {{ item.id }} ({{ item.name }}.{{ root_domain }})"
