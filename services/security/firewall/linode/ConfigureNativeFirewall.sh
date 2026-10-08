@@ -42,7 +42,31 @@ AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTI
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
 
+firewall_name="${firewall_name}-${BUILD_IDENTIFIER}"
+
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
+
+
+    # Set your Linode API Token as an environment variable (export LINODE_API_TOKEN="your_token")
+    linode_api_token: "{{ lookup('ansible.builtin.env', 'LINODE_API_TOKEN') }}"
+    
+    # Enter the exact string label of the specific firewall you want to wipe clean
+    target_firewall_label: "my-target-firewall"  
+
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
+firewall_name: ${firewall_name} 
+rule_name: custom_rule-${rule_no}
+rule_action: ACCEPT
+rule_port: ${rule_port}
+rule_protocol: ${rule_protocol}
+rule_ipv4_addresses: ${rule_ipv4_addresses}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
+        done
+
+
+    
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
