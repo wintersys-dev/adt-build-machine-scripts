@@ -51,7 +51,7 @@ inventory="${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate 
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
-target_firewall_label:${firewall_name}
+target_firewall_label: ${firewall_name}
 path_to_vault_file: ${vault} 
 EOF
 
