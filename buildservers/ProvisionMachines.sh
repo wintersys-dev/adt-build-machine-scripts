@@ -9,9 +9,14 @@ REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
+DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
+DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
+DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 AUTH_DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
 AUTH_DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
+AUTH_DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
 AUTH_SERVER_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
@@ -49,13 +54,19 @@ else
         /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
-name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
-zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
+then
+        name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+        zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
+        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`" 
+fi
 
-name="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-zonename="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
-auth_zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+if ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] )
+then
+        name="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+        zone_name="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
+        auth_zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}" "${AUTH_DNS_USERNAME}" "${AUTH_DNS_SECURITY_KEY}" "${AUTH_DNS_CHOICE}"`" 
+fi
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
 linode_api_token: ${TOKEN}
