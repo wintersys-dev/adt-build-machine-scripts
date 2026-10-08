@@ -24,11 +24,8 @@
 #set -x
 
 firewall_name="${1}"
-
-firewall_name="adt-authenticator"
 machine_type="`/bin/echo ${firewall_name} | /bin/sed 's/adt-//'`"
 machine_type_upper="`/bin/echo ${machine_type} | /usr/bin/tr '[:lower:]' '[:upper:]'`"
-
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
 ACTIVE_FIREWALLS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
