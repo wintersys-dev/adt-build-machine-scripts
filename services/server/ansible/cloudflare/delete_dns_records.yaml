@@ -1,15 +1,13 @@
 ---
-- name: Cloudflare DNS Master Orchestrator
+- name: Purge all A records for a specific subdomain
   hosts: localhost
   gather_facts: false
   vars:
-    root_domain: "the-galley.uk"
-    record_type_to_delete: "A"
   vars_files:
-    - "vars/vault.yml"
+    - "{{ path_to_vault_file }}"
 
   tasks:
-    - name: Orchestration Block - Route to correct authentication handler
+    - name: Orchestration Block - Route to correct record deletion handler
       block:
         # ---- PATH A: SCOPED API TOKEN ----
         - name: Route to Scoped API Token workflow
