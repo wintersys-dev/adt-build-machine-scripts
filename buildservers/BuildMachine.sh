@@ -165,6 +165,7 @@ then
 
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
+full_domain: ${website_url}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
