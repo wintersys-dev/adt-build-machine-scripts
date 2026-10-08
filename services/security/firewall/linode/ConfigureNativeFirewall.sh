@@ -51,21 +51,23 @@ else
         all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh`"
 fi
 
-firewall_ports="`/bin/grep "^${machine_type_upper}PORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
-rule_port="`/bin/echo ${firewall_ports} | /usr/bin/awk -F'|' '{print $1}'`"
-rule_protocol="`/bin/echo ${firewall_ports} | /usr/bin/awk -F'|' '{print $3}'`"
-rule_ipv4_addresses="`/bin/echo ${firewall_ports} | /usr/bin/awk -F'|' '{print $4}'`"
-rule_action="`/bin/echo ${firewall_ports} | /usr/bin/awk -F'|' '{print $5}'`"
-no_rules="`/bin/echo ${firewall_ports} | /usr/bin/wc -w`"
+firewall_rules="`/bin/grep "^${machine_type_upper}PORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
+if ( [ "${firewall_rules}" != "" ] )
+then
+        rule_port="`/bin/echo ${firewall_rules} | /usr/bin/awk -F'|' '{print $1}'`"
+        rule_protocol="`/bin/echo ${firewall_rules} | /usr/bin/awk -F'|' '{print $3}'`"
+        rule_ipv4_addresses="`/bin/echo ${firewall_rules} | /usr/bin/awk -F'|' '{print $4}'`"
+        rule_action="`/bin/echo ${firewall_rules} | /usr/bin/awk -F'|' '{print $5}'`"
+        no_rules="`/bin/echo ${firewall_rules} | /usr/bin/wc -w`"
 
-for rule_no in ${no_rules}
-do
-        if ( [ "${rule_ipv4_addresses}" = "cloudflare" ] )
-        then
-                rule_ipv4_addresses="[${all_dns_proxy_ips}]"
-        fi
+        for rule_no in ${no_rules}
+        do
+                if ( [ "${rule_ipv4_addresses}" = "cloudflare" ] )
+                then
+                        rule_ipv4_addresses="[${all_dns_proxy_ips}]"
+                fi
 
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
 firewall_name: ${firewall_name}-${BUILD_IDENTIFIER} 
 rule_name: custom_rule-${rule_no}
 rule_action: ACCEPT
@@ -75,7 +77,8 @@ rule_ipv4_addresses: ${rule_ipv4_addresses}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
-done
+        done
+fi
 
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
