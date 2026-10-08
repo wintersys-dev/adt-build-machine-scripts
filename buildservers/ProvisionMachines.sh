@@ -37,6 +37,7 @@ then
         python_version="`/bin/echo "${python_version}" | /bin/sed 's/\.[0-9]$//' | /usr/bin/awk '{print $NF}'`"
 fi
 
+/bin/echo "[all:vars]" >> ${BUILD_HOME}/services/server/ansible/linode/inventory.ini
 /bin/echo "ansible_python_interpreter=${BUILD_HOME}/runtime/ansible-env/bin/python${python_version}" >> ${BUILD_HOME}/services/server/ansible/linode/inventory.ini
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
