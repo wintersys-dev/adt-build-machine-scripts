@@ -4,9 +4,7 @@
   vars:
     target_firewall_label: "{{ firewall_name }}"
     
-    # 1. Pass a list of Linode Instance IDs you want to attach
-    target_linode_ids: [ {{ linode_ids }} ] # Replace with your actual Linode IDs or a variable
-
+    # Cleaned up variables (removed trailing spaces)
     new_inbound_rule:
       label: "{{ rule_name }}"
       action: "{{ rule_action }}"     
@@ -33,6 +31,7 @@
 
     - name: Build deduplicated inbound rules list
       ansible.builtin.set_fact:
+        # Appends the rule only if a rule with the same label doesn't already exist
         final_inbound_rules: >-
           {{
             existing_inbound + [new_inbound_rule]
@@ -40,21 +39,12 @@
             else existing_inbound
           }}
 
-    # 2. Format the Linode IDs into the structure the Linode API expects
-    - name: Map target Linode IDs to firewall device structure
-      ansible.builtin.set_fact:
-        firewall_devices: >-
-          {{
-            target_linode_ids | map('string') | map('regex_replace', '^(.*)$', {'id': '\\1', 'type': 'linode'}) | list
-          }}
-
-    - name: Create or Update the Linode Firewall and Attach Devices
+    - name: Create or Update the Linode Firewall
       linode.cloud.firewall:
         id: "{{ firewall_id | default(omit) }}"
         label: "{{ target_firewall_label }}"
         inbound_policy: "{{ inbound_policy }}"
         outbound_policy: "{{ outbound_policy }}"
         inbound: "{{ final_inbound_rules }}"
-        # 3. Pass the structured devices list here
-        devices: "{{ firewall_devices }}"
         state: present
+
