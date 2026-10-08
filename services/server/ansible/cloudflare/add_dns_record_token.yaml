@@ -1,9 +1,9 @@
----
-- name: Add an A record for a specific subdomain using API Token
-  hosts: localhost
-  gather_facts: false
-  vars_files:
-    - "{{ path_to_vault_file }}"
+#---
+#- name: Add an A record for a specific subdomain using API Token
+#  hosts: localhost
+#  gather_facts: false
+#  vars_files:
+#    - "{{ path_to_vault_file }}"
 
   tasks:
     - name: Create the new DNS record
