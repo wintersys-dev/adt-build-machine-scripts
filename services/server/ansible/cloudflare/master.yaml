@@ -1,0 +1,35 @@
+---
+- name: Cloudflare DNS Master Orchestrator
+  hosts: localhost
+  gather_facts: false
+  vars:
+    root_domain: "the-galley.uk"
+    record_type_to_delete: "A"
+  vars_files:
+    - "vars/vault.yml"
+
+  tasks:
+    - name: Orchestration Block - Route to correct authentication handler
+      block:
+        # ---- PATH A: SCOPED API TOKEN ----
+        - name: Route to Scoped API Token workflow
+          ansible.builtin.include_tasks: tasks/purge_with_token.yml
+          when: 
+            - cloudflare_api_token is defined
+            - cloudflare_api_token | trim | length > 0
+
+        # ---- PATH B: LEGACY GLOBAL API KEY ----
+        - name: Route to Legacy Global API Key workflow
+          ansible.builtin.include_tasks: tasks/purge_with_key.yml
+          when:
+            - cloudflare_api_token is not defined or (cloudflare_api_token | trim | length == 0)
+            - cloudflare_global_api_key is defined and (cloudflare_global_api_key | trim | length > 0)
+            - cloudflare_account_email is defined and (cloudflare_account_email | trim | length > 0)
+
+      rescue:
+        - name: Fail gracefully if no valid credential mix was provided
+          ansible.builtin.fail:
+            msg: >
+              Orchestration halted: Invalid credential mix provided. 
+              Please define either 'cloudflare_api_token' OR both 
+              'cloudflare_global_api_key' and 'cloudflare_account_email'.
