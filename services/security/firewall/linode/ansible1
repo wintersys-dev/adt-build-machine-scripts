@@ -1,0 +1,35 @@
+---
+- name: Configure Linode Cloud Firewall
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Replace this with your actual Firewall ID or name
+    firewall_id: "123456" 
+
+  tasks:
+    - name: Update Linode firewall rules
+      linode.cloud.firewall:
+        id: "{{ firewall_id }}"
+        label: "my-secure-firewall"
+        inbound_policy: DROP
+        outbound_policy: ACCEPT
+        inbound:
+          - label: "allow-ssh"
+            action: ACCEPT
+            protocol: TCP
+            ports: "22"
+            addresses:
+              ipv4:
+                - "0.0.0.0/0"
+              ipv6:
+                - "::/0"
+          - label: "allow-http"
+            action: ACCEPT
+            protocol: TCP
+            ports: "80"
+            addresses:
+              ipv4:
+                - "0.0.0.0/0"
+              ipv6:
+                - "::/0"
+        state: present
