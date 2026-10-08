@@ -1,15 +1,38 @@
 ---
-- name: Delete all A records for a specific subdomain
+- name: Purge all A records for a specific subdomain using Global API Key
   hosts: localhost
   gather_facts: false
+  vars:
+    # Replace these with your actual Cloudflare credentials and domain details
+  #  cloudflare_email: "your_email@example.com"
+  #  cloudflare_global_api_key: "YOUR_GLOBAL_API_KEY"
+  #  cloudflare_zone_id: "YOUR_ZONE_ID"
+  #  subdomain_name: "://example.com"
   vars_files:
     - "{{ path_to_vault_file }}"
 
   tasks:
-    - name: Delete matching subdomain A records
-      community.general.cloudflare_dns:
-        api_token: "{{ cloudflare_api_token }}"
-        zone: "{{ root_domain }}"
-        record: "{{ target_subdomain }}"
-        type: A
-        state: absent
+    - name: Fetch all existing A records for the target subdomain
+      ansible.builtin.uri:
+        url: "https://cloudflare.com{{ cloudflare_zone_id }}/dns_records?type=A&name={{ subdomain_name }}"
+        method: GET
+        headers:
+          X-Auth-Email: "{{ cloudflare_email }}"
+          X-Auth-Key: "{{ cloudflare_global_api_key }}"
+          Content-Type: "application/json"
+        status_code: 200
+      register: cloudflare_dns_records
+
+    - name: Delete each matching A record found
+      ansible.builtin.uri:
+        url: "https://cloudflare.com{{ cloudflare_zone_id }}/dns_records/{{ item.id }}"
+        method: DELETE
+        headers:
+          X-Auth-Email: "{{ cloudflare_email }}"
+          X-Auth-Key: "{{ cloudflare_global_api_key }}"
+          Content-Type: "application/json"
+        status_code: 200
+      loop: "{{ cloudflare_dns_records.json.result }}"
+      when: cloudflare_dns_records.json.result | length > 0
+      loop_control:
+        label: "Deleting A record pointing to {{ item.content }}"
