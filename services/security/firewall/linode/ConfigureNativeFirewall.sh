@@ -138,7 +138,7 @@ EOF
         ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
 fi
 
-if ( [ "${machine_type}" = "reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] )
+if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${machine_type}" = "reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] )
 then
         wireguard_port="`/usr/bin/expr ${SSH_PORT} + 1`"
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-wireguard.yaml"
