@@ -83,47 +83,85 @@ then
         rule_port="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $1}'`"
         rule_protocol="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $2}'`"
         rule_ipv4_address="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $3}'`"
-        rule_ipv4_action="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $4}'`"
+        rule_action="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $4}'`"
+        no_rules="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/wc -w`"
 
-
-443|ipv4|0.0.0.0/0 
-
-{{ firewall_name }}"
-{{ rule_name }}" # adt-database
-{{ rule_action }}"     #ACCEPT  
-{{ rule_protocol }} " #TCP
-{{ rule_port }}"   #443
-{{ rule_ipv4_address }} "] 0.0.0.0/0
-
+        for rule_no in ${no_rules}
+        do
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
 firewall_name: ${firewall_name} 
-rule_name: ${rule}
+rule_name: custom_rule-${rule_no}
 rule_action: ACCEPT
 rule_port: ${rule_port}
+rule_protocol: ${rule_protocol}
 rule_ipv4_address: ${rule_ipv4_address}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+        done
 
-"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"}
+        #update this still        
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
 
-ansible-playbook 
 
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
+firewall_name: ${firewall_name} 
+rule_name: rule_vpc_ssh
+rule_action: ACCEPT
+rule_port: ${SSH_PORT}
+rule_protocol: TCP
+rule_ipv4_address: ${VPC_IP_RANGE}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
 
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
-        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
+        #update this still
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
 
-      #  if ( [ "${all_dns_proxy_ips}" = "" ] )
-      #  then
-       #         rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-        #else                 
-        if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
-        then
-                rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
-        fi
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-${rule}.yaml"
+firewall_name: ${firewall_name} 
+rule_name: rule_icmp
+rule_action: ACCEPT
+rule_protocol: ICMP
+rule_ipv4_address: 0.0.0.0/0
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
 
-        rule_build_machine=""
-        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-        then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-        fi
+        #update this still
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
+
+if ( [ "${all_dns_proxy_ips}" = "" ] )
+then
+        rule_ipv4_address="0.0.0.0/0"
+else
+        rule_ipv4_address="all_dns_proxy_ips" 
+fi
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
+firewall_name: ${firewall_name} 
+rule_name: rule_ssl
+rule_action: ACCEPT
+rule_port: 443
+rule_protocol: TCP
+rule_ipv4_address: ${rule_ipv4_address}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+        #update this still
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
+
+if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+then
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
+firewall_name: ${firewall_name} 
+rule_name: rule_build_machine
+rule_action: ACCEPT
+rule_port: ${SSH_PORT}
+rule_protocol: TCP
+rule_ipv4_address: ${build_machine_ip}/32
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+        #update this still
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
+
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
