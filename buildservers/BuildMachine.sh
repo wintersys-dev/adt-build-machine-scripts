@@ -102,20 +102,24 @@ then
         if ( [ "${machine_type}" = "adt-authenticator" ] )
         then
                 website_url="${AUTH_SERVER_URL}"
+                dns_provider="${AUTH_DNS_CHOICE}"
         else
                 website_url="${WEBSITE_URL}"
+                dns_provider="${DNS_CHOICE}"
         fi
         target_subdomain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f1`"
+        root_domain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f2,3`"
 
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 full_domain: ${website_url}
+root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED-${machine_type} ] )
 then
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/cloudflare/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/${dns_provider}/inventory.ini ${BUILD_HOME}/services/server/ansible/cloudflare/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 fi
 
 if ( [ "$?" = "0" ] )
@@ -152,9 +156,10 @@ then
         if ( [ "${machine_type}" = "adt-authenticator" ] )
         then
                 website_url="${AUTH_SERVER_URL}"
-                target_subdomain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f1`"
+                dns_provider="${AUTH_DNS_CHOICE}"       
         else
                 website_url="${WEBSITE_URL}"
+                dns_provider="${DNS_CHOICE}"
         fi
 
         target_subdomain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f1`"
