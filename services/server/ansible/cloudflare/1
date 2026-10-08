@@ -1,0 +1,31 @@
+---
+- name: Add an A record for a specific subdomain using API Token
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - "{{ path_to_vault_file }}"
+
+  tasks:
+    - name: Create the new DNS record
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/zones/{{ cloudflare_auth_zone_id }}/dns_records"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ cloudflare_api_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          type: "A"
+          name: "{{ full_domain }}"
+          content: "{{ ip_address }}" 
+          ttl: 1
+          proxied: false
+        status_code: 
+          - 200
+          - 201
+      register: cloudflare_create_result
+
+    - name: Debug the creation response
+      ansible.builtin.debug:
+        msg: "Successfully created record ID: {{ cloudflare_create_result.json.result.id }}"
+      when: cloudflare_create_result.json.success | default(false)
