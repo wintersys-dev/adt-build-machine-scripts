@@ -1,21 +1,26 @@
 - name: Upsert Linode Firewall and Add Rule Dynamically
   hosts: localhost
   gather_facts: false
-  vars:
-    target_firewall_label: "{{ firewall_name }}"
   vars_files:
     - "{{ path_to_vault_file }}"
-    
-    # Cleaned up variables (removed trailing spaces)
+  vars:
+    target_firewall_label: "{{ firewall_name }}"
     new_inbound_rule:
       label: "{{ rule_name }}"
-      action: "{{ rule_action }}"     
-      protocol: "{{ rule_protocol }}" 
-      ports: "{{ rule_port }}"   
+      action: "{{ rule_action }}"
+      protocol: "{{ rule_protocol | upper }}"
+      ports: "{{ rule_port if (rule_protocol | upper in ['TCP', 'UDP']) else omit }}"
       addresses:
-        ipv4: ["{{ rule_ipv4_address }}"]
-
+        ipv4: "{{ rule_ipv4_addresses }}"
   tasks:
+    - name: Fail fast if rule_ipv4_addresses is not provided or empty
+      ansible.builtin.assert:
+        that:
+          - rule_ipv4_addresses is defined
+          - rule_ipv4_addresses | length > 0
+        fail_msg: "Validation failed: 'rule_ipv4_addresses' must be defined and contain at least one IP address."
+        success_msg: "Validation passed: 'rule_ipv4_addresses' is valid."
+
     - name: Check if the firewall exists by its label
       linode.cloud.firewall_list:
         api_token: "{{ linode_api_token }}"
@@ -24,33 +29,27 @@
             values: ["{{ firewall_name }}"]
       register: firewall_search
 
-    - name: Set facts for existing vs new firewall configurations
+    - name: Set facts for existing configurations
       ansible.builtin.set_fact:
-        api_token: "{{ linode_api_token }}"
-        firewall_exists: "{{ firewall_search.firewalls | length > 0 }}"
-        firewall_id: "{{ firewall_search.firewalls[0].id if (firewall_search.firewalls | length > 0) else omit }}"
         existing_inbound: "{{ firewall_search.firewalls[0].rules.inbound if (firewall_search.firewalls | length > 0) else [] }}"
         inbound_policy: "{{ firewall_search.firewalls[0].rules.inbound_policy if (firewall_search.firewalls | length > 0) else 'DROP' }}"
         outbound_policy: "{{ firewall_search.firewalls[0].rules.outbound_policy if (firewall_search.firewalls | length > 0) else 'ACCEPT' }}"
+        existing_outbound: "{{ firewall_search.firewalls[0].rules.outbound if (firewall_search.firewalls | length > 0) else [] }}"
 
-    - name: Build deduplicated inbound rules list
+    - name: Build updated inbound rules list (Upsert logic)
       ansible.builtin.set_fact:
-        api_token: "{{ linode_api_token }}"
-        # Appends the rule only if a rule with the same label doesn't already exist
         final_inbound_rules: >-
-          {{
-            existing_inbound + [new_inbound_rule]
-            if (existing_inbound | selectattr('label', 'equalto', rule_name) | list | length == 0)
-            else existing_inbound
-          }}
+          {{ (existing_inbound | rejectattr('label', 'equalto', rule_name) | list) + [new_inbound_rule] }}
+
 
     - name: Create or Update the Linode Firewall
       linode.cloud.firewall:
         api_token: "{{ linode_api_token }}"
-        id: "{{ firewall_id | default(omit) }}"
         label: "{{ target_firewall_label }}"
-        inbound_policy: "{{ inbound_policy }}"
-        outbound_policy: "{{ outbound_policy }}"
-        inbound: "{{ final_inbound_rules }}"
         state: present
+        rules:
+          inbound_policy: "{{ inbound_policy }}"
+          outbound_policy: "{{ outbound_policy }}"
+          inbound: "{{ final_inbound_rules }}"
+          outbound: "{{ existing_outbound }}"
 
