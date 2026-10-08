@@ -501,6 +501,8 @@ if ( [ "`/bin/grep "^BUILDCHAINTYPE:*" ${BUILD_HOME}/configuration/software.dat 
 then
 	${BUILD_HOME}/buildservers/ProvisionMachines.sh
 	#${BUILD_HOME}/buildservers/PerformStandardBuildChain.sh
+	${BUILD_HOME}/services/security/firewall/AdjustBuildMachineFirewall.sh
+	${BUILD_HOME}/buildservers/FinaliseBuildProcessing.sh
 fi
 
 #This option will only build a webserver (which you might want if you are building a static site)
