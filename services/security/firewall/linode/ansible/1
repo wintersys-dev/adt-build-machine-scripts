@@ -1,0 +1,54 @@
+- name: Upsert Linode Firewall and Add Rule Dynamically
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - "{{ path_to_vault_file }}"
+  vars:
+    target_firewall_label: "{{ firewall_name }}"
+    new_inbound_rule:
+      label: "{{ rule_name }}"
+      action: "{{ rule_action }}"
+      protocol: "{{ rule_protocol | upper }}"
+      ports: "{{ rule_port if (rule_protocol | upper in ['TCP', 'UDP']) else omit }}"
+      addresses:
+        ipv4: "{{ rule_ipv4_addresses }}"
+  tasks:
+    - name: Fail fast if rule_ipv4_addresses is not provided or empty
+      ansible.builtin.assert:
+        that:
+          - rule_ipv4_addresses is defined
+          - rule_ipv4_addresses | length > 0
+        fail_msg: "Validation failed: 'rule_ipv4_addresses' must be defined and contain at least one IP address."
+        success_msg: "Validation passed: 'rule_ipv4_addresses' is valid."
+
+    - name: Check if the firewall exists by its label
+      linode.cloud.firewall_list:
+        api_token: "{{ linode_api_token }}"
+        filters:
+          - name: label
+            values: ["{{ firewall_name }}"]
+      register: firewall_search
+
+    - name: Set facts for existing configurations
+      ansible.builtin.set_fact:
+        existing_inbound: "{{ firewall_search.firewalls[0].rules.inbound if (firewall_search.firewalls | length > 0) else [] }}"
+        inbound_policy: "{{ firewall_search.firewalls[0].rules.inbound_policy if (firewall_search.firewalls | length > 0) else 'DROP' }}"
+        outbound_policy: "{{ firewall_search.firewalls[0].rules.outbound_policy if (firewall_search.firewalls | length > 0) else 'ACCEPT' }}"
+        existing_outbound: "{{ firewall_search.firewalls[0].rules.outbound if (firewall_search.firewalls | length > 0) else [] }}"
+
+    - name: Build updated inbound rules list (Upsert logic)
+      ansible.builtin.set_fact:
+        final_inbound_rules: >-
+          {{ (existing_inbound | rejectattr('label', 'equalto', rule_name) | list) + [new_inbound_rule] }}
+
+
+    - name: Create or Update the Linode Firewall
+      linode.cloud.firewall:
+        api_token: "{{ linode_api_token }}"
+        label: "{{ target_firewall_label }}"
+        state: present
+        rules:
+          inbound_policy: "{{ inbound_policy }}"
+          outbound_policy: "{{ outbound_policy }}"
+          inbound: "{{ final_inbound_rules }}"
+          outbound: "{{ existing_outbound }}"
