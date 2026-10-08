@@ -1,10 +1,10 @@
----
-- name: Add an A record for a specific subdomain
-  hosts: localhost
-  gather_facts: false
-  vars:
-  vars_files:
-    - "{{ path_to_vault_file }}"
+#---
+#- name: Add an A record for a specific subdomain
+#  hosts: localhost
+#  gather_facts: false
+#  vars:
+#  vars_files:
+#    - "{{ path_to_vault_file }}"
 
 
   tasks:
