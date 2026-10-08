@@ -119,7 +119,6 @@ then
         /bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED
 fi
 fi
-exit
 
 ready_file="/home/${SERVER_USER}/runtime/`/bin/echo ${machine_label} | /usr/bin/tr '[:lower:]' '[:upper:]'`_READY"
 
