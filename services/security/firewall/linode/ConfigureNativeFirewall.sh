@@ -23,28 +23,9 @@
 #######################################################################################################
 set -x
 
-linode_firewall_rules ()
-{
-        firewall_name="${1}"
-        firewall_ports="${2}"
-        firewall_rules=""
-        for firewall_port_token in ${firewall_ports}
-        do
-                if ( [ "`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $2}'`" = "ipv4" ] )
-                then
-                        port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
-                        ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
-                        
-                        if ( [ "`/usr/bin/ipcalc ${ip_address} | /bin/grep "INVALID"`"  = "" ] )
-                        then
-                                firewall_rules=${firewall_rules}'{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${port}'"},{"addresses":{"ipv4":["'${ip_address}'"]},"action":"ACCEPT","protocol":"UDP","ports":"'${port}'"}'
-                        fi
-                fi
-        done
-        /bin/echo "${firewall_rules}"
-}
-
 firewall_name="${1}"
+
+firewall_name="adt-authenticator"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
 ACTIVE_FIREWALLS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
@@ -62,7 +43,6 @@ TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
-
 
 if ( [ -f ${BUILD_HOME}/configuration/firewall.dat ] )
 then
@@ -84,243 +64,88 @@ if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
 then
         authenticator_firewall_ports="`/bin/grep "^AUTHENTICATORPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
         rule_port="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $1}'`"
-        rule_protocol="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $2}'`"
-        rule_ipv4_address="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $3}'`"
-        rule_action="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $4}'`"
+        rule_protocol="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $3}'`"
+        rule_ipv4_addresses="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $4}'`"
+        rule_action="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/awk -F'|' '{print $5}'`"
         no_rules="`/bin/echo ${authenticator_firewall_ports} | /usr/bin/wc -w`"
 
         for rule_no in ${no_rules}
         do
+                if ( [ "${rule_ipv4_addresses}" = "cloudflare" ] )
+                then
+                        rule_ipv4_addresses="[${all_dns_proxy_ips}]"
+                fi
+
                 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
 firewall_name: ${firewall_name} 
 rule_name: custom_rule-${rule_no}
 rule_action: ACCEPT
 rule_port: ${rule_port}
 rule_protocol: ${rule_protocol}
-rule_ipv4_address: ${rule_ipv4_address}
+rule_ipv4_addresses: ${rule_ipv4_addresses}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
-        #update this still        
-                ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
-        done
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
+done
 
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
 firewall_name: ${firewall_name} 
 rule_name: rule_vpc_ssh
 rule_action: ACCEPT
 rule_port: ${SSH_PORT}
 rule_protocol: TCP
-rule_ipv4_address: ${VPC_IP_RANGE}
+rule_ipv4_addresses: ${VPC_IP_RANGE}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-        #update this still
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
 
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_icmp.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_icmp.yaml"
 firewall_name: ${firewall_name} 
 rule_name: rule_icmp
 rule_action: ACCEPT
 rule_protocol: ICMP
-rule_ipv4_address: 0.0.0.0/0
+rule_ipv4_addresses: 0.0.0.0/0
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-        #update this still
-        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_icmp.yaml"
+ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_icmp.yaml"
 
 if ( [ "${all_dns_proxy_ips}" = "" ] )
 then
-        rule_ipv4_address="0.0.0.0/0"
+        rule_ipv4_addresses="0.0.0.0/0"
 else
-        rule_ipv4_address="all_dns_proxy_ips" 
+        rule_ipv4_addresses="[${all_dns_proxy_ips}]" 
 fi
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
 firewall_name: ${firewall_name} 
 rule_name: rule_ssl
 rule_action: ACCEPT
 rule_port: 443
 rule_protocol: TCP
-rule_ipv4_address: ${rule_ipv4_address}
+rule_ipv4_addresses: ${rule_ipv4_addresses}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
         #update this still
         ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
 
-if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-then
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
+        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
+        then
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
 firewall_name: ${firewall_name} 
 rule_name: rule_build_machine
 rule_action: ACCEPT
 rule_port: ${SSH_PORT}
 rule_protocol: TCP
-rule_ipv4_address: ${build_machine_ip}/32
+rule_ipv4_addresses: ${build_machine_ip}/32
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
         #update this still
         ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${autoscaler_firewall_ports}"`"
-        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-        rule_build_machine=""
-        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-        then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
 fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}"`"
-
-        rule_wireguard=""
-        rule_ssl=""
-        if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
-        then
-                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
-                rule_wireguard='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
-        else
-             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
-             #   then
-             #           rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-             #   else
-                if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
-                then
-                        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
-                fi
-        fi
-
-        rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-
-        rule_build_machine=""
-        rule_build_machine_ssl=""
-        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-        then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-                if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
-                then
-                        rule_build_machine_ssl='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
-                fi
-        fi
-        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
-        rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-
-        if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
-        then
-             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
-             #   then
-             #           rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-             #   else
-                if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
-                then
-                        rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
-                fi
-                #        rule_ssl='{"addresses":{"ipv4":["'${all_dns_proxy_ips}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-                #fi
-        fi
-
-        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-
-        rule_build_machine=""
-        rule_build_machine_ssl=""
-        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-        then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-                if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
-                then
-                        rule_build_machine_ssl='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"443"}'
-                fi
-        fi
-        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-
-fi
-
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
-then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${database_firewall_ports}"`"
-        rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-        rule_vpc_db='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${DB_PORT}'"}'
-        rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-
-        rule_build_machine=""
-        if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
-        then
-                rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
-        fi
-
-fi
-
-ruleset=""
-if ( [ "${rule_build_machine}" != "" ] )
-then
-        rule_build_machine="${rule_build_machine},"
-fi
-
-if ( [ "${rule_build_machine_ssl}" != "" ] )
-then
-        rule_build_machine_ssl="${rule_build_machine_ssl},"
-fi
-
-if ( [ "${rule_wireguard}" != "" ] )
-then
-        rule_wireguard="${rule_wireguard},"
-fi
-        
-if ( [ "${rule_vpc_ssh}" != "" ] )
-then
-        rule_vpc_ssh="${rule_vpc_ssh},"
-fi
-
-if ( [ "${rule_vpc_db}" != "" ] )
-then
-        rule_vpc_db="${rule_vpc_db},"
-fi
-
-if ( [ "${rule_vpc_ssl}" != "" ] )
-then
-        rule_vpc_ssl="${rule_vpc_ssl},"
-fi
-
-if ( [ "${rule_ssl}" != "" ] )
-then
-        rule_ssl="${rule_ssl},"
-fi
-
-if ( [ "${rule_icmp}" != "" ] )
-then
-        rule_icmp="${rule_icmp},"
-fi
-
-if ( [ "${firewall_rules}" != "" ] )
-then
-        firewall_rules="${firewall_rules},"
-fi
-
-ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
-ruleset='['${ruleset}']'
-firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
-
-if ( [ "${firewall_id}" = "" ] )
-then
-        firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
-else
-        /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
-fi
-
-/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
 
 if ( [ "$?" = "0" ] )
 then
