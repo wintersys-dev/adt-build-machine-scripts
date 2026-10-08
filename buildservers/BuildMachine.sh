@@ -61,10 +61,11 @@ fi
 
 if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ] )
 then
+        /bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_name}.yaml
         machine_name_match="`/bin/echo ${machine_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
-        /bin/sed -i "s/XXXX${machine_label_upper}_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
-        /bin/sed -i "s/${machine_name_match}.*$/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml
-        cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_label}.yaml"
+        /bin/sed -i "s/XXXX${machine_label_upper}_HOSTNAMEXXXX/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_name}.yaml
+        /bin/sed -i "s/${machine_name_match}.*$/${machine_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_name}.yaml
+        cloud_config="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_name}.yaml"
 fi
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
