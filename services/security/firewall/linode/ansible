@@ -2,32 +2,21 @@
 - name: Manage Linode Firewalls natively
   hosts: localhost
   gather_facts: false
-  vars:
-    # It is recommended to use an Environment Variable for your Token, 
-    # but you can define it here if needed.
-    linode_api_token: "{{ lookup('ansible.builtin.env', 'LINODE_API_TOKEN') }}"
 
   tasks:
     - name: Create or Update a Cloud Firewall with standard rules
       linode.cloud.firewall:
         api_token: "{{ linode_api_token }}"
-        label: "production-web-firewall"
-        status: "enabled"
-        # Inbound structural logic (Allow SSH and HTTP/S traffic)
+        label: "{{ firewall_name }}"
+        status: "{{ status }}"
         inbound_policy: "drop"
         inbound:
-          - label: "allow-ssh"
+          - label: "{{ rule_name }}"
             action: "accept"
-            protocol: "tcp"
-            ports: "22"
+            protocol: "{{ protocol }}"
+            ports: "{{ port }}"
             addresses:
-              ipv4: ["0.0.0.0/0"]
-          - label: "allow-http-https"
-            action: "accept"
-            protocol: "tcp"
-            ports: "80, 443"
-            addresses:
-              ipv4: ["0.0.0.0/0"]
+              ipv4: ["{{ ip_address }}"]
         # Outbound structural logic (Allow all egress traffic)
         outbound_policy: "accept"
         outbound: []
@@ -43,5 +32,5 @@
         api_token: "{{ linode_api_token }}"
         filters:
           - name: label
-            values: "production-web-firewall"
+            values: "{{ firewall_name }}"
       register: firewall_search_results
