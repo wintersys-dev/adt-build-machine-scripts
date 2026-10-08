@@ -1,0 +1,48 @@
+---
+- name: Upsert Linode Firewall and Add Rule Dynamically
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Set the targeted firewall name
+    target_firewall_label: "{{ firewall_name }}"
+    
+    # Define the new rule you want to ensure is present
+    new_inbound_rule:
+      label: "{{ rule_name }}" # adt-database
+      action: "{{ rule_action }}"     #ACCEPT  
+      protocol: "{{ rule_protocol }} " #TCP
+      ports: "{{ rule_port }}"   #443
+      addresses:
+        ipv4: ["{{ rule_ipv4_address }} "]
+     #   ipv6: ["::/0"]
+
+  tasks:
+    - name: Check if the firewall exists by its label
+      linode.cloud.firewall_list:
+        filters:
+          - name: label
+            values: ["{{ firewall_name }}"]
+      register: firewall_search
+
+    - name: Set facts for existing vs new firewall configurations
+      ansible.builtin.set_fact:
+        # Determine if the firewall was found
+        firewall_exists: "{{ firewall_search.firewalls | length > 0 }}"
+        
+        # If it exists, extract the ID, old inbound rule list, and policies
+        firewall_id: "{{ firewall_search.firewalls[0].id if (firewall_search.firewalls | length > 0) else omit }}"
+        existing_inbound: "{{ firewall_search.firewalls[0].rules.inbound if (firewall_search.firewalls | length > 0) else [] }}"
+        inbound_policy: "{{ firewall_search.firewalls[0].rules.inbound_policy if (firewall_search.firewalls | length > 0) else 'DROP' }}"
+        outbound_policy: "{{ firewall_search.firewalls[0].rules.outbound_policy if (firewall_search.firewalls | length > 0) else 'ACCEPT' }}"
+
+    - name: Create or Update the Linode Firewall
+      linode.cloud.firewall:
+        # Pass ID only if it exists; leaving it out instructs Linode to create a new one
+        id: "{{ firewall_id | default(omit) }}"
+        label: "{{ target_firewall_label }}"
+        inbound_policy: "{{ inbound_policy }}"
+        outbound_policy: "{{ outbound_policy }}"
+        
+        # Merges the new rule dictionary with the existing list of rules
+        inbound: "{{ existing_inbound + [new_inbound_rule] }}"
+        state: present
