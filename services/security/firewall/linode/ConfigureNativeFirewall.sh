@@ -135,8 +135,25 @@ rule_ipv4_addresses: ${rule_ipv4_addresses}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl.yaml"
 fi
+
+if ( [ "${machine_type}" = "reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] )
+then
+        wireguard_port="`/usr/bin/expr ${SSH_PORT} + 1`"
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-wireguard.yaml"
+firewall_name: ${firewall_name}-${BUILD_IDENTIFIER}  
+rule_name: rule_ssl
+rule_action: ACCEPT
+rule_port: ${wireguard_port}
+rule_protocol: TCP
+rule_ipv4_addresses: ${rule_ipv4_addresses}
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+        ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-wireguard.yaml"
+fi
+
 
 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
 then
