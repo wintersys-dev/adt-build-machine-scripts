@@ -1,0 +1,20 @@
+---
+- name: Add a new IP address record to Cloudflare DNS using official modules
+  hosts: localhost
+  gather_facts: false
+  vars:
+    new_record_type: A # Use A for IPv4 or AAAA for IPv6
+  vars_files:
+    - "{{ path_to_vault_file }}"
+
+  tasks:
+    - name: Create or update A record for the subdomain
+      community.general.cloudflare_dns:
+        api_token: "{{ cloudflare_api_token }}"
+        zone: "{{ root_domain }}"
+        record: "{{ target_subdomain }}"
+        type: "{{ new_record_type }}"
+        value: "{{ ip_address }}"
+        ttl: 60
+        proxied: false  # Set to true if you want to route traffic through Cloudflare's proxy
+        state: present
