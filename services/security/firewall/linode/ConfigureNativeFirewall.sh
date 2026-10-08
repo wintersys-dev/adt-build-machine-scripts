@@ -152,3 +152,16 @@ EOF
 
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
 fi
+
+
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-get_id.yaml"
+firewall_name: "${firewall_name}-${BUILD_IDENTIFIER}" 
+path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+EOF
+
+firewall_id="`ansible-playbook --vault-password-file /home/agile-deployer/adt-build-machine-scripts/runtime/linode/test-build/.ansible_vault_pass -i /home/agile-deployer/adt-build-machine-scripts/services/security/firewall/linode/ansible/inventory.ini /home/agile-deployer/adt-build-machine-scripts/services/security/firewall/linode/ansible/get_firewall_id.yaml -e @/home/agile-deployer/adt-build-machine-scripts/runtime/linode/test-build/playbooks/ansible-adt-authenticator-get_id.yaml | grep '"msg":' | grep -oE '[0-9]+'`"
+
+if ( [ "$?" = "0" ] )
+then
+        /bin/echo "ADT_FIREWALL_ID:${firewall_id}"
+fi
