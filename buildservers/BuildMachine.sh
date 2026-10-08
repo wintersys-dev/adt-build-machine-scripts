@@ -142,7 +142,7 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 /bin/echo "Server IP Addresses for machine ${machine_name} are available"
 cat ${server_ips_file}
 
-if ( ( [ "${machine_type}" = "authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
+if ( ( [ "${machine_type}" = "adt-authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then        
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
@@ -151,7 +151,7 @@ path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansi
 EOF
         dns_provider="linode"
         
-        if ( ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${machine_type}" = "authenticator" ] ) || ( [ "${DNS_CHOICE}" = "cloudflare" ] && ( [ "${machine_type}" = "reverseproxy" ] || [ "${machine_type}" = "webserver" ] ) ) )
+        if ( ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${machine_type}" = "adt-authenticator" ] ) || ( [ "${DNS_CHOICE}" = "cloudflare" ] && ( [ "${machine_type}" = "adt-reverseproxy" ] || [ "${machine_type}" = "adt-webserver" ] ) ) )
         then
                 dns_provider="cloudflare"
         fi
