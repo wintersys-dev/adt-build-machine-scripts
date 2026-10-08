@@ -7,7 +7,7 @@
     - "{{ path_to_vault_file }}"
 
   tasks:
-    - name: Orchestration Block - Route to correct record deletion handler
+    - name: Orchestration Block - Route to correct A record creation handler
       block:
         # ---- PATH A: SCOPED API TOKEN ----
         - name: Route to Scoped API Token workflow
