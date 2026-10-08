@@ -58,6 +58,7 @@ NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVER
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
