@@ -60,6 +60,8 @@ BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MAC
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
 
+. ${BUILD_HOME}/runtime/ansible-env/bin/activate
+
 
 if ( [ -f ${BUILD_HOME}/configuration/firewall.dat ] )
 then
