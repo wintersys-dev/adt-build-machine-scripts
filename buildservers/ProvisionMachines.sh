@@ -29,6 +29,15 @@ echo "1234" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_va
 chown root:root ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 chmod 600 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass
 
+python_version="`${BUILD_HOME}/runtime/ansible-env/bin/python --version`"
+
+if ( [ "`/bin/echo ${python_version} | /usr/bin/tr -cd '.' | /usr/bin/wc -m`" = "2" ] )
+then
+        python_version="`/bin/echo "${python_version}" | /bin/sed 's/\.[0-9]$//' | /usr/bin/awk '{print $NF}'`"
+fi
+
+/bin/echo "ansible_python_interpreter: /home/agile-deployer/adt-build-machine-scripts/runtime/ansible-env/bin/python${python_version}" >> 
+
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
 then
         emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
