@@ -14,7 +14,7 @@
   tasks:
     - name: Fetch all existing A records for the target subdomain
       ansible.builtin.uri:
-        url: "https://cloudflare.com{{ cloudflare_zone_id }}/dns_records?type=A&name={{ subdomain_name }}"
+        url: "https://cloudflare.com{{ cloudflare_zone_id }}/dns_records?type=A&name={{ full_domain }}"
         method: GET
         headers:
           X-Auth-Email: "{{ cloudflare_email }}"
