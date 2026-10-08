@@ -55,7 +55,7 @@ target_firewall_label:${firewall_name}
 path_to_vault_file: ${vault} 
 EOF
 
-ansible-playbook --vault-password-file ${vault_password_file} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/delete_rules_from_firewall.sh -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
+ansible-playbook --vault-password-file ${vault_password_file} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/delete_rules_from_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
