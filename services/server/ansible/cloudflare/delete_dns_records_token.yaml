@@ -1,9 +1,9 @@
----
-- name: Purge all A records for a specific subdomain using API Token
-  hosts: localhost
-  gather_facts: false
-  vars_files:
-    - "{{ path_to_vault_file }}"
+#---
+#- name: Purge all A records for a specific subdomain using API Token
+#  hosts: localhost
+#  gather_facts: false
+#  vars_files:
+#    - "{{ path_to_vault_file }}"
 
   tasks:
     - name: Fetch all existing A records for the target subdomain
