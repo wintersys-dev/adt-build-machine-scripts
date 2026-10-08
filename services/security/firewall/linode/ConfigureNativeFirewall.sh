@@ -46,22 +46,14 @@ firewall_name="${firewall_name}-${BUILD_IDENTIFIER}"
 
 vault="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass"
 
-. ${BUILD_HOME}/runtime/ansible-env/bin/activate
+. ${BUILD_HOME}/runtime/ansible-env/bin/activate 
 
-
-    
-    # Enter the exact string label of the specific firewall you want to wipe clean
-    target_firewall_label: "my-target-firewall"  
-
-        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
 target_firewall_label:${firewall_name}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
+
 ansible-playbook --vault-password-file ${vault} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/delete_rules_from_firewall.sh -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-delete_rules.yaml"
-        done
-
-
-    
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
@@ -93,7 +85,7 @@ rule_action: ACCEPT
 rule_port: ${rule_port}
 rule_protocol: ${rule_protocol}
 rule_ipv4_addresses: ${rule_ipv4_addresses}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 ansible-playbook --vault-password-file ${vault}  -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-custom_rule-${rule_no}.yaml"
         done
@@ -107,7 +99,7 @@ rule_action: ACCEPT
 rule_port: ${SSH_PORT}
 rule_protocol: TCP
 rule_ipv4_addresses: ${VPC_IP_RANGE}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
 ansible-playbook --vault-password-file ${vault} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_ssh.yaml"
@@ -121,7 +113,7 @@ rule_action: ACCEPT
 rule_port: ${DB_PORT}
 rule_protocol: TCP
 rule_ipv4_addresses: ${VPC_IP_RANGE}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
 ansible-playbook --vault-password-file ${vault}  -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_vpc_db.yaml"
@@ -134,7 +126,7 @@ rule_name: rule_icmp
 rule_action: ACCEPT
 rule_protocol: ICMP
 rule_ipv4_addresses: 0.0.0.0/0
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_icmp.yaml"
@@ -154,9 +146,8 @@ rule_action: ACCEPT
 rule_port: 443
 rule_protocol: TCP
 rule_ipv4_addresses: ${rule_ipv4_addresses}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
-
         ansible-playbook --vault-password-file ${vault} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl_tcp.yaml"
 
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl_udp.yaml"
@@ -166,11 +157,9 @@ rule_action: ACCEPT
 rule_port: 443
 rule_protocol: UDP
 rule_ipv4_addresses: ${rule_ipv4_addresses}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
-
         ansible-playbook --vault-password-file ${vault}  -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl_udp.yaml"
-
 fi
 
 if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] && [ "${machine_type}" = "reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] )
@@ -183,12 +172,11 @@ rule_action: ACCEPT
 rule_port: ${wireguard_port}
 rule_protocol: TCP
 rule_ipv4_addresses: ${rule_ipv4_addresses}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
         ansible-playbook --vault-password-file ${vault}  -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-wireguard.yaml"
 fi
-
 
 if ( [ "${BUILD_MACHINE_VPC}" = "0" ] )
 then
@@ -199,7 +187,7 @@ rule_action: ACCEPT
 rule_port: ${SSH_PORT}
 rule_protocol: TCP
 rule_ipv4_addresses: ${build_machine_ip}/32
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
 ansible-playbook --vault-password-file ${vault} -i ${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini ${BUILD_HOME}/services/security/firewall/linode/ansible/update_firewall.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_build_machine.yaml"
@@ -207,7 +195,7 @@ fi
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-get_id.yaml"
 firewall_name: "${firewall_name}-${BUILD_IDENTIFIER}" 
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault} 
 EOF
 
 firewall_id="`ansible-playbook --vault-password-file ${vault} -i /home/agile-deployer/adt-build-machine-scripts/services/security/firewall/linode/ansible/inventory.ini /home/agile-deployer/adt-build-machine-scripts/services/security/firewall/linode/ansible/get_firewall_id.yaml -e @/home/agile-deployer/adt-build-machine-scripts/runtime/linode/test-build/playbooks/ansible-${firewall_name}-get_id.yaml | grep '"msg":' | grep -oE '[0-9]+'`"
