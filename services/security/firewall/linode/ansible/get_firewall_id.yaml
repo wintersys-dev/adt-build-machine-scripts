@@ -1,0 +1,31 @@
+---
+- name: Get Linode Firewall ID
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - "{{ path_to_vault_file }}"
+  vars:
+    target_firewall_label: "{{ firewall_name }}"
+
+  tasks:
+    - name: Query firewall by its label using filters
+      linode.cloud.firewall_list:
+        api_token: "{{ linode_api_token }}"
+        filters:
+          - name: label
+            values: ["{{ target_firewall_label }}"]
+      register: firewall_output
+
+    - name: Fail if the firewall doesn't exist
+      ansible.builtin.fail:
+        msg: "Firewall with label '{{ target_firewall_label }}' was not found."
+      when: firewall_output.firewalls | length == 0
+
+    - name: Extract the Firewall ID
+      ansible.builtin.set_fact:
+        target_firewall_id: "{{ firewall_output.firewalls[0].id }}"
+
+    - name: Display the Firewall ID
+      ansible.builtin.debug:
+        msg: "The ID for firewall '{{ target_firewall_label }}' is {{ target_firewall_id }}"
