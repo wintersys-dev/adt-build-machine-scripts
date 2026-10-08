@@ -1,20 +1,28 @@
 ---
-- name: Add a new IP address record to Cloudflare DNS using official modules
+- name: Add an A record for a specific subdomain
   hosts: localhost
   gather_facts: false
   vars:
-    new_record_type: A # Use A for IPv4 or AAAA for IPv6
   vars_files:
     - "{{ path_to_vault_file }}"
 
+
   tasks:
-    - name: Create or update A record for the subdomain
-      community.general.cloudflare_dns:
-        api_token: "{{ cloudflare_api_token }}"
-        zone: "{{ root_domain }}"
-        record: "{{ target_subdomain }}"
-        type: "{{ new_record_type }}"
-        value: "{{ ip_address }}"
-        ttl: 60
-        proxied: false  # Set to true if you want to route traffic through Cloudflare's proxy
-        state: present
+    - name: Create the new DNS record
+      ansible.builtin.uri:
+        url: "https://api.cloudflare.com/client/v4/zones/{{ cloudflare_auth_zone_id }}/dns_records"
+        method: POST
+        headers:
+          X-Auth-Email: "{{ cloudflare_email }}"
+          X-Auth-Key: "{{ cloudflare_global_api_key }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          type: "A"
+          name: "{{ full_domain }}"
+          content: "{{ ip_address }}" 
+          ttl: 1
+          proxied: false
+        status_code: 
+          - 200
+          - 201
