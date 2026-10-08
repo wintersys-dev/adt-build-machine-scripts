@@ -142,6 +142,8 @@ cat ${server_ips_file}
 if ( ( [ "${machine_type}" = "authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
         playbook="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
+
+      #  services/server/ansible/cloudflare/add_dns_record.yaml
         if ( ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${machine_type}" = "authenticator" ] ) || ( [ "${DNS_CHOICE}" = "cloudflare" ] && ( [ "${machine_type}" = "reverseproxy" ] || [ "${machine_type}" = "webserver" ] ) ) )
         then
                 playbook="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
