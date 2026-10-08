@@ -106,7 +106,6 @@ linode_api_token: ${TOKEN}
 cloudflare_email: "${AUTH_DNS_USERNAME}"
 cloudflare_zone_id: "${zone_id}"
 cloudflare_auth_zone_id: "${auth_zone_id}"
-subdomain_name: "${AUTH_DNS_USERNAME}"
 emergency_password: ${emergency_password} 
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
