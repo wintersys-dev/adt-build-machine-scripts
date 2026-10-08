@@ -68,11 +68,42 @@ then
         auth_zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}" "${AUTH_DNS_USERNAME}" "${AUTH_DNS_SECURITY_KEY}" "${AUTH_DNS_CHOICE}"`" 
 fi
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
-linode_api_token: ${TOKEN}
-cloudflare_api_token: ${AUTH_DNS_SECURITY_KEY}
-cloudflare_email: "${AUTH_DNS_USERNAME}"
+cloudflare_access="0"
+if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
+then
+        if ( [ "`/bin/echo  ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
+        then
+                dns_security_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $NF}'`"
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+cloudflare_api_token: ${dns_security_token}
+EOF
+                cloudflare_access="1"
+        else
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+cloudflare_global_api_key: "${DNS_SECURITY_KEY}"
+EOF
+                cloudflare_access="1"
+        fi
+fi
+
+if ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${cloudflare_access}" = "0" ] )
+then
+        if ( [ "`/bin/echo  ${AUTH_DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
+        then
+                dns_security_token="`/bin/echo ${AUTH_DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $NF}'`"
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+cloudflare_api_token: ${dns_security_token}
+EOF
+        else
+                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
 cloudflare_global_api_key: "${AUTH_DNS_SECURITY_KEY}"
+EOF
+        fi
+fi
+
+cat << EOF >> "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+linode_api_token: ${TOKEN}
+cloudflare_email: "${AUTH_DNS_USERNAME}"
 cloudflare_zone_id: "${zone_id}"
 cloudflare_auth_zone_id: "${auth_zone_id}"
 subdomain_name: "${AUTH_DNS_USERNAME}"
