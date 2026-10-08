@@ -152,7 +152,7 @@ cat ${server_ips_file}
 
 if ( ( [ "${machine_type}" = "adt-authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then        
-        if ( ( [ "${machine_type}" = "adt-authenticator" ] )
+        if ( [ "${machine_type}" = "adt-authenticator" ] )
         then
                 website_url="${AUTH_SERVER_URL}"
                 target_subdomain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f1`"
