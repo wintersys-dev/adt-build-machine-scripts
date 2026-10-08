@@ -9,6 +9,7 @@ REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
+AUTH_DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
@@ -48,6 +49,7 @@ fi
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
 linode_api_token: ${TOKEN}
+cloudflare_api_token: ${AUTH_DNS_SECURITY_KEY}
 emergency_password: ${emergency_password} 
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
