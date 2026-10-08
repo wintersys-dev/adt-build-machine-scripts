@@ -11,14 +11,14 @@
       block:
         # ---- PATH A: SCOPED API TOKEN ----
         - name: Route to Scoped API Token workflow
-          ansible.builtin.include_tasks: delete_dns_records_token.yaml
-          when: 
+          ansible.builtin.include_tasks: add_dns_record_token.yaml
+          when:
             - cloudflare_api_token is defined
             - cloudflare_api_token | trim | length > 0
 
         # ---- PATH B: LEGACY GLOBAL API KEY ----
         - name: Route to Legacy Global API Key workflow
-          ansible.builtin.include_tasks: delete_dns_records_key.yaml
+          ansible.builtin.include_tasks: add_dns_record_key.yaml
           when:
             - cloudflare_api_token is not defined or (cloudflare_api_token | trim | length == 0)
             - cloudflare_global_api_key is defined and (cloudflare_global_api_key | trim | length > 0)
@@ -28,6 +28,6 @@
         - name: Fail gracefully if no valid credential mix was provided
           ansible.builtin.fail:
             msg: >
-              Orchestration halted: Invalid credential mix provided. 
-              Please define either 'cloudflare_api_token' OR both 
+              Orchestration halted: Invalid credential mix provided.
+              Please define either 'cloudflare_api_token' OR both
               'cloudflare_global_api_key' and 'cloudflare_email'.
