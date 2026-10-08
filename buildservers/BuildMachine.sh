@@ -97,11 +97,11 @@ fi
 
 #subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 
+root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
+target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
+
 if ( ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
-        root_domain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2,3`"
-        target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
-
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
