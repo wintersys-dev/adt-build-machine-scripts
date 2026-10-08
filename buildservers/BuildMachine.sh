@@ -125,8 +125,6 @@ then
 fi
 fi
 
-exit
-
 ready_file="/home/${SERVER_USER}/runtime/`/bin/echo ${machine_label} | /usr/bin/tr '[:lower:]' '[:upper:]'`_READY"
 
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml"
