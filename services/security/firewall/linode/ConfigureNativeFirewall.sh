@@ -127,7 +127,7 @@ then
         fi
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl_tcp.yaml"
 firewall_name: ${firewall_name}-${BUILD_IDENTIFIER}  
-rule_name: rule_ssl
+rule_name: rule_ssl_tcp
 rule_action: ACCEPT
 rule_port: 443
 rule_protocol: TCP
@@ -139,7 +139,7 @@ EOF
 
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-rule_ssl_udp.yaml"
 firewall_name: ${firewall_name}-${BUILD_IDENTIFIER}  
-rule_name: rule_ssl
+rule_name: rule_ssl_udp
 rule_action: ACCEPT
 rule_port: 443
 rule_protocol: UDP
@@ -156,7 +156,7 @@ then
         wireguard_port="`/usr/bin/expr ${SSH_PORT} + 1`"
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${firewall_name}-wireguard.yaml"
 firewall_name: ${firewall_name}-${BUILD_IDENTIFIER}  
-rule_name: rule_ssl
+rule_name: rule_wireguard
 rule_action: ACCEPT
 rule_port: ${wireguard_port}
 rule_protocol: TCP
