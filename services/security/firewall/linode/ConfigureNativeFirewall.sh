@@ -45,7 +45,7 @@ build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
 firewall_name="${firewall_name}-${BUILD_IDENTIFIER}"
 
 vault_password_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass"
-vault_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+vault="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
 inventory="${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini"
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate 
