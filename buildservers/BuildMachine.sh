@@ -140,25 +140,23 @@ ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUIL
 cat ${server_ips_file}
 
 if ( ( [ "${machine_type}" = "authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
-then
-        playbook="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
-
-      #  services/server/ansible/cloudflare/add_dns_record.yaml
-        if ( ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${machine_type}" = "authenticator" ] ) || ( [ "${DNS_CHOICE}" = "cloudflare" ] && ( [ "${machine_type}" = "reverseproxy" ] || [ "${machine_type}" = "webserver" ] ) ) )
-        then
-                playbook="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
-        fi
-        
-        cat << EOF > "${playbook}"
+then        
+        cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml"
 root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
-
+        dns_provider="linode"
+        
+        if ( ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] && [ "${machine_type}" = "authenticator" ] ) || ( [ "${DNS_CHOICE}" = "cloudflare" ] && ( [ "${machine_type}" = "reverseproxy" ] || [ "${machine_type}" = "webserver" ] ) ) )
+        then
+                dns_provider="cloudflare"
+        fi
+        
         ip_addresses="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{print $NF}'`"
 
-        for ip_address in ${ip_addresses}
-        do
-                ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/add_dns_record.yaml  -e "@${playbook}" -e "ip_address=${ip_address}"
-        done
+       # for ip_address in ${ip_addresses}
+       # do
+                ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass  -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/${dns_provider}/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml" -e "ip_address=${ip_address}"
+       # done
 fi
