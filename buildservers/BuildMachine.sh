@@ -103,8 +103,9 @@ target_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f1`"
 
 if ( ( [ "${machine_type}" = "adt-authenticator" ] && [ "${NO_AUTHENTICATORS}" != "0" ] ) || ( [ "${machine_type}" = "adt-webserver" ] && [ "${NO_REVERSE_PROXIES}" = "0" ] ) || ( [ "${machine_type}" = "adt-reverseproxy" ] && [ "${NO_REVERSE_PROXIES}" != "0" ] ) )
 then
+    #subdomain_name: "subdomain.example.com"
         cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
-root_domain: ${root_domain}
+full_domain: ${WEBSITE_URL}
 target_subdomain: ${target_subdomain}
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
