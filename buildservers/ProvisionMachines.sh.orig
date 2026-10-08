@@ -10,6 +10,9 @@ TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 AUTH_DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
+AUTH_DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
+WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+
 
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
@@ -37,7 +40,6 @@ then
         python_version="`/bin/echo "${python_version}" | /bin/sed 's/\.[0-9]$//' | /usr/bin/awk '{print $NF}'`"
 fi
 
-/bin/echo "[all:vars]" >> ${BUILD_HOME}/services/server/ansible/linode/inventory.ini
 /bin/echo "ansible_python_interpreter=${BUILD_HOME}/runtime/ansible-env/bin/python${python_version}" >> ${BUILD_HOME}/services/server/ansible/linode/inventory.ini
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
@@ -48,9 +50,21 @@ else
         /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
+name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
+zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+
+name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
+zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+
 cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
 linode_api_token: ${TOKEN}
 cloudflare_api_token: ${AUTH_DNS_SECURITY_KEY}
+cloudflare_email: "${AUTH_DNS_USERNAME}"
+cloudflare_global_api_key: "${AUTH_DNS_SECURITY_KEY}"
+cloudflare_zone_id: "${zone_id}"
+subdomain_name: "${AUTH_DNS_USERNAME}"
 emergency_password: ${emergency_password} 
 path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
 EOF
