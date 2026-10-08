@@ -102,7 +102,6 @@ then
         if ( [ "${machine_type}" = "adt-authenticator" ] )
         then
                 website_url="${AUTH_SERVER_URL}"
-                target_subdomain="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f1`"
         else
                 website_url="${WEBSITE_URL}"
         fi
