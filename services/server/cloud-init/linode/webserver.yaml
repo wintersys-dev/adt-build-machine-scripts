@@ -115,17 +115,17 @@ runcmd:
   - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
   - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
   - |
-    export HOME=/home/XXXXSERVER_USERXXXX
-    /bin/sh ${HOME}/utilities/software/InitialiseToolkitForDevelopment.sh
-    /bin/sh ${HOME}/installation/InstallPackageManager.sh
-    /bin/sh ${HOME}/installation/InstallApplicationLanguage.sh
-    /bin/sh ${HOME}/installation/InstallEmailUtil.sh
-    /bin/sh ${HOME}/installation/InstallFirewall.sh
-    /bin/sh ${HOME}/installation/InstallTextBrowser.sh
-    /bin/sh ${HOME}/installation/InstallVirusScanner.sh
-    /bin/sh ${HOME}/installation/InstallDatastoreTools.sh
-    /bin/sh ${HOME}/installation/InstallDatabaseClient.sh
-    /bin/sh ${HOME}/installation/InstallWebserver.sh &
-    /bin/sh ${HOME}/ws.sh &
-    /bin/sh ${HOME}/installation/InstallGo.sh &
+    TARGET_HOME="/home/XXXXSERVER_USERXXXX"
+    /bin/sh "${TARGET_HOME}/utilities/software/InitialiseToolkitForDevelopment.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallApplicationLanguage.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallEmailUtil.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallFirewall.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallTextBrowser.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallVirusScanner.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallDatastoreTools.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallDatabaseClient.sh"
+    /bin/sh "${TARGET_HOME}/installation/InstallWebserver.sh" &
+    /bin/sh "${TARGET_HOME}/ws.sh" &
+    /bin/sh "${TARGET_HOME}/installation/InstallGo.sh" &
 
