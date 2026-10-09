@@ -7,6 +7,11 @@ resolv_conf:
     - '1.1.1.2'
     - '8.8.8.8'
     - '8.8.4.4'
+    
+ssh_service:
+  manage_service: true
+  stop_on_shutdown: false
+  service_name: ssh
 
 users:
   - name: XXXXSERVER_USERXXXX
