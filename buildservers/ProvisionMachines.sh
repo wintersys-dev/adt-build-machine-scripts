@@ -18,6 +18,10 @@ AUTH_DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CH
 AUTH_SERVER_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
+vault_password_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass"
+vault="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+inventory="${BUILD_HOME}/services/security/firewall/linode/ansible/inventory.ini"
+
 . ${BUILD_HOME}/runtime/ansible-env/bin/activate
 
 /usr/bin/wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O ${BUILD_HOME}/runtime/ansible-env/requirements.txt
@@ -74,12 +78,12 @@ then
         if ( [ "`/bin/echo  ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
         then
                 dns_security_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $NF}'`"
-                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+                cat << EOF > "${vault}"
 cloudflare_api_token: ${dns_security_token}
 EOF
                 cloudflare_access="1"
         else
-                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+                cat << EOF > "${vault}"
 cloudflare_global_api_key: "${DNS_SECURITY_KEY}"
 EOF
                 cloudflare_access="1"
@@ -107,7 +111,7 @@ cloudflare_email: "${AUTH_DNS_USERNAME}"
 cloudflare_zone_id: "${zone_id}"
 cloudflare_auth_zone_id: "${auth_zone_id}"
 emergency_password: ${emergency_password} 
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault}
 EOF
 
 ansible-vault encrypt --vault-password-file=${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
@@ -130,7 +134,7 @@ subnetwork_label: "adt-subnet"
 subnetwork_ipv4: "${VPC_IP_RANGE}"
 subnetwork_desc: "Subnet for infrastructure servers"
 subnet_id_file: ${subnet_id_file}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault}
 EOF
 
 ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
