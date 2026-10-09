@@ -95,17 +95,17 @@ then
         if ( [ "`/bin/echo  ${AUTH_DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
         then
                 dns_security_token="`/bin/echo ${AUTH_DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $NF}'`"
-                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+                cat << EOF > "${vault}"
 cloudflare_api_token: ${dns_security_token}
 EOF
         else
-                cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+                cat << EOF > "${vault}"
 cloudflare_global_api_key: "${AUTH_DNS_SECURITY_KEY}"
 EOF
         fi
 fi
 
-cat << EOF >> "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+cat << EOF >> "${vault}"
 linode_api_token: ${TOKEN}
 cloudflare_email: "${AUTH_DNS_USERNAME}"
 cloudflare_zone_id: "${zone_id}"
@@ -114,7 +114,7 @@ emergency_password: ${emergency_password}
 path_to_vault_file: ${vault}
 EOF
 
-ansible-vault encrypt --vault-password-file=${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml"
+ansible-vault encrypt --vault-password-file=${vault_password_file} "${vault}"
 
 #is this needed
 ansible-galaxy collection install linode.cloud
@@ -137,7 +137,7 @@ subnet_id_file: ${subnet_id_file}
 path_to_vault_file: ${vault}
 EOF
 
-ansible-playbook --vault-password-file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault_pass -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
+ansible-playbook --vault-password-file ${vault_password_file} -i ${inventory} ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
 
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 /bin/echo "Subnet ID set to: ${subnet_id}"
