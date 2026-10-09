@@ -33,6 +33,13 @@ keyboard:
   layout: gb
 
 write_files:
+  - content: |
+      Port XXXXSSH_PORTXXXX
+    path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: '0644'
+
+write_files:
   - encoding: gzip+b64
     content: XXXXAUTOSCALER_CONFIGURATIONXXXX
     owner: XXXXSERVER_USERXXXX:root
@@ -111,7 +118,6 @@ runcmd:
   - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
   - /bin/chmod 700 /home/XXXXSERVER_USERXXXX/.ssh
   - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
-  - /bin/echo "Port XXXXSSH_PORTXXXX" >> /etc/ssh/sshd_config.d/99-hardening.conf
   - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
   - |
     export HOME=/home/XXXXSERVER_USERXXXX
