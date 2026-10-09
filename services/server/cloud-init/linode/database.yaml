@@ -32,12 +32,8 @@ manage_etc_hosts: true
 keyboard:
   layout: gb
 
-write_files:
-  - content: |
-      Port XXXXSSH_PORTXXXX
-    path: /etc/ssh/sshd_config.d/99-hardening.conf
-    owner: root:root
-    permissions: '0644'
+bootcmd:
+  - mkdir -p /home/XXXXSERVER_USERXXXX/runtime
 
 write_files:
   - encoding: gzip+b64
@@ -76,6 +72,12 @@ write_files:
       export LC_ALL=en_GB.UTF-8
     path: /etc/profile
     append: true
+
+  - content: |
+      Port XXXXSSH_PORTXXXX
+    path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: '0644'
 
 packages:
   - grub-efi-amd64
