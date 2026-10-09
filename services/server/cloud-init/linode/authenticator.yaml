@@ -92,7 +92,6 @@ runcmd:
   - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
   - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
   - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
-  - /bin/echo "Port XXXXSSH_PORTXXXX" >> /etc/ssh/sshd_config.d/99-hardening.conf
   - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
   - |
     export HOME=/home/XXXXSERVER_USERXXXX
