@@ -35,23 +35,27 @@ write_files:
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
     permissions: '0640'
+    defer: true
 
   - encoding: gzip+b64
     content: XXXXBUILDSTYLES_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
     permissions: '0640'
+    defer: true
 
   - encoding: gzip+b64
     content: XXXXFIREWALL_PORT_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
     permissions: '0640'
+    defer: true
 
   - content: /home/XXXXSERVER_USERXXXX
     owner: root:root
     path: /home/homedir.dat
     permissions: '0644'
+    defer: true
 
   - content: |
       ClientAliveInterval 60
@@ -59,6 +63,7 @@ write_files:
     path: /home/XXXXSERVER_USERXXXX/.ssh/config
     owner: 'root:root'
     permissions: '0600'
+    defer: true
 
   - content: |
       export LANGUAGE=en_GB.UTF-8
@@ -66,12 +71,14 @@ write_files:
       export LC_ALL=en_GB.UTF-8
     path: /etc/profile
     append: true
+    defer: true
 
   - content: |
       Port XXXXSSH_PORTXXXX
     path: /etc/ssh/sshd_config.d/99-hardening.conf
     owner: root:root
     permissions: '0644'
+    defer: true
 
 packages:
   - grub-efi-amd64
