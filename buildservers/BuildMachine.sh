@@ -123,7 +123,7 @@ EOF
 
 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED-${machine_type} ] )
 then
-        ansible-playbook --vault-password-file ${vault_password_file}  -i ${BUILD_HOME}/services/server/ansible/${dns_provider}/inventory.ini ${BUILD_HOME}/services/server/ansible/cloudflare/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
+        ansible-playbook --vault-password-file ${vault_password_file}  -i ${inventory} ${BUILD_HOME}/services/server/ansible/cloudflare/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 fi
 
 if ( [ "$?" = "0" ] )
@@ -150,7 +150,7 @@ ready_file: ${ready_file}
 path_to_vault_file: ${vault}
 EOF
 
-ansible-playbook --vault-password-file ${vault_password_file} -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml" 2>&1
+ansible-playbook --vault-password-file ${vault_password_file} -i ${inventory} ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml" 2>&1
 
 /bin/echo "Server IP Addresses for machine ${machine_name} are available"
 cat ${server_ips_file}
@@ -184,5 +184,5 @@ fi
 
 ip_address="`/bin/grep PUBLIC_IP= ${server_ips_file} | /usr/bin/awk -F'=' '{print $NF}'`"
 
-ansible-playbook --vault-password-file ${vault_password_file} -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/${dns_provider}/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml" -e "ip_address=${ip_address}"
+ansible-playbook --vault-password-file ${vault_password_file} -i ${inventory} ${BUILD_HOME}/services/server/ansible/${dns_provider}/add_dns_record.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-add-dns-${machine_name}.yaml" -e "ip_address=${ip_address}"
 fi
