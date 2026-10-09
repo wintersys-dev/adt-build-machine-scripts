@@ -118,7 +118,7 @@ then
 full_domain: ${website_url}
 root_domain: ${root_domain}
 target_subdomain: ${target_subdomain}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault}
 EOF
 
 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED-${machine_type} ] )
@@ -147,7 +147,7 @@ server_user: ${SERVER_USER}
 server_ips_file: ${server_ips_file} 
 build_key: ${BUILD_KEY} 
 ready_file: ${ready_file}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault}
 EOF
 
 ansible-playbook --vault-password-file ${vault_password_file} -i ${BUILD_HOME}/services/server/ansible/linode/inventory.ini ${BUILD_HOME}/services/server/ansible/linode/create_linode.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-${machine_name}.yaml" 2>&1
