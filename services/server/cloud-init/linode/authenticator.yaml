@@ -38,19 +38,19 @@ write_files:
     content: XXXXAUTHENTICATOR_CONFIGURATIONXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - encoding: gzip+b64
     content: XXXXBUILDSTYLES_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - encoding: gzip+b64
     content: XXXXFIREWALL_PORT_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - content: /home/XXXXSERVER_USERXXXX
     owner: root:root
