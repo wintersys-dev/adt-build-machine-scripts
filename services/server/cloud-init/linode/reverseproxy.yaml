@@ -37,25 +37,25 @@ write_files:
     content: XXXXREVERSEPROXY_CONFIGURATIONXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - encoding: gzip+b64
     content: XXXXBUILDSTYLES_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - encoding: gzip+b64
     content: XXXXFIREWALL_PORT_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - encoding: gzip+b64
     content: XXXXAPPLICATION_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/application.dat
-    permissions: '0750'
+    permissions: '0640'
 
   - content: /home/XXXXSERVER_USERXXXX
     owner: root:root
@@ -104,7 +104,7 @@ runcmd:
   - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
   - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
   - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
-  - /bin/chmod 700 /home/XXXXSERVER_USERXXXX/.ssh
+  - /bin/chmod 750 /home/XXXXSERVER_USERXXXX/.ssh
   - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
   - /home/XXXXSERVER_USERXXXX/utilities/config/StoreConfigValue.sh "WEBSERVERCHOICE" "XXXXREVERSEPROXYSERVERXXXX"
   - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
