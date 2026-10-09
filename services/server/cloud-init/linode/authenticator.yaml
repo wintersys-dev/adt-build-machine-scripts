@@ -27,6 +27,13 @@ keyboard:
   layout: gb
 
 write_files:
+  - content: |
+      Port XXXXSSH_PORTXXXX
+    path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: '0644'
+
+write_files:
   - encoding: gzip+b64
     content: XXXXAUTHENTICATOR_CONFIGURATIONXXXX
     owner: XXXXSERVER_USERXXXX:root
