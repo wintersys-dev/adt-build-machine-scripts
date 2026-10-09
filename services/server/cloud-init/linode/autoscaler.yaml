@@ -11,10 +11,9 @@ resolv_conf:
 users:
   - name: XXXXSERVER_USERXXXX
     passwd: 'XXXXSERVER_USER_PASSWORDXXXX'
-    groups: [ sudo ]
+    groups: [sudo]
     shell: /bin/bash
     lock_passwd: false
-
     ssh_authorized_keys:
       - 'XXXXSSH_PUBLIC_KEYXXXX'
 
@@ -22,9 +21,9 @@ ssh_pwauth: false
 
 ssh_keys:
   XXXXALGORITHMXXXX_private: |
-      -----BEGIN OPENSSH PRIVATE KEY-----
-      XXXXSSH_PRIVATE_KEYXXXX
-      -----END OPENSSH PRIVATE KEY-----
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    XXXXSSH_PRIVATE_KEYXXXX
+    -----END OPENSSH PRIVATE KEY-----
 
 timezone: 'XXXXTIMEZONEXXXX'
 hostname: XXXXAUTOSCALER_HOSTNAMEXXXX
@@ -34,57 +33,59 @@ keyboard:
   layout: gb
 
 write_files:
-- encoding: b64
-  content: XXXXAUTOSCALER_CONFIGURATIONXXXX
-  owner: root:root
-  path: /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat.gz
-  permissions: '0644'
-- encoding: b64
-  content: XXXXWEBSERVER_CONFIGURATIONXXXX
-  owner: root:root
-  path: /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz
-  permissions: '0644'
-- encoding: b64
-  content: XXXXBUILDSTYLES_SETTINGSXXXX
-  owner: root:root
-  path: /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz
-  permissions: '0644'
-- encoding: b64
-  content: XXXXFIREWALL_PORT_SETTINGSXXXX
-  owner: root:root
-  path: /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz
-  permissions: '0644'
-#DBAAS_CERT- encoding: b64
-#DBAAS_CERT  content: XXXXDBAAS_CERTXXXX
-#DBAAS_CERT  owner: root:root
-#DBAAS_CERT  path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
-#DBAAS_CERT  permissions: '0644'
-- encoding: b64
-  content: XXXXAPPLICATION_SETTINGSXXXX
-  owner: root:root
-  path: /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz
-  permissions: '0644'
-- content: /home/XXXXSERVER_USERXXXX
-  owner: root:root
-  path: /home/homedir.dat
-  permissions: '0644'
-- content: |
-    ClientAliveInterval 60
-    ClientAliveCountMax 2
-  path: /home/XXXXSERVER_USERXXXX/.ssh/config
-  owner: 'root:root'
-  permissions: '0600'
-- content: | 
-    export LANGUAGE=en_GB.UTF-8
-    export LANG=en_GB.UTF-8
-    export LC_ALL=en_GB.UTF-8
-  path: /etc/profile
-  append: true
+  - encoding: gzip+b64
+    content: XXXXAUTOSCALER_CONFIGURATIONXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/autoscaler_configuration_settings.dat
+    permissions: '0750'
+
+  - encoding: gzip+b64
+    content: XXXXWEBSERVER_CONFIGURATIONXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
+    permissions: '0750'
+
+  - encoding: gzip+b64
+    content: XXXXBUILDSTYLES_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
+    permissions: '0750'
+
+  - encoding: gzip+b64
+    content: XXXXFIREWALL_PORT_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
+    permissions: '0750'
+
+  - encoding: gzip+b64
+    content: XXXXAPPLICATION_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/application.dat
+    permissions: '0750'
+
+  - content: /home/XXXXSERVER_USERXXXX
+    owner: root:root
+    path: /home/homedir.dat
+    permissions: '0644'
+
+  - content: |
+      ClientAliveInterval 60
+      ClientAliveCountMax 2
+    path: /home/XXXXSERVER_USERXXXX/.ssh/config
+    owner: 'root:root'
+    permissions: '0600'
+
+  - content: |
+      export LANGUAGE=en_GB.UTF-8
+      export LANG=en_GB.UTF-8
+      export LC_ALL=en_GB.UTF-8
+    path: /etc/profile
+    append: true
 
 packages:
   - grub-efi-amd64
   - git
-  - network-manager 
+  - network-manager
   - software-properties-common
   - jq
   - rsync
@@ -97,46 +98,34 @@ packages:
   - unzip
 
 runcmd:
-  - '/bin/sed -i "/en_GB.UTF/s/\(^# \)\(.*$\)/\2/g" /etc/locale.gen'
-  - '/usr/sbin/locale-gen'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh'
-  - '/bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
-  - '/bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
-  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
-  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
-  - '/usr/bin/git clone  -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-autoscaler-scripts.git /home/XXXXSERVER_USERXXXX/clone'
-  - '/usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX && /bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX'
-  - '/usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone'
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/autoscaler_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/autoscaler_configuration_settings.dat'
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/webserver_configuration_settings.dat /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat'  
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/software.dat.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/software.dat /home/XXXXSERVER_USERXXXX/runtime/software.dat'
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/firewall.dat /home/XXXXSERVER_USERXXXX/runtime/firewall.dat'
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT'
-  - '/usr/bin/gzip -df /home/XXXXSERVER_USERXXXX/.ssh/application.dat.gz'
-  - '/bin/cp /home/XXXXSERVER_USERXXXX/.ssh/application.dat /home/XXXXSERVER_USERXXXX/runtime/application.dat'
-  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type d -exec chmod 755 {} \;' 
-  - '/usr/bin/find /home/XXXXSERVER_USERXXXX -type f -exec chmod 750 {} \;'
-  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX'
-  - '/bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub'
-  - '/usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX'
-  - '/bin/echo "Port XXXXSSH_PORTXXXX" >> /etc/ssh/sshd_config.d/99-hardening.conf'
-  - '/home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart'
-  #cloud-init has a maximum user data size of 16384 bytes for data passed to an instance. so I do these runcmds to preserve some capacity
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/utilities/software/InitialiseToolkitForDevelopment.sh'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallPackageManager.sh' 
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallEmailUtil.sh'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallFirewall.sh' 
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallTextBrowser.sh'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallVirusScanner.sh'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallDatastoreTools.sh' 
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallCloudhostTools.sh'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/as.sh &'
-  - 'export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/InstallGo.sh &'
+  - locale-gen en_GB.UTF-8
+  - update-locale LANG=en_GB.UTF-8
+  - export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh
+  - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh /home/development /etc/ssh/sshd_config.d
+  - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
+  - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub
+  - /usr/bin/git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-autoscaler-scripts.git /home/XXXXSERVER_USERXXXX/clone
+  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
+  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
+  - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
+  - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
+  - /bin/chmod 700 /home/XXXXSERVER_USERXXXX/.ssh
+  - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
+  - /bin/echo "Port XXXXSSH_PORTXXXX" >> /etc/ssh/sshd_config.d/99-hardening.conf
+  - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
+  - |
+    export HOME=/home/XXXXSERVER_USERXXXX
+    /bin/sh ${HOME}/utilities/software/InitialiseToolkitForDevelopment.sh
+    /bin/sh ${HOME}/installation/InstallPackageManager.sh
+    /bin/sh ${HOME}/installation/InstallEmailUtil.sh
+    /bin/sh ${HOME}/installation/InstallFirewall.sh
+    /bin/sh ${HOME}/installation/InstallTextBrowser.sh
+    /bin/sh ${HOME}/installation/InstallVirusScanner.sh
+    /bin/sh ${HOME}/installation/InstallDatastoreTools.sh
+    /bin/sh ${HOME}/installation/InstallCloudhostTools.sh
+    /bin/sh ${HOME}/as.sh &
+    /bin/sh ${HOME}/installation/InstallGo.sh &
+
 
 
 
