@@ -1,40 +1,23 @@
 ---
-- name: Clear All Rules From A Specific Linode Firewall By Label
+- name: Clear Linode Firewall Rules by Label
   hosts: localhost
   gather_facts: false
   vars_files:
     - "{{ path_to_vault_file }}"
   vars:
-    default_inbound_policy: "DROP"  
-    default_outbound_policy: "ACCEPT" 
+    linode_api_url: "https://api.linode.com/v4/networking/firewalls"
 
   tasks:
-    - name: Ensure Linode API token is available
-      ansible.builtin.fail:
-        msg: "Please set the LINODE_API_TOKEN environment variable before running this playbook."
-      when: linode_api_token | length == 0
-
-    - name: Look up firewall details to find the ID by label
+    - name: Get all firewalls
       ansible.builtin.uri:
-        url: "https://linode.com"
-        method: GET
+        url: "{{ linode_api_url }}"
         headers:
           Authorization: "Bearer {{ linode_api_token }}"
-        status_code: 200
-      register: list_firewalls_response
+      register: res
 
-    - name: Extract firewall ID matching the target label
-      ansible.builtin.set_fact:
-        target_firewall_id: "{{ (list_firewalls_response.json.data | selectattr('label', 'equalto', target_firewall_label) | map(attribute='id') | list)[0] | default(none) }}"
-
-    - name: Stop execution if firewall label is not found
-      ansible.builtin.fail:
-        msg: "Could not find a Linode firewall with the label: {{ target_firewall_label }}"
-      when: target_firewall_id is none
-
-    - name: Purge all inbound and outbound rules regardless of content
+    - name: Clear rules for the matching firewall label
       ansible.builtin.uri:
-        url: "https://linode.com/{{ target_firewall_id }}/rules"
+        url: "{{ linode_api_url }}/{{ item.id }}/rules"
         method: PUT
         headers:
           Authorization: "Bearer {{ linode_api_token }}"
@@ -43,10 +26,12 @@
         body:
           inbound: []
           outbound: []
-          inbound_policy: "{{ default_inbound_policy }}"
-          outbound_policy: "{{ default_outbound_policy }}"
-        status_code: 200
-      register: api_response
+          inbound_policy: "DROP"
+          outbound_policy: "ACCEPT"
+      loop: "{{ res.json.data }}"
+      when: item.label == target_firewall_label
+      loop_control:
+        label: "{{ item.label }}"
 
     - name: Confirm successful removal
       ansible.builtin.debug:
