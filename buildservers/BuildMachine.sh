@@ -173,7 +173,7 @@ then
 root_domain: ${root_domain}
 full_domain: ${website_url}
 target_subdomain: ${target_subdomain}
-path_to_vault_file: ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/.ansible_vault.yaml
+path_to_vault_file: ${vault}
 EOF
 dns_provider="linode"
 
