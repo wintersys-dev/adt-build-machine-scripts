@@ -1,0 +1,51 @@
+---
+- name: Get VPC private IP from a public IP
+  hosts: localhost
+  gather_facts: false
+  vars:
+    target_public_ip: "192.0.2.1"  # Replace with your Linode's public IP
+    linode_api_token: "{{ lookup('env', 'LINODE_API_KEY') }}"
+
+  tasks:
+    - name: Fetch all Linode instances to map public IP to Linode ID
+      ansible.builtin.uri:
+        url: "https://api.linode.com/v4/linode/instances"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ linode_api_token }}"
+      register: linodes_response
+
+    - name: Filter out the matching Linode ID based on public IP
+      ansible.builtin.set_fact:
+        matched_linode_id: "{{ (linodes_response.json.data | selectattr('ipv4', 'defined') | filter_by_public_ip(target_public_ip)) | default(none) }}"
+      vars:
+        # Custom inline filter mapping to extract linode_id where target_public_ip exists in ipv4 array
+        ansible.utils.fact_path: false 
+      # Since complex nested filtering can be error prone in set_fact loops, we simplify below:
+
+    - name: Find the Linode ID corresponding to the public IP
+      ansible.builtin.set_fact:
+        target_linode_id: "{{ item.id }}"
+      loop: "{{ linodes_response.json.data }}"
+      when: target_public_ip in item.ipv4
+
+    - name: Fail if the Linode was not found
+      ansible.builtin.fail:
+        msg: "No Linode found matching public IP {{ target_public_ip }}"
+      when: target_linode_id is not defined
+
+    - name: Fetch all VPC IP allocations
+      ansible.builtin.uri:
+        url: "https://linode.com"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ linode_api_token }}"
+      register: vpc_ips_response
+
+    - name: Match VPC IP allocation to our Linode ID
+      ansible.builtin.set_fact:
+        vpc_private_ip: "{{ (vpc_ips_response.json.data | selectattr('linode_id', 'equalto', target_linode_id | int) | map(attribute='address') | list) | first | default('No VPC IP configured') }}"
+
+    - name: Output the result
+      ansible.builtin.debug:
+        msg: "The VPC private IP address is: {{ vpc_private_ip }}"
