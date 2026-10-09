@@ -13,7 +13,7 @@
       name: "{{ full_domain }}"
       content: "{{ ip_address }}" 
       ttl: 1
-      proxied: false
+      proxied: true
     status_code: 
       - 200
       - 201
