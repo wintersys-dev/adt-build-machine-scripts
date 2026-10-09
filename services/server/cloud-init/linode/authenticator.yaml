@@ -8,6 +8,11 @@ resolv_conf:
     - '8.8.8.8'
     - '8.8.4.4'
 
+ssh_service:
+  manage_service: true
+  stop_on_shutdown: false
+  service_name: ssh
+
 users:
   - name: XXXXSERVER_USERXXXX
     passwd: 'XXXXSERVER_USER_PASSWORDXXXX'
