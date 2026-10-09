@@ -145,7 +145,7 @@ subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 #${BUILD_HOME}/buildservers/BuildMachine.sh "adt-authenticator" "auth" "1" "${subnet_id}"
 #${BUILD_HOME}/buildservers/BuildMachine.sh "adt-autoscaler" "as" "1" "${subnet_id}" 
 #${BUILD_HOME}/buildservers/BuildMachine.sh "adt-reverseproxy" "rp" "1" "${subnet_id}" 
-#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}" 
+${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}" 
 #${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}" 
 #${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}" 
 #exit
@@ -156,18 +156,18 @@ subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 #done
 
 pids=""
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-authenticator" "auth" "1" "${subnet_id}" &
-pids="${pids} $!"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-autoscaler" "as" "1" "${subnet_id}" &
-pids="${pids} $!"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-reverseproxy" "rp" "1" "${subnet_id}" &
-pids="${pids} $!"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}" &
-pids="${pids} $!"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}" &
-pids="${pids} $!"
-${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}" &
-pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-authenticator" "auth" "1" "${subnet_id}" &
+#pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-autoscaler" "as" "1" "${subnet_id}" &
+#pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-reverseproxy" "rp" "1" "${subnet_id}" &
+#pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "1" "${subnet_id}" &
+#pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-webserver" "ws" "2" "${subnet_id}" &
+#pids="${pids} $!"
+#${BUILD_HOME}/buildservers/BuildMachine.sh "adt-database" "db" "1" "${subnet_id}" &
+#pids="${pids} $!"
 
 for pid in ${pids}
 do
