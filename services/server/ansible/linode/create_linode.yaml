@@ -73,39 +73,86 @@
 # PLAY 2: Verify Remote Installation Success
 # ==========================================
 
-- name:  Verify Remote Installation Success
-  hosts: newly_created_vms
-  gather_facts: false
+
+---
+- name: Wait for cloud-init package installation with log tailing
+  hosts: all
+  gather_facts: no
   vars:
-    target_file_path: "{{ ready_file }}"
+    cloud_init_timeout_seconds: 1200 # (give it twenty minutes which is a long time but if something is installing from source, it might be needed)
 
   tasks:
-    - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, {{ server_name }} is built successfully"
-      ansible.builtin.stat:
-        path: "{{ target_file_path }}"
-      register: file_status
-      until: file_status.stat.exists
-      retries: 40
-      delay: 30
-      ignore_errors: true  
-      loop_control:
-        label: >-
-          [Attempt {{ file_status.attempts | default(1) }} of 40]
-          Host: {{ inventory_hostname }} |
-          Status: {{ 'FOUND' if file_status.stat.exists | default(false) else 'NOT FOUND' }}
+    - name: 1. Wait for SSH to accept connections
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 120
 
-    - name: Print success message
+    - name: 2. Wait for cloud-init to finish installing packages and scripts
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: false
+      register: cloud_init_status
+      async: "{{ cloud_init_timeout_seconds }}"
+      poll: 10
+      ignore_errors: yes  # Prevent the playbook from crashing instantly so we can tail the logs if it fails
+
+    - name: 3. Tail the cloud-init-output.log file
+      ansible.builtin.command: tail -n 30 /var/log/cloud-init-output.log
+      register: cloud_init_tail
+      changed_when: false
+      # This ensures it always runs if cloud-init failed, or you can remove this line to always show the logs
+      when: "'status: done' not in cloud_init_status.stdout"
+
+    - name: 4. Display the last 30 lines of the output log
       ansible.builtin.debug:
-        msg: "SUCCESS: Found '{{ target_file_path }}' on {{ inventory_hostname }}!"
-      when: file_status.stat.exists
+        var: cloud_init_tail.stdout_lines
+      when: "'status: done' not in cloud_init_status.stdout"
 
-    - name: Final error block if the file was never found
+    - name: 5. Explicitly fail the playbook if cloud-init did not succeed
       ansible.builtin.fail:
-        msg: "FAILURE: Exceeded 40 attempts. The file '{{ target_file_path }}' does not exist on any target server."
-      when:
-        - ansible_play_batch | last == inventory_hostname
-        - not file_status.stat.exists
+        msg: "Cloud-init failed or timed out! Review the log tail outputted above."
+      when: "'status: done' not in cloud_init_status.stdout"
 
-    - name: Continue with next task
+    - name: 6. Safely gather facts (Only runs if cloud-init completed cleanly)
+      ansible.builtin.gather_facts:
+
+    - name: 7. Proceed with configuration management
       ansible.builtin.debug:
-        msg: "The marker file indicating that the machine has correctly provisioned has been found...Continuing"
+        msg: "Cloud-init finished cleanly. Proceeding with play..."
+
+
+#- name:  Verify Remote Installation Success
+#  hosts: newly_created_vms
+#  gather_facts: false
+#  vars:
+#    target_file_path: "{{ ready_file }}"
+#
+#  tasks:
+#    - name: "Checking for file {{ target_file_path }} on {{ inventory_hostname }}....when found, {{ server_name }} is built successfully"
+#      ansible.builtin.stat:
+#        path: "{{ target_file_path }}"
+#      register: file_status
+#      until: file_status.stat.exists
+#      retries: 40
+#      delay: 30
+#      ignore_errors: true  
+#      loop_control:
+#        label: >-
+#          [Attempt {{ file_status.attempts | default(1) }} of 40]
+#          Host: {{ inventory_hostname }} |
+#          Status: {{ 'FOUND' if file_status.stat.exists | default(false) else 'NOT FOUND' }}
+#
+#    - name: Print success message
+#      ansible.builtin.debug:
+#        msg: "SUCCESS: Found '{{ target_file_path }}' on {{ inventory_hostname }}!"
+#      when: file_status.stat.exists
+#
+ #   - name: Final error block if the file was never found
+ #     ansible.builtin.fail:
+  #      msg: "FAILURE: Exceeded 40 attempts. The file '{{ target_file_path }}' does not exist on any target server."
+   #   when:
+   #     - ansible_play_batch | last == inventory_hostname
+   #     - not file_status.stat.exists
+#
+ #   - name: Continue with next task
+ #     ansible.builtin.debug:
+ #       msg: "The marker file indicating that the machine has correctly provisioned has been found...Continuing"
