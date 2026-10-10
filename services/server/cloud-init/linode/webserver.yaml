@@ -117,42 +117,20 @@ runcmd:
   - systemctl restart ssh || systemctl restart sshd
   - cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
   - cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub
+  - chmod 750 /home/XXXXSERVER_USERXXXX/.ssh
+  - chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
   - git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
   - rsync -a --remove-source-files /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
-
-
-  ####The next phase is to set the local and the timezone and then call a script on the remote machine which clones the webserver infrastructure
-  # and then consults software.dat in order to see what software needs to be installed for this cofiguration. If we do the software,dat tests
-  # inside the parent script and only provide one install option then the actually install scripts can be simplified
-  
-#  - locale-gen en_GB.UTF-8
- # - update-locale LANG=en_GB.UTF-8
-  #- |
- #   cat << 'EOF' >> /etc/profile
- #   export LANGUAGE=en_GB.UTF-8
- #   export LANG=en_GB.UTF-8
- #   export LC_ALL=en_GB.UTF-8
- #   EOF
- # - export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh
- # - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh /home/development
-
-#  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
-#  - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
-#  - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
-#  - /bin/chmod 750 /home/XXXXSERVER_USERXXXX/.ssh
-#  - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
-#  - |
-#    TARGET_HOME="/home/XXXXSERVER_USERXXXX"
-#    /bin/sh "${TARGET_HOME}/utilities/software/InitialiseToolkitForDevelopment.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallApplicationLanguage.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallEmailUtil.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallFirewall.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallTextBrowser.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallVirusScanner.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallDatastoreTools.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallDatabaseClient.sh"
-#    /bin/sh "${TARGET_HOME}/installation/InstallWebserver.sh" &
-#    /bin/sh "${TARGET_HOME}/ws.sh" &
- #   /bin/sh "${TARGET_HOME}/installation/InstallGo.sh" &
-
+  - |
+    TARGET_HOME="/home/XXXXSERVER_USERXXXX"
+#    sh "${TARGET_HOME}/utilities/software/InitialiseToolkitForDevelopment.sh"
+    sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
+    sh "${TARGET_HOME}/installation/InstallApplicationLanguage.sh"
+    sh "${TARGET_HOME}/installation/InstallEmailUtil.sh"
+    sh "${TARGET_HOME}/installation/InstallFirewall.sh"
+    sh "${TARGET_HOME}/installation/InstallTextBrowser.sh"
+    sh "${TARGET_HOME}/installation/InstallVirusScanner.sh"
+    sh "${TARGET_HOME}/installation/InstallDatastoreTools.sh"
+    sh "${TARGET_HOME}/installation/InstallDatabaseClient.sh"
+    sh "${TARGET_HOME}/installation/InstallWebserver.sh" 
+    sh "${TARGET_HOME}/ws.sh" 
