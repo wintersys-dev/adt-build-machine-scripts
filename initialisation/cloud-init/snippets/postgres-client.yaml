@@ -1,0 +1,16 @@
+  # 1. Extract the Postgres version using your custom build style script
+  # Note: Assumes /root/utilities/... exists or is populated earlier in the boot cycle
+  - export POSTGRES_VERSION=$(/root/utilities/config/ExtractBuildStyleValues.sh "POSTGRES" | awk -F':' '{print $NF}')
+
+  # 2. Install postgresql-common non-interactively
+  - apt-get install -y postgresql-common
+
+  # 3. Add the official PostgreSQL Apt Repository (pgdg)
+  # Uses the -y flag natively supported by the script to bypass the 'yes' prompt
+  - /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+
+  # 4. Update the package lists to register the newly added repository
+  - apt-get update
+
+  # 5. Install the dynamically resolved PostgreSQL client version
+  - apt-get install -y postgresql-client-${POSTGRES_VERSION}
