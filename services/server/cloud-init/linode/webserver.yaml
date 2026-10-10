@@ -98,7 +98,7 @@ write_files:
 #DBAAS_CERT    defer: true
 
 runcmd:
-  - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/runtime
+  - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
   - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/.ssh
   # Safe explicit file copies without relying on unsafe directory generation assumptions
   - cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
