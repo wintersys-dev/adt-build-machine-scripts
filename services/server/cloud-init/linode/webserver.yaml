@@ -32,6 +32,8 @@ manage_etc_hosts: true
 keyboard:
   layout: gb
 
+locale: "en_GB.UTF-8"
+
 write_files:
   - encoding: gzip+b64
     content: XXXXWEBSERVER_CONFIGURATIONXXXX
