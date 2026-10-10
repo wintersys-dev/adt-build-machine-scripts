@@ -98,6 +98,18 @@ packages:
   - cron
   - zip
   - unzip
+  - bzip2
+  - gawk 
+  - gnupg 
+  - golang-go 
+  - inotify-tools 
+  - ipcalc 
+  - ipset 
+  - ansible-core 
+  - qrencode 
+  - rclone 
+  - socat 
+  - wireguard
 
 
 runcmd:
