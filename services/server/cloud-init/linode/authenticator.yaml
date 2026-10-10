@@ -84,8 +84,8 @@ packages:
   - zip
   - unzip
 
-#runcmd:
-# # - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
+runcmd:
+  - systemctl restart ssh || systemctl restart sshd
 #  - locale-gen en_GB.UTF-8
 #  - update-locale LANG=en_GB.UTF-8
 #  - |
