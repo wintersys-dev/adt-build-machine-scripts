@@ -75,15 +75,15 @@ write_files:
   - content: |
       ClientAliveInterval 60
       ClientAliveCountMax 2
-    path: /home/XXXXSERVER_USERXXXX/.ssh/config
     owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/.ssh/config
+    permissions: '0600'
+  
+  - content: Port XXXXSSH_PORTXXXX
+    owner: root:root
+    path: /etc/ssh/sshd_config.d/99-hardening.conf
     permissions: '0600'
 
-  - content: |
-      Port XXXXSSH_PORTXXXX
-    path: /etc/ssh/sshd_config.d/99-hardening.conf
-    owner: root:root
-    permissions: '0644'
 
 #DBAAS_CERT  - encoding: b64
 #DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
