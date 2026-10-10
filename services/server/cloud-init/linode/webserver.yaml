@@ -61,10 +61,10 @@ write_files:
 
 #DBAAS_CERT  - encoding: gzip+b64
 #DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
-#DBAAS_CER     owner: root:root
-#DBAAS_CER     path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
-#DBAAS_CER     permissions: '0644'
-#DBAAS_CER     defer: true
+#DBAAS_CERT    owner: root:root
+#DBAAS_CERT     path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
+#DBAAS_CERT     permissions: '0644'
+#DBAAS_CERT     defer: true
 
   - encoding: gzip+b64
     content: XXXXAPPLICATION_SETTINGSXXXX
@@ -104,39 +104,39 @@ packages:
   - zip
   - unzip
 
-runcmd:
+#runcmd:
  # - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
-  - locale-gen en_GB.UTF-8
-  - update-locale LANG=en_GB.UTF-8
-  - |
-    cat << 'EOF' >> /etc/profile
-    export LANGUAGE=en_GB.UTF-8
-    export LANG=en_GB.UTF-8
-    export LC_ALL=en_GB.UTF-8
-    EOF
-  - export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh
-  - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh /home/development
-  - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
-  - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub
-  - /usr/bin/git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
-  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
-  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
-  - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
-  - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
-  - /bin/chmod 750 /home/XXXXSERVER_USERXXXX/.ssh
-  - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
-  - |
-    TARGET_HOME="/home/XXXXSERVER_USERXXXX"
-    /bin/sh "${TARGET_HOME}/utilities/software/InitialiseToolkitForDevelopment.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallApplicationLanguage.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallEmailUtil.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallFirewall.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallTextBrowser.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallVirusScanner.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallDatastoreTools.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallDatabaseClient.sh"
-    /bin/sh "${TARGET_HOME}/installation/InstallWebserver.sh" &
-    /bin/sh "${TARGET_HOME}/ws.sh" &
-    /bin/sh "${TARGET_HOME}/installation/InstallGo.sh" &
+#  - locale-gen en_GB.UTF-8
+ # - update-locale LANG=en_GB.UTF-8
+  #- |
+ #   cat << 'EOF' >> /etc/profile
+ #   export LANGUAGE=en_GB.UTF-8
+ #   export LANG=en_GB.UTF-8
+ #   export LC_ALL=en_GB.UTF-8
+ #   EOF
+ # - export HOME=/home/XXXXSERVER_USERXXXX && /bin/sh ${HOME}/installation/Update.sh
+ # - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh /home/development
+ # - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
+ # - /bin/cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub
+#  - /usr/bin/git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
+#  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
+#  - /usr/bin/rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/development && /bin/chown -R www-data:www-data /home/development && /bin/rm -r /home/XXXXSERVER_USERXXXX/clone
+#  - /usr/bin/chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
+#  - /bin/chmod 755 /home/XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX/runtime /home/development
+#  - /bin/chmod 750 /home/XXXXSERVER_USERXXXX/.ssh
+#  - /bin/chmod 600 /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX*
+#  - |
+#    TARGET_HOME="/home/XXXXSERVER_USERXXXX"
+#    /bin/sh "${TARGET_HOME}/utilities/software/InitialiseToolkitForDevelopment.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallApplicationLanguage.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallEmailUtil.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallFirewall.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallTextBrowser.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallVirusScanner.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallDatastoreTools.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallDatabaseClient.sh"
+#    /bin/sh "${TARGET_HOME}/installation/InstallWebserver.sh" &
+#    /bin/sh "${TARGET_HOME}/ws.sh" &
+ #   /bin/sh "${TARGET_HOME}/installation/InstallGo.sh" &
 
