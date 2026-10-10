@@ -105,7 +105,6 @@ packages:
   - inotify-tools 
   - ipcalc 
   - ipset 
-  - ansible-core 
   - qrencode 
   - rclone 
   - socat 
