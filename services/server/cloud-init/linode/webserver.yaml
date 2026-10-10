@@ -48,29 +48,34 @@ write_files:
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
     permissions: '0640'
+    defer: true
 
   - encoding: gzip+b64
     content: XXXXBUILDSTYLES_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
     permissions: '0640'
+    defer: true
 
   - encoding: gzip+b64
     content: XXXXFIREWALL_PORT_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
     permissions: '0640'
+    defer: true
 
   - encoding: gzip+b64
     content: XXXXAPPLICATION_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/runtime/application.dat
     permissions: '0640'
+    defer: true
 
   - content: /home/XXXXSERVER_USERXXXX
     owner: root:root
     path: /home/homedir.dat
     permissions: '0644'
+    defer: true
 
   - content: |
       ClientAliveInterval 60
@@ -78,11 +83,13 @@ write_files:
     owner: XXXXSERVER_USERXXXX:root
     path: /home/XXXXSERVER_USERXXXX/.ssh/config
     permissions: '0600'
+    defer: true
   
   - content: Port XXXXSSH_PORTXXXX
     owner: root:root
     path: /etc/ssh/sshd_config.d/99-hardening.conf
     permissions: '0600'
+    defer: true
 
 
 #DBAAS_CERT  - encoding: b64
@@ -90,6 +97,7 @@ write_files:
 #DBAAS_CERT    owner: root:root
 #DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT
 #DBAAS_CERT    permissions: '0644'
+#DBAAS_CERT    defer: true
 
 runcmd:
   - [ sh, -c, "systemctl restart ssh || systemctl restart sshd" ]
