@@ -1,0 +1,7 @@
+  - |
+    export DEBIAN_FRONTEND=noninteractive
+    /usr/bin/apt-get update
+    /usr/bin/apt-get install -y iptables
+    /bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/debconf-set-selections
+    /bin/echo iptables-persistent iptables-persistent/autosave_v6 boolean true | /usr/bin/debconf-set-selections
+    /usr/bin/apt-get install -y netfilter-persistent iptables-persistent
