@@ -1,0 +1,137 @@
+#cloud-config
+manage_resolv_conf: true
+resolv_conf:
+  nameservers:
+    - '9.9.9.9'
+    - '1.1.1.2'
+    - '8.8.8.8'
+    - '8.8.4.4'
+
+users:
+  - name: XXXXSERVER_USERXXXX
+    passwd: 'XXXXSERVER_USER_PASSWORDXXXX'
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    ssh_authorized_keys:
+      - 'XXXXSSH_PUBLIC_KEYXXXX'
+    ssh_pwauth: false
+
+timezone: 'XXXXTIMEZONEXXXX'
+hostname: XXXXWEBSERVER_HOSTNAMEXXXX
+manage_etc_hosts: true
+keyboard:
+  layout: gb
+
+# Use native package handling to prevent apt/dpkg locking errors
+package_update: true
+package_upgrade: true
+packages:
+  - nala
+  - grub-efi-amd64
+  - git
+  - network-manager
+  - jq
+  - rsync
+  - cron
+  - zip
+  - unzip
+  - bzip2
+  - gawk
+  - gnupg
+  - golang-go
+  - inotify-tools
+  - ipcalc
+  - ipset
+  - qrencode
+  - rclone
+  - socat
+  - wireguard
+
+write_files:
+  # The private key is safer handled as a file write than under ssh_keys
+  - content: |
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      XXXXSSH_PRIVATE_KEYXXXX
+      -----END OPENSSH PRIVATE KEY-----
+    path: /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX
+    owner: XXXXSERVER_USERXXXX:XXXXSERVER_USERXXXX
+    permissions: '0600'
+
+  - encoding: gzip+b64
+    content: XXXXWEBSERVER_CONFIGURATIONXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/webserver_configuration_settings.dat
+    permissions: '0640'
+
+  - encoding: gzip+b64
+    content: XXXXBUILDSTYLES_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/software.dat
+    permissions: '0640'
+
+  - encoding: gzip+b64
+    content: XXXXFIREWALL_PORT_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
+    permissions: '0640'
+
+  - encoding: b64
+    content: XXXXDBAAS_CERTXXXX
+    owner: root:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT
+    permissions: '0644'
+
+  - encoding: gzip+b64
+    content: XXXXAPPLICATION_SETTINGSXXXX
+    owner: XXXXSERVER_USERXXXX:root
+    path: /home/XXXXSERVER_USERXXXX/runtime/application.dat
+    permissions: '0640'
+
+  - content: /home/XXXXSERVER_USERXXXX
+    owner: root:root
+    path: /home/homedir.dat
+    permissions: '0644'
+
+  - content: |
+      ClientAliveInterval 60
+      ClientAliveCountMax 2
+    path: /home/XXXXSERVER_USERXXXX/.ssh/config
+    owner: XXXXSERVER_USERXXXX:root
+    permissions: '0600'
+
+  - content: |
+      Port XXXXSSH_PORTXXXX
+    path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: '0644'
+
+runcmd:
+  # Ensure the runtime folder exists and everything has correct ownership
+  - mkdir -p /home/XXXXSERVER_USERXXXX/runtime
+  - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/runtime
+  
+  # Note: If changing SSH Port on systemd-managed SSH (like Ubuntu 22.04+), 
+  # you must also update the systemd socket. 
+  - systemctl restart ssh || systemctl restart sshd
+
+  # Clone and execute deployment workflow safely
+  - git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
+  - rsync -a /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
+  - rm -rf /home/XXXXSERVER_USERXXXX/clone
+
+  # Execute your deployment scripts with explicit path context
+  - |
+    export HOME="/home/XXXXSERVER_USERXXXX"
+    chown -R XXXXSERVER_USERXXXX:XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX
+    sh "${HOME}/utilities/security/EnforcePermissions.sh"
+    sh "${HOME}/installation/InstallPackageManager.sh"
+    sh "${HOME}/installation/InstallApplicationLanguage.sh"
+    sh "${HOME}/installation/InstallEmailUtil.sh"
+    sh "${HOME}/installation/InstallFirewall.sh"
+    sh "${HOME}/installation/InstallTextBrowser.sh"
+    sh "${HOME}/installation/InstallVirusScanner.sh"
+    sh "${HOME}/installation/InstallDatastoreTools.sh"
+    sh "${HOME}/installation/InstallDatabaseClient.sh"
+    sh "${HOME}/installation/InstallWebserver.sh"
+    sh "${HOME}/ws.sh"
