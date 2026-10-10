@@ -84,7 +84,7 @@ write_files:
     path: /home/XXXXSERVER_USERXXXX/.ssh/config
     owner: XXXXSERVER_USERXXXX:root
     permissions: '0600'
-    
+
   - content: |
       Port XXXXSSH_PORTXXXX
     path: /etc/ssh/sshd_config.d/99-hardening.conf
@@ -144,5 +144,5 @@ runcmd:
     sh "${HOME}/installation/InstallVirusScanner.sh"
     sh "${HOME}/installation/InstallDatastoreTools.sh"
     sh "${HOME}/installation/InstallDatabaseClient.sh"
-    sh "${HOME}/installation/InstallWebserver.sh" 
+    sh "${HOME}/installation/InstallWebserver.sh"
     sh "${HOME}/ws.sh"
