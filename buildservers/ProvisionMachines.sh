@@ -126,7 +126,7 @@ then
         /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks
 fi
 
-cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
+cat << EOF > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc.yaml"
 vpc_label: ${VPC_NAME}
 vpc_region: ${REGION}
 vpc_desc: "Main ADT infrastructure VPC created via Ansible"
@@ -137,7 +137,7 @@ subnet_id_file: ${subnet_id_file}
 path_to_vault_file: ${vault}
 EOF
 
-ansible-playbook --vault-password-file ${vault_password_file} -i ${inventory} ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc-${machine_type}.yaml"
+ansible-playbook --vault-password-file ${vault_password_file} -i ${inventory} ${BUILD_HOME}/services/server/ansible/linode/create_vpc.yaml -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-vpc.yaml"
 
 subnet_id="`/bin/grep SUBNET_ID ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/subnet_id | /usr/bin/awk -F'=' '{print $NF}'`"
 /bin/echo "Subnet ID set to: ${subnet_id}"
