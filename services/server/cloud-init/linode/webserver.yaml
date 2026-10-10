@@ -104,6 +104,10 @@ runcmd:
   - cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX
   - cp /etc/ssh/ssh_host_XXXXALGORITHMXXXX_key.pub /home/XXXXSERVER_USERXXXX/.ssh/id_XXXXALGORITHMXXXX_AGILE_DEPLOYMENT_BUILD_KEY_XXXXBUILD_IDENTIFIERXXXX.pub
   - [ sh, -c, "systemctl restart ssh || systemctl restart sshd" ]
+    # 1. Clean up any interrupted package configurations safely
+  - [ dpkg, --configure, -a, --force-confold ]
+  # 2. Update your package manager repositories
+  - [ apt-get, update, -y ]
   - [ nala, fetch, --auto, "yes" ]
   - [ nala, update ]
   - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard ]
