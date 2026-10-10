@@ -38,13 +38,9 @@ bootcmd:
   - mkdir -p /home/XXXXSERVER_USERXXXX/runtime
   - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh
   - chown -R 1000:1000 /home/XXXXSERVER_USERXXXX 2>/dev/null || true
-  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get update -y
   - DEBIAN_FRONTEND=noninteractive apt-get install -y nala
 
-# 2. Tell cloud-init to use nala instead of apt-get
-system_info:
-  apt_get_command: ["nala"]
-  apt_get_upgrade_subcommand: "upgrade"
 
 write_files:
   - encoding: gzip+b64
@@ -95,30 +91,33 @@ write_files:
     owner: root:root
     permissions: '0644'
 
-package_update: true
+#package_update: true
 
-packages:
-  - grub-efi-amd64
-  - git
-  - network-manager
-  - jq
-  - rsync
-  - cron
-  - zip
-  - unzip
-  - bzip2
-  - gawk 
-  - gnupg 
-  - golang-go 
-  - inotify-tools 
-  - ipcalc 
-  - ipset 
-  - qrencode 
-  - rclone 
-  - socat 
-  - wireguard
+#packages:
+ # - grub-efi-amd64
+ # - git
+ # - network-manager
+ # - jq
+ # - rsync
+ # - cron
+ # - zip
+ # - unzip
+ # - bzip2
+ # - gawk 
+ # - gnupg 
+ # - golang-go 
+ # - inotify-tools 
+ # - ipcalc 
+ # - ipset 
+ # - qrencode 
+ # - rclone 
+ # - socat 
+ # - wireguard
 
 runcmd:
+  - [ nala, update ]
+  - [ nala, upgrade, -y ]
+  - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard]
   # Ensure target directory ownership is sound before cloning/running scripts
   - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/runtime
   - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/.ssh
