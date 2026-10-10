@@ -123,7 +123,7 @@ runcmd:
   # Execute your deployment scripts with explicit path context
   - |
     export HOME="/home/XXXXSERVER_USERXXXX"
-    chown -R XXXXSERVER_USERXXXX:XXXXSERVER_USERXXXX /home/XXXXSERVER_USERXXXX
+    chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX
     sh "${HOME}/utilities/security/EnforcePermissions.sh"
     sh "${HOME}/installation/InstallPackageManager.sh"
     sh "${HOME}/installation/InstallApplicationLanguage.sh"
