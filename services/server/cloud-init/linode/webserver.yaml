@@ -56,10 +56,10 @@ write_files:
     permissions: '0640'
     defer: true
 
-#DBAAS_CERT  - encoding: gzip+b64
+#DBAAS_CERT  - encoding: b64
 #DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
 #DBAAS_CERT    owner: root:root
-#DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
+#DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT
 #DBAAS_CERT    permissions: '0644'
 #DBAAS_CERT    defer: true
 
