@@ -61,12 +61,6 @@ write_files:
     path: /home/XXXXSERVER_USERXXXX/runtime/firewall.dat
     permissions: '0640'
 
-#DBAAS_CERT  - encoding: b64
-#DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
-#DBAAS_CERT    owner: root:root
-#DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT
-#DBAAS_CERT    permissions: '0644'
-
   - encoding: gzip+b64
     content: XXXXAPPLICATION_SETTINGSXXXX
     owner: XXXXSERVER_USERXXXX:root
@@ -91,32 +85,15 @@ write_files:
     owner: root:root
     permissions: '0644'
 
-#package_update: true
-
-#packages:
- # - grub-efi-amd64
- # - git
- # - network-manager
- # - jq
- # - rsync
- # - cron
- # - zip
- # - unzip
- # - bzip2
- # - gawk 
- # - gnupg 
- # - golang-go 
- # - inotify-tools 
- # - ipcalc 
- # - ipset 
- # - qrencode 
- # - rclone 
- # - socat 
- # - wireguard
+#DBAAS_CERT  - encoding: b64
+#DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
+#DBAAS_CERT    owner: root:root
+#DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/runtime/DBaaS_CERT
+#DBAAS_CERT    permissions: '0644'
 
 runcmd:
   - [ sh, -c, "systemctl restart ssh || systemctl restart sshd" ]
-  - [ nala, fetch, --autoselect, "yes" ]
+  - [ nala, fetch, --auto, "yes" ]
   - [ nala, update ]
   - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard]
   # Ensure target directory ownership is sound before cloning/running scripts
