@@ -1,0 +1,2 @@
+  - /usr/bin/snap install aria2c
+  - /bin/ln -s /snap/bin/aria2c /usr/sbin/aria2c
