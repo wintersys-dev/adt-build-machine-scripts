@@ -106,7 +106,7 @@ runcmd:
   - [ sh, -c, "systemctl restart ssh || systemctl restart sshd" ]
   - [ nala, fetch, --auto, "yes" ]
   - [ nala, update ]
-  - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard]
+  - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard ]
   # Ensure target directory ownership is sound before cloning/running scripts
 
 #  - chmod 700 /home/XXXXSERVER_USERXXXX/.ssh
