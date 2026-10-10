@@ -91,7 +91,6 @@ write_files:
     permissions: '0600'
     defer: true
 
-
 #DBAAS_CERT  - encoding: b64
 #DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
 #DBAAS_CERT    owner: root:root
