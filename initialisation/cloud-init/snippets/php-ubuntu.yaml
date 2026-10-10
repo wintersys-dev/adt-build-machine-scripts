@@ -1,0 +1,13 @@
+#cloud-config
+apt:
+  sources:
+    ondrej-php:
+      source: "ppa:ondrej/php"
+
+# Optional: Set to true if you want cloud-init to automatically run apt update
+package_update: true
+
+# Optional: List any packages you want installed right after the repository is added
+packages:
+  - software-properties-common
+  - php8.3
