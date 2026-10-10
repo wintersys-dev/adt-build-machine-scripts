@@ -1,5 +1,4 @@
 #cloud-config
-
 manage_resolv_conf: true
 resolv_conf:
   nameservers:
@@ -24,6 +23,7 @@ users:
 
 ssh_pwauth: false
 
+# Ensure XXXXALGORITHMXXXX translates to rsa, dsa, ecdsa, or ed25519
 ssh_keys:
   XXXXALGORITHMXXXX_private: |
     -----BEGIN OPENSSH PRIVATE KEY-----
@@ -62,9 +62,9 @@ write_files:
 #DBAAS_CERT  - encoding: gzip+b64
 #DBAAS_CERT    content: XXXXDBAAS_CERTXXXX
 #DBAAS_CERT    owner: root:root
-#DBAAS_CERT     path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
-#DBAAS_CERT     permissions: '0644'
-#DBAAS_CERT     defer: true
+#DBAAS_CERT    path: /home/XXXXSERVER_USERXXXX/.ssh/DBaaS_CERT.gz
+#DBAAS_CERT    permissions: '0644'
+#DBAAS_CERT    defer: true
 
   - encoding: gzip+b64
     content: XXXXAPPLICATION_SETTINGSXXXX
@@ -83,7 +83,7 @@ write_files:
       ClientAliveInterval 60
       ClientAliveCountMax 2
     path: /home/XXXXSERVER_USERXXXX/.ssh/config
-    owner: 'root:root'
+    owner: XXXXSERVER_USERXXXX:XXXXSERVER_USERXXXX  # Fixed: Changed from root to user
     permissions: '0600'
     defer: true
     
@@ -103,6 +103,7 @@ packages:
   - cron
   - zip
   - unzip
+
 
 #runcmd:
  # - /home/XXXXSERVER_USERXXXX/utilities/processing/RunServiceCommand.sh "ssh" restart
