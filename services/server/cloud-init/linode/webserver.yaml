@@ -33,11 +33,10 @@ keyboard:
 
 #locale: "en_GB.UTF-8"
 
-# FIX: Pre-create directories early so write_files modules don't fail on missing parent paths
 bootcmd:
   - mkdir -p /home/XXXXSERVER_USERXXXX/runtime
   - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh
- # - chown -R 1000:1000 /home/XXXXSERVER_USERXXXX 2>/dev/null || true
+  - chown -R 1000:1000 /home/XXXXSERVER_USERXXXX 2>/dev/null || true
   - DEBIAN_FRONTEND=noninteractive apt-get update -y
   - DEBIAN_FRONTEND=noninteractive apt-get install -y nala
 
