@@ -1,0 +1,28 @@
+  # Install Ansible Core
+  - apt-get install -y ansible-core
+
+  # Create the runtime directory
+  - mkdir -p /root/runtime/ansible-env
+
+  # Determine Python version and install its respective venv package
+  - export PYTHON_VERSION=$(python3 --version | awk '{print $NF}' | cut -d. -f1,2)
+  - apt-get install -y python${PYTHON_VERSION}-venv
+
+  # 1. Create a virtual environment
+  - python3 -m venv /root/runtime/ansible-env
+
+  # 2. Upgrade pip and fetch/write requirements inside the virtual environment
+  - /root/runtime/ansible-env/bin/pip install --upgrade pip
+
+  # Try to download requirements, overwrite with fallback values if successful (matching original logic)
+  - |
+    if wget https://raw.githubusercontent.com/linode/ansible_linode/main/requirements.txt -O /root/runtime/ansible-env/requirements.txt; then
+      cat << 'EOF' > /root/runtime/ansible-env/requirements.txt
+    linode_api4>=5.46.1
+    polling==0.3.2
+    ansible-specdoc>=0.0.20
+    EOF
+    fi
+
+  # 3. Install the requirements using the venv's pip binary directly
+  - /root/runtime/ansible-env/bin/pip install --upgrade -r /root/runtime/ansible-env/requirements.txt
