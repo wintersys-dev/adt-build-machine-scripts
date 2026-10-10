@@ -115,6 +115,7 @@ write_files:
  # - wireguard
 
 runcmd:
+  - [ nala, fetch, --autoselect, "yes" ]
   - [ nala, update ]
   - [ nala, upgrade, -y ]
   - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard]
