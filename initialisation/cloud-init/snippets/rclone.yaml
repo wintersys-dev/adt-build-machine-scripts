@@ -1,0 +1,1 @@
+  - curl -fsSL https://rclone.org/install.sh | bash
