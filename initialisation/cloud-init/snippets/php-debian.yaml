@@ -1,0 +1,25 @@
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - lsb-release
+
+# 2. Native configuration for the third-party repository
+apt:
+  sources:
+    sury-php:
+      # Automatically resolves the Debian codename (e.g., bookworm, bullseye)
+      source: "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://sury.org $RELEASE main"
+      # Securely downloads and places the ASCII-armoured or binary key
+      keyurl: "https://sury.orgapt.gpg"
+      # Defines where to save the keyring to match the 'signed-by' path
+      keyring: /usr/share/keyrings/deb.sury.org-php.gpg
+
+# 3. Specify the exact PHP packages to install once the repo is updated
+# Replace '8.2' with your required specific PHP version
+package_update: true
+package_upgrade: false
+packages:
+  - php8.2
+  - php8.2-cli
+  - php8.2-common
