@@ -73,8 +73,6 @@
 # PLAY 2: Verify Remote Installation Success
 # ==========================================
 
-
----
 - name: Wait for cloud-init package installation with log tailing
   hosts: all
   gather_facts: no
