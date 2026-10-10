@@ -133,6 +133,7 @@ runcmd:
   # Clone and execute deployment workflow
   - git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
   - rsync -a --remove-source-files /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX && rm -r /home/XXXXSERVER_USERXXXX/clone
+ #Turn these into one script :InstallAdditionalSoftware and call it from here this script test the conditions in software.dat and actions installation accordingly
   - |
     export HOME="/home/XXXXSERVER_USERXXXX"
     sh "${HOME}/installation/InstallPackageManager.sh"
