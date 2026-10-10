@@ -96,7 +96,9 @@ fi
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] )
 then
 	/bin/sed -i 's/#DBAAS_CERT//g' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
-    dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
+ # i dont think this is gzipped, but check
+	
+	dbaas_cert="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT  | /usr/bin/gzip -f | /usr/bin/base64 | /usr/bin/tr -d '\n'`"
 else
 	/bin/sed -i '/#DBAAS_CERT/d' ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
 fi
