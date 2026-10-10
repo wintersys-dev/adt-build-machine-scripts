@@ -123,7 +123,7 @@ EOF
 
 if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/STALE_DNS_PURGED-${machine_type} ] )
 then
-        ansible-playbook --vault-password-file ${vault_password_file}  -i ${inventory} ${BUILD_HOME}/services/server/ansible/cloudflare/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
+        ansible-playbook --vault-password-file ${vault_password_file}  -i ${inventory} ${BUILD_HOME}/services/server/ansible/${dns_provider}/delete_dns_records.yaml  -e "@${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/playbooks/ansible-delete-dns-${machine_name}.yaml"
 fi
 
 if ( [ "$?" = "0" ] )
