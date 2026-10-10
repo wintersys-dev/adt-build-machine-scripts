@@ -1,0 +1,2 @@
+  - /usr/bin/wget -O /usr/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys 
+  - /bin/chmod 755 /usr/bin/goofys
