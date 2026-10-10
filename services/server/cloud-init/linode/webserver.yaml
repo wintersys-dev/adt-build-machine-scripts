@@ -108,7 +108,7 @@ runcmd:
   - [ dpkg, --configure, -a, --force-confold ]
   # 2. Update your package manager repositories
   - [ apt-get, update, -y ]
-  - [ nala, fetch, --auto, "yes" ]
+  - [ nala, fetch, --auto ]
   - [ nala, update ]
   - [ nala, install, -y, grub-efi-amd64, git, network-manager, jq, rsync, cron, zip, unzip, bzip2, gawk, gnupg, golang-go, inotify-tools, ipcalc, ipset,  qrencode, rclone, socat, wireguard ]
   # Ensure target directory ownership is sound before cloning/running scripts
