@@ -1,0 +1,3 @@
+#snapd must be installed under packages
+  - systemctl enable --now snapd.socket
+  - snap install core
