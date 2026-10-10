@@ -132,7 +132,7 @@ runcmd:
   - chown -R XXXXSERVER_USERXXXX:root /home/XXXXSERVER_USERXXXX/.ssh
   # Clone and execute deployment workflow
   - git clone -b XXXXGIT_BRANCHXXXX --single-branch https://XXXXGIT_PROVIDER_DOMAINXXXX/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/adt-webserver-scripts.git /home/XXXXSERVER_USERXXXX/clone
-  - rsync -a --remove-source-files /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX
+  - rsync -a --remove-source-files /home/XXXXSERVER_USERXXXX/clone/ /home/XXXXSERVER_USERXXXX && rm -r /home/XXXXSERVER_USERXXXX/clone
   - |
     TARGET_HOME="/home/XXXXSERVER_USERXXXX"
     sh "${TARGET_HOME}/installation/InstallPackageManager.sh"
