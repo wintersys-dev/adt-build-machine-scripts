@@ -1,0 +1,3 @@
+  - curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+  # Make the file executable globally
+  - chmod +x /usr/local/bin/wp
