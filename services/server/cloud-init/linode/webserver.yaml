@@ -36,7 +36,7 @@ keyboard:
 bootcmd:
   - mkdir -p /home/XXXXSERVER_USERXXXX/runtime
   - mkdir -p /home/XXXXSERVER_USERXXXX/.ssh
- # - chown -R 1000:1000 /home/XXXXSERVER_USERXXXX 2>/dev/null || true
+  - chown -R 1000:1000 /home/XXXXSERVER_USERXXXX 
   - DEBIAN_FRONTEND=noninteractive apt-get update -y
   - DEBIAN_FRONTEND=noninteractive apt-get install -y nala
 
