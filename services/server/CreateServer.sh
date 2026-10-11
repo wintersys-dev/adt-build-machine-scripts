@@ -33,4 +33,4 @@ server_name="${2}"
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
 
-${BUILD_HOME}/services/server/linode/CreateServer.sh "${server_size}" "${server_name}"
+${BUILD_HOME}/services/server/${CLOUDHOST}/CreateServer.sh "${server_size}" "${server_name}"
