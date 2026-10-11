@@ -32,4 +32,4 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
 orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh "${server_ip}" 
+${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh "${server_ip}" ${CLOUDHOST}"
