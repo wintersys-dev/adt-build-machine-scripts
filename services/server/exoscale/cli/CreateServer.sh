@@ -137,8 +137,7 @@ fi
 
 firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
 
-if ( [ "${CLOUDHOST}" = "exoscale" ] )
-then
+
 	template_visibility="--template-visibility public"
 
 	if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
@@ -163,5 +162,5 @@ then
 		/usr/bin/exo compute private-network create adt_private_net_${REGION} --zone ${REGION} --start-ip 10.0.0.20 --end-ip 10.0.0.200 --netmask 255.255.255.0
 	fi
 	/usr/bin/exo compute instance private-network attach  ${server_name} adt_private_net_${REGION} --zone ${REGION}
-fi
+
 
