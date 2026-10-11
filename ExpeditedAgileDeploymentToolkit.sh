@@ -499,8 +499,8 @@ status ""
 #This option will perform a standard build process (autoscaler, webserver, database)
 if ( [ "`/bin/grep "^BUILDCHAINTYPE:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "standard" ] )
 then
-	${BUILD_HOME}/buildservers/ProvisionMachines.sh
-	#${BUILD_HOME}/buildservers/PerformStandardBuildChain.sh
+	#${BUILD_HOME}/buildservers/ProvisionMachines.sh
+	${BUILD_HOME}/buildservers/PerformStandardBuildChain.sh
 	${BUILD_HOME}/services/security/firewall/AdjustBuildMachineFirewall.sh
 	${BUILD_HOME}/buildservers/FinaliseBuildProcessing.sh
 fi
