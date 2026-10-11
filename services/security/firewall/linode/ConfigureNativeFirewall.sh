@@ -33,7 +33,7 @@ linode_firewall_rules ()
                 if ( [ "`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $2}'`" = "ipv4" ] )
                 then
                         port="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $1}'`"
-                        ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $3}'`"
+                        ip_address="`/bin/echo ${firewall_port_token} | /usr/bin/awk -F'|' '{print $4}'`"
                         
                         if ( [ "`/usr/bin/ipcalc ${ip_address} | /bin/grep "INVALID"`"  = "" ] )
                         then
