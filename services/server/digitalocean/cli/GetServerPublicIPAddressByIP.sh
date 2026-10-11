@@ -1,5 +1,5 @@
 #!/bin/sh
-############################################################################
+############################################################################ 
 # Author : Peter Winter
 # Date   : 13/06/2016
 # Description : This script gets a machine's public ip based on its private ip
