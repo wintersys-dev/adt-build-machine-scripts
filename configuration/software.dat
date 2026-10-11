@@ -95,6 +95,8 @@
 # You can create branches as you need to but currently there is a main branch and a dev branch to work with
 # You can scan for viruses on your servers on a periodic basis VIRUSSCANNER:clamav:hourly|daily|weekly|monthly
 # VIRUSSCANNER:<clamav:daily>
+# You can set your orchestration tool here if you want to integrate a different ochestration tool other than the cli
+# ORCHESTRATION_TOOL:<cli>
 ###############################################################################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -403,3 +405,5 @@ SSLCERTCLIENT:lego:snap
 GITBRANCH:main
 #---------------------------------------------VIRUS SCANNER------------------------------------------------------------------------
 #VIRUSSCANNER:clamav:daily
+#---------------------------------------------ORCHESTRATION TOOL--------------------------------------------------------------------
+ORCHESTRATION_TOOL:cli
