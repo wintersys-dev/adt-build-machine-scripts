@@ -84,7 +84,8 @@ write_files:
     permissions: '0600'
     defer: true
   
-  - content: Port XXXXSSH_PORTXXXX
+  - content: |+
+      Port XXXXSSH_PORTXXXX
     owner: root:root
     path: /etc/ssh/sshd_config.d/99-hardening.conf
     permissions: '0600'
