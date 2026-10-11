@@ -27,7 +27,6 @@ status () {
 }
 
 server_ip="${1}"
-cloudhost="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
 BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
