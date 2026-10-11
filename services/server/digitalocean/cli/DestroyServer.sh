@@ -28,10 +28,6 @@ status () {
 
 server_ip="${1}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
-
-
 server_id="`/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select (.networks.v4[].ip_address == "'${server_ip}'").id'`"
 /usr/local/bin/doctl -force compute droplet delete ${server_id}
 status "Destroyed a server with ip address ${server_ip}"
