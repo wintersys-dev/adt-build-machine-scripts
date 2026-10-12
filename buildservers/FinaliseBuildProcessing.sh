@@ -191,7 +191,7 @@ then
 	rp_ws_active_ips="${ws_active_ips}"
 else
 	ws_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
-	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}`"
+	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
