@@ -23,27 +23,5 @@
 server_ip="${1}"
 cloudhost="${2}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
-if ( [ "${cloudhost}" = "digitalocean" ] )
-then
-	/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select (.networks.v4[] | select (.ip_address == "'${server_ip}'")).name'
-fi
-
-if ( [ "${cloudhost}" = "exoscale" ] )
-then
-	zone="`/bin/cat ${BUILD_HOME}/runtime/${cloudhost}/${BUILD_IDENTIFIER}/CURRENTREGION`"
-	/usr/bin/exo compute instance list --zone ${zone} -O json | /usr/bin/jq -r '.[] | select (.ip_address =="'${server_ip}'").name'
-fi
-
-if ( [ "${cloudhost}" = "linode" ] )
-then
-	/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
-fi
-
-if ( [ "${cloudhost}" = "vultr" ] )
-then
-	/usr/bin/vultr instance list -o json | /usr/bin/jq -r '.instances[] | select (.main_ip == "'${server_ip}'").label' 
-fi
 
