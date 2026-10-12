@@ -98,7 +98,7 @@ do
 
 			status "Interrogating for autoscaler instance being available....if this goes on forever there is a problem"
 			count="0"
-			while ( [ "`${BUILD_HOME}/services/server/IsInstanceRunning.sh "${autoscaler_name}" ${CLOUDHOST}`" != "running" ] && [ "${count}" -lt "120" ] )
+			while ( [ "`${BUILD_HOME}/services/server/IsInstanceRunning.sh "${autoscaler_name}"`" != "running" ] && [ "${count}" -lt "120" ] )
 			do
 				/bin/sleep 1
 				count="`/usr/bin/expr ${count} + 1`"
