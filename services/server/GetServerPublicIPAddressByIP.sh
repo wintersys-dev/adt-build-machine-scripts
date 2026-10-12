@@ -75,7 +75,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-exec "${script_path}" "${server_type}"
+exec "${script_path}" "${server_ip}"
 
 #ip="${1}"
 
