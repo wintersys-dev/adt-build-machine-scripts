@@ -25,8 +25,19 @@ then
         curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
             "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
             
-        # 4. API Delete command (DELETE /v4/linode/instances/{id})
-        curl -s -X DELETE -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
-            https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
+# 2. Wait until the status changes to "offline"
+while true; do
+    status=$(curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+        "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status')
+    
+    if [ "$status" = "offline" ]; then
+        break
+    fi
+    sleep 5
+done
+
+# 3. Safe to delete now
+curl -s -X DELETE -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+    "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
     fi
 fi
