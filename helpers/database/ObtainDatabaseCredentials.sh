@@ -26,8 +26,8 @@ then
 fi
 
 /bin/echo "######################################################################################################################################################"
-/bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-/bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"` (try this one first from your application if it timesout, try the public one)"
+/bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
+/bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"` (try this one first from your application if it timesout, try the public one)"
 /bin/echo "The database port is ${DB_PORT}"
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment ] )
