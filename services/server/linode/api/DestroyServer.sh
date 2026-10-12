@@ -31,7 +31,8 @@ while true; do
         "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status')
     
     if [ "$status" = "offline" ]; then
-        break
+curl -s -X DELETE -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+    "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
     fi
     sleep 5
 done
