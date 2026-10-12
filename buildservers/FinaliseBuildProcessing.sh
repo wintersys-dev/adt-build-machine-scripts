@@ -104,17 +104,17 @@ then
 		then
 			if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 			then
-				as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+				as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			else
-				as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+				as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			fi
 		elif ( [ "${no_autoscalers}" != "0" ] )
 		then
 			if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 			then
-				as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+				as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			else
-				as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+				as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			fi
 		fi
 	fi
@@ -123,11 +123,11 @@ then
 	then
 		if ( [ "${as_active_ip}" = "" ] )
 		then
-			as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+			as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 		fi
 	elif ( [ "${as_active_ip}" = "" ] )
 	then
-		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	fi
 
 	if ( [ "${no_autoscalers}" = "1" ] )
@@ -176,22 +176,22 @@ then
 	then
 		if ( [ "${rp_active_ips}" = "" ] )
 		then
-			rp_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+			rp_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}"`"
 		fi
 	fi
 elif ( [ "${rp_active_ips}" = "" ] )
 then
-	rp_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+	rp_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 #If the build machine is connect to the VPC then we need the private IP address if it is not then we need the public IP address
 if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
-	ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+	ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 	rp_ws_active_ips="${ws_active_ips}"
 else
-	ws_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+	ws_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}`"
 fi
 
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
