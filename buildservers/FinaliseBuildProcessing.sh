@@ -96,7 +96,7 @@ fi
 #If this is a PRODUCTION build there's some steps to take to get the active IP addresses for all machine types
 if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] )
 then 
-	no_autoscalers="`${BUILD_HOME}/services/server/NumberOfServers.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`"
+	no_autoscalers="`${BUILD_HOME}/services/server/NumberOfServers.sh "as-${REGION}-${BUILD_IDENTIFIER}" 2>/dev/null`"
 
 	if ( [ "${IN_PARALLEL}" = "1" ] )
 	then
