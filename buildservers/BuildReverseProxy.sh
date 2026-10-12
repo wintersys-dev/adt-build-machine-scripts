@@ -90,7 +90,7 @@ do
                 do
                         count="0"
                         #Actually start the server machine. Following this, there will be an active machine instance running on your cloud provider
-                        ${BUILD_HOME}/services/server/CreateServer.sh "${RP_SERVER_TYPE}" "${reverseproxy_name}" 
+                        ${BUILD_HOME}/services/server/CreateServer.sh "${RP_SERVER_TYPE}" "${reverseproxy_name}" "adt-reverseproxy"
 
                         if ( [ "$?" != "0" ] )
                         then
