@@ -20,8 +20,18 @@
 #####################################################################################
 #set -x
 
-server_ip="${1}"
-cloudhost="${2}"
+status () {
+	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
+server_ip="${1}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
+
+${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerName.sh ${server_ip} ${CLOUDHOST}
 
 
