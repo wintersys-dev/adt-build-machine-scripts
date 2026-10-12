@@ -21,10 +21,7 @@
 #set -x
 
 server_type="${1}"
-cloudhost="${2}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
 
 	/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id' | /usr/bin/wc -l
