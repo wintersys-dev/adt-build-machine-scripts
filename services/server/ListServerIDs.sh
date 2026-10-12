@@ -76,7 +76,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-${script_path} ${server_type}
+"${script_path}" "${server_type}"
 
 exit_code=$?
 
