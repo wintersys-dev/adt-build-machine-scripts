@@ -116,6 +116,15 @@ status () {
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
+script_dir="`CDPATH= cd -P -- "$(dirname -- "$0")" && pwd -P)`"
+current_dir="`pwd -P`"
+
+# 3. Compare the two paths
+if ( [ "$script_dir" = "$current_dir" ] )
+then
+    echo "This script needs to be run from the directory it is in which is ${script_dir}. The directory you are running it from is ${current_dir}."
+fi
+
 # If parametes have been set from the command line then populate the respective variables
 # which means we don't have to obtain them interactively
 # ./ExpeditedAgileDeploymentToolkit.sh <cloudhost> <buildos> <selected template> <build identifier>
