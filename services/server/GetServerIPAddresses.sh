@@ -84,7 +84,15 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-exec "${script_path}" "${server_type}"
+"${script_path}" "${server_type}"
+
+exit_code=$?
+
+if [ ${exit_code} -ne 0 ] )
+then
+    status "Error: GetServerIPAddresses.sh failed with exit code $exit_code"
+    exit $exit_code
+fi
 
 #server_type="$1"
 
