@@ -63,7 +63,7 @@ fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
-if ( [ "${orchestration_tool}" ] )
+if ( [ "${orchestration_tool}" = "" ] )
 then
     status "Error: ORCHESTRATION_TOOL not found in ${software_tool}"
     exit 1
@@ -88,7 +88,7 @@ fi
 
 exit_code=$?
 
-if [ ${exit_code} -ne 0 ] )
+if ( [ ${exit_code} -ne 0 ] )
 then
     status "Error: DestroyServer.sh failed with exit code $exit_code"
     exit $exit_code
