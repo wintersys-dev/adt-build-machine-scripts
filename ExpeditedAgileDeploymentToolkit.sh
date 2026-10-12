@@ -195,15 +195,6 @@ then
 	read x
 fi
 
-# Set BUILD_HOME which is the directory where the Agile Deployment Toolkit is
-# Also set a persistent place on the file system where the value of BUILD_HOME is stored 
-# for reference anywhere
-if ( [ "${BUILD_HOME}" = "" ] )
-then
-	export BUILD_HOME="`/bin/pwd`"
-	/bin/echo ${BUILD_HOME} > /home/buildhome.dat
-fi
-
 # Set the USER value based on what "whoami" tells us
 export USER="`/usr/bin/whoami`"
 /bin/chmod -R 700 ${BUILD_HOME}/.
