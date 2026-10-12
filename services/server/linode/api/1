@@ -1,0 +1,3 @@
+curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+     "https://linode.com" | \
+     jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").label'
