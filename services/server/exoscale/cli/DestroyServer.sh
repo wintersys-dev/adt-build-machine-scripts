@@ -38,5 +38,5 @@ BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 	then
 		server_ip="`/usr/bin/exo compute instance list --zone ${zone} -O json | /usr/bin/jq -r '.[] | select (.name =="'${server_name}'").ip_address'`" 
 	fi
-	server_to_delete="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip} ${cloudhost}`"
+	server_to_delete="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip}`"
 	/bin/echo "Y" | /usr/bin/exo compute instance delete ${server_to_delete} --zone ${zone}
