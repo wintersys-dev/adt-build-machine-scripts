@@ -29,6 +29,14 @@ status () {
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+then
+        status "Error: Server type argument is required."
+        status "Usage: $0 <server_type>"
+        exit 1
+fi
+
+server_type="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
