@@ -82,7 +82,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-${script_path} ${server_ip}
+"${script_path}" "${server_ip}"
 
 exit_code=$?
 
