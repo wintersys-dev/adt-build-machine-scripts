@@ -77,7 +77,16 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-exec "${script_path}"
+${script_path}
+
+exit_code=$?
+
+if [ ${exit_code} -ne 0 ] )
+then
+    status "Error: CreateServer.sh failed with exit code $exit_code"
+    exit $exit_code
+fi
+
 
 
 #status () {
