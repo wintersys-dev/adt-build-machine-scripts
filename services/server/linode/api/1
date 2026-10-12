@@ -1,0 +1,4 @@
+curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+     -H "X-Filter: {\"ipv4\": \"${ip}\"}" \
+     "https://linode.com" | \
+     jq -r '.data[].ipv4[] | select(.address == "'${ip}'" and .vpc_nat_1_1 != null).vpc_nat_1_1'
