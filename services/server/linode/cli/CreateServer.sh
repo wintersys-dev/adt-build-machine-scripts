@@ -162,5 +162,8 @@ then
 fi
 	
 /usr/local/bin/linode-cli linodes create  --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", ${firewall_active} "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true, "nat_1_1_address": "auto" } ] } } }, { "purpose": "vpc", ${firewall_active}  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-
+if ( [ "$?" != "0" ] )
+then
+	exit 1
+fi
 
