@@ -55,11 +55,11 @@ OPTIONS="-o ConnectTimeout=10 -o ConnectionAttempts=5 -o UserKnownHostsFile=/dev
 #If the build machine is attached to the VPC then get the private IP addresses, if it isn't, get the public ones
 if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
-        ws_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-        db_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+        ws_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+        db_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 else
-        ws_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-        db_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+        ws_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+        db_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 status "###############################################################################################################################"
