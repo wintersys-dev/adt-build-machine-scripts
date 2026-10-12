@@ -31,6 +31,15 @@
 ###############################################################################################
 #set -x
 
+script_dir="`CDPATH= cd -P -- "$(dirname -- "$0")" && pwd -P)`"
+current_dir="`pwd -P`"
+
+# 3. Compare the two paths
+if ( [ "$script_dir" = "$current_dir" ] )
+then
+    echo "This script needs to be run from the directory it is in which is ${script_dir}. The directory you are running it from is ${current_dir}."
+fi
+
 actioned="0"
 if ( [ -f /etc/ssh/ssh_config ] && [ "`/bin/grep 'ServerAliveInterval 60' /etc/ssh/ssh_config`" = "" ] )
 then
@@ -44,6 +53,8 @@ then
 	/bin/echo "ClientAliveInterval 60
 	TCPKeepAlive yes
 	ClientAliveCountMax 10000" >> /etc/ssh/sshd_config
+
+	
 	BUILD_HOME="`/usr/bin/pwd`"
 	${BUILD_HOME}/helpers/services/RunServiceCommand.sh ssh restart
 	actioned="1"
