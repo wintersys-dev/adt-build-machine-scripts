@@ -60,7 +60,7 @@ if ( [ "${orchestration_tool}" ]; then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddressByIP.sh "${server_ip}"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddressByIP.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
