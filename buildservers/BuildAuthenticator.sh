@@ -85,7 +85,7 @@ do
 		do
 			count="0"
 			#Actually start the server machine. Following this, there will be an active machine instance running on your cloud provider
-			${BUILD_HOME}/services/server/CreateServer.sh "${AUTH_SERVER_TYPE}" "${authenticator_name}" 
+			${BUILD_HOME}/services/server/CreateServer.sh "${AUTH_SERVER_TYPE}" "${authenticator_name}" "adt_authenticator"
 
 			if ( [ "$?" != "0" ] )
 			then
