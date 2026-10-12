@@ -152,8 +152,8 @@ do
 			#Keep trying until we get the ip addresses of our new machine, both public and private ips
 			while ( ( [ "${ip}" = "" ] || [ "${private_ip}" = "" ] ) || [ "${ip}" = "0.0.0.0" ] && [ "${count}" -lt "10" ] )
 			do
-				ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "${webserver_name}" ${CLOUDHOST} | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
-				private_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "${webserver_name}" ${CLOUDHOST} | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
+				ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "${webserver_name}"  | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
+				private_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "${webserver_name}"  | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
 				/bin/sleep 5
 				count="`/usr/bin/expr ${count} + 1`"
 			done
