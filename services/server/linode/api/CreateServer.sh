@@ -172,9 +172,56 @@ user_data="--metadata.user_data ${cloud_config}"
 
 if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
 then
-	/usr/local/bin/linode-cli linodes create  --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "firewall_id": '${firewall_id}', "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true, "nat_1_1_address": "auto" } ] } } }, { "purpose": "vpc", "firewall_id": '${firewall_id}',  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-	#/usr/local/bin/linode-cli linodes create  --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "firewall_id": '${firewall_id}', "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } } }, { "purpose": "vpc", "firewall_id": '${firewall_id}',  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-else
-	/usr/local/bin/linode-cli linodes create  --authorized_keys "${key}" --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true, "nat_1_1_address": "auto" } ] } } }, { "purpose": "vpc",  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"
-	#/usr/local/bin/linode-cli linodes create  --authorized_keys "${key}" --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces ' [ { "purpose": "public", "default_route": { "ipv4": true }, "public": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } } }, { "purpose": "vpc",  "vpc": { "ipv4": { "addresses": [ { "address": "auto", "primary": true } ] } , "subnet_id": '${subnet_id}' } } ]' ${user_data} --disk_encryption "enabled"        
+firewall_active=' "firewall_id": "${firewall_id}", '
+
+curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "root_pass": "'"${emergency_password}"'",
+       "region": "'"${REGION}"'",
+       "image": "'"${image}"'",
+       "type": "'"${server_size}"'",
+       "label": "'"${server_name}"'",
+       "interface_generation": "linode",
+       "interfaces": [
+         {
+           "purpose": "public",
+           ${firewall_active}
+           "default_route": {
+             "ipv4": true
+           },
+           "public": {
+             "ipv4": {
+               "addresses": [
+                 {
+                   "address": "auto",
+                   "primary": true,
+                   "nat_1_1_address": "auto"
+                 }
+               ]
+             }
+           }
+         },
+         {
+           "purpose": "vpc",
+           ${firewall_active}
+           "vpc": {
+             "ipv4": {
+               "addresses": [
+                 {
+                   "address": "auto",
+                   "primary": true
+                 }
+               ]
+             },
+             "subnet_id": '"${subnet_id}"'
+           }
+         }
+       ],
+       "metadata": {
+         "user_data": "'"${user_data}"'"
+       },
+       "disk_encryption": "enabled"
+     }' \
+     "https://api.linode.com/v4/linode/instances"
 fi
