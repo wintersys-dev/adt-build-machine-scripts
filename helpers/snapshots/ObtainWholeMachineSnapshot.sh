@@ -83,7 +83,7 @@ then
 	/bin/cp ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat
 fi
 
-machine_id="`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} | /usr/bin/head -n 1`"
+machine_id="`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}-${REGION}-${BUILD_IDENTIFIER}" | /usr/bin/head -n 1`"
 
 if ( [ "${machine_id}" = "" ] )
 then
