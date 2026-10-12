@@ -252,7 +252,7 @@ rules="`/bin/echo ${rules} | /bin/sed -e 's;\n; ;g' -e 's; $;;g'`"
 machine_ids=""
 while ( [ "${machine_ids}" = "" ] )
 do
-        machine_ids="`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_identifier}" ${CLOUDHOST}`"
+        machine_ids="`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_identifier}"`"
         /bin/sleep 5
 done
 
