@@ -20,8 +20,12 @@
 ##########################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 server_type="${1}"
 
-curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
-     "https://api.linode.com/v4/linode/instances" | \
-     jq '[.data[] | select(.label | contains("'${server_type}'"))] | length'
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+
+curl -s -H "Authorization: Bearer $TOKEN" \
+        "https://api.linode.com/v4/linode/instances" | \
+        jq '[.data[] | select(.label | contains("'${server_type}'"))] | length'
