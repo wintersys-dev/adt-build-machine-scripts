@@ -100,7 +100,7 @@ do
 
                         status "Interrogating for reverse proxy instance being available....if this goes on forever there is a problem"
                         count="0"
-                        while ( [ "`${BUILD_HOME}/services/server/IsInstanceRunning.sh "${reverseproxy_name}" ${CLOUDHOST}`" != "running" ] && [ "${count}" -lt "120" ] )
+                        while ( [ "`${BUILD_HOME}/services/server/IsInstanceRunning.sh "${reverseproxy_name}"`" != "running" ] && [ "${count}" -lt "120" ] )
                         do
                                 /bin/sleep 5
                                 count="`/usr/bin/expr ${count} + 1`"
