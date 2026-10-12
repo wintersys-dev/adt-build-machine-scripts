@@ -1,4 +1,5 @@
-# 2. Safely read BUILD_HOME
+
+
 BUILD_HOME_FILE="/home/buildhome.dat"
 
 
@@ -15,3 +16,5 @@ then
     echo "Error: BUILD_HOME variable is empty." >&2
     exit 1
 fi
+
+/bin/echo "${BUILD_HOME}"
