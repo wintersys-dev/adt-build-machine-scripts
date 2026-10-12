@@ -78,9 +78,9 @@ token_to_match="ws-`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`-$
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/VPC-ACTIVE ] )
 then
-        ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match} ${BUILD_HOME}`"
 else
-        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match} ${CLOUDHOST} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match} ${BUILD_HOME}`"
 fi
 
 if ( [ "${ips}" = "" ] )
