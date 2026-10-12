@@ -21,10 +21,6 @@
 #set -x
 
 server_type="${1}"
-cloudhost="${2}"
-
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
 
 	/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select (.name | contains ("'${server_type}'")).networks.v4[] | select (.type == "private").ip_address' 2>/dev/null
