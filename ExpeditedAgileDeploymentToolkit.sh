@@ -119,9 +119,11 @@ status () {
 script_dir="`CDPATH= cd -P -- "$(dirname -- "$0")" && pwd -P)`"
 current_dir="`pwd -P`"
 
-# 3. Compare the two paths
-if ( [ "$script_dir" = "$current_dir" ] )
+if ( [ "${script_dir}" = "${current_dir}" ] )
 then
+	BUILD_HOME="`/bin/pwd`"
+    /bin/echo ${BUILD_HOME} > /home/buildhome.dat
+else
     echo "This script needs to be run from the directory it is in which is ${script_dir}. The directory you are running it from is ${current_dir}."
 fi
 
