@@ -244,7 +244,7 @@ do
 			#We should destroy the server also because it's hosed
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "authenticatorpublicip" "local"
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "authenticatorip" "local"
-			${BUILD_HOME}/services/server/DestroyServer.sh ${AUTHIP_PUBLIC} ${CLOUDHOST}
+			${BUILD_HOME}/services/server/DestroyServer.sh ${AUTHIP_PUBLIC}
 
 			status "Probing for the termination of the failed authenticator machine so that a new one can be built"
 			status "If this goes on forever, please investigate"
