@@ -181,9 +181,9 @@ token_to_match="${machine_type_token}-`${BUILD_HOME}/helpers/services/GetVariabl
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/VPC-ACTIVE ] )
 then
-        ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match}`"
 else
-        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match} ${BUILD_HOME}`"
+        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match}`"
 fi
 
 if ( [ "${ips}" = "" ] )
