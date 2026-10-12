@@ -27,15 +27,13 @@ status () {
 }
 
 server_ip="${1}"
-cloudhost="${2}"
-
 
 	if ( [ "${server_ip}" != "" ] )
 	then
 		server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 		if ( [ "${server_id}" = "" ] )
 		then
-			server_ip="`${BUILD_HOME}/services/server/${cloudhost}/GetServerPublicIPAddressByIP.sh ${server_ip} ${cloudhost}`"
+			server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
 			server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 		fi
 		/usr/local/bin/linode-cli linodes shutdown ${server_id}
