@@ -88,7 +88,7 @@ do
 		do
 			count="0"
 			#Actually create the autoscaler machine. If the create fails, keep trying 
-			${BUILD_HOME}/services/server/CreateServer.sh "${AS_SERVER_TYPE}" "${autoscaler_name}" 
+			${BUILD_HOME}/services/server/CreateServer.sh "${AS_SERVER_TYPE}" "${autoscaler_name}" "adt_autoscaler"
 
 			if ( [ "$?" != "0" ] )
 			then
