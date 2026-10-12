@@ -20,16 +20,76 @@
 ###################################################################################
 #set -x
 
+set -e
+
 status () {
 	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
 	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server type argument is required." 
+    status "Usage: $0 <server_type>" 
+    exit 1
+fi
+
 server_ip="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
-orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh "${server_ip}" 
+cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
+if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
+then
+    status "Error: Cannot read active cloud host file at ${cloudhost_file}" 
+    exit 1
+fi
+
+CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
+
+if ( [ "${CLOUDHOST}" = "" ] )
+then
+    status "Error: CLOUDHOST variable is empty." 
+    exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
+then
+    status "Error: Cannot read software configuration file at ${software_file}"
+    exit 1
+fi
+
+orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+
+if ( [ "${orchestration_tool}" ] )
+then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_tool}"
+    exit 1
+fi
+
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh"
+
+if ( [ ! -f "${script_path}" ] )
+then
+    status "Error: Script not found at $SCRIPT_PATH" 
+    exit 1
+fi
+
+if ( [ ! -x "${script_path}" ] )
+then
+    status "Error: Script at ${script_path} is not executable." 
+    exit 1
+fi
+
+# Execute the script, replacing the current shell process
+exec "${script_path}" "${server_ip}"
+
+#server_ip="${1}"
+#
+#BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+#CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+#orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
+
+#${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh "${server_ip}" 
