@@ -256,7 +256,7 @@ do
 						status "Probing for the termination of the failed reverse proxy machine so that a new one can be built"
 						status "If this goes on forever, please investigate"
                         #Wait until we are sure that the reverse proxy server is destroyed because of a faulty build
-                        while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "NO-${reverse_proxy_no}-rp-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "0" ] )
+                        while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "NO-${reverse_proxy_no}-rp-${REGION}-${BUILD_IDENTIFIER}" 2>/dev/null`" != "0" ] )
                         do
                                 /bin/sleep 5
                         done
