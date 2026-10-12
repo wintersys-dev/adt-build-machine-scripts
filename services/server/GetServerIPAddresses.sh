@@ -20,30 +20,12 @@
 #############################################################################################
 #set -x
 
-server_type="$1"
-cloudhost="$2"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
+server_size="${1}"
+server_name="${2}"
 
-if ( [ "${cloudhost}" = "digitalocean" ] )
-then
-	/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select ( .name | contains ("'${server_type}'")).networks.v4[] | select (.type == "public").ip_address' 2>/dev/null  
-fi
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-if ( [ "${cloudhost}" = "exoscale" ] )
-then
-	zone="`/bin/cat ${BUILD_HOME}/runtime/${cloudhost}/${BUILD_IDENTIFIER}/CURRENTREGION`"
-	/usr/bin/exo  compute instance list --zone ${zone} -O json | /usr/bin/jq -r '.[] | select (.name | contains ("'${server_type}'")).ip_address' 2>/dev/null
-fi
-
-if ( [ "${cloudhost}" = "linode" ] )
-then
-	/usr/local/bin/linode-cli linodes list --no-defaults --json  | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).ipv4[]' 2>/dev/null
-fi
-
-if ( [ "${cloudhost}" = "vultr" ] )
-then
-	server_type="`/bin/echo ${server_type} | /usr/bin/cut -c -32`"
-	/usr/bin/vultr instance list -o json | /usr/bin/jq -r '.instances[] | select (.label | contains("'${server_type}'")).main_ip' 2>/dev/null
-fi
+${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerIPAddresses.sh "${server_size}" "${server_name}"
