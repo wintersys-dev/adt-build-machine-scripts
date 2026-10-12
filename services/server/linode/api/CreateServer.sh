@@ -159,7 +159,7 @@ fi
 
 vpc_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://api.linode.com/v4/vpcs" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
 
-subnet_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://api.linode.com/v4/vpcs/{vpc_id}/subnets?page_size=100" | jq -r '.data[] | select(.label == "adt-subnet").id'`"
+subnet_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://api.linode.com/v4/vpcs/${vpc_id}/subnets?page_size=100" | jq -r '.data[] | select(.label == "adt-subnet").id'`"
 
 
 image="--image ${OS_CHOICE}" 
