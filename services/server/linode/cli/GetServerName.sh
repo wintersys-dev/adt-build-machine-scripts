@@ -22,6 +22,8 @@
 
 server_ip="${1}"
 
-
-
-	/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
+/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
+if ( [ "$?" != "0" ] )
+then
+	exit 1
+fi
