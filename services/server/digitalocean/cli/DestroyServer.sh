@@ -20,15 +20,9 @@
 ###################################################################################
 #set -x
 
-status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-}
 
 server_ip="${1}"
 
 server_id="`/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select (.networks.v4[].ip_address == "'${server_ip}'").id'`"
 /usr/local/bin/doctl -force compute droplet delete ${server_id}
-status "Destroyed a server with ip address ${server_ip}"
 
