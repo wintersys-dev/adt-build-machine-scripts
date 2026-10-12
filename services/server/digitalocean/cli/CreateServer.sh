@@ -21,12 +21,6 @@
 ####################################################################################
 #set -x
 
-status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-}
-
 server_size="${1}"
 server_name="${2}"
 
@@ -37,7 +31,6 @@ BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
 BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-DDOS_PROTECTION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ENABLE_DDOS_PROTECTION`"
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
@@ -103,7 +96,6 @@ then
 	if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 	then
 		snapshot_id="`/bin/grep autoscaler ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	 	status "Deploying autoscaler machine from snapshot with ID ${snapshot_id}"
  	fi
 elif ( [ "`/bin/echo ${server_name} | /bin/grep -E "^ws-"`" != "" ] )
 then
@@ -111,7 +103,6 @@ then
 	if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 	then
 		snapshot_id="`/bin/grep webserver ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	 	status "Deploying webserver machine from snapshot with ID ${snapshot_id}"	
 		${BUILD_HOME}/helpers/services/SetVariableValue.sh SNAPSHOT_ID=${snapshot_id}
  	fi
 elif ( [ "`/bin/echo ${server_name} | /bin/grep -E "^db-"`" != "" ] )
@@ -120,7 +111,6 @@ then
 	if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 	then
 		snapshot_id="`/bin/grep database ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-		status "Deploying database machine from snapshot with ID ${snapshot_id}"	
  	fi
 elif ( [ "`/bin/echo ${server_name} | /bin/grep -E "\-auth-"`" != "" ] )
 then
@@ -128,7 +118,6 @@ then
 	if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 	then
 		snapshot_id="`/bin/grep authenticator ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-		status "Deploying authenticator machine from snapshot with ID ${snapshot_id}"	
  	fi
 elif ( [ "`/bin/echo ${server_name} | /bin/grep -E "\-rp-"`" != "" ] )
 then
@@ -136,7 +125,6 @@ then
 	if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 	then
 		snapshot_id="`/bin/grep reverseproxy ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-		status "Deploying reverse proxy machine from snapshot with ID ${snapshot_id}"	
  	fi
 fi
 
@@ -179,6 +167,5 @@ fi
   	fi
 
 	/usr/local/bin/doctl compute droplet create "${server_name}" --ssh-keys "${key_id}" --size "${server_size}" ${image} --region "${REGION}"  --vpc-uuid "${vpc_id}" --user-data-file "${cloud_config}"
-
 
 	${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" 
