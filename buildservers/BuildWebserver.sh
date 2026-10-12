@@ -286,7 +286,7 @@ do
 			status "Probing for the termination of the failed webserver machine so that a new one can be built"
 			status "If this goes on forever, please investigate"
 			#Wait until we are sure that the webserver is destroyed because of a faulty build
-			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "ws-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" != "0" ] )
+			while ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "ws-${REGION}-${BUILD_IDENTIFIER}" 2>/dev/null`" != "0" ] )
 			do
 				/bin/sleep 30
 			done
