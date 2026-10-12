@@ -77,7 +77,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-${script_path}
+"${script_path}"
 
 exit_code=$?
 
