@@ -71,7 +71,7 @@ script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/Ge
 
 if ( [ ! -f "${script_path}" ] )
 then
-    status "Error: Script not found at $SCRIPT_PATH"
+    status "Error: Script not found at ${script_path}" 
     exit 1
 fi
 
