@@ -172,7 +172,8 @@ user_data="--metadata.user_data ${cloud_config}"
 
 if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
 then
-firewall_active=' "firewall_id": "${firewall_id}", '
+	firewall_active=' "firewall_id": "${firewall_id}", '
+fi
 
 curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
      -H "Content-Type: application/json" \
@@ -224,4 +225,4 @@ curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
        "disk_encryption": "enabled"
      }' \
      "https://api.linode.com/v4/linode/instances"
-fi
+
