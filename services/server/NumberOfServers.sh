@@ -22,8 +22,8 @@ set -e
 
 if ( [ "${1}" = "" ] )
 then
-    echo "Error: Server type argument is required." >&2
-    echo "Usage: $0 <server_type>" >&2
+    status "Error: Server type argument is required." 
+    status "Usage: $0 <server_type>" 
     exit 1
 fi
 
@@ -34,7 +34,7 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
 then
-    echo "Error: Cannot read active cloud host file at ${cloudhost_file}" >&2
+    status "Error: Cannot read active cloud host file at ${cloudhost_file}" 
     exit 1
 fi
 
@@ -42,21 +42,21 @@ CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
 
 if ( [ "${CLOUDHOST}" = "" ] )
 then
-    echo "Error: CLOUDHOST variable is empty." >&2
+    status "Error: CLOUDHOST variable is empty." 
     exit 1
 fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
-    echo "Error: Cannot read software configuration file at ${software_file}" >&2
+    status "Error: Cannot read software configuration file at ${software_file}" 
     exit 1
 fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
 if ( [ "${orchestration_tool}" ]; then
-    echo "Error: ORCHESTRATION_TOOL not found in ${software_tool}" >&2
+    status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
     exit 1
 fi
 
@@ -64,18 +64,26 @@ script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/Nu
 
 if ( [ ! -f "${script_path}" ] )
 then
-    echo "Error: Script not found at $SCRIPT_PATH" >&2
+    status "Error: Script not found at $SCRIPT_PATH" 
     exit 1
 fi
 
 if ( [ ! -x "${script_path}" ] )
 then
-    echo "Error: Script at ${script_path} is not executable." >&2
+    status "Error: Script at ${script_path} is not executable." 
     exit 1
 fi
 
 # Execute the script, replacing the current shell process
-exec "${script_path}" "${server_type}"
+${script_path} ${server_type}
+
+exit_code=$?
+
+if [ ${exit_code} -ne 0 ] )
+then
+    status "Error: NumberOfServers.sh failed with exit code $exit_code"
+    exit $exit_code
+fi
 
 #server_type="${1}"
 
