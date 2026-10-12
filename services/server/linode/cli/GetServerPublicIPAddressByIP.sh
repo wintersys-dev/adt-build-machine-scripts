@@ -23,13 +23,11 @@ set -e
 
 ip="${1}"
 
-linodeids="`/usr/local/bin/linode-cli --json linodes list | /usr/bin/jq '.[].id'`"
+ip="${1}"
 
-for linodeid in ${linodeids}
-do
-	/usr/local/bin/linode-cli linodes ips-list ${linodeid} --no-defaults --json | /usr/bin/jq -r '.[].ipv4.vpc[] | select (.address == "'${ip}'").nat_1_1'  
-	if ( [ "$?" != "0" ] )
-	then
-		exit 1
-	fi
-done
+/usr/local/bin/linode-cli vpcs ips-all-list --json | /usr/bin/jq -r --arg ip "$ip" '.[] | select(.address == $ip).nat_1_1'
+
+if ( [ "$?" != "0" ] )
+then
+        exit 1
+fi
