@@ -19,8 +19,12 @@
 #############################################################################################
 #############################################################################################
 #set -x
+set -e
 
 server_type="$1"
 
-	/usr/local/bin/linode-cli linodes list --no-defaults --json  | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).ipv4[]' 2>/dev/null
-
+/usr/local/bin/linode-cli linodes list --no-defaults --json  | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).ipv4[]' 2>/dev/null
+if ( [ "$?" != "0" ] )
+then
+	exit 1
+fi
