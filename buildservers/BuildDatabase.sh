@@ -69,7 +69,7 @@ do
 	status "OK... building a database server. This is attempt ${counter} of 5"
 
 	#Make sure a database is not already running
-	if ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "db-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST} 2>/dev/null`" -eq "0" ] )
+	if ( [ "`${BUILD_HOME}/services/server/NumberOfServers.sh "db-${REGION}-${BUILD_IDENTIFIER}" 2>/dev/null`" -eq "0" ] )
 	then
 		ip=""
 		#Create an identifier from our the user name we allocated to identify the database server
@@ -250,7 +250,7 @@ do
 			#We failed so we don't want the IP addresses in our datastore
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "databasepublicip" "local"
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "databaseip" "local"
-			${BUILD_HOME}/services/server/DestroyServer.sh ${DBIP_PUBLIC} ${CLOUDHOST}
+			${BUILD_HOME}/services/server/DestroyServer.sh ${DBIP_PUBLIC}
 
 			#Wait until we are sure that the database server(s) are destroyed because of a faulty build
 			status "Probing for the termination of the failed database machine so that a new one can be built"
