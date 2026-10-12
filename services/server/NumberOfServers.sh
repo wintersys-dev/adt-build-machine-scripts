@@ -21,32 +21,12 @@
 #set -x
 
 server_type="${1}"
-cloudhost="${2}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
+orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-if ( [ "${cloudhost}" = "digitalocean" ] )
-then
-	/usr/local/bin/doctl compute droplet list -o json | /usr/bin/jq -r '.[] | select (.name | contains("'${server_type}'")).id' | /usr/bin/wc -l
-fi
-
-if ( [ "${cloudhost}" = "exoscale" ] )
-then
-	zone="`/bin/cat ${BUILD_HOME}/runtime/${cloudhost}/${BUILD_IDENTIFIER}/CURRENTREGION`"
-	/usr/bin/exo compute instance list --zone ${zone} -O json | /usr/bin/jq -r '.[] | select (.name | contains("'${server_type}'")).id' | /usr/bin/wc -l
-fi
-
-if ( [ "${cloudhost}" = "linode" ] )
-then
-	/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id' | /usr/bin/wc -l
-fi
-
-if ( [ "${cloudhost}" = "vultr" ] )
-then
-	server_type="`/bin/echo ${server_type} | /usr/bin/cut -c -32`"
-	/usr/bin/vultr instance list -o json | /usr/bin/jq -r '.instances[] | select (.label | contains("'${server_type}'")).id' | /usr/bin/wc -l
-fi
+${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/NumberOfServers.sh "${server_type}" 
 
 
 
