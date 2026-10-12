@@ -139,13 +139,28 @@ else
 	/bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
-if ( [ "`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
+if ( [ "`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://linode.com" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
 then
-	/usr/local/bin/linode-cli vpcs create --no-defaults --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
+	curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "label": "'"${VPC_NAME}"'",
+       "region": "'"${REGION}"'",
+       "subnets": [
+         {
+           "label": "adt-subnet",
+           "ipv4": "'"${VPC_IP_RANGE}"'"
+         }
+       ]
+     }' \
+     "https://linode.com"
+	
 fi
 
-vpc_id="`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
-subnet_id="`/usr/local/bin/linode-cli vpcs subnets-list ${vpc_id} --no-defaults --json  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
+vpc_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://linode.com" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
+
+subnet_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://linode.com{vpc_id}/subnets?page_size=100" | jq -r '.data[] | select(.label == "adt-subnet").id'`"
+
 
 image="--image ${OS_CHOICE}" 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
