@@ -19,7 +19,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-set -euo pipefail
+set -e
 
 
 server_size="${1}"
@@ -166,4 +166,6 @@ if ( [ "$?" != "0" ] )
 then
 	exit 1
 fi
+
+
 
