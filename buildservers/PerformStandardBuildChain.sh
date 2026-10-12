@@ -272,24 +272,24 @@ then
 	AUTOSCALER_PUBLIC_KEYS="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/autoscaler_keys"
 	if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
 	then
-		as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+		as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	elif ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
 	then
-		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	fi
-	ws_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-	db_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+	ws_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+	db_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 elif ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
 	if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -gt "1" ] )
 	then
-		as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+		as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	elif ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" -eq "1" ] )
 	then
-		as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+		as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	fi
-	ws_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
-	db_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+	ws_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+	db_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""`"
 fi
 
 # Simply report that so far, so good
