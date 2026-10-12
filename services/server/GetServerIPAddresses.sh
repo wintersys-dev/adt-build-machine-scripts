@@ -21,11 +21,11 @@
 #set -x
 
 
-server_size="${1}"
-server_name="${2}"
+server_type="$1"
+cloudhost="$2"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
 orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerIPAddresses.sh "${server_size}" "${server_name}"
+${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerIPAddresses.sh "${server_type}" "${cloudhost}"
