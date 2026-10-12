@@ -37,7 +37,7 @@
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
-${BUILD_HOME}/services/server/GetServerName.sh ${ip} "${CLOUDHOST}"
+${BUILD_HOME}/services/server/GetServerName.sh ${ip}"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/BUILD_MACHINE_CLOUDHOST`"
 BUILDMACHINE_USER="`/bin/cat /root/buildmachine_user.dat`"
 
