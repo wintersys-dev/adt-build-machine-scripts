@@ -20,12 +20,6 @@
 ###################################################################################
 #set -x
 
-status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-}
-
 server_ip="${1}"
 
 	server_id="`/usr/bin/vultr instance list -o json | /usr/bin/jq -r '.instances[] | select (.main_ip == "'${server_ip}'").id'`"
@@ -35,4 +29,3 @@ server_ip="${1}"
 		server_id="`/usr/bin/vultr instance list -o json | /usr/bin/jq -r '.instances[] | select (.internal_ip == "'${server_ip}'").id'`"
 	fi        
 	/usr/bin/vultr instance delete ${server_id}
-	status "Destroyed a server with ip address ${server_ip}"
