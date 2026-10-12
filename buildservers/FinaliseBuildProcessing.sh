@@ -78,17 +78,17 @@ OPTIONS_WS="-o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=
 OPTIONS_DB="-o ConnectTimeout=10 -o ConnectionAttempts=30 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
 
 #Just do some checks to make sure that all the different server types are running correctly
-if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" != "0" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "as-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`" = "" ] )
+if ( [ "${DEPLOYMENT_MODE}" = "PRODUCTION" ] && [ "${NO_AUTOSCALERS}" != "0" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "as-${REGION}-${BUILD_IDENTIFIER}"`" = "" ] )
 then
 	status "It seems like something is not quite right with the build. The Autoscaler seems not to be running so the website will not function properly."
 fi
 
-if ( [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "ws-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`" = "" ] )
+if ( [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`" = "" ] )
 then
 	status "It seems like something is not quite right with the build. The webserver seems not to be running so the website will not function properly."
 fi
 
-if (  [ "${DATABASE_INSTALLATION_TYPE}" != "None" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "db-${REGION}-${BUILD_IDENTIFIER}" ${CLOUDHOST}`" = "" ] )
+if (  [ "${DATABASE_INSTALLATION_TYPE}" != "None" ] && [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "db-${REGION}-${BUILD_IDENTIFIER}"`" = "" ] )
 then
 	status "It seems like something is not quite right with the build. The database seems not to be running so the website will not function properly."
 fi
