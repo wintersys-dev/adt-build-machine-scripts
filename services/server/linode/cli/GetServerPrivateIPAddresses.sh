@@ -19,17 +19,21 @@
 ########################################################################################
 ########################################################################################
 #set -x
+set -e
 
 server_type="${1}"
 
+linodeids="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
 
+privateips=""
+for linodeid in ${linodeids}
+do
+	privateip="`/usr/local/bin/linode-cli linodes ips-list ${linodeid} --no-defaults --json | /usr/bin/jq -r '.[].ipv4.vpc[].address' 2>/dev/null`"		
+	if ( [ "$?" != "0" ] )
+	then
+		exit 1
+	fi
+	privateips=${privateips}" ${privateip}"
+done
 
-	linodeids="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
-
-	privateips=""
-	for linodeid in ${linodeids}
-	do
-		privateip="`/usr/local/bin/linode-cli linodes ips-list ${linodeid} --no-defaults --json | /usr/bin/jq -r '.[].ipv4.vpc[].address' 2>/dev/null`"		
-		privateips=${privateips}" ${privateip}"
-	done
-	/bin/echo ${privateips}
+/bin/echo ${privateips}
