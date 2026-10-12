@@ -19,13 +19,17 @@
 ####################################################################################
 ####################################################################################
 #set -x
+set -e
 
 ip="${1}"
 
+linodeids="`/usr/local/bin/linode-cli --json linodes list | /usr/bin/jq '.[].id'`"
 
-	linodeids="`/usr/local/bin/linode-cli --json linodes list | /usr/bin/jq '.[].id'`"
-
-	for linodeid in ${linodeids}
-	do
-		/usr/local/bin/linode-cli linodes ips-list ${linodeid} --no-defaults --json | /usr/bin/jq -r '.[].ipv4.vpc[] | select (.address == "'${ip}'").nat_1_1'  
-	done
+for linodeid in ${linodeids}
+do
+	/usr/local/bin/linode-cli linodes ips-list ${linodeid} --no-defaults --json | /usr/bin/jq -r '.[].ipv4.vpc[] | select (.address == "'${ip}'").nat_1_1'  
+	if ( [ "$?" != "0" ] )
+	then
+		exit 1
+	fi
+done
