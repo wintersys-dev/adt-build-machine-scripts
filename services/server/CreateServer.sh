@@ -36,7 +36,9 @@ then
         exit 1
 fi
 
-server_type="${1}"
+server_size="${1}"
+server_name="${2}"
+machine_type="${3}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -85,7 +87,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}"
+"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
 
 exit_code=$?
 
