@@ -219,7 +219,7 @@ do
 			#Delete the autoscaler IP addresses from the S3 datastore because they were clearly not needed because of failure
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "autoscalerpublicips" "local"
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "autoscalerips" "local"
-			${BUILD_HOME}/services/server/DestroyServer.sh ${ip} ${CLOUDHOST}
+			${BUILD_HOME}/services/server/DestroyServer.sh ${ip}
 
 			status "Probing for the termination of the failed autoscaler machine so that a new one can be built"
 			status "If this goes on forever, please investigate"
