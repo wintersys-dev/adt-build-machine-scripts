@@ -20,12 +20,6 @@
 ###################################################################################
 #set -x
 
-status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-}
-
 server_ip="${1}"
 
 	if ( [ "${server_ip}" != "" ] )
@@ -38,5 +32,4 @@ server_ip="${1}"
 		fi
 		/usr/local/bin/linode-cli linodes shutdown ${server_id}
 		/usr/local/bin/linode-cli linodes delete ${server_id}
-		status "Destroyed a server with ip address ${server_ip}"
 	fi
