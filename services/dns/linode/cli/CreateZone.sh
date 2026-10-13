@@ -32,7 +32,7 @@ fi
                         
 export LINODE_CLI_CONFIG=${linode_config_file}                
                 
-if ( [ "`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select ( .domain == "'${domainurl}'").domain'`" = "" ] )
+if ( [ "`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select ( .domain == "'${domain_url}'").domain'`" = "" ] )
 then
         /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${email} --no-defaults
 fi
