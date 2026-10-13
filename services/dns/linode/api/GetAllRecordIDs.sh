@@ -20,9 +20,8 @@
 ################################################################################
 #set -x
 
-sub_domain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-ip="${5}"
+domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
