@@ -22,7 +22,7 @@
 set -x
 
 domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
+sub_domain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
 
 linode_config_file="/root/.config/dns-linode-cli"
 
@@ -34,5 +34,5 @@ fi
 export LINODE_CLI_CONFIG=${linode_config_file}
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-/usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${subdomain}" --no-defaults --json | /usr/bin/jq -r '.[].id'
+/usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${sub_domain}" --no-defaults --json | /usr/bin/jq -r '.[].id'
 unset LINODE_CLI_CONFIG
