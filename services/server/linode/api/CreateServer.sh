@@ -21,9 +21,17 @@
 ####################################################################################
 set -euo pipefail
 
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+then
+        status "Error: 3 Server arguments are required."
+        status "Usage: $0 <server_type>"
+        exit 1
+fi
+
 
 server_size="${1}"
 server_name="${2}"
+machine_type="${3}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
