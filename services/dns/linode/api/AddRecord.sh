@@ -26,15 +26,6 @@ domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
 dns="${7}"
    
-linode_config_file="/root/.config/dns-linode-cli"
-
-if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
-then
-        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
-fi
-
-#Make damn sure that the DNS record gets added to the DNS system                        
-export LINODE_CLI_CONFIG=${linode_config_file}
 
 domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "A", "name": "'"${subdomain}"'", "target": "'"${ip}"'", "ttl_sec": 60 }' https://api.linode.com/v4/domains/{domain_id}/records
