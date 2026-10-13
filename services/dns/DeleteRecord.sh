@@ -31,14 +31,14 @@ status () {
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
-        status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>"
+        status "Error: 3 arguments are required."
+        status "Usage: $0 <record_id> <dns> <domain_url>"
         exit 1
 fi
 
-server_size="${1}"
-server_name="${2}"
-machine_type="${3}"
+record_id="${2}"
+dns="${5}"
+domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -72,7 +72,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DeleteRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
@@ -87,7 +87,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
+"${script_path}" "${record_id}" "${dns}" "${domain_url}"
 
 exit_code=$?
 
