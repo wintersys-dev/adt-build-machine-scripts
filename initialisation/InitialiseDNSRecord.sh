@@ -86,6 +86,11 @@ then
 		zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
 	fi
 
+	if ( [ "${zoneid}" = "" ] )
+	then
+		zoneid="FILLER"
+	fi
+
 	#status "We are adding our DNS records to the DNS provider you selected, in this case ${DNS_CHOICE}"
 	#zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
 
