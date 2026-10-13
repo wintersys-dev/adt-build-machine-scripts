@@ -23,7 +23,6 @@
 sub_domain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
-dns="${7}"     
 
 linode_config_file="/root/.config/dns-linode-cli"
 
