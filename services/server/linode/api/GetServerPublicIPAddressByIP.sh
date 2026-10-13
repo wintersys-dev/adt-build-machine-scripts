@@ -18,22 +18,24 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-#set -x
+set -x
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${1}" = "" ] )
 then
-    status "Error: Server ip argument is required."
-    status "Usage: $0 <server_ip>" 
-    exit 1
+        status "Error: Server ip argument is required."
+        status "Usage: $0 <server_ip>" 
+        exit 1
 fi
 
 server_ip="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-curl -s -H "Authorization: Bearer $TOKEN" \
-     -H "X-Filter: {\"ipv4\": \"${server_ip}\"}" \
-     "https://api.linode.com/v4/linode/instances" | \
-     jq -r '.data[].ipv4[] | select(.address == "'${server_ip}'" and .vpc_nat_1_1 != null).vpc_nat_1_1'
+curl -s -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/vpcs/ips" |  /usr/bin/jq -r --arg ip "$server_ip" '.data[] | select(.address == $ip).nat_1_1'
+
+if ( [ "$?" != "0" ] )
+then
+    exit 1
+fi
