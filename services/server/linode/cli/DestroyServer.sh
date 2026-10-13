@@ -29,9 +29,9 @@ status () {
 
 if ( [ "${1}" = "" ] )
 then
-    status "Error: Server ip argument is required."
-    status "Usage: $0 <server_ip>" 
-    exit 1
+        status "Error: Server ip argument is required."
+        status "Usage: $0 <server_ip>" 
+        exit 1
 fi
 
 server_ip="${1}"
@@ -40,44 +40,44 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${server_ip}" != "" ] )
 then
-	server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
-	
-	if ( [ "$?" != "0" ] )
-	then
-		exit 1
-	fi
-	
-	if ( [ "${server_id}" = "" ] )
-	then
-		server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
-		server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
-		
-		if ( [ "$?" != "0" ] )
-	    then
-		    exit 1
-	    fi
-	fi
-        
-	/usr/local/bin/linode-cli linodes shutdown ${server_id}
-	if ( [ "$?" != "0" ] )
-	then
-		exit 1
-    fi
+        server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 
-    count="0"
-    while ( [ "`/usr/local/bin/linode-cli linodes view ${server_id} --format status --no-headers`" != "offline" ] && [ "${count}" -lt "20" ] )
-	do
-    	status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
-    	/bin/sleep 10
-    	count="`/usr/bin/expr ${count} + 1`"
-    done
+        if ( [ "$?" != "0" ] )
+        then
+                exit 1
+        fi
 
-	/usr/local/bin/linode-cli linodes delete ${server_id}
+        if ( [ "${server_id}" = "" ] )
+        then
+                server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
+                server_id="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 
-	if ( [ "$?" != "0" ] )
-	then
-		exit 1
-	else
-		status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
-    fi
+                if ( [ "$?" != "0" ] )
+                then
+                        exit 1
+                fi
+        fi
+
+        /usr/local/bin/linode-cli linodes shutdown ${server_id}
+        if ( [ "$?" != "0" ] )
+        then
+                exit 1
+        fi
+
+        count="0"
+        while ( [ "`/usr/local/bin/linode-cli linodes view ${server_id} --format status --no-headers --json | jq -r '.[].status'`" != "offline" ] && [ "${count}" -lt "20" ] )
+        do
+                status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
+                /bin/sleep 10
+                count="`/usr/bin/expr ${count} + 1`"
+        done
+
+        /usr/local/bin/linode-cli linodes delete ${server_id}
+
+        if ( [ "$?" != "0" ] )
+        then
+                exit 1
+        else
+                status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
+        fi
 fi
