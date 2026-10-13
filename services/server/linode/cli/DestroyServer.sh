@@ -27,8 +27,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 if ( [ "${1}" = "" ] )
 then
     status "Error: Server ip argument is required."
@@ -36,8 +34,9 @@ then
     exit 1
 fi
 
-
 server_ip="${1}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${server_ip}" != "" ] )
 then
