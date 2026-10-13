@@ -38,7 +38,6 @@ fi
 
 email="${1}"
 domainurl="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
-dns="${4}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
