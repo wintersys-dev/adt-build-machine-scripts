@@ -73,7 +73,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/dns/${CLOUDHOST}/${orchestration_tool}/AddRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
@@ -88,7 +88,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
+"${script_path}" "${subdomain}" "${domain_url}" "${ip}" "${dns}"
 
 exit_code=$?
 
