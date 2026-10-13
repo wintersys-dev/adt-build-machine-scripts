@@ -20,16 +20,14 @@
 ################################################################################
 #set -x
 
+record_id="${2}"
+domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+   
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-ip="${5}"
-dns="${7}"
-   
-
 domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
-curl -s -X DELETE -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/domains/{domain_id}/records/${record_id}"
+curl -s -X DELETE -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/domains/${domain_id}/records/${record_id}"
+
 if ( [ "$?" != "0" ] )
 then
         exit 1
