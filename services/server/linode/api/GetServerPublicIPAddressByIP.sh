@@ -20,9 +20,20 @@
 ####################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server ip argument is required."
+    status "Usage: $0 <server_type>" 
+    exit 1
+fi
+
 ip="${1}"
 
-curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+
+curl -s -H "Authorization: Bearer $TOKEN" \
      -H "X-Filter: {\"ipv4\": \"${ip}\"}" \
      "https://api.linode.com/v4/linode/instances" | \
      jq -r '.data[].ipv4[] | select(.address == "'${ip}'" and .vpc_nat_1_1 != null).vpc_nat_1_1'
