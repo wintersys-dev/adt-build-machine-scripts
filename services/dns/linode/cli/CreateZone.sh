@@ -22,7 +22,6 @@
 
 email="${1}"
 domain_url="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
-dns="${4}"
 
 linode_config_file="/root/.config/dns-linode-cli"
         
