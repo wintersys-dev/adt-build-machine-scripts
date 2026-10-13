@@ -19,75 +19,20 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ###################################################################################
 ###################################################################################
-#set -x
-
-zoneid="${1}"
-websiteurl="${2}"
-email="${3}"
-credentials="${4}"
-dns="${5}"
-
-if ( [ "${dns}" = "cloudflare" ] )
-then
-        if ( [ "`/bin/echo ${credentials} | /bin/grep ':::'`" != "" ] )
-        then
-                api_token="`/bin/echo ${credentials} | /usr/bin/awk -F':::' '{print $2}'`"
-                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=A&name=${websiteurl}&page=1&per_page=20&order=type&direction=desc&match=all" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json"  | /usr/bin/jq -r '.result[].id'
-        else
-                authkey="${credentials}"
-                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=A&name=${websiteurl}&page=1&per_page=20&order=type&direction=desc&match=all" -H "X-Auth-Email: ${email}" -H "X-Auth-Key: ${authkey}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
-        fi
-fi
-
-websiteurl="${2}"
-domainurl="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
-dns="${5}"
-
-if ( [ "${dns}" = "digitalocean" ] )
-then
-        /usr/local/bin/doctl compute domain records list ${domainurl} --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select (.type == "A") | select (.name == "'${subdomain}'").id'
-fi
-
-domainurl="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
-authkey="`/bin/echo ${4} | /usr/bin/awk -F':' '{print $NF}'`"
-dns="${5}"
-
-if ( [ "${dns}" = "exoscale" ] )
-then
-        /usr/bin/exo  --config /root/.config/exoscale/dns-exoscale.toml -O json dns show ${domainurl}  | /usr/bin/jq -r '.[] | select (.name | contains("'${subdomain}'")).id'
-        #Alternative
-        #/usr/bin/curl  -H "X-DNS-Token: ${authkey}" -H 'Accept: application/json' https://api.exoscale.com/dns/v1/domains/${domainurl}/records | /usr/bin/jq --arg tmp_subdomain "${subdomain}" '.[].record | select (.name == $tmp_subdomain) | .id'
-fi
+set -x
 
 domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
 subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
-dns="${5}"
 
-if ( [ "${dns}" = "linode" ] )
+linode_config_file="/root/.config/dns-linode-cli"
+
+if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
 then
-        linode_config_file="/root/.config/dns-linode-cli"
-        
-        if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
-        then
-             linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
-        fi
-                        
-        export LINODE_CLI_CONFIG=${linode_config_file}
-        
-        domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-       # /usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${subdomain}" --no-defaults --json | /usr/bin/jq -r '.[] | select (.name == "'${subdomain}'").id'
-        /usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${subdomain}" --no-defaults --json | /usr/bin/jq -r '.[].id'
-        unset LINODE_CLI_CONFIG
+        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
 fi
 
-domainurl="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
-authkey="${4}"
-dns="${5}"
+export LINODE_CLI_CONFIG=${linode_config_file}
 
-if ( [ "${dns}" = "vultr" ] )
-then
-        /usr/bin/vultr dns record list ${domainurl} --config /root/.dns-vultr-cli.yaml -o json | /usr/bin/jq -r '.records[] | select (.name == "'${subdomain}'").id'
-fi
+domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+/usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${subdomain}" --no-defaults --json | /usr/bin/jq -r '.[].id'
+unset LINODE_CLI_CONFIG
