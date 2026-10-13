@@ -24,6 +24,7 @@ sub_domain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
