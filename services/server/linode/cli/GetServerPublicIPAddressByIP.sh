@@ -21,11 +21,19 @@
 #set -x
 set -e
 
-ip="${1}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-ip="${1}"
 
-/usr/local/bin/linode-cli vpcs ips-all-list --json | /usr/bin/jq -r --arg ip "$ip" '.[] | select(.address == $ip).nat_1_1'
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server ip argument is required."
+    status "Usage: $0 <server_ip>" 
+    exit 1
+fi
+
+server_ip="${1}"
+
+/usr/local/bin/linode-cli vpcs ips-all-list --json | /usr/bin/jq -r --arg ip "$server_ip" '.[] | select(.address == $server_ip).nat_1_1'
 
 if ( [ "$?" != "0" ] )
 then
