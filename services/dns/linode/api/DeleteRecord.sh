@@ -22,7 +22,8 @@
 
 record_id="${2}"
 domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
-   
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
