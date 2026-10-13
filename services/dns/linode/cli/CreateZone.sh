@@ -30,9 +30,10 @@ then
         linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
 fi
                         
-export LINODE_CLI_CONFIG=${linode_config_file}                
+export LINODE_CLI_CONFIG=${linode_config_file}      
+
                 
-if ( [ "`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select ( .domain == "'${domain_url}'").domain'`" = "" ] )
+if ( [ "`/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id'`" = "" ] )
 then
         /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${email} --no-defaults
 fi
