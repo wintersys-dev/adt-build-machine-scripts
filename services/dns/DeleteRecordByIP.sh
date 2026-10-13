@@ -29,16 +29,17 @@ status () {
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
 then
-        status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>"
+        status "Error: 4 arguments are required."
+        status "Usage: $0 <subdomain> <domain_url> <ip> <dns>"
         exit 1
 fi
 
-server_size="${1}"
-server_name="${2}"
-machine_type="${3}"
+subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
+domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
+ip="${5}"
+dns="${7}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -72,7 +73,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/dns/${CLOUDHOST}/${orchestration_tool}/DeleteRecordByIP.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
@@ -87,7 +88,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
+"${script_path}" "${subdomain}" "${domain_url}" "${ip}" "${dns}"
 
 exit_code=$?
 
