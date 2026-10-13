@@ -19,7 +19,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-#set -x
+set -x
 
 set -e
 
@@ -29,19 +29,19 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] )
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
 then
         status "Error: 6 arguments are required."
-        status "Usage: $0 <zoneid> <record_id> <dns_username> <dns_security_key> <dns_choice> <website_url>"
+        status "Usage: $0 <zoneid> <website_url> <dns_username> <dns_security_key> <dns_choice>"
         exit 1
 fi
 
 zone_id="${1}"
-record_id="${2}"
+website_url="${2}"
 dns_username="${3}"
 dns_security_key="${4}"
 dns_choice="${5}"
-website_url="${6}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -90,7 +90,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${zone_id}" "${record_id}" "${dns_username}" "${dns_security_key}" "${dns_choice}" "${website_url}"
+"${script_path}" "${zone_id}" "${website_url}" "${dns_username}"  
 
 exit_code=$?
 
