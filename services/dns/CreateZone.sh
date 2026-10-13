@@ -24,20 +24,23 @@
 set -e
 
 status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
+
+ "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${DNS_CHOICE}"
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
         status "Error: 3 arguments are required."
-        status "Usage: $0 <email> <domainurl> <dns>"
+        status "Usage: $0 <dns_username> <dns_security_key> <website_url>"
         exit 1
 fi
 
-email="${1}"
-domainurl="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
+dns_username="${1}"
+dns_security_key="${2}"
+website_url="${3}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -86,7 +89,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${email}" "${domainurl}" "${dns}"
+"${script_path}" "${dns_username}" "${dns_security_key}" "${website_url}"
 
 exit_code=$?
 
