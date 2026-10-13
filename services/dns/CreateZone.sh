@@ -36,6 +36,10 @@ then
         exit 1
 fi
 
+email="${1}"
+domainurl="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
+dns="${4}"
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
