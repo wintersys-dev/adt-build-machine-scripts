@@ -21,6 +21,9 @@
 #set -x
 
 
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+
+
 subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
