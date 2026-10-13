@@ -20,8 +20,11 @@
 ###################################################################################
 #set -x
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 if ( [ "${1}" = "" ] )
 then
@@ -32,5 +35,6 @@ fi
 
 server_type="${1}"
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-	/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'
+/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'
