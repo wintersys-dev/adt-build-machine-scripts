@@ -20,7 +20,18 @@
 #####################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server ip argument is required."
+    status "Usage: $0 <server_ip>" 
+    exit 1
+fi
+
 server_ip="${1}"
+
 
 /usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
 if ( [ "$?" != "0" ] )
