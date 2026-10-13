@@ -21,12 +21,12 @@
 #set -x
 
 domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
+sub_domain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
-curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "A", "name": "'"${sub_domain}"'", "target": "'"${ip}"'", "ttl_sec": 60 }' https://api.linode.com/v4/domains/{domain_id}/records
+curl -s "https://api.linode.com/v4/domains/${domain_id}/records" -H "Authorization: Bearer $TOKEN" | jq --arg sub "${sub_domain}" -r '.data[] | select(.name == $sub) | .id'
 
 if ( [ "$?" != "0" ] )
 then
