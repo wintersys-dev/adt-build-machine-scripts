@@ -38,3 +38,8 @@ server_type="${1}"
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 /usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'
+
+if ( [ "$?" != "0" ] )
+then
+	exit 1
+fi
