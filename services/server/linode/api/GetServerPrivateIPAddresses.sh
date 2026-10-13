@@ -20,7 +20,20 @@
 ########################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server type argument is required."
+    status "Usage: $0 <server_type>" 
+    exit 1
+fi
+
 server_type="${1}"
+
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+
 privateips=$(curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
      "https://api.linode.com/v4/linode/instances" | \
      jq -r '[.data[] | select(.label | contains("'${server_type}'")).ipv4[] | select(.type == "vpc") .address] | join(" ")')
