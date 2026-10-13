@@ -20,162 +20,34 @@
 ################################################################################
 #set -x
 
-zoneid="${1}"
-email="${2}"
-credentials="${3}"
-websiteurl="${4}"
-ip="${5}"
-proxied="${6}"
-dns="${7}"
-
-if ( [ "${dns}" = "cloudflare" ] )
-then
-        if ( [ "`/bin/echo ${credentials} | /bin/grep ':::'`" != "" ] )
-        then
-                api_token="`/bin/echo ${credentials} | /usr/bin/awk -F':::' '{print $2}'`"
-                /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" --data '{"type":"A","name":"'${websiteurl}'","content":"'${ip}'","proxiable":true,"proxied":'${proxied}',"ttl":120}'
-        else
-                authkey="${credentials}"
-                /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records" -H "X-Auth-Email: ${email}" -H "X-Auth-Key: ${authkey}" -H "Content-Type: application/json" --data '{"type":"A","name":"'${websiteurl}'","content":"'${ip}'","proxiable":true,"proxied":'${proxied}',"ttl":120}'
-        fi
-fi
-
-websiteurl="${4}"
-domainurl="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-ip="${5}"
-dns="${7}"
-
-if ( [ "${dns}" = "digitalocean" ] )
-then
-        #Make damn sure that the DNS record gets added to the DNS system
-        count="0"
-        while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/doctl compute domain records list ${domainurl} --config /root/.config/doctl/dns-do-config.yaml -o json | /usr/bin/jq -r '.[] | select (.data == "'${ip}'").id'`" = "" ] )
-        do
-                count="`/usr/bin/expr ${count} + 1`"
-                /usr/local/bin/doctl compute domain records create --record-type A --record-name ${subdomain} --record-data ${ip}  --record-ttl 60 ${domainurl} --config /root/.config/doctl/dns-do-config.yaml
-                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                fi
-        done
-
-        if ( [ "${count}" = "5" ] )
-        then
-                /bin/touch /tmp/END_IT_ALL
-        fi
-fi
-
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-domainurl="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-ip="${5}"
-dns="${7}"
-
-if ( [ "${dns}" = "exoscale" ] )
-then
-        #Make damn sure that the DNS record gets added to the DNS system
-
-        count="0"
-        domain__id=""
-        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
-        do
-                domain_id="`/usr/bin/exo dns list --config /root/.config/exoscale/dns-exoscale.toml -O json -O json | /usr/bin/jq -r '.[] | select (.name == "'${domainurl}'").id'`"
-                /bin/sleep 10
-                count="`/usr/bin/expr ${count} + 1`"
-        done
-
-        if ( [ "${domain_id}" != "" ] )
-        then
-                count="0"
-                while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/exo dns show ${id}  --config /root/.config/exoscale/dns-exoscale.toml -O json | /usr/bin/jq -r '.[] | select (.content == "'${ip}'").id'`" = "" ] )
-                do
-                        count="`/usr/bin/expr ${count} + 1`"
-                        /usr/bin/exo dns add A ${domainurl} -a ${ip} -n ${subdomain} -t 60  --config /root/.config/exoscale/dns-exoscale.toml 
-                        if ( [ "$?" != "0" ] )
-                        then
-                                /bin/sleep 10
-                        fi
-                done
-        fi
-
-        if ( [ "${count}" = "5" ] || [ "${id}" = "" ] )
-        then
-                /bin/touch /tmp/END_IT_ALL
-        fi
-fi
-
 subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
-dns="${7}"
+dns="${7}"     
 
-if ( [ "${dns}" = "linode" ] )
-then        
-        linode_config_file="/root/.config/dns-linode-cli"
+linode_config_file="/root/.config/dns-linode-cli"
 
-        if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
-        then
-                linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
-        fi
-
-        #Make damn sure that the DNS record gets added to the DNS system                        
-        export LINODE_CLI_CONFIG=${linode_config_file}
-
-        count="0"
-        domain__id=""
-        while ( [ "${count}" -lt "5" ] && [ "${domain_id}" = "" ] )
-        do
-                domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"                
-                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                        count="`/usr/bin/expr ${count} + 1`"
-                fi
-        done
-
-        if ( [ "${domain_id}" != "" ] )
-        then
-                count="0"
-                while ( [ "${count}" -lt "5" ] && [ "`/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id'`" = "" ] )
-                do
-                        count="`/usr/bin/expr ${count} + 1`"
-                        /usr/local/bin/linode-cli domains records-create ${domain_id} --type A --name ${subdomain} --target ${ip} --ttl_sec 60 --no-defaults
-                        if ( [ "$?" != "0" ] )
-                        then
-                                /bin/sleep 10
-                        fi
-                done
-
-                unset LINODE_CLI_CONFIG
-
-                if ( [ "${count}" = "5" ] )
-                then
-                        /bin/touch /tmp/END_IT_ALL
-                fi
-        fi
-fi
-
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-domainurl="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-ip="${5}"
-dns="${7}"
-
-if ( [ "${dns}" = "vultr" ] )
+if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
 then
-        #Make damn sure that the DNS record gets added to the DNS system
-        count="0"
-        while ( [ "${count}" -lt "5" ] && [ "`/usr/bin/vultr dns record list ${domainurl} --config /root/.dns-vultr-cli.yaml -o json | /usr/bin/jq -r '.records[] | select (.data == "'${ip}'").id'`" = "" ] )
-        do
-                count="`/usr/bin/expr ${count} + 1`"
-                /usr/bin/vultr dns record create ${domainurl} -n ${subdomain} -t A -d "${ip}" --priority=10 --ttl=60 --config /root/.dns-vultr-cli.yaml 
-                if ( [ "$?" != "0" ] )
-                then
-                        /bin/sleep 10
-                fi
-        done
-
-        if ( [ "${count}" = "5" ] )
-        then
-                /bin/touch /tmp/END_IT_ALL
-        fi
+        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
 fi
+
+#Make damn sure that the DNS record gets added to the DNS system                        
+export LINODE_CLI_CONFIG=${linode_config_file}
+
+domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+if ( [ "$?" != "0" ] )
+then
+        exit 1
+fi
+
+/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id
+
+if ( [ "$?" != "0" ] )
+then
+        unset LINODE_CLI_CONFIG
+        exit 1
+fi
+unset LINODE_CLI_CONFIG
+
+
