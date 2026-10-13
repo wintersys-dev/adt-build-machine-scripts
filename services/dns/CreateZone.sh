@@ -29,7 +29,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
- "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${DNS_CHOICE}"
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
