@@ -21,7 +21,6 @@
 #set -x
 
 record_id="${2}"
-dns="${5}"
 domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
 
 linode_config_file="/root/.config/dns-linode-cli"
