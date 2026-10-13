@@ -18,27 +18,25 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ########################################################################################
 ########################################################################################
-#set -x
+set -x
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 
 if ( [ "${1}" = "" ] )
 then
-    status "Error: Server type argument is required."
-    status "Usage: $0 <server_type>" 
-    exit 1
+        status "Error: Server type argument is required."
+        status "Usage: $0 <server_type>"
+        exit 1
 fi
 
 server_type="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-if ( [ "`curl -s -H "Authorization: Bearer $TOKEN" \
-     "https://api.linode.com/v4/linode/instances" | \
-     jq -e '.data[] | select(.label | contains("'${server_type}'")).status | select(. == "running")' >/dev/null 2>&1`" ] )
+if ( [ "`curl -s -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/linode/instances" |  jq -r '.data[] | select(.label | contains("'${server_type}'")).status'`" = "running" ] )
 then
-    /bin/echo "running"
+        /bin/echo "running"
 else
-    /bin/echo "not running"
+        /bin/echo "not running"
 fi
