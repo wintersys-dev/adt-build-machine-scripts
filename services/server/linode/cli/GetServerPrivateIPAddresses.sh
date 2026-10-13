@@ -21,6 +21,16 @@
 #set -x
 set -e
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server type argument is required."
+    status "Usage: $0 <server_type>" 
+    exit 1
+fi
+
 server_type="${1}"
 
 linodeids="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
