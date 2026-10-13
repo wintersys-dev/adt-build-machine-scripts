@@ -31,14 +31,14 @@ status () {
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
-        status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>"
+        status "Error: 3 arguments are required."
+        status "Usage: $0 <domain_url> <subdomain> <dns>"
         exit 1
 fi
 
-server_size="${1}"
-server_name="${2}"
-machine_type="${3}"
+domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+subdomain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
+dns="${5}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -72,7 +72,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/dns/${CLOUDHOST}/${orchestration_tool}/GetAllRecordIDs.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
@@ -87,7 +87,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
+"${script_path}" "${domain_url}" "${subdomain}" "${dns}"
 
 exit_code=$?
 
