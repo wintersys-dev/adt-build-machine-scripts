@@ -36,12 +36,13 @@ fi
 export LINODE_CLI_CONFIG=${linode_config_file}
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+
 if ( [ "$?" != "0" ] )
 then
         exit 1
 fi
 
-/usr/local/bin/linode-cli domains records-list ${domain_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.target == "'${ip}'").id
+/usr/local/bin/linode-cli domains records-create ${domain_id} --type A --name ${subdomain} --target ${ip} --ttl_sec 60 --no-defaults
 
 if ( [ "$?" != "0" ] )
 then
