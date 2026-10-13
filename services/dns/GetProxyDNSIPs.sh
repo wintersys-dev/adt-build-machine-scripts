@@ -29,70 +29,11 @@ status () {
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+all_proxy_dns_ips="`/usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/ips" | /usr/bin/jq  -r '.result.ipv4_cidrs[]'  | /usr/bin/tr '\n' ' '`"
+#hardcoded
+if ( [ "${all_proxy_dns_ips}" = '""' ] || [ "${all_proxy_dns_ips}" = "null" ] )
 then
-        status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>"
-        exit 1
+	all_proxy_dns_ips="103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 104.16.0.0/13 104.24.0.0/14 108.162.192.0/18 141.101.64.0/18 162.158.0.0/15 172.64.0.0/13 173.245.48.0/20 188.114.96.0/20 190.93.240.0/20 197.234.240.0/22 198.41.128.0/17 131.0.72.0/22 199.27.128.0/21"
 fi
 
-server_size="${1}"
-server_name="${2}"
-machine_type="${3}"
-
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
-if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
-then
-    status "Error: Cannot read active cloud host file at ${cloudhost_file}" 
-    exit 1
-fi
-
-CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
-
-if ( [ "${CLOUDHOST}" = "" ] )
-then
-    status "Error: CLOUDHOST variable is empty." 
-    exit 1
-fi
-
-software_file="${BUILD_HOME}/configuration/software.dat"
-if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
-then
-    status "Error: Cannot read software configuration file at ${software_file}"
-    exit 1
-fi
-
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
-
-if ( [ "${orchestration_tool}" = "" ] )
-then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
-    exit 1
-fi
-
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
-
-if ( [ ! -f "${script_path}" ] )
-then
-    status "Error: Script not found at ${script_path}" 
-    exit 1
-fi
-
-if ( [ ! -x "${script_path}" ] )
-then
-    status "Error: Script at ${script_path} is not executable." 
-    exit 1
-fi
-
-# Execute the script, replacing the current shell process
-"${script_path}" "${server_size}" "${server_name}" "${machine_type}"
-
-exit_code=$?
-
-if ( [ ${exit_code} -ne 0 ] )
-then
-    status "Error: CreateServer.sh failed with exit code $exit_code"
-    exit $exit_code
-fi
+/bin/echo ${all_proxy_dns_ips}
