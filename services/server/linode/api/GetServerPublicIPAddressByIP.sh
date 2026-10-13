@@ -25,15 +25,15 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 if ( [ "${1}" = "" ] )
 then
     status "Error: Server ip argument is required."
-    status "Usage: $0 <server_type>" 
+    status "Usage: $0 <server_ip>" 
     exit 1
 fi
 
-ip="${1}"
+server_ip="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 curl -s -H "Authorization: Bearer $TOKEN" \
-     -H "X-Filter: {\"ipv4\": \"${ip}\"}" \
+     -H "X-Filter: {\"ipv4\": \"${server_ip}\"}" \
      "https://api.linode.com/v4/linode/instances" | \
-     jq -r '.data[].ipv4[] | select(.address == "'${ip}'" and .vpc_nat_1_1 != null).vpc_nat_1_1'
+     jq -r '.data[].ipv4[] | select(.address == "'${server_ip}'" and .vpc_nat_1_1 != null).vpc_nat_1_1'
