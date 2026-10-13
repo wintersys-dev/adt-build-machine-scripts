@@ -2,7 +2,8 @@
 ###################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This will delete a DNS record
+# Description : This script will spin up a new server of the size, region and os
+# specified  on the hosting provider, cloudhost, of choice.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
