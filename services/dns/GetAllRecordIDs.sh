@@ -39,9 +39,9 @@ fi
 
 zone_id="${1}"
 website_url="${2}"
-dns_username="${3}"
-dns_security_key="${4}"
-dns_choice="${5}"
+dns_username="${3}"  #get rid of this on this script and others
+dns_security_key="${4}" #get rid of this on this script and on others
+dns_choice="${5}" #get rid of this on this script and others
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
