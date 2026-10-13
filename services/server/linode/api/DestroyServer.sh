@@ -20,8 +20,19 @@
 ###################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+
+if ( [ "${1}" = "" ] )
+then
+    status "Error: Server ip argument is required."
+    status "Usage: $0 <server_ip>" 
+    exit 1
+fi
+
 server_ip="${1}"
 
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 if [ "${server_ip}" != "" ]
 then
