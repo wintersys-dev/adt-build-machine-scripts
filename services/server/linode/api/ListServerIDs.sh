@@ -20,20 +20,24 @@
 ###################################################################################
 #set -x
 
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 
 if ( [ "${1}" = "" ] )
 then
-    status "Error: Server type argument is required."
-    status "Usage: $0 <server_type>" 
-    exit 1
+        status "Error: Server type argument is required."
+        status "Usage: $0 <server_type>" 
+        exit 1
 fi
 
 server_type="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-curl -s -H "Authorization: Bearer $TOKEN" \
-     "https://api.linode.com/v4/linode/instances" | \
-     jq -r '.data[] | select(.label | contains("'${server_type}'")).id'
+curl -s -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/linode/instances" |  jq -r '.data[] | select(.label | contains("'${server_type}'")).id'
