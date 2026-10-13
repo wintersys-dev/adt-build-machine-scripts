@@ -56,19 +56,28 @@ then
 	    then
 		    exit 1
 	    fi
-		
 	fi
+        
 	/usr/local/bin/linode-cli linodes shutdown ${server_id}
-	
 	if ( [ "$?" != "0" ] )
 	then
 		exit 1
-	fi
-	
+    fi
+
+    count="0"
+    while ( [ "`/usr/local/bin/linode-cli linodes view ${server_id} --format status --no-headers`" != "offline" ] && [ "${count}" -lt "20" ] )
+	do
+    	status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
+    	/bin/sleep 10
+    	count="`/usr/bin/expr ${count} + 1`"
+    done
+
 	/usr/local/bin/linode-cli linodes delete ${server_id}
-	
+
 	if ( [ "$?" != "0" ] )
 	then
 		exit 1
-	fi
+	else
+		status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
+    fi
 fi
