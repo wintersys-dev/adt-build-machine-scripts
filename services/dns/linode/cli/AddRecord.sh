@@ -20,7 +20,7 @@
 ################################################################################
 #set -x
 
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
+sub_domain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
 ip="${5}"
 dns="${7}"     
@@ -33,7 +33,7 @@ then
 fi
 
 #Make damn sure that the DNS record gets added to the DNS system                        
-export LINODE_CLI_CONFIG=${linode_config_file}
+export LINODE_CLI_CONFIG="${linode_config_file}"
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
 
@@ -42,7 +42,7 @@ then
         exit 1
 fi
 
-/usr/local/bin/linode-cli domains records-create ${domain_id} --type A --name ${subdomain} --target ${ip} --ttl_sec 60 --no-defaults
+/usr/local/bin/linode-cli domains records-create "${domain_id}" --type A --name "${sub_domain}" --target "${ip}" --ttl_sec 60 --no-defaults
 
 if ( [ "$?" != "0" ] )
 then
