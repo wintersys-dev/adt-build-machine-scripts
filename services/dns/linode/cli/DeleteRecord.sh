@@ -20,16 +20,19 @@
 ####################################################################################
 #set -x
 
+record_id="${2}"
+dns="${5}"
+domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+
 linode_config_file="/root/.config/dns-linode-cli"
-        
+
 if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
 then
         linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
 fi
-                        
+
 export LINODE_CLI_CONFIG=${linode_config_file}
-        
-domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-/usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults 
+
+domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"/usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults
 unset LINODE_CLI_CONFIG
 
