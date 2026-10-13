@@ -29,17 +29,22 @@ status () {
 	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  || [ "${4}" = "" ]  )
+ "${zoneid}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${ip}" "true" "${DNS_CHOICE}"
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] || [ "${7}" = "" ] )
 then
-        status "Error: Expecting 4 arguments is required."
-        status "Usage: $0 <subdomain> <domain_url> <ip> <dns>"
+        status "Error: Expecting 7 arguments is required."
+        status "Usage: $0 <zoneid> <dns_username> <dns_security_key> <website_url> <ip> <true> <dns_choice>"
         exit 1
 fi
 
-subdomain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
-domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
-ip="${5}"
-dns="${7}"
+ zone_id="${1}"
+ dns_username="${2}"
+ dns_security_key="${3}"
+ website_url="${4}"
+ ip="${5}"
+ bool="${6}"
+ dns_choice="${7}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -88,7 +93,7 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${subdomain}" "${domain_url}" "${ip}" "${dns}"
+"${script_path}" "${zone_id}" "${dns_username}" "${dns_security_key}" "${website_url}" "${ip}" "${bool}" "${dns_choice}"
 
 exit_code=$?
 
