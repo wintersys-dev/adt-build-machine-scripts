@@ -19,59 +19,56 @@
 ###################################################################################
 ###################################################################################
 #set -x
+#set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 if ( [ "${1}" = "" ] )
 then
-    status "Error: Server ip argument is required."
-    status "Usage: $0 <server_ip>" 
-    exit 1
+        status "Error: Server ip argument is required."
+        status "Usage: $0 <server_ip>" 
+        exit 1
 fi
 
 server_ip="${1}"
 
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
-
-if [ "${server_ip}" != "" ]
+if ( [ "${server_ip}" != "" ] )
 then
-    # 1. Lookup server ID by IP via API
-    server_id="$(curl -s -H "Authorization: Bearer $TOKEN" \
-        "https://api.linode.com/v4/linode/instances" | \
-        jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')"
-    
-  #  if [ "${server_id}" = "" ]
-  #  then
-  #      # Fallback script lookup
-  #      server_ip="$(${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip})"
-  #      
-  #      # 2. Retry lookup with fallback IP via API
-  #      server_id="$(curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
-  #          "https://api.linode.com/v4/linode/instances" | \
-  #          jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')"
-  #  fi
-    
-    if [ "${server_id}" != "" ]
-    then
-        # 3. API Shutdown command (POST /v4/linode/instances/{id}/shutdown)
-        curl -s -X POST -H "Authorization: Bearer $TOKEN" \
-            "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-            
-# 2. Wait until the status changes to "offline"
-while true; do
-    status=$(curl -s -H "Authorization: Bearer $TOKEN" \
-        "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status')
-    
-    if [ "$status" = "offline" ]; then
-curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
-    "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
-    fi
-    sleep 5
-done
+        server_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
+        if ( [ "${server_id}" = "" ] )
+        then
+                server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
+                server_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
+        fi
 
-# 3. Safe to delete now
-curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
-    "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
-    fi
+        curl -s -X POST -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
+
+        if ( [ "$?" != "0" ] )
+        then
+                exit 1
+        fi
+
+        count="0"
+        while ( [ "`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status'`" != "offline" ] && [ "${count}" -lt "21" ] )
+        do
+                status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
+                /bin/sleep 10
+                count="`/usr/bin/expr ${count} + 1`"
+        done
+
+        curl -s -X DELETE -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
+
+        if ( [ "$?" != "0" ] )
+        then
+                exit 1
+        else
+                status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
+        fi
 fi
