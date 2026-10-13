@@ -20,69 +20,16 @@
 ####################################################################################
 #set -x
 
-zoneid="${1}"
-recordid="${2}"
-email="${3}"
-credentials="${4}"
-dns="${5}"
-
-if ( [ "${dns}" = "cloudflare" ] )
-then
-        if ( [ "`/bin/echo ${credentials} | /bin/grep ':::'`" != "" ] )
-        then
-                api_token="`/bin/echo ${credentials} | /usr/bin/awk -F':::' '{print $2}'`"
-                /usr/bin/curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${recordid}" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json"
-        else
-                authkey="${credentials}"
-                /usr/bin/curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${recordid}" -H "X-Auth-Email: ${email}"  -H "X-Auth-Key: ${authkey}" -H "Content-Type: application/json"
-        fi
-fi
-
-
-domain="${6}"
-domainurl="`/bin/echo ${domain} | /usr/bin/cut -d'.' -f2-`"
-recordid="${2}"
-dns="${5}"
-
-if ( [ "${dns}" = "digitalocean" ] )
-then
-        /usr/local/bin/doctl compute domain records delete --force ${domainurl} ${recordid} --config /root/.config/doctl/dns-do-config.yaml 
-fi
-
-recordid="${2}"
-dns="${5}"
-domainurl="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
-
-if ( [ "${dns}" = "exoscale" ] )
-then
-        /usr/bin/exo dns remove ${domainurl} ${recordid} -Q -f  --config /root/.config/exoscale/dns-exoscale.toml 
-fi
-
-record_id="${2}"
-dns="${5}"
-domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
-
-if ( [ "${dns}" = "linode" ] )
-then
-        linode_config_file="/root/.config/dns-linode-cli"
+linode_config_file="/root/.config/dns-linode-cli"
         
-        if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
-        then
-             linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
-        fi
+if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
+then
+        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
+fi
                         
-        export LINODE_CLI_CONFIG=${linode_config_file}
+export LINODE_CLI_CONFIG=${linode_config_file}
         
-        domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
-        /usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults 
-        unset LINODE_CLI_CONFIG
-fi
+domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+/usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults 
+unset LINODE_CLI_CONFIG
 
-recordid="${2}"
-dns="${5}"
-domainurl="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
-
-if ( [ "${dns}" = "vultr" ] )
-then
-        /usr/bin/vultr dns record delete ${domainurl} ${recordid} --config /root/.dns-vultr-cli.yaml 
-fi
