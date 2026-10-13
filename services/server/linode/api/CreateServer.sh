@@ -147,9 +147,9 @@ else
 	/bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
-if ( [ "`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://linode.com" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
+if ( [ "`curl -s -H "Authorization: Bearer $TOKEN" "https://linode.com" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
 then
-curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" \
      -d '{
        "label": "'"${VPC_NAME}"'",
@@ -165,9 +165,9 @@ curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
 	
 fi
 
-vpc_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://api.linode.com/v4/vpcs" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
+vpc_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/vpcs" | jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
 
-subnet_id="`curl -s -H "Authorization: Bearer $LINODE_CLI_TOKEN" "https://api.linode.com/v4/vpcs/${vpc_id}/subnets?page_size=100" | jq -r '.data[] | select(.label == "adt-subnet").id'`"
+subnet_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/vpcs/${vpc_id}/subnets?page_size=100" | jq -r '.data[] | select(.label == "adt-subnet").id'`"
 
 
 image="--image ${OS_CHOICE}" 
@@ -183,7 +183,7 @@ then
 	firewall_active=' "firewall_id": "${firewall_id}", '
 fi
 
-curl -s -X POST -H "Authorization: Bearer $LINODE_CLI_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" \
      -d '{
        "root_pass": "'"${emergency_password}"'",
