@@ -80,7 +80,8 @@ then
 	fi
 
 	available_engines="`/usr/local/bin/linode-cli databases engines --json | /usr/bin/jq -r '.[].id'`"
-	
+	#api    curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/engines | jq -r '.data[].id'
+
 	if ( [ "$?" != "0" ] || [ "${available_engines}" = "" ] )
 	then
 		status "Failed to obtain available engines"
@@ -129,8 +130,6 @@ then
 
 		/usr/local/bin/linode-cli databases postgresql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 		
-		
-		
 		#api curl -X POST https://api.linode.com/v4/databases/postgresql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
 
 		if ( [ "$?" != "0" ] )
@@ -171,7 +170,7 @@ then
 		#Wait for the database we have provisioned to become active
 		status "Have got the database id which is: ${database_id}"
 		status "Its now the wait for the database to become active (this can take a few minutes)"
-		status="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
+		status="inactive"
 
 		while ( [ "${status}" != "active" ] ) 
 		do
@@ -182,6 +181,8 @@ then
 	else	
 		#Open up during the build and tighten up afterwards
 		/usr/local/bin/linode-cli databases postgresql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults 
+		#api curl -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["0.0.0.0/0"]}'
+
 	fi
 
 	#take a note of all our configuration settings
@@ -204,4 +205,6 @@ then
 
 	#grab the cert, why not, we might need it
 	/bin/echo "`/usr/local/bin/linode-cli databases postgresql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
+    #api curl -s -H "Authorization: Bearer ${TOKEN}"  "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/ssl" | jq -r '.ca_certificate' | base64 --decode > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT"
+
 fi
