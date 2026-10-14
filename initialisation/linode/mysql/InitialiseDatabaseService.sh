@@ -121,7 +121,7 @@ then
 		database_id=""
 		while ( [ "${database_id}" = "" ] )
 		do
-			status "Attempting to get database id...if I am looking for more than a few minutes something must be wrong"
+			status "Attempting to get database id...if I am looking for more than 10minutes something must be wrong"
 			
 			database_id="`LABEL="${label}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains(env.LABEL)) | .id'`"
 			
