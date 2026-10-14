@@ -101,7 +101,7 @@ then
 		DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
 	else
 		status "Credentials not found when making a multi region deployment to a non primary region"
-		/bin/touch /tmp/END_IT_ALL
+		exit 1
 	fi
 fi
 
