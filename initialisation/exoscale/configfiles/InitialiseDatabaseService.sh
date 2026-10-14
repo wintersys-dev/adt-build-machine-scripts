@@ -63,6 +63,14 @@ fi
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
 then
 
+	#########################################################################################################
+	#If you are deploying to exoscale provide a setting with the following format in your template
+	#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
+	#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:pg:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
+	#If you need to you can turn off termination protection as in the following example:
+	#exo dbaas update testdb1 -z ch-gva-2 --termination-protection=false
+	#########################################################################################################
+
 		#If we are here then this is an exoscale deployment
 		if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
 		then
