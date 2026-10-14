@@ -89,7 +89,7 @@ then
         fi
 
         database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
-
+#api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": {"+contains": "'$label'"}}'  https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
         if ( [ "${database_id}" = "" ] )
         then
                 status "Your database is being provisioned, please wait....."
