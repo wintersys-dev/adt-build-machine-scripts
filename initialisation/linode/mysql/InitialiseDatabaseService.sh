@@ -174,4 +174,5 @@ then
 
         #take a certificate copy in case we need it
         /bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
+        #api curl -s -H "Authorization: Bearer ${TOKEN}"  "https://api.linode.com/v4/databases/mysql/instances/${database_id}/ssl" | jq -r '.ca_certificate' | base64 --decode > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT"
 fi
