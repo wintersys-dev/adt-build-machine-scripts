@@ -115,6 +115,9 @@ then
 			fi
 		fi
 
+		/usr/local/bin/linode-cli databases mysql-create --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0"  --private_network '{"vpc_id": "'${vpc_id}'", "subnet_id": "'${subnet_id}'"}' ${public_access}
+	#	/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
+
 		database_id=""
 		while ( [ "${database_id}" = "" ] )
 		do
