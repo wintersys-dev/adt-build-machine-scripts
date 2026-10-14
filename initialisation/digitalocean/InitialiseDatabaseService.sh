@@ -108,6 +108,7 @@ then
 			then
 				DB_INSTALL_MODE="1"
 			else
+				status "Can't continue with installation, DB_INSTALL_MODE not set as required"
 				exit 1
 			fi
 		fi
