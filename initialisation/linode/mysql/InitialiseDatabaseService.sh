@@ -26,9 +26,9 @@
 #set -x
 
 status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -57,111 +57,110 @@ WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 #If we are here then this is a linode deployment
 if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
 then
-	#extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
-	engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
-	cluster_size="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $6}'`" 
-	db_region="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $4}'`"
-	machine_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $5}'`"
-	label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
-	db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
-	db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
-	db_password="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $10}'`"
-	vpc_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $11}'`"
-	subnet_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $12}'`"
+        #extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
+        engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
+        cluster_size="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $6}'`" 
+        db_region="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $4}'`"
+        machine_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $5}'`"
+        label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
+        db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
+        db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
+        db_password="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $10}'`"
+        vpc_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $11}'`"
+        subnet_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $12}'`"
 
-	if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
-	then
-		public_access="--private_network.public_access true"
-		db_scope_prefix="public-"
-	else
-		public_access="--private_network.public_access false"
-		db_scope_prefix=""
-		#  db_scope_prefix="private-"
-	fi
+        if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
+        then
+                public_access="--private_network.public_access true"
+                db_scope_prefix="public-"
+        else
+                public_access="--private_network.public_access false"
+                db_scope_prefix=""
+                #  db_scope_prefix="private-"
+        fi
 
-	available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
+        available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
 
-	if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
-	then
-		status "The database engine you have selected is not available please correct and re deploy"
-		exit 1
-	fi
+        if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
+        then
+                status "The database engine you have selected is not available please correct and re deploy"
+                exit 1
+        fi
 
-	#We are obviously a MYSQL database type so check if there is an existing database
-	status "Your database is being provisioned, please wait....."
-	#database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
 
-	database_id="`LABEL="${label}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains(env.LABEL)) | .id'`"
+        if ( [ "${database_id}" = "" ] )
+        then
+                status "Your database is being provisioned, please wait....."
 
-	if ( [ "${database_id}" = "" ] )
-	then
-		#there is no existing MySQL database so create one
-		if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
-		then
-			status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
-			status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
-			response="Y"
-			if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-			then
-				read response
-			fi
-						
-			if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-			then
-				DB_INSTALL_MODE="1"
-			else 
-				status "Can't continue with installation, DB_INSTALL_MODE not set as required"
-				exit -1
-			fi
-		fi
+                #there is no existing MySQL database so create one
+                if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
+                then
+                        status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
+                        status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
+                        response="Y"
+                        if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
+                        then
+                                read response
+                        fi
 
-        /usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}	
+                        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+                        then
+                                DB_INSTALL_MODE="1"
+                        else 
+                                status "Can't continue with installation, DB_INSTALL_MODE not set as required"
+                                exit -1
+                        fi
+                fi
 
-		database_id=""
-		status "Attempting to get database id...this can be slow but if I am looking for more than 10 minutes something must be wrong"
-		while ( [ "${database_id}" = "" ] )
-		do
-			database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r --arg L "$label" '.[] | select(.label and (.label | contains($L))) | .id'`"
-			
-			if ( [ "${database_id}" = "" ] )
-			then
-				status "Still probing for the database instance to become active"
-				/bin/sleep 20
-			fi
-		done
+                /usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 
-		#Wait until the database has a status of "active" which can take a while
-		status "Have got the database id which is: ${database_id}"
-		status "Its now the wait for the database to become active (this can take a few minutes)"
+                database_id=""
+                status "Attempting to get database id..."
+                while ( [ "${database_id}" = "" ] )
+                do
+                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r --arg L "$label" '.[] | select(.label and (.label | contains($L))) | .id'`"
 
-		db_status="inactive"
-		while ( [ "${db_status}" != "active" ] )
-		do
-			db_status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json |  /usr/bin/jq -r --argjson target_id "$database_id" '.[] | select(.id == $target_id).status'`"
-			
-			if ( [ "${db_status}" != "active" ] )
-			then
-				/bin/sleep 20
-			fi
-		done
-	else
-		#open up for the build and tighten once the build is complete
-		/usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
-	fi
+                        if ( [ "${database_id}" = "" ] )
+                        then
+                                status "Still probing for the database id"
+                                /bin/sleep 20
+                        fi
+                done
 
-	#Take a note of all our database details
-	export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
- 	export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
-	export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
-	export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
-	export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
-	export DB_NAME="${db_name}"
+                #Wait until the database has a status of "active" which can take a while
+                status "Have got the database id which is: ${database_id}"
+                status "Attempting to get database id...this can be slow but if I am looking for more than 10 minutes something must be wrong"
 
-	if ( [ "${db_scope_prefix}" != "" ] )
-	then
-		DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
-	fi
+                db_status="inactive"
+                while ( [ "${db_status}" != "active" ] )
+                do
+                        db_status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json |  /usr/bin/jq -r --argjson target_id "$database_id" '.[] | select(.id == $target_id).status'`"
 
-	#take a certificate copy in case we need it
-	/bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
+                        if ( [ "${db_status}" != "active" ] )
+                        then
+                                /bin/sleep 20
+                        fi
+                done
+        else
+                status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
+                #open up for the build and tighten once the build is complete
+                /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
+        fi
+
+        #Take a note of all our database details
+        export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
+        export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
+        export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
+        export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
+        export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
+        export DB_NAME="${db_name}"
+
+        if ( [ "${db_scope_prefix}" != "" ] )
+        then
+                DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
+        fi
+
+        #take a certificate copy in case we need it
+        /bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 fi
