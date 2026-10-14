@@ -63,7 +63,7 @@ fi
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
 then
 
-	${HOME}/initialisation/${CLOUDHOST}/InitialiseDatabaseService.sh
+fi
 
 	status "Database considered to be in a running state"
 
