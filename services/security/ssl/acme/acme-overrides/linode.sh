@@ -27,7 +27,7 @@ dns_linode_v4_add() {
         TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
         _domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$_domain'")).id'`"
-        curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "TXT", "name": "'"${_sub_domain}"'", "target": "'"${txtvalue}"'", "ttl_sec": 60 }' https://api.linode.com/v4/domains/${_domain_id}/records
+        curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "TXT", "name": "'"${_sub_domain}"'", "target": "'${txtvalue}'", "ttl_sec": 60 }' https://api.linode.com/v4/domains/${_domain_id}/records
 
 
         if ( [ "`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/domains/${_domain_id}/records" | jq -r '.data[] | select(.type == "TXT") | .target' | /bin/grep ${txtvalue}`" != "" ] )
