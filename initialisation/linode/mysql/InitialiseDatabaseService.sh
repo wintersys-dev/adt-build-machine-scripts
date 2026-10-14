@@ -79,7 +79,7 @@ then
 		#  db_scope_prefix="private-"
 	fi
 
-	available_engines="`/usr/local/bin/linode-cli databases engines --json | /usr/bin/jq -r '.[].id'`"
+	available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
 
 	if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
 	then
@@ -89,7 +89,9 @@ then
 
 	#We are obviously a MYSQL database type so check if there is an existing database
 	status "Your database is being provisioned, please wait....."
-	database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+	#database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+
+	database_id="`LABEL="${label}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains(env.LABEL)) | .id'`"
 
 	if ( [ "${database_id}" = "" ] )
 	then
@@ -113,29 +115,53 @@ then
 			fi
 		fi
 
-		/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
-
-		#Wait for the database to be considered available which is once we can get its id
-		database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
-					
+		database_id=""
 		while ( [ "${database_id}" = "" ] )
 		do
 			status "Attempting to get database id...if I am looking for more than a few minutes something must be wrong"
-			/bin/sleep 20
-			database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+			
+			database_id="`LABEL="${label}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains(env.LABEL)) | .id'`"
+			
+			if ( [ "${database_id}" = "" ] )
+			then
+				/bin/sleep 20
+			fi
 		done
+
+	#	/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
+
+#		#Wait for the database to be considered available which is once we can get its id
+#		database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+#					
+#		while ( [ "${database_id}" = "" ] )
+#		do
+#			status "Attempting to get database id...if I am looking for more than a few minutes something must be wrong"
+#			/bin/sleep 20
+#			database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+#		done
 
 		#Wait until the database has a status of "active" which can take a while
 		status "Have got the database id which is: ${database_id}"
 		status "Its now the wait for the database to become active (this can take a few minutes)"
 
-		status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
-
-		while ( [ "${status}" != "active" ] )
+		db_status="inactive"
+		while ( [ "${db_status}" != "active" ] )
 		do
-			/bin/sleep 20
-			status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
+			db_status="`DB_ID="${database_id}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select(.id == (env.DB_ID | tonumber)).status'`"
+			
+			if ( [ "${db_status}" != "active" ] )
+			then
+				/bin/sleep 20
+			fi
 		done
+
+		#status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
+
+		#while ( [ "${status}" != "active" ] )
+		#do
+	#		/bin/sleep 20
+	#		status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
+#		done
 	else
 		#open up for the build and tighten once the build is complete
 		/usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
