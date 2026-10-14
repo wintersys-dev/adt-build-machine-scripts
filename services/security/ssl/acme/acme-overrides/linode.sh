@@ -54,7 +54,7 @@ dns_linode_v4_rm() {
         BUILD_HOME="`/bin/cat /home/buildhome.dat`"
         TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-        _domain="`/bin/echo "${full_domain}" | cut -d '.' -f 2-`"
+        _domain="`/bin/echo "${full_domain}" | cut -d '.' -f 3-`"
         _sub_domain="`/bin/echo "${full_domain}" | cut -d '.' -f1`"
 
         _domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$_domain'")).id'`"
