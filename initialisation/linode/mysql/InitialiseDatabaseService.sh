@@ -152,7 +152,7 @@ then
 		db_status="inactive"
 		while ( [ "${db_status}" != "active" ] )
 		do
-			db_status="`DB_ID="${database_id}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select(.id == (env.DB_ID | tonumber)).status'`"
+			db_status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json |  /usr/bin/jq -r --argjson target_id "$database_id" '.[] | select(.id == $target_id).status'`"
 			
 			if ( [ "${db_status}" != "active" ] )
 			then
