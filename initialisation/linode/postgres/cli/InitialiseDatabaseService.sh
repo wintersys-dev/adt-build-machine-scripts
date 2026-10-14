@@ -129,6 +129,10 @@ then
 
 		/usr/local/bin/linode-cli databases postgresql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 		
+		
+		
+		#api curl -X POST https://api.linode.com/v4/databases/postgresql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
+
 		if ( [ "$?" != "0" ] )
 		then
 			status "Failed to provision database"
@@ -148,16 +152,21 @@ then
                 /bin/sleep 20
             fi
         done
-		
-		
-		
-		
-		while ( [ "${database_id}" = "" ] ) 
-		do
-			status "Attempting to get database id...if I am looking for more than a few minutes something must be wrong"
-			/bin/sleep 20
-			database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
-		done
+
+        #Wait until the database has a status of "active" which can take a while
+        status "Have got the database id which is: ${database_id}"
+        status "Attempting to get database id...this can be slow but if I am looking for more than 10 minutes something must be wrong"
+
+        db_status="inactive"
+        while ( [ "${db_status}" != "active" ] )
+        do
+        	db_status="`/usr/local/bin/linode-cli databases mysql-list --json | jq -r '.[] | select(.label == "'${label}'").status'`"
+			#api curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'
+            if ( [ "${db_status}" != "active" ] )
+            then
+            	/bin/sleep 20
+            fi
+        done
 
 		#Wait for the database we have provisioned to become active
 		status "Have got the database id which is: ${database_id}"
@@ -168,6 +177,7 @@ then
 		do
 			/bin/sleep 20
 			status="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json  | /usr/bin/jq -r '.[] | select (.id == '${database_id}').status'`"
+			#api curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'
 		done
 	else	
 		#Open up during the build and tighten up afterwards
@@ -176,10 +186,15 @@ then
 
 	#take a note of all our configuration settings
 	export CLUSTER_NAME="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
+	##api         curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.label'
 	export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
+	#api curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.hosts.primary'
 	export DB_USERNAME="`/usr/local/bin/linode-cli databases postgresql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
+	#api curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.username'
 	export DB_PASSWORD="`/usr/local/bin/linode-cli databases postgresql-creds-view ${database_id} --no-defaults --json  | /usr/bin/jq -r '.[].password'`"
+	#api curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.password'
 	export DB_PORT="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
+	#api curl -s -H "Authorization: Bearer $TOKEN"  https://api.linode.com/v4/databases/postgresql/instances/${database_id} | jq -r '.port'
 	export DB_NAME="${db_name}"
 
 	if ( [ "${db_scope_prefix}" != "" ] )
