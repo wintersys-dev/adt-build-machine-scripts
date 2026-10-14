@@ -139,7 +139,7 @@ then
                 while ( [ "${db_status}" != "active" ] )
                 do
                         db_status="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json |  /usr/bin/jq -r --argjson target_id "$database_id" '.[] | select(.id == $target_id).status'`"
-
+#api curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'
                         if ( [ "${db_status}" != "active" ] )
                         then
                                 /bin/sleep 20
