@@ -80,6 +80,7 @@ then
         fi
 
         available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
+    #api    curl -s -H "Authorization: Bearer $LINODE_TOKEN" https://api.linode.com/v4/databases/engines | jq -r '.data[].id'
 
         if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
         then
