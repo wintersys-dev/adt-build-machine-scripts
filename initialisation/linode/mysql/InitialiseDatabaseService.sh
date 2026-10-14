@@ -123,7 +123,7 @@ then
 		do
 			status "Attempting to get database id...if I am looking for more than 10minutes something must be wrong"
 			
-			database_id="`LABEL="${label}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains(env.LABEL)) | .id'`"
+			database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r --arg L "$label" '.[] | select(.label and (.label | contains($L))) | .id'`"
 			
 			if ( [ "${database_id}" = "" ] )
 			then
@@ -131,7 +131,7 @@ then
 			fi
 		done
 
-		/usr/local/bin/linode-cli databases mysql-create --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0"  --private_network '{"vpc_id": "'${vpc_id}'", "subnet_id": "'${subnet_id}'"}' ${public_access}
+	#	/usr/local/bin/linode-cli databases mysql-create --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0"  --private_network '{"vpc_id": "'${vpc_id}'", "subnet_id": "'${subnet_id}'"}' ${public_access}
 	
 	#	/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 
