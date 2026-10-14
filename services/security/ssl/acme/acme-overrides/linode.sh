@@ -16,7 +16,7 @@ dns_linode_v4_add() {
         txtvalue=$2
 
         _domain="`/bin/echo "${full_domain}" | cut -d '.' -f 3-`"
-        _sub_domain="`/bin/echo "${full_domain}" | cut -d '.' -f1`"
+        _sub_domain="`/bin/echo "${full_domain}" | cut -d'.' -f1,2`"
 
         _debug _sub_domain "$_sub_domain"
         _debug _domain "$_domain"
