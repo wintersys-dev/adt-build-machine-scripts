@@ -158,7 +158,9 @@ fi
 
 user_data="--metadata.user_data ${cloud_config}"
 
-/usr/bin/curl -X POST "https://api.linode.com/v4/linode/instances" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "root_pass": "'"${emergency_password}"'", "region": "'"${REGION}"'", "image": "'"${image}"'", "type": "'"${server_size}"'", "label": "'"${server_name}"'", "interface_generation": "linode", "interfaces": [ {  '"${firewall_active}"'"vpc": { "subnet_id": '"${subnet_id}"', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ], "metadata": { "user_data": "'"${user_data}"'" }, "disk_encryption": "enabled" }'
+
+/usr/local/bin/linode-cli linodes create --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces '[ { '"${firewall_active}"' "vpc": { "subnet_id": '${subnet_id}', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]' ${user_data} --disk_encryption "enabled"
+
 
 #if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
 #then
