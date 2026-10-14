@@ -55,179 +55,87 @@ then
 	/bin/touch /tmp/END_IT_ALL
 fi
 
+#########################################################################################################
+#If you are deploying to vultr provide a setting with the following format in your template
+#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql:8:lhr:vultr-dbaas-hobbyist-cc-1-25-1:testdb:testuser1:testpassword1:TestDatabase:2fb13fd1-3145-3127-7132-13f28f1912c1"
+#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:pg:17:lhr:vultr-dbaas-hobbyist-cc-1-25-1:testdb:testuser1:testpassword1:TestDatabase:2fb13fd1-3145-3127-7132-13f28f1912c1"
+#########################################################################################################
 
-#dbaas_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-#dbaas_bucket="${dbaas_bucket}-${DNS_CHOICE}-dbaas"
-
-#See if we are a managed database or not
-if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
+#If we are here then this is a vultr database build
+if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
 then
+	#extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
+	database_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}'`"
+	label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $10}'`"
+	engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
+	engine_version="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $4}'`"
+	db_region="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $5}'`"
+	machine_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $6}'`"
+	db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
+	db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
+	db_password="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
+	vpc_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $11}'`"
 
-	#########################################################################################################
-	#If you are deploying to vultr provide a setting with the following format in your template
-	#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql:8:lhr:vultr-dbaas-hobbyist-cc-1-25-1:testdb:testuser1:testpassword1:TestDatabase:2fb13fd1-3145-3127-7132-13f28f1912c1"
-	#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:pg:17:lhr:vultr-dbaas-hobbyist-cc-1-25-1:testdb:testuser1:testpassword1:TestDatabase:2fb13fd1-3145-3127-7132-13f28f1912c1"
-	#########################################################################################################
+	#See if an existing cluster is available
+	cluster_id="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.label == "'${label}'" and .database_engine == "'${engine}'").id'`"
 
-		#If we are here then this is a vultr database build
-		if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
+	new=""
+	if ( [ "${cluster_id}" = "" ] )
+	then
+		#There was no existing cluster, so create one
+		if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
 		then
-			#extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
-			database_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}'`"
-			label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $10}'`"
-			engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
-			engine_version="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $4}'`"
-			db_region="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $5}'`"
-			machine_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $6}'`"
-			db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
-			db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
-			db_password="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
-			vpc_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $11}'`"
-
-			#See if an existing cluster is available
-			cluster_id="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.label == "'${label}'" and .database_engine == "'${engine}'").id'`"
-
-			new=""
-			if ( [ "${cluster_id}" = "" ] )
+			status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
+			status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
+			response="Y"
+			if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
 			then
-				#There was no existing cluster, so create one
-				if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
-				then
-					status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
-					status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
-					response="Y"
-					if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-					then
-						read response
-					fi
-					if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-					then
-						DB_INSTALL_MODE="1"
-					else
-						/bin/touch /tmp/END_IT_ALL
-					fi
-				fi
-
-				status "Creating  database ${label}, with engine: ${engine}, in region: ${db_region} and at size: ${machine_type} please wait..."
-				/usr/bin/vultr database create --database-engine="${engine}" --database-engine-version="${engine_version}" --region="${db_region}" --plan="${machine_type}" --label="${label}" --vpc-id="${vpc_id}"
-
-				if ( [ "$?" = "0" ] )
-				then
-					new="newly provisioned"
-				fi
-			else
-				new="previously existing"
+				read response
 			fi
-
-			#Wait fot the cluster to be online
-			while ( [ "${cluster_id}" = "" ] )
-			do
-				cluster_id="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.label == "'${label}'").id'`"
-				/bin/sleep 10
-				status "Waiting for your new database cluster to be reponsive and online"
-			done
-
-			status "A ${new} database cluster is available with id ${cluster_id}"
-
-			#Take a not of all our configuration settings
-			export DB_USERNAME="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").user'`"  
-			export DB_PASSWORD="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").password'`"
-			export DB_IDENTIFIER="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").host'`"
-			export DB_PORT="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").port'`"
-			export DB_NAME="${db_name}"
-
-			#Allow connections from our VPC alone
-			/usr/bin/vultr database update ${cluster_id} --trusted-ips "${VPC_IP_RANGE}"
+			if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+			then
+				DB_INSTALL_MODE="1"
+			else
+				status "Can't continue with installation, DB_INSTALL_MODE not set as required"
+				exit 1
+			fi
 		fi
-		status "...Waiting for the database to be in a running state"
-		while ( [ "`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select ( .label == "'${label}'" and .database_engine == "'${engine}'").status'`" != "Running" ] )
-		do
-			/bin/sleep 10
-		done
 
-	status "Database considered to be in a running state"
+		status "Creating  database ${label}, with engine: ${engine}, in region: ${db_region} and at size: ${machine_type} please wait..."
+		/usr/bin/vultr database create --database-engine="${engine}" --database-engine-version="${engine_version}" --region="${db_region}" --plan="${machine_type}" --label="${label}" --vpc-id="${vpc_id}"
 
-	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
-
-	status ""
-	status "The rest of the settings for your database are as follows:"
-	status "##########################################################"
-	status "USERNAME:${DB_USERNAME}"
-	status "PASSWORD:${DB_PASSWORD}"
-	status "HOST:${DB_IDENTIFIER}"
-	status "PORT:${DB_PORT}"
-	status "DB NAME:${DB_NAME}"
-	status "##########################################################"
-	status "If these settings look OK to you, press <enter>"
-
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
-else
-	#If we are here then we are self managed so we generate our own username and passwords here which will be used to access
-	#our self managed database everywhere in the deployment. These are generated fresh for each deployment
-	DB_NAME="n`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`n"
-	DB_PASSWORD="p`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`p"
-	DB_USERNAME="u`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`u"
-	DB_IDENTIFIER="self-managed"
-fi
-
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "0" ] ) 
-then
-	${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
-	if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
-	then
-		${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "multi-region" "credentials.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
-		DB_NAME="`/bin/grep DB_NAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PASSWORD="`/bin/grep DB_PASSWORD ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat| /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_USERNAME="`/bin/grep DB_USERNAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PORT="`/bin/grep DB_PORT ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
+		if ( [ "$?" = "0" ] )
+		then
+			new="newly provisioned"
+		fi
 	else
-		status "Credentials not found when making a multi region deployment to a non primary region"
-		/bin/touch /tmp/END_IT_ALL
-	fi
-fi
-
-if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat ] )
-then
-	DB_USERNAME="`/bin/grep USERNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_PASSWORD="`/bin/grep PASSWORD ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_NAME="`/bin/grep DBNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-
-	if ( [ ! -d ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots ] )
-	then
-		/bin/mkdir -p ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots
+		new="previously existing"
 	fi
 
-	/bin/echo "USERNAME:${DB_USERNAME}" > ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "PASSWORD:${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "DBNAME:${DB_NAME}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
+	#Wait fot the cluster to be online
+	while ( [ "${cluster_id}" = "" ] )
+	do
+		cluster_id="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.label == "'${label}'").id'`"
+		/bin/sleep 10
+		status "Waiting for your new database cluster to be reponsive and online"
+	done
+
+	status "A ${new} database cluster is available with id ${cluster_id}"
+
+	#Take a not of all our configuration settings
+	export DB_USERNAME="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").user'`"  
+	export DB_PASSWORD="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").password'`"
+	export DB_IDENTIFIER="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").host'`"
+	export DB_PORT="`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select (.id == "'${cluster_id}'").port'`"
+	export DB_NAME="${db_name}"
+
+	#Allow connections from our VPC alone
+	/usr/bin/vultr database update ${cluster_id} --trusted-ips "${VPC_IP_RANGE}"
+		
+	status "...Waiting for the database to be in a running state"
+	while ( [ "`/usr/bin/vultr database list -o json | /usr/bin/jq -r '.databases[] | select ( .label == "'${label}'" and .database_engine == "'${engine}'").status'`" != "Running" ] )
+	do
+		/bin/sleep 10
+	done
 fi
 
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
-then
-	/bin/echo "DB_NAME=${DB_NAME}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PASSWORD=${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_USERNAME=${DB_USERNAME}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PORT=${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-
-       # multi_region_bucket="`/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g'`-multi-region"
-       ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
-
-       if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
-       then
-	       ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "credentials.dat" "distributed"
-       fi
-
-       ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "multi-region" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat" "root" "distributed" "no"
-fi
-
-#Persist our credentials to the file system to be used at will      
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_NAME=${DB_NAME}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_PASSWORD=${DB_PASSWORD}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_USERNAME=${DB_USERNAME}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_PORT=${DB_PORT}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_IDENTIFIER=${DB_IDENTIFIER}"
