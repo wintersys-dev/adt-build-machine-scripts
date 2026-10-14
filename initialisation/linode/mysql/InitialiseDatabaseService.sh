@@ -154,11 +154,18 @@ then
 
         #Take a note of all our database details
         export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
+        #api         curl -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.label'
         export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
+        #api curl -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.hosts.primary'
         export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
+        #api curl -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.username'
         export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
+        #api curl -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.password'
         export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
+        #api curl -s -H "Authorization: Bearer $TOKEN"  https://api.linode.com/v4/databases/mysql/instances/${database_id} | jq -r '.port'
         export DB_NAME="${db_name}"
+
+
 
         if ( [ "${db_scope_prefix}" != "" ] )
         then
