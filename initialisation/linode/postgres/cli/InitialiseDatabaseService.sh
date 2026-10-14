@@ -80,6 +80,12 @@ then
 	fi
 
 	available_engines="`/usr/local/bin/linode-cli databases engines --json | /usr/bin/jq -r '.[].id'`"
+	
+	if ( [ "$?" != "0" ] || [ "${available_engines}" = "" ] )
+	then
+		status "Failed to obtain available engines"
+		exit 1
+	fi
 
 	if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
 	then
@@ -87,12 +93,19 @@ then
 		exit 1
 	fi
 
-	#if we are here then this is a postgres build
-	status "Your postgres database is being provisioned, please wait....."
 	database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+    #api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
 
+	if ( [ "$?" != "0" ] )
+	then
+		status "Failed to obtain database id"
+		exit 1
+	fi
+	
 	if ( [ "${database_id}" = "" ] )
 	then   
+		status "Your postgres database is being provisioned, please wait....."
+
 		#there was no existing database, so, create one
 		if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
 		then
@@ -115,8 +128,30 @@ then
 		fi
 
 		/usr/local/bin/linode-cli databases postgresql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
-		database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+		
+		if ( [ "$?" != "0" ] )
+		then
+			status "Failed to provision database"
+			exit 1
+		fi
+		
+		database_id=""
+        status "Attempting to get database id..."
+        while ( [ "${database_id}" = "" ] )
+        do
+			database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+            #api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
 
+            if ( [ "${database_id}" = "" ] )
+            then
+            	status "Still probing for the database id"
+                /bin/sleep 20
+            fi
+        done
+		
+		
+		
+		
 		while ( [ "${database_id}" = "" ] ) 
 		do
 			status "Attempting to get database id...if I am looking for more than a few minutes something must be wrong"
