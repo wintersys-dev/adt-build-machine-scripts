@@ -5,7 +5,7 @@
 # Date  : 13/07/2016
 # Description : This will initialise the configuration files for the cloudhost
 # provider's cli tool (doctl,exo,linode-cli or vultr-cli) that you are using. 
-# Templates are held in the "${BUILD_HOME}/initialisation/configfiles" subdirectory
+# Templates are held in the "${BUILD_HOME}/initialisation/<cloudhost>/configfiles" subdirectory
 ##################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
