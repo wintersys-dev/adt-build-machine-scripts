@@ -168,11 +168,15 @@ then
 	fi
 
 	#Take a note of all our database details
-	export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
-	export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
-	export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
-	export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].password'`"
-	export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
+	export CLUSTER_NAME="`DB_ID="${database_id}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.id == (env.DB_ID | tonumber)) | .label'`"
+#export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
+	export DB_IDENTIFIER="`DB_ID="${database_id}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.id == (env.DB_ID | tonumber)) | .hosts.primary'`"
+#	export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
+	export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | jq -r '.[].username'`"
+	#export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
+	export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
+	export DB_PORT="`DB_ID="${database_id}" /usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.id == (env.DB_ID | tonumber)).port'`"
+#	export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
 	export DB_NAME="${db_name}"
 
 	if ( [ "${db_scope_prefix}" != "" ] )
