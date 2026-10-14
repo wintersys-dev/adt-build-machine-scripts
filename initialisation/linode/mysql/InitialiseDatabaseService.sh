@@ -149,6 +149,7 @@ then
                 status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
                 #open up for the build and tighten once the build is complete
                 /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
+                #api curl -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["0.0.0.0/0"]}'
         fi
 
         #Take a note of all our database details
