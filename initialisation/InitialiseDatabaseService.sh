@@ -48,6 +48,15 @@ DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
+then
+    status "Error: Cannot read software configuration file at ${software_file}"
+    exit 1
+fi
+
+orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+
 
 if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
 then
@@ -59,7 +68,7 @@ if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0
 then
 	database_type_lower="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}' | tr '[:upper:]' '[:lower:]'`"
 	
-	. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/InitialiseDatabaseService.sh
+	. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/${orchestration_tool}/InitialiseDatabaseService.sh
 
 	status "Database considered to be in a running state"
 
