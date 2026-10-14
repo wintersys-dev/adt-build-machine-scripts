@@ -52,7 +52,7 @@ then
 		/bin/mkdir -p ${BUILD_HOME}/.config/doctl
 	fi
 
-	/bin/cp ${BUILD_HOME}/initialisation/configfiles/digitalocean/digitalocean.tmpl ${BUILD_HOME}/.config/doctl/config.yaml
+	/bin/cp ${BUILD_HOME}/initialisation/digitalocean/configfiles/digitalocean.tmpl ${BUILD_HOME}/.config/doctl/config.yaml
 
 	if ( [ "${TOKEN}" != "" ] )
 	then
@@ -105,7 +105,7 @@ then
 
 	status "Configuring Exoscale CLI tool"
 
-	/bin/cp ${BUILD_HOME}/initialisation/configfiles/exoscale/exoscale.tmpl  ${BUILD_HOME}/.exoscale.toml
+	/bin/cp ${BUILD_HOME}/initialisation/exoscale/configfiles/exoscale.tmpl  ${BUILD_HOME}/.exoscale.toml
 
 	if ( [ "${CLOUDHOST_ACCOUNT_ID}" != "" ] )
 	then
@@ -184,7 +184,7 @@ then
 
 	status "Configuring Linode CLI tool"
 
-	/bin/cp ${BUILD_HOME}/initialisation/configfiles/linode/linode-cli.tmpl  ${BUILD_HOME}/.linode-cli
+	/bin/cp ${BUILD_HOME}/initialisation/linode/configfiles/linode-cli.tmpl  ${BUILD_HOME}/.linode-cli
 
 	if ( [ "${CLOUDHOST_ACCOUNT_ID}" != "" ] )
 	then
