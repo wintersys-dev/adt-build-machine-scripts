@@ -86,7 +86,7 @@ then
                 /bin/rm ${BUILD_HOME}/.s3cfg-${count}
         fi
 
-        /bin/cp ${BUILD_HOME}/initialisation/configfiles/datastore/s3-cfg.tmpl  ${BUILD_HOME}/.s3cfg-${count}
+        /bin/cp ${BUILD_HOME}/initialisation/datastore/configfiles/s3-cfg.tmpl  ${BUILD_HOME}/.s3cfg-${count}
 
         if ( [ "${S3_ACCESS_KEY}" != "" ] )
         then
@@ -187,7 +187,7 @@ then
                 /bin/rm ${BUILD_HOME}/.rclone.cfg-${count}
         fi
 
-        /bin/cp ${BUILD_HOME}/initialisation/configfiles/datastore/rclone-cfg.tmpl ${BUILD_HOME}/.rclone.cfg-${count}
+        /bin/cp ${BUILD_HOME}/initialisation/datastore/configfiles/rclone-cfg.tmpl ${BUILD_HOME}/.rclone.cfg-${count}
 
         if ( [ "${S3_ACCESS_KEY}" != "" ] )  
         then
