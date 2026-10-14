@@ -101,7 +101,7 @@ then
             if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
             then
             	status "The database engine you have selected is not available please correct and re deploy"
-            	/bin/touch /tmp/END_IT_ALL
+            	exit 1
             fi
 
 			if ( [ "${database_type}" = "MySQL" ] )
@@ -126,7 +126,8 @@ then
 						then
 							DB_INSTALL_MODE="1"
 						else 
-							/bin/touch /tmp/END_IT_ALL
+							status "Can't continue with installation, DB_INSTALL_MODE not set as required"
+							exit -1
 						fi
 					fi
 					/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
@@ -195,7 +196,8 @@ then
 						then
 							DB_INSTALL_MODE="1"
 						else
-							/bin/touch /tmp/END_IT_ALL
+							status "Can't continue with installation, DB_INSTALL_MODE not set as required"
+							exit -1
 						fi
 					fi
 					/usr/local/bin/linode-cli databases postgresql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection "true" --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
@@ -286,7 +288,7 @@ then
 		DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
 	else
 		status "Credentials not found when making a multi region deployment to a non primary region"
-		/bin/touch /tmp/END_IT_ALL
+		exit -1
 	fi
 fi
 
