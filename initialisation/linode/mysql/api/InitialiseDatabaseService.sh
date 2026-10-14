@@ -80,7 +80,13 @@ then
         fi
 
         available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
-    #api    curl -s -H "Authorization: Bearer $LINODE_TOKEN" https://api.linode.com/v4/databases/engines | jq -r '.data[].id'
+
+        if ( [ "$?" != "0" ] || [ "${available_engines}" = "" ] )
+	then
+	        status "Failed to obtain list of available engines"
+	        exit 1
+	fi
+    #api    curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/engines | jq -r '.data[].id'
 
         if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
         then
@@ -89,7 +95,14 @@ then
         fi
 
         database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
-#api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+       
+        if ( [ "$?" != "0" ] )
+	then
+	        status "An error occured obtaining the database id"
+	        exit 1
+	fi
+
+        #api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
         if ( [ "${database_id}" = "" ] )
         then
                 status "Your database is being provisioned, please wait....."
@@ -116,12 +129,17 @@ then
 
                 /usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 
-#api curl -X POST https://api.linode.com/v4/databases/mysql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
+                if ( [ "$?" != "0" ] )
+	        then
+	                status "failed to provision database"
+	                exit 1
+	        fi
+                #api curl -X POST https://api.linode.com/v4/databases/mysql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
                 database_id=""
                 status "Attempting to get database id..."
                 while ( [ "${database_id}" = "" ] )
                 do
-                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"     
                         #api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
 
                         if ( [ "${database_id}" = "" ] )
@@ -139,7 +157,7 @@ then
                 while ( [ "${db_status}" != "active" ] )
                 do
                         db_status="`/usr/local/bin/linode-cli databases mysql-list --json | jq -r '.[] | select(.label == "'${label}'").status'`"
-#api curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'
+                        #api curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'
                         if ( [ "${db_status}" != "active" ] )
                         then
                                 /bin/sleep 20
@@ -149,6 +167,12 @@ then
                 status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
                 #open up for the build and tighten once the build is complete
                 /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
+                if ( [ "$?" != "0" ] )
+	        then
+	                status "failed to update firewall allowed ip list"
+	                exit 1
+	        fi
+                
                 #api curl -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["0.0.0.0/0"]}'
         fi
 
