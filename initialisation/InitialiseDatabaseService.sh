@@ -52,18 +52,12 @@ WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
 then
 	status "You are attempting to provision a managed database in development mode, this isn't supported you need to redeploy in production mode"
-	/bin/touch /tmp/END_IT_ALL
+	exit 1
 fi
 
-
-#dbaas_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-#dbaas_bucket="${dbaas_bucket}-${DNS_CHOICE}-dbaas"
-
-#See if we are a managed database or not
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
 then
-
-fi
+	. ${HOME}/initialisation/${CLOUDHOST}/configfiles/InitialiseDatabaseService.sh
 
 	status "Database considered to be in a running state"
 
