@@ -55,117 +55,111 @@ then
 	/bin/touch /tmp/END_IT_ALL
 fi
 
+#########################################################################################################
+#If you are deploying to exoscale provide a setting with the following format in your template
+#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
+#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:pg:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
+#If you need to you can turn off termination protection as in the following example:
+#exo dbaas update testdb1 -z ch-gva-2 --termination-protection=false
+#########################################################################################################
 
-#dbaas_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
-#dbaas_bucket="${dbaas_bucket}-${DNS_CHOICE}-dbaas"
-
-#See if we are a managed database or not
-if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
+#If we are here then this is an exoscale deployment
+if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
 then
+	#extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
 
-	#########################################################################################################
-	#If you are deploying to exoscale provide a setting with the following format in your template
-	#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
-	#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:pg:ch-gva-2:hobbyist-2:testdb1:testuser1:testpassword1"
-	#If you need to you can turn off termination protection as in the following example:
-	#exo dbaas update testdb1 -z ch-gva-2 --termination-protection=false
-	#########################################################################################################
+	database_details="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/sed 's/^.*DBAAS://g'`"
+	database_engine="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $1}'`"
+	database_region="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $2}'`"
+	database_size="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $3}'`"
+	db_name="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $4}'`"
+	db_username="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $5}'`"
+	db_password="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $6}'`"
 
-		#If we are here then this is an exoscale deployment
-		if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
+	if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ] )
+	then
+		if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "dbaas" ".DBAAS_CREDENTIALS"`" != "" ] )
 		then
-			#extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
+			${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "dbaas" ".DBAAS_CREDENTIALS" "${BUILD_HOME}/runtime/${CLOUDHOST}"
+		fi
+	fi
 
-			database_details="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/sed 's/^.*DBAAS://g'`"
-			database_engine="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $1}'`"
-			database_region="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $2}'`"
-			database_size="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $3}'`"
-			db_name="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $4}'`"
-			db_username="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $5}'`"
-			db_password="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $6}'`"
-
-
-			if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ] )
+	#See if there is an existing database that we can use
+	existing_db_name="`/usr/bin/exo dbaas list -O json | /usr/bin/jq -r '.[]  | select (.name=="'${db_name}'" and .type=="'${database_engine}'").name'`"   
+	new=""
+	if ( [ "${existing_db_name}" = "" ] )
+	then
+		#If we are here there is no existing database and we need to create one
+		if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
+		then
+			status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
+			status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
+			response="Y"
+			if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
 			then
-				if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "dbaas" ".DBAAS_CREDENTIALS"`" != "" ] )
-				then
-					${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "dbaas" ".DBAAS_CREDENTIALS" "${BUILD_HOME}/runtime/${CLOUDHOST}"
+				read response
+			fi
+
+			if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+			then
+				DB_INSTALL_MODE="1"
+				else
+					/bin/touch /tmp/END_IT_ALL
 				fi
 			fi
 
-			#See if there is an existing database that we can use
-			existing_db_name="`/usr/bin/exo dbaas list -O json | /usr/bin/jq -r '.[]  | select (.name=="'${db_name}'" and .type=="'${database_engine}'").name'`"   
-			new=""
-			if ( [ "${existing_db_name}" = "" ] )
+			admin_username="adt-dbadmin"
+			admin_password="`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-12`"
+
+			if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ] )	
 			then
-				#If we are here there is no existing database and we need to create one
-				if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
-				then
-					status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
-					status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
-					response="Y"
-					if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-					then
-						read response
-					fi
-					if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-					then
-						DB_INSTALL_MODE="1"
-					else
-						/bin/touch /tmp/END_IT_ALL
-					fi
-				fi
+				/bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS.$$
+			fi
+				
+			/bin/echo "DB ADMIN USERNAME: ${admin_username}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS
+			/bin/echo "DB ADMIN PASSWORD: ${admin_password}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS
 
-				admin_username="adt-dbadmin"
-				admin_password="`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-12`"
-				if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ] )
-				then
-					/bin/cp ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS.$$
-				fi
-				/bin/echo "DB ADMIN USERNAME: ${admin_username}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS
-				/bin/echo "DB ADMIN PASSWORD: ${admin_password}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS
+			${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "dbaas" "distributed"
+			${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "dbaas" "${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS" "root" "distributed" "no"
 
-				${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "dbaas" "distributed"
-				${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "dbaas" "${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS" "root" "distributed" "no"
-
-				status "Creating  database ${db_name}, with engine: ${database_engine}, in region: ${database_region} and at size: ${database_size} please wait..."
-				if ( [ "${database_engine}" = "mysql" ] )
-				then
-					/usr/bin/exo dbaas create ${database_engine} ${database_size} ${db_name} --zone ${database_region} --mysql-admin-username "${admin_username}" --mysql-admin-password  "${admin_password}"
-				elif ( [ "${database_engine}" = "pg" ] )
-				then
-					/usr/bin/exo dbaas create ${database_engine} ${database_size} ${db_name} --zone ${database_region} --pg-admin-username "${admin_username}" --pg-admin-password  "${admin_password}"
-				fi
-
-				if ( [ "$?" = "0" ] )
-				then
-					new="newly provisioned"
-				fi
-			else
-				new="previously existing"
-				admin_username="`/bin/grep "USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS | /usr/bin/awk '{print $NF}'`"
-				admin_password="`/bin/grep "PASSWORD" ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS | /usr/bin/awk '{print $NF}'`"
+			status "Creating  database ${db_name}, with engine: ${database_engine}, in region: ${database_region} and at size: ${database_size} please wait..."
+			if ( [ "${database_engine}" = "mysql" ] )
+			then
+				/usr/bin/exo dbaas create ${database_engine} ${database_size} ${db_name} --zone ${database_region} --mysql-admin-username "${admin_username}" --mysql-admin-password  "${admin_password}"
+			elif ( [ "${database_engine}" = "pg" ] )
+			then
+				/usr/bin/exo dbaas create ${database_engine} ${database_size} ${db_name} --zone ${database_region} --pg-admin-username "${admin_username}" --pg-admin-password  "${admin_password}"
 			fi
 
-			#Wait for the database to be in a "running" state
-			status "Waiting for your new database cluster to be responsive and online (this may take a little while)"
-			while ( [ "`/usr/bin/exo dbaas show ${db_name} -O json | /usr/bin/jq -r 'select (.name == "'${db_name}'" and .type=="'${database_engine}'").state'`" != "running" ] )
-			do
-				/bin/sleep 10
-			done
+			if ( [ "$?" = "0" ] )
+			then
+				new="newly provisioned"
+			fi
+		else
+			new="previously existing"
+			admin_username="`/bin/grep "USERNAME" ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS | /usr/bin/awk '{print $NF}'`"
+			admin_password="`/bin/grep "PASSWORD" ${BUILD_HOME}/runtime/${CLOUDHOST}/.DBAAS_CREDENTIALS | /usr/bin/awk '{print $NF}'`"
+		fi
 
-			status ""
-			status "Database with name ${db_name} is now running"
-			status ""
+		#Wait for the database to be in a "running" state
+		status "Waiting for your new database cluster to be responsive and online (this may take a little while)"
+		while ( [ "`/usr/bin/exo dbaas show ${db_name} -O json | /usr/bin/jq -r 'select (.name == "'${db_name}'" and .type=="'${database_engine}'").state'`" != "running" ] )
+		do
+			/bin/sleep 10
+		done
 
-			#Take note of all of the database's configuration details
-			export DB_USERNAME="${admin_username}"
-			export DB_PASSWORD="${admin_password}"
-			export DATABASE_INSTALLATION_TYPE="DBaaS"
-			export DB_IDENTIFIER="`/usr/bin/exo -O json dbaas show --zone ${database_region} ${db_name} | /usr/bin/jq -r ".${database_engine}.uri_params.host"`"
-			export DB_NAME="${db_name}"
-			export DB_PORT="`/usr/bin/exo -O json dbaas show --zone ${database_region} ${db_name} | /usr/bin/jq -r ".${database_engine}.uri_params.port"`" 
-			export DATABASE_REGION="${database_region}"
+		status ""
+		status "Database with name ${db_name} is now running"
+		status ""
+
+		#Take note of all of the database's configuration details
+		export DB_USERNAME="${admin_username}"
+		export DB_PASSWORD="${admin_password}"
+		export DATABASE_INSTALLATION_TYPE="DBaaS"
+		export DB_IDENTIFIER="`/usr/bin/exo -O json dbaas show --zone ${database_region} ${db_name} | /usr/bin/jq -r ".${database_engine}.uri_params.host"`"
+		export DB_NAME="${db_name}"
+		export DB_PORT="`/usr/bin/exo -O json dbaas show --zone ${database_region} ${db_name} | /usr/bin/jq -r ".${database_engine}.uri_params.port"`" 
+		export DATABASE_REGION="${database_region}"
 
 			#Open up fully until we are installed and then tighten up the firewall later on from the autoscaler
 			#   if ( [ "${database_engine}" = "mysql" ] )
@@ -176,97 +170,12 @@ then
 			#           /usr/bin/exo dbaas update --quiet --zone ${database_region} ${db_name} --pg-ip-filter="0.0.0.0/0"
 			#   fi
 
-			status "Please go to the Exoscale GUI system of your new database and switch off 'STRICT_ALL_TABLES' and 'sql_require_primary_key'"
-			status "Press <enter> once this is done, failure to do this could result in a blocked/failed installation"
-			read x
-
-			#record a certificate in case we need it
-			/usr/bin/exo dbaas ca-certificate > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
-	fi
-
-	status "Database considered to be in a running state"
-
-	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
-
-	status ""
-	status "The rest of the settings for your database are as follows:"
-	status "##########################################################"
-	status "USERNAME:${DB_USERNAME}"
-	status "PASSWORD:${DB_PASSWORD}"
-	status "HOST:${DB_IDENTIFIER}"
-	status "PORT:${DB_PORT}"
-	status "DB NAME:${DB_NAME}"
-	status "##########################################################"
-	status "If these settings look OK to you, press <enter>"
-
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-	then
+		status "Please go to the Exoscale GUI system of your new database and switch off 'STRICT_ALL_TABLES' and 'sql_require_primary_key'"
+		status "Press <enter> once this is done, failure to do this could result in a blocked/failed installation"
 		read x
-	fi
-else
-	#If we are here then we are self managed so we generate our own username and passwords here which will be used to access
-	#our self managed database everywhere in the deployment. These are generated fresh for each deployment
-	DB_NAME="n`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`n"
-	DB_PASSWORD="p`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`p"
-	DB_USERNAME="u`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`u"
-	DB_IDENTIFIER="self-managed"
-fi
 
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "0" ] ) 
-then
-	${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
-	if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
-	then
-		${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "multi-region" "credentials.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
-		DB_NAME="`/bin/grep DB_NAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PASSWORD="`/bin/grep DB_PASSWORD ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat| /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_USERNAME="`/bin/grep DB_USERNAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PORT="`/bin/grep DB_PORT ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
-	else
-		status "Credentials not found when making a multi region deployment to a non primary region"
-		/bin/touch /tmp/END_IT_ALL
+		#record a certificate in case we need it
+		/usr/bin/exo dbaas ca-certificate > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 	fi
 fi
 
-if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat ] )
-then
-	DB_USERNAME="`/bin/grep USERNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_PASSWORD="`/bin/grep PASSWORD ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_NAME="`/bin/grep DBNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-
-	if ( [ ! -d ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots ] )
-	then
-		/bin/mkdir -p ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots
-	fi
-
-	/bin/echo "USERNAME:${DB_USERNAME}" > ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "PASSWORD:${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "DBNAME:${DB_NAME}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-fi
-
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
-then
-	/bin/echo "DB_NAME=${DB_NAME}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PASSWORD=${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_USERNAME=${DB_USERNAME}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PORT=${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-
-       # multi_region_bucket="`/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g'`-multi-region"
-       ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
-
-       if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
-       then
-	       ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "credentials.dat" "distributed"
-       fi
-
-       ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "multi-region" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat" "root" "distributed" "no"
-fi
-
-#Persist our credentials to the file system to be used at will      
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_NAME=${DB_NAME}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_PASSWORD=${DB_PASSWORD}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_USERNAME=${DB_USERNAME}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_PORT=${DB_PORT}"
-${BUILD_HOME}/helpers/services/SetVariableValue.sh "DB_IDENTIFIER=${DB_IDENTIFIER}"
