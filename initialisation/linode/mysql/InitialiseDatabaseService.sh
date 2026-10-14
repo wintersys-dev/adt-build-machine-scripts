@@ -116,11 +116,13 @@ then
 
                 /usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
 
+#api curl -X POST https://api.linode.com/v4/databases/mysql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
                 database_id=""
                 status "Attempting to get database id..."
                 while ( [ "${database_id}" = "" ] )
                 do
-                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r --arg L "$label" '.[] | select(.label and (.label | contains($L))) | .id'`"
+                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+                        #api    database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": {"+contains": "'$label'"}}'  https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
 
                         if ( [ "${database_id}" = "" ] )
                         then
