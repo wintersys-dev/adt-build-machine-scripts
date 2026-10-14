@@ -57,7 +57,6 @@ fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
-
 if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
 then
 	status "You are attempting to provision a managed database in development mode, this isn't supported you need to redeploy in production mode"
