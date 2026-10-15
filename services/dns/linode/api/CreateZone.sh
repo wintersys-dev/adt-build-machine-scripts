@@ -22,18 +22,18 @@
 
 set -e
 
-email="${1}"
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 
 domain_id="`curl -s -H "Authorization: Bearer $TOKEN"  https://api.linode.com/v4/domains | jq --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id'`"
 
 
 if ( [ "${domain_id}" = "" ] )
 then
-        curl -s -X POST https://api.linode.com/v4/domains/ -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "master", "domain": "'"${domain_url}"'", "soa_email": "'"${email}"'" }'
+        curl -s -X POST https://api.linode.com/v4/domains/ -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "master", "domain": "'"${domain_url}"'", "soa_email": "'"${DNS_USERNAME}"'" }'
 fi
 
 if ( [ $? != "0" ] )
