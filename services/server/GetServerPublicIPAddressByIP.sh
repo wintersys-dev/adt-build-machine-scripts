@@ -81,7 +81,6 @@ then
     exit 1
 fi
 
-# Execute the script, replacing the current shell process
 "${script_path}" "${server_ip}"
 
 exit_code=$?
@@ -91,11 +90,3 @@ then
     status "Error: GetServerPublicIPAddressByIP.sh failed with exit code $exit_code"
     exit $exit_code
 fi
-
-#ip="${1}"
-
-#BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-#CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
-#orchestration_tool="`/bin/grep "^ORCHESTRATION_TOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
-
-#${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddressByIP.sh "${ip}" 
