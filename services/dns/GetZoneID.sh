@@ -30,15 +30,14 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+if ( [ "${1}" = "" ] )
 then
-        status "Error: 2 arguments are required."
-        status "Usage: $0 <dns_username> <website_url>"
+        status "Error: 1 argument is required."
+        status "Usage: $0 <zone_name>"
         exit 1
 fi
 
-dns_username="${1}"
-website_url="${2}"
+zone_name="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -67,7 +66,7 @@ script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetZ
 
 if ( [ -f "${script_path}" ] && [ ! -x "${script_path}" ] )
 then
-  "${script_path}" "${dns_username}" "${website_url}"
+  "${script_path}" "${zone_name}"
 
   exit_code=$?
 
