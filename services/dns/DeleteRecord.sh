@@ -29,19 +29,29 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] )
+#if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] )
+#then
+#        status "Error: 6 arguments are required."
+#        status "Usage: $0 <zoneid> <record_id> <dns_username> <dns_security_key> <dns_choice> <website_url>"
+#        exit 1
+#fi
+
+#zone_id="${1}"
+#record_id="${2}"
+#dns_username="${3}"
+#dns_security_key="${4}"
+#dns_choice="${5}"
+#website_url="${6}"
+
+if ( [ "${1}" = "" ] )
 then
-        status "Error: 6 arguments are required."
-        status "Usage: $0 <zoneid> <record_id> <dns_username> <dns_security_key> <dns_choice> <website_url>"
+        status "Error: 1 argument is required."
+        status "Usage: $0 <record_id>"
         exit 1
 fi
 
-zone_id="${1}"
-record_id="${2}"
-dns_username="${3}"
-dns_security_key="${4}"
-dns_choice="${5}"
-website_url="${6}"
+
+record_id="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -61,6 +71,11 @@ then
         exit 1
 fi
 
+if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+then
+	orchestration_tool="api"
+fi
+
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/DeleteRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
@@ -75,8 +90,7 @@ then
         exit 1
 fi
 
-# Execute the script, replacing the current shell process
-"${script_path}" "${zone_id}" "${record_id}" "${dns_username}" "${dns_security_key}" "${dns_choice}" "${website_url}"
+"${script_path}" "${record_id}"
 
 exit_code=$?
 
