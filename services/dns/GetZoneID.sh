@@ -19,7 +19,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-#set -x
+set -x
 
 set -e
 
@@ -32,7 +32,7 @@ status () {
 
 if ( [ "${1}" = "" ] )
 then
-        status "Error: 1 argument is required."
+        status "Error: 1 argument is required.."
         status "Usage: $0 <zone_name>"
         exit 1
 fi
@@ -45,34 +45,34 @@ DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
-    status "Error: Cannot read software configuration file at ${software_file}"
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
 fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
 if ( [ "${orchestration_tool}" = "" ] )
 then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
-    exit 1
+        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        exit 1
 fi
 
 if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
 then
-	orchestration_tool="api"
+        orchestration_tool="api"
 fi
 
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetZoneID.sh"
 
-if ( [ -f "${script_path}" ] && [ ! -x "${script_path}" ] )
+if ( [ -f "${script_path}" ] && [ -x "${script_path}" ] )
 then
-  "${script_path}" "${zone_name}"
+        "${script_path}" "${zone_name}"
 
-  exit_code=$?
+        exit_code=$?
 
-  if ( [ ${exit_code} -ne 0 ] )
-  then
-      status "Error: CreateServer.sh failed with exit code $exit_code"
-      exit $exit_code
-  fi
+        if ( [ ${exit_code} -ne 0 ] )
+        then
+                status "Error: CreateServer.sh failed with exit code $exit_code"
+                exit $exit_code
+        fi
 fi
