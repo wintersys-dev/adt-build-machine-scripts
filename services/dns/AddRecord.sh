@@ -30,20 +30,35 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] || [ "${7}" = "" ] )
+#if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] || [ "${7}" = "" ] )
+#then
+#        status "Error: Expecting 7 arguments is required."
+#        status "Usage: $0 <zoneid> <dns_username> <dns_security_key> <website_url> <ip> <true> <dns_choice>"
+#        exit 1
+#fi
+
+# zone_id="${1}"
+# dns_username="${2}"
+# dns_security_key="${3}"
+# website_url="${4}"
+# ip="${5}"
+# bool="${6}"
+# dns_choice="${7}"
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ]  )
 then
-        status "Error: Expecting 7 arguments is required."
-        status "Usage: $0 <zoneid> <dns_username> <dns_security_key> <website_url> <ip> <true> <dns_choice>"
-        exit 1
+	status "Error: Expecting 2 arguments is required."
+	status "Usage: $0 <website_url> <ip> "
+	exit 1
 fi
 
- zone_id="${1}"
- dns_username="${2}"
- dns_security_key="${3}"
- website_url="${4}"
- ip="${5}"
- bool="${6}"
- dns_choice="${7}"
+# zone_id="${1}"
+# dns_username="${2}"
+# dns_security_key="${3}"
+ website_url="${1}"
+ ip="${2}"
+# bool="${6}"
+# dns_choice="${7}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -63,6 +78,11 @@ then
     exit 1
 fi
 
+if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+then
+	orchestration_tool="api"
+fi
+
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/AddRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
@@ -78,7 +98,10 @@ then
 fi
 
 # Execute the script, replacing the current shell process
-"${script_path}" "${zone_id}" "${dns_username}" "${dns_security_key}" "${website_url}" "${ip}" "${bool}" "${dns_choice}"
+#"${script_path}" "${zone_id}" "${dns_username}" "${dns_security_key}" "${website_url}" "${ip}" "${bool}" "${dns_choice}"
+
+"${script_path}" "${website_url}" "${ip}"
+
 
 exit_code=$?
 
