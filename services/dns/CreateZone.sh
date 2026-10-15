@@ -30,16 +30,15 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-        status "Error: 3 arguments are required."
-        status "Usage: $0 <dns_username> <dns_security_key> <website_url>"
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <dns_username> <website_url>"
         exit 1
 fi
 
 dns_username="${1}"
-dns_security_key="${2}"
-website_url="${3}"
+website_url="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -59,6 +58,11 @@ then
     exit 1
 fi
 
+if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+then
+	orchestration_tool="api"
+fi
+
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/CreateZone.sh"
 
 if ( [ ! -f "${script_path}" ] )
@@ -73,8 +77,7 @@ then
     exit 1
 fi
 
-# Execute the script, replacing the current shell process
-"${script_path}" "${dns_username}" "${dns_security_key}" "${website_url}"
+"${script_path}" "${dns_username}" "${website_url}"
 
 exit_code=$?
 
