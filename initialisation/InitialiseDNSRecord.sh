@@ -76,20 +76,20 @@ then
 	name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
 
 	#Create  zone if it doesn't already exist
-	zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
-	zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+#	zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
+#	zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
 
-	if ( [ "${zoneid}" = "" ] )
-	then
-		${BUILD_HOME}/services/dns/CreateZone.sh "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${DNS_CHOICE}"
-		/bin/sleep 10
-		zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
-	fi
+#	if ( [ "${zoneid}" = "" ] )
+#	then
+#		${BUILD_HOME}/services/dns/CreateZone.sh "${DNS_USERNAME}" "${WEBSITE_URL}" 
+#		/bin/sleep 10
+#		zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+#	fi
 
-	if ( [ "${zoneid}" = "" ] )
-	then
-		zoneid="FILLER"
-	fi
+#	if ( [ "${zoneid}" = "" ] )
+#	then
+#		zoneid="FILLER"
+#	fi
 
 	#status "We are adding our DNS records to the DNS provider you selected, in this case ${DNS_CHOICE}"
 	#zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
