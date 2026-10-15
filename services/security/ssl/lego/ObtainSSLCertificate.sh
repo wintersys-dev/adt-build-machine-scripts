@@ -109,10 +109,10 @@ status "Generating new SSL certificate for the ${DNS_CHOICE} DNS service"
 
 if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
 then
-        zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
-        zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+        zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
+        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 
-        if ( [ "${zoneid}" = "" ] )
+        if ( [ "${zone_id}" = "" ] )
         then
                 ${BUILD_HOME}/services/dns/CreateZone.sh "${WEBSITE_URL}"
         fi
