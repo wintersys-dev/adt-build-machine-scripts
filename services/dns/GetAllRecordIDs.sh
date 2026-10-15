@@ -61,6 +61,11 @@ then
         exit 1
 fi
 
+if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+then
+	orchestration_tool="api"
+fi
+
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetAllRecordIDs.sh"
 
 if ( [ ! -f "${script_path}" ] )
