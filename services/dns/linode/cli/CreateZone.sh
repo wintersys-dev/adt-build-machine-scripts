@@ -20,8 +20,9 @@
 ########################################################################################
 #set -x
 
-email="${1}"
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+
+DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 
 linode_config_file="/root/.config/dns-linode-cli"
         
@@ -35,7 +36,7 @@ export LINODE_CLI_CONFIG=${linode_config_file}
                 
 if ( [ "`/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id'`" = "" ] )
 then
-        /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${email} --no-defaults
+        /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${DNS_USERNAME} --no-defaults
 fi
 
 if ( [ $? != "0" ] )
