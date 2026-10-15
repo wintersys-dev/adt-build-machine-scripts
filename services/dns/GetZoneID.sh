@@ -21,20 +21,20 @@
 #######################################################################################
 #set -x
 
-zonename="${1}"
-email="${2}"
-credentials="${3}"
-dns="${4}"
+zone_name="${1}"
+
+DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
+DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 
 if ( [ "${dns}" = "cloudflare" ] )
 then
-        if ( [ "`/bin/echo ${credentials} | /bin/grep ':::'`" != "" ] )
+        if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
         then
-                api_token="`/bin/echo ${credentials} | /usr/bin/awk -F':::' '{print $2}'`"
-                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zonename}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" | /usr/bin/jq -r '.result[].id' 
+                api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
+                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" | /usr/bin/jq -r '.result[].id' 
         else
-                authkey="${credentials}"
-                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zonename}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" -H "X-Auth-Email: ${email}" -H "X-Auth-Key: ${authkey}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
+                auth_key="${DNS_SECURITY_KEY}"
+                /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${auth_key}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
         fi
 fi
 
