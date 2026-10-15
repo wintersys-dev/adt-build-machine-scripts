@@ -70,7 +70,7 @@ then
 
 	if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 	then 
-		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${WEBSITE_URL}"`"
+		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${WEBSITE_URL}" "${auth}"`"
 
 		if ( [ "${record}" = "primary" ] )
 		then
@@ -78,7 +78,7 @@ then
 			then
 				for recordid in ${recordids}
 				do
-					${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${WEBSITE_URL}"
+					${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${WEBSITE_URL}" "${auth}"
 				done
 			fi
 		fi
