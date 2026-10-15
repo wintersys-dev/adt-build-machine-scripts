@@ -38,10 +38,6 @@ wireguard="${5}"
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
-DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
-DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
@@ -60,49 +56,17 @@ then
 	then
 		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
 	fi
-	DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
-	DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
-	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
 fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
 
-if ( [ "${DNS_CHOICE}" != "" ] && ( [ "${LOAD_BALANCER}" = "0" ] || [ "${auth}" = "yes" ] ) )
+if ( [ "${LOAD_BALANCER}" = "0" ] || [ "${auth}" = "yes" ] )
 then
 	#If we get to here then we know that the webserver was built correctly
 	#We have to configure it some more and add it to the DNS provider's DNS so we can access the webserver
 	#Please note, we make use of the implicit DNS roundrobin loadbalancing system with our webservers
 	name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-
-	#Create  zone if it doesn't already exist
-#	zonename="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
-#	zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
-
-#	if ( [ "${zoneid}" = "" ] )
-#	then
-#		${BUILD_HOME}/services/dns/CreateZone.sh "${DNS_USERNAME}" "${WEBSITE_URL}" 
-#		/bin/sleep 10
-#		zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
-#	fi
-
-#	if ( [ "${zoneid}" = "" ] )
-#	then
-#		zoneid="FILLER"
-#	fi
-
-	#status "We are adding our DNS records to the DNS provider you selected, in this case ${DNS_CHOICE}"
-	#zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
-
-	#if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
-	#then
-#		while ( [ "${zoneid}" = "" ] )#
-		#do
-	#		status "Attempting to get zone id for the DNS system (this may take a few retries)....if, after some time, I can't get your zone id check that your nameservers are configured correctly. Please wait...."
-#			/bin/sleep 30
-	#		zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zonename}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
-#		done
-#	fi
 
 	if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 	then 
@@ -120,5 +84,5 @@ then
 		fi
 	fi
 
-	${BUILD_HOME}/services/dns/AddRecord.sh "${WEBSITE_URL}" "${ip}"
+	${BUILD_HOME}/services/dns/AddRecord.sh "${WEBSITE_URL}" "${ip}" "${auth}"
 fi
