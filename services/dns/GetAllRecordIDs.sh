@@ -30,18 +30,34 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
+#if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
+#then
+#        status "Error: 6 arguments are required."
+#        status "Usage: $0 <zoneid> <website_url> <dns_username> <dns_security_key> <dns_choice>"
+#        exit 1
+#fi###
+
+#zone_id="${1}"
+#website_url="${2}"
+#dns_username="${3}"  #get rid of this on this script and others
+#dns_security_key="${4}" #get rid of this on this script and on others
+#dns_choice="${5}" #get rid of this on this script and others
+
+
+if ( [ "${1}" = "" ] )
 then
-        status "Error: 6 arguments are required."
-        status "Usage: $0 <zoneid> <website_url> <dns_username> <dns_security_key> <dns_choice>"
+        status "Error: 1 argument is required."
+        status "Usage: $0 <website_url>"
         exit 1
 fi
 
-zone_id="${1}"
-website_url="${2}"
-dns_username="${3}"  #get rid of this on this script and others
-dns_security_key="${4}" #get rid of this on this script and on others
-dns_choice="${5}" #get rid of this on this script and others
+#zone_id="${1}"
+#website_url="${2}"
+#dns_username="${3}"  #get rid of this on this script and others
+#dns_security_key="${4}" #get rid of this on this script and on others
+#dns_choice="${5}" #get rid of this on this script and others
+
+
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -80,8 +96,7 @@ then
         exit 1
 fi
 
-# Execute the script, replacing the current shell process
-"${script_path}" "${zone_id}" "${website_url}" "${dns_username}"  
+"${script_path}" "${website_url}"   
 
 exit_code=$?
 
