@@ -21,8 +21,8 @@
 ###################################################################################
 set -x
 
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-sub_domain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
+domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 
 linode_config_file="/root/.config/dns-linode-cli"
 
