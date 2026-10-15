@@ -14,17 +14,14 @@ zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 
 if ( [ "${zoneid}" = "" ] )
 then
-        ${BUILD_HOME}/services/dns/CreateZone.sh  "${website_url}"
-        zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
+        ${BUILD_HOME}/services/dns/CreateZone.sh "${website_url}"
+        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 fi
 
 if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
 then
         api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
-        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}&page=1&per_page=20&order=type&direction=desc&match=all" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
-
+        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}" -H "Authorization: Bearer ${api_token}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
 else
-        auth_key="${DNS_SECURITY_KEY}"
-        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}&page=1&per_page=20&order=type&direction=desc&match=all" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${auth_key}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
-
+        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
 fi
