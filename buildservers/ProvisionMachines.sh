@@ -62,14 +62,14 @@ if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
 then
         name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
         zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
-        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`" 
+        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`" 
 fi
 
 if ( [ "${AUTH_DNS_CHOICE}" = "cloudflare" ] )
 then
         name="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{print $1}'`"
         zone_name="`/bin/echo ${AUTH_SERVER_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed -e 's/^ //g' -e 's/ /./g'`"
-        auth_zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}" "${AUTH_DNS_USERNAME}" "${AUTH_DNS_SECURITY_KEY}" "${AUTH_DNS_CHOICE}"`" 
+        auth_zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`" 
 fi
 
 cloudflare_access="0"
