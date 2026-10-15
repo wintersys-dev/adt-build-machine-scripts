@@ -43,10 +43,10 @@ status () {
 #dns_choice="${5}"
 #website_url="${6}"
 
-if ( [ "${1}" = "" ] [ "${2}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-        status "Error: 2 arguments are required."
-        status "Usage: $0 <record_id> <website_url>"
+        status "Error: 3 arguments are required."
+        status "Usage: $0 <record_id> <website_url> <auth>"
         exit 1
 fi
 
@@ -56,6 +56,11 @@ website_url="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+
+if ( [ "${auth}" = "yes" ] )
+then
+	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
