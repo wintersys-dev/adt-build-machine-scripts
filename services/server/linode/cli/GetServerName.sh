@@ -20,6 +20,8 @@
 #####################################################################################
 #set -x
 
+set -e
+
 status () {
         /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
         script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
