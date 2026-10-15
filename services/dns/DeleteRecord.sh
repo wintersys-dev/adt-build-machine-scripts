@@ -43,15 +43,16 @@ status () {
 #dns_choice="${5}"
 #website_url="${6}"
 
-if ( [ "${1}" = "" ] )
+if ( [ "${1}" = "" ] [ "${2}" = "" ] )
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <record_id>"
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <record_id> <website_url>"
         exit 1
 fi
 
 
 record_id="${1}"
+website_url="${2}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
@@ -90,7 +91,7 @@ then
         exit 1
 fi
 
-"${script_path}" "${record_id}"
+"${script_path}" "${record_id}" "${website_url}"
 
 exit_code=$?
 
