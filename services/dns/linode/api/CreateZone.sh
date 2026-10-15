@@ -23,7 +23,7 @@
 set -e
 
 email="${1}"
-domain_url="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
+domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
