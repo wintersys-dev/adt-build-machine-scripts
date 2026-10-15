@@ -46,21 +46,7 @@ fi
  dns_choice="${7}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
-if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
-then
-    status "Error: Cannot read active cloud host file at ${cloudhost_file}" 
-    exit 1
-fi
-
-CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
-
-if ( [ "${CLOUDHOST}" = "" ] )
-then
-    status "Error: CLOUDHOST variable is empty." 
-    exit 1
-fi
+DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
@@ -77,7 +63,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/dns/${CLOUDHOST}/${orchestration_tool}/AddRecord.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/AddRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
