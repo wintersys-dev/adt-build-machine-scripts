@@ -32,27 +32,27 @@ DB_INSTALL_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_INSTALL_
 NO_WEBSERVERS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_WEBSERVERS`"
 
 
-if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
+if ( [ "${NO_AUTHENTICATORS}" != "0" ] && [ "${NO_AUTHENTICATORS}" != "" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/AuthenticatorCloudInit.sh
 fi
 
-if ( [ "${NO_AUTOSCALERS}" != "0" ] )
+if ( [ "${NO_AUTOSCALERS}" != "0" ] && [ "${NO_AUTOSCALERS}" != "" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/AutoscalerCloudInit.sh
 fi
 
-if ( [ "${NO_REVERSE_PROXIES}" != "0" ] )
+if ( [ "${NO_REVERSE_PROXIES}" != "0" ] &&  [ "${NO_REVERSE_PROXIES}" != "" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/ReverseProxyCloudInit.sh
 fi
 
-if ( [ "${NO_WEBSERVERS}" != "0" ] )
+if ( [ "${NO_WEBSERVERS}" != "0" ] && [ "${NO_WEBSERVERS}" != "" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/WebserverCloudInit.sh
 fi
 
-if ( [ "${DB_INSTALL_MODE}" != "0" ] )
+if ( [ "${DB_INSTALL_MODE}" != "0" ] && [ "${DB_INSTALL_MODE}" != "" ] )
 then
 	${BUILD_HOME}/initialisation/cloud-init/DatabaseCloudInit.sh
 fi
