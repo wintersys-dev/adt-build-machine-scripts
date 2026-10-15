@@ -29,21 +29,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-
-#if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
-#then
-#        status "Error: 6 arguments are required."
-#        status "Usage: $0 <zoneid> <website_url> <dns_username> <dns_security_key> <dns_choice>"
-#        exit 1
-#fi###
-
-#zone_id="${1}"
-#website_url="${2}"
-#dns_username="${3}"  #get rid of this on this script and others
-#dns_security_key="${4}" #get rid of this on this script and on others
-#dns_choice="${5}" #get rid of this on this script and others
-
-
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
         status "Error: 2 arguments are required."
@@ -51,19 +36,15 @@ then
         exit 1
 fi
 
-#zone_id="${1}"
 website_url="${1}"
 auth="${2}"
-#dns_username="${3}"  #get rid of this on this script and others
-#dns_security_key="${4}" #get rid of this on this script and on others
-#dns_choice="${5}" #get rid of this on this script and others
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
 if ( [ "${auth}" = "yes" ] )
 then
-	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
 fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
@@ -83,7 +64,7 @@ fi
 
 if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
 then
-	orchestration_tool="api"
+        orchestration_tool="api"
 fi
 
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetAllRecordIDs.sh"
