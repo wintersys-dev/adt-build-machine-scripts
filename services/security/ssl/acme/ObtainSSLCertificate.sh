@@ -109,7 +109,7 @@ then
 
         if ( [ "${zoneid}" = "" ] )
         then
-                ${BUILD_HOME}/services/dns/CreateZone.sh "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${WEBSITE_URL}" "${DNS_CHOICE}"
+                ${BUILD_HOME}/services/dns/CreateZone.sh "${WEBSITE_URL}"
         fi
 
         if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
