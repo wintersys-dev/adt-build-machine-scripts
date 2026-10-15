@@ -19,19 +19,23 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #######################################################################################
 #######################################################################################
-#set -x
+set -x
 
 zone_name="${1}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 
+
 if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
 then
         api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
-        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" | /usr/bin/jq -r '.result[].id' 
+        curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}"  -H "Authorization: Bearer ${api_token}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
 else
         auth_key="${DNS_SECURITY_KEY}"
-        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}&status=active&page=1&per_page=20&order=status&direction=desc&match=all" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${auth_key}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].id'
+        curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${zone_name}" -H "X-Auth-Email: ${DNS_USERNAME}"  -H "X-Auth-Key: ${auth_key}"  -H "Content-Type: application/json" | /usr/bin/jq -r '.result[]? | .id'
+
 fi
 
