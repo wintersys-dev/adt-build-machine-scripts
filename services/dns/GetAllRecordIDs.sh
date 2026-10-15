@@ -44,23 +44,27 @@ status () {
 #dns_choice="${5}" #get rid of this on this script and others
 
 
-if ( [ "${1}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <website_url>"
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <website_url> <auth>"
         exit 1
 fi
 
 #zone_id="${1}"
-#website_url="${2}"
+website_url="${1}"
+auth="${2}"
 #dns_username="${3}"  #get rid of this on this script and others
 #dns_security_key="${4}" #get rid of this on this script and on others
 #dns_choice="${5}" #get rid of this on this script and others
 
-
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+
+if ( [ "${auth}" = "yes" ] )
+then
+	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
