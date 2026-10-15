@@ -21,7 +21,7 @@
 #set -x
 
 email="${1}"
-domain_url="`/bin/echo ${3} | /usr/bin/cut -d'.' -f2-`"
+domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
 
 linode_config_file="/root/.config/dns-linode-cli"
         
