@@ -64,6 +64,11 @@ fi
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
+if ( [ "${auth}" = "yes" ] )
+then
+	DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+fi
+
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
@@ -101,7 +106,7 @@ fi
 # Execute the script, replacing the current shell process
 #"${script_path}" "${zone_id}" "${dns_username}" "${dns_security_key}" "${website_url}" "${ip}" "${bool}" "${dns_choice}"
 
-"${script_path}" "${website_url}" "${ip}" "${auth}"
+"${script_path}" "${website_url}" "${ip}"
 
 
 exit_code=$?
