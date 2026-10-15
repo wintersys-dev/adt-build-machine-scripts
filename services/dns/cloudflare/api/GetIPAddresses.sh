@@ -4,8 +4,15 @@ DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
-zone_name="`/bin/echo ${website_url} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
-zone_id="`${HOME}/services/dns/GetZoneID.sh "${zone_name}" "${DNS_USERNAME}" "${DNS_SECURITY_KEY}" "${DNS_CHOICE}"`"
+zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
+zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
+
+if ( [ "${zoneid}" = "" ] )
+then
+        ${BUILD_HOME}/services/dns/CreateZone.sh "${DNS_USERNAME}" "${website_url}" 
+        /bin/sleep 10
+        zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
+fi
 
 if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
 then
