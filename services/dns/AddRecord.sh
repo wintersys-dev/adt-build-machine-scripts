@@ -45,10 +45,10 @@ status () {
 # bool="${6}"
 # dns_choice="${7}"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ]  )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-	status "Error: Expecting 2 arguments is required."
-	status "Usage: $0 <website_url> <ip> "
+	status "Error: 3 arguments are required."
+	status "Usage: $0 <website_url> <ip> <auth> "
 	exit 1
 fi
 
@@ -57,6 +57,7 @@ fi
 # dns_security_key="${3}"
  website_url="${1}"
  ip="${2}"
+ auth="${3}"
 # bool="${6}"
 # dns_choice="${7}"
 
@@ -100,7 +101,7 @@ fi
 # Execute the script, replacing the current shell process
 #"${script_path}" "${zone_id}" "${dns_username}" "${dns_security_key}" "${website_url}" "${ip}" "${bool}" "${dns_choice}"
 
-"${script_path}" "${website_url}" "${ip}"
+"${script_path}" "${website_url}" "${ip}" "${auth}"
 
 
 exit_code=$?
