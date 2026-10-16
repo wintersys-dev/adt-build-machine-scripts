@@ -225,9 +225,9 @@ do
 						if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED ] )
 						then
 							/bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/RP_DNS_PRIMED
-							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "primary"
+							${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "primary" ${WEBSITE_URL} "no"
 						else
-								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "secondary" 
+								${BUILD_HOME}/initialisation/InitialiseDNSRecord.sh ${dns_ip} "secondary" ${WEBSITE_URL} "no"
 						fi
                         finished="1"
                 fi
