@@ -10,10 +10,10 @@ DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 zone_name="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f2-`"
 zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 
-if ( [ "${zoneid}" = "" ] )
+if ( [ "${zone_id}" = "" ] )
 then
         ${BUILD_HOME}/services/dns/CreateZone.sh  "${website_url}"
-        zoneid="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
+        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 fi
 
 if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
