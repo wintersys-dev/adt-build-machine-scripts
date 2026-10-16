@@ -19,7 +19,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-set -x
+#set -x
 set -e
 
 status () {
@@ -39,15 +39,15 @@ website_url="${1}"
 ip="${2}"
 auth="${3}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+HOME="`/bin/cat /home/homedir.dat`"
+DNS_CHOICE="`${HOME}/utilities/config/ExtractConfigValue.sh 'DNSCHOICE'`"
 
 if ( [ "${auth}" = "yes" ] )
 then
-        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+        DNS_CHOICE="`${HOME}/utilities/config/ExtractConfigValue.sh 'DNSCHOICE'`"
 fi
 
-software_file="${BUILD_HOME}/configuration/software.dat"
+software_file="${HOME}/runtime/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
         status "Error: Cannot read software configuration file at ${software_file}"
@@ -62,12 +62,12 @@ then
         exit 1
 fi
 
-if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+if ( [ ! -d ${HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
 then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/AddRecord.sh"
+script_path="${HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/AddRecord.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
