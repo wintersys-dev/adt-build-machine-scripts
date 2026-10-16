@@ -32,7 +32,7 @@ ip="${1}" #the IP address of the webserver
 record="${2}"
 website_url="${3}" #The URL of the website
 auth="${4}"
-wireguard="${5}"
+#wireguard="${5}"
 
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -43,20 +43,20 @@ PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGI
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 LOAD_BALANCER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh LOAD_BALANCER`"
 
-if ( [ "${website_url}" != "" ] )
-then
-	WEBSITE_URL="${website_url}"
-else
-	WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-fi
+#if ( [ "${website_url}" != "" ] )
+#then
+#	WEBSITE_URL="${website_url}"
+#else
+#	WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+#fi
 
-if ( [ "${auth}" = "yes" ] )
-then
-	if ( [ "${wireguard}" != "yes" ] )
-	then
-		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-	fi
-fi
+#if ( [ "${auth}" = "yes" ] )
+#then
+#	if ( [ "${wireguard}" != "yes" ] )
+#	then
+#		WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+#	fi
+#fi
 
 SERVER_USER="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSER`"
 SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/SERVERUSERPASSWORD`"
@@ -66,11 +66,11 @@ then
 	#If we get to here then we know that the webserver was built correctly
 	#We have to configure it some more and add it to the DNS provider's DNS so we can access the webserver
 	#Please note, we make use of the implicit DNS roundrobin loadbalancing system with our webservers
-	name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
+	name="`/bin/echo ${website_url} | /usr/bin/awk -F'.' '{print $1}'`"
 
 	if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 	then 
-		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${WEBSITE_URL}" "${auth}"`"
+		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${website_url}" "${auth}"`"
 
 		if ( [ "${record}" = "primary" ] )
 		then
@@ -78,11 +78,11 @@ then
 			then
 				for recordid in ${recordids}
 				do
-					${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${WEBSITE_URL}" "${auth}"
+					${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${website_url}" "${auth}"
 				done
 			fi
 		fi
 	fi
 
-	${BUILD_HOME}/services/dns/AddRecord.sh "${WEBSITE_URL}" "${ip}" "${auth}"
+	${BUILD_HOME}/services/dns/AddRecord.sh "${website_url}" "${ip}" "${auth}"
 fi
