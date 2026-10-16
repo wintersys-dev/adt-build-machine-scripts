@@ -71,11 +71,13 @@ fi
 if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
 then
         server="zerossl"
+        backup_server="letsencrypt"
 fi
 
 if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
 then
         server="letsencrypt"
+        backup_server="zerossl"
 fi
 
 if ( [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] )
@@ -104,12 +106,12 @@ count="0"
 
 if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
 then
-        zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{$1=""}1' | /bin/sed 's/^ //g' | /bin/sed 's/ /./g'`"
+        zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2-`"
         zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
 
         if ( [ "${zone_id}" = "" ] )
         then
-                ${BUILD_HOME}/services/dns/CreateZone.sh "${WEBSITE_URL}"
+                ${BUILD_HOME}/services/dns/CreateZone.sh  "${WEBSITE_URL}"
         fi
 
         if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
@@ -124,7 +126,11 @@ then
                 export CF_Email="${DNS_USERNAME}"
         fi
 
-        ~/.acme.sh/acme.sh --issue --dns dns_cf -d "${WEBSITE_URL}" --server ${server} --standalone  --force  --always-force-new-domain-key
+        ~/.acme.sh/acme.sh --issue --dns dns_cf -d "${WEBSITE_URL}" --server ${server}  --standalone --force  --always-force-new-domain-key 
+        if ( [ "$?" != "0" ] )
+        then
+                ~/.acme.sh/acme.sh --issue --dns dns_cf -d "${WEBSITE_URL}" --server ${backup_server}  --standalone --force  --always-force-new-domain-key 
+        fi
 fi
 
 
@@ -135,7 +141,11 @@ then
                 /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/digitalocean.sh ~/.acme.sh/dnsapi/dns_dgon.sh
         fi
 
-        ~/.acme.sh/acme.sh --issue --dns dns_dgon -d "${WEBSITE_URL}" --server ${server} --standalone  --force  --always-force-new-domain-key
+        ~/.acme.sh/acme.sh --issue --dns dns_dgon -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
+        if ( [ "$?" != "0" ] )
+        then
+                ~/.acme.sh/acme.sh --issue --dns dns_dgon -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
+        fi
 fi
 
 if ( [ "${DNS_CHOICE}" = "exoscale" ] )
@@ -145,7 +155,11 @@ then
                 /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/exoscale.sh ~/.acme.sh/dnsapi/dns_exoscale.sh
         fi
 
-        ~/.acme.sh/acme.sh --issue --dns dns_exoscale -d "${WEBSITE_URL}" --server ${server} --standalone  --force  --always-force-new-domain-key
+        ~/.acme.sh/acme.sh --issue --dns dns_exoscale -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
+        if ( [ "$?" != "0" ] )
+        then
+                ~/.acme.sh/acme.sh --issue --dns dns_exoscale -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
+        fi
 
 fi
 
@@ -157,6 +171,10 @@ then
         fi
 
         ~/.acme.sh/acme.sh --issue --dns dns_linode_v4 -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
+        if ( [ "$?" != "0" ] )
+        then
+                ~/.acme.sh/acme.sh --issue --dns dns_linode_v4 -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
+        fi
 fi
 
 if ( [ "${DNS_CHOICE}" = "vultr" ] )
@@ -166,8 +184,11 @@ then
                 /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/vultr.sh ~/.acme.sh/dnsapi/dns_vultr.sh
         fi
 
-        ~/.acme.sh/acme.sh --issue --dns dns_vultr -d "${WEBSITE_URL}" --server ${server} --standalone
-
+        ~/.acme.sh/acme.sh --issue --dns dns_vultr -d "${WEBSITE_URL}" --server ${server} --standalone --always-force-new-domain-key
+        if ( [ "$?" != "0" ] )
+        then
+                ~/.acme.sh/acme.sh --issue --dns dns_vultr -d "${WEBSITE_URL}" --server ${backup_server} --standalone --always-force-new-domain-key
+        fi
 fi
 
 
