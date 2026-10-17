@@ -19,7 +19,14 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ###################################################################################
 ###################################################################################
-set -x
+#set -x
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
