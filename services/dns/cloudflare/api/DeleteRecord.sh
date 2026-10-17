@@ -2,7 +2,7 @@
 ######################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : Add a an IP address for the given domain name
+# Description :Delete a record from the DNS system given its id and its url
 ######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
