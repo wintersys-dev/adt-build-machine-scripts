@@ -19,9 +19,16 @@
 ################################################################################
 ################################################################################
 #set -x
+set -e
 
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
-sub_domain="`/bin/echo ${2} | /usr/bin/awk -F'.' '{print $1}'`"
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
@@ -31,5 +38,6 @@ curl -s "https://api.linode.com/v4/domains/${domain_id}/records" -H "Authorizati
 
 if ( [ "$?" != "0" ] )
 then
+        status "Failed to get all record IDs from the DNS system for root domain ${domain_url} and sub domain ${sub_domain}"
         exit 1
 fi
