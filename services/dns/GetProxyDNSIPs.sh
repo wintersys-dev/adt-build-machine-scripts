@@ -2,8 +2,7 @@
 ###################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# Description : This will get a list of IP addresses for the cloudflare proxy servers 
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
