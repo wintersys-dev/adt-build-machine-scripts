@@ -2,7 +2,8 @@
 ########################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This script will add a new DNS record to the DNS provider
+# Description : This script will delete a record from the DNS provider given
+# a record ID and a domain name
 #########################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -19,6 +20,13 @@
 ################################################################################
 ################################################################################
 #set -x
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 record_id="${2}"
 domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
@@ -31,5 +39,6 @@ curl -s -X DELETE -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/
 
 if ( [ "$?" != "0" ] )
 then
+        status "Failed to delete record from DNS system"
         exit 1
 fi
