@@ -42,4 +42,11 @@ export LINODE_CLI_CONFIG=${linode_config_file}
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
 /usr/local/bin/linode-cli domains records-list ${domain_id}  --name "${sub_domain}" --no-defaults --json | /usr/bin/jq -r '.[].id'
+
+if ( [ $? != "0" ] )
+then
+        status "Failed to get all record IDs for domain ${domain_id} and subdomain ${sub_domain}"
+        unset LINODE_CLI_CONFIG
+        exit  1
+fi
 unset LINODE_CLI_CONFIG
