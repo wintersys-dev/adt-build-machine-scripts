@@ -2,8 +2,7 @@
 ###################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# Description : This will get all the record ids for a domain given the domain url
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -19,7 +18,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ####################################################################################
 ####################################################################################
-set -x
+#set -x
 
 set -e
 
@@ -87,6 +86,6 @@ exit_code=$?
 
 if ( [ ${exit_code} -ne 0 ] )
 then
-        status "Error: CreateServer.sh failed with exit code $exit_code"
+        status "Error: GetAllRecordIDs.sh failed with exit code $exit_code"
         exit $exit_code
 fi
