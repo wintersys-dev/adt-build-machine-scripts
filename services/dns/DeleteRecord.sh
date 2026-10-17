@@ -2,8 +2,8 @@
 ###################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# Description : This will delete a record from the DNS system given a record id
+# and an website_url
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -29,19 +29,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-#if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] )
-#then
-#        status "Error: 6 arguments are required."
-#        status "Usage: $0 <zoneid> <record_id> <dns_username> <dns_security_key> <dns_choice> <website_url>"
-#        exit 1
-#fi
-
-#zone_id="${1}"
-#record_id="${2}"
-#dns_username="${3}"
-#dns_security_key="${4}"
-#dns_choice="${5}"
-#website_url="${6}"
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
@@ -49,7 +36,6 @@ then
         status "Usage: $0 <record_id> <website_url> <auth>"
         exit 1
 fi
-
 
 record_id="${1}"
 website_url="${2}"
