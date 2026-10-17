@@ -31,7 +31,7 @@ status () {
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
         status "Error: 3 arguments are required."
-        status "Usage: $0 <website_url> <ip> <auth> "
+        status "Usage: $0 <website_url> <ip> <auth>"
         exit 1
 fi
 
@@ -88,6 +88,6 @@ exit_code=$?
 
 if ( [ ${exit_code} -ne 0 ] )
 then
-        status "Error: CreateServer.sh failed with exit code $exit_code"
+        status "Error: AddRecord.sh failed with exit code $exit_code"
         exit $exit_code
 fi
