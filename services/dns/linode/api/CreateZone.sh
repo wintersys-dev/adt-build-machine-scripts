@@ -17,10 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ########################################################################################
-########################################################################################
 #set -x
-
 set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 
@@ -30,7 +34,6 @@ DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 
 domain_id="`curl -s -H "Authorization: Bearer $TOKEN"  https://api.linode.com/v4/domains | jq --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id'`"
 
-
 if ( [ "${domain_id}" = "" ] )
 then
         curl -s -X POST https://api.linode.com/v4/domains/ -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "type": "master", "domain": "'"${domain_url}"'", "soa_email": "'"${DNS_USERNAME}"'" }'
@@ -38,5 +41,6 @@ fi
 
 if ( [ $? != "0" ] )
 then
+        status "Fauled to create zone in the DNS system"
         exit  1
 fi
