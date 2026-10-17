@@ -19,6 +19,13 @@
 ################################################################################
 ################################################################################
 #set -x
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 sub_domain="`/bin/echo ${4} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${4} | /usr/bin/cut -d'.' -f2-`"
@@ -32,6 +39,7 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 
 if ( [ "$?" != "0" ] )
 then
+        status "Failed to add record to DNS system"
         exit 1
 fi
                 
