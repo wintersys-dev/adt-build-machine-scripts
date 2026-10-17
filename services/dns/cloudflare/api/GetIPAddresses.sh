@@ -1,11 +1,39 @@
+#!/bin/sh
+######################################################################################
+# Author : Peter Winter
+# Date   : 13/07/2016
+# Description : Get the ip addresses for a given website_url from the DNS system
+######################################################################################
+# License Agreement:
+# This file is part of The Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+#######################################################################################
+#######################################################################################
+#set -x
+
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
 website_url="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
-
 
 zone_name="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f2-`"
 zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
@@ -22,4 +50,10 @@ then
         /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"  -H "Authorization: Bearer ${api_token}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].content'
 else
         /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"  -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].content'
+fi
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to get IP addresses for domain ${website_url}"
+        exit 1
 fi
