@@ -49,7 +49,7 @@ then
 	orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/DeleteRecord.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh"
 
 if ( [ ! -f "${script_path}" ] )
 then
@@ -63,12 +63,12 @@ then
         exit 1
 fi
 
-"${script_path}" "${record_id}" "${website_url}"
+"${script_path}"
 
 exit_code=$?
 
 if ( [ ${exit_code} -ne 0 ] )
 then
-        status "Error: DeleteRecord.sh failed with exit code $exit_code"
+        status "Error: GetProxyDNSIPs.sh failed with exit code $exit_code"
         exit $exit_code
 fi
