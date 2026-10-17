@@ -33,13 +33,23 @@ then
         if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
         then
                 api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
-                /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones" --header "Authorization: Bearer ${api_token}" --header "Content-Type: application/json" --data '{"name":"'${zone_name}'"}' 
+                /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer ${api_token}" -H "Content-Type: application/json" --data '{"name":"'${zone_name}'"}' 
         else
                 /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" --data '{"name":"'${zone_name}'"}'
         fi
 
-        while ( [ "`curl -s -X GET ""https://api.cloudflare.com/client/v4/zones?name=${zone_name}""  -H "X-Auth-Email: ${DNS_USERNAME}"  -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r 'if (.result | length) > 0 then "true" else "false" end'`" = "false" ] )
+        max_wait="120"
+        sleep_interval="5"
+        elapse="0"
+        while ( [ "${elapse}" -lt "${max_wait}" ] && [ "`curl -s -X GET ""https://api.cloudflare.com/client/v4/zones?name=${zone_name}""  -H "X-Auth-Email: ${DNS_USERNAME}"  -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r 'if (.result | length) > 0 then "true" else "false" end'`" = "false" ] )
         do
-                /bin/sleep 5
+                /bin/sleep ${sleep_interval}
+                elapse="`/usr/bin/expr ${elapse} + ${sleep_interval}`"
         done
+
+        if ( [ "${elapse}" = "120" ] )
+        then
+                status "Failed to create zone in the DNS system"
+                exit 1
+        fi
 fi
