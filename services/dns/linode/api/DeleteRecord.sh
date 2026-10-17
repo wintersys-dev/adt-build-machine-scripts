@@ -28,8 +28,8 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-record_id="${2}"
-domain_url="`/bin/echo ${6} | /usr/bin/cut -d'.' -f2-`"
+record_id="${1}"
+domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
