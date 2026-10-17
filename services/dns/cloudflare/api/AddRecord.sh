@@ -2,8 +2,7 @@
 ######################################################################################
 # Author : Peter Winter
 # Date   : 13/07/2016
-# Description : This script will add a record using the api  to the DNS system given a 
-# website_url and an IP address
+# Description : Add a an IP address for the given domain name
 ######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -22,6 +21,12 @@
 #set -x
 
 set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
 
 website_url="${1}"
 ip="${2}"
@@ -47,4 +52,10 @@ then
 else
         auth_key="${DNS_SECURITY_KEY}"
         /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${auth_key}" -H "Content-Type: application/json" --data '{"type":"A","name":"'${website_url}'","content":"'${ip}'","proxiable":true,"proxied":'true',"ttl":120}'
+fi
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to Add record to for url ${website_url} with ip address ${ip} to the DNS system"
+        exit 1
 fi
