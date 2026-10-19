@@ -72,9 +72,9 @@ fi
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "auth"`"
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "yes"`"
 else
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh`"
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "no"`"
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
