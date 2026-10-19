@@ -65,26 +65,29 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh"
-
-if ( [ ! -f "${script_path}" ] )
+if ( [ -f ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh ] )
 then
-        status "Error: Script not found at ${script_path}" 
-        exit 1
-fi
+        script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh"
 
-if ( [ ! -x "${script_path}" ] )
-then
-        status "Error: Script at ${script_path} is not executable." 
-        exit 1
-fi
+        if ( [ ! -f "${script_path}" ] )
+        then
+                status "Error: Script not found at ${script_path}" 
+                exit 1
+        fi
 
-"${script_path}"
+        if ( [ ! -x "${script_path}" ] )
+        then
+                status "Error: Script at ${script_path} is not executable." 
+                exit 1
+        fi
 
-exit_code=$?
+        "${script_path}"
 
-if ( [ ${exit_code} -ne 0 ] )
-then
-        status "Error: GetProxyDNSIPs.sh failed with exit code $exit_code"
-        exit $exit_code
+        exit_code=$?
+
+        if ( [ ${exit_code} -ne 0 ] )
+        then
+                status "Error: GetProxyDNSIPs.sh failed with exit code $exit_code"
+                exit $exit_code
+        fi
 fi
