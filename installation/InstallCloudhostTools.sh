@@ -43,9 +43,9 @@ if ( [ "${cloudhost}" = "exoscale" ] )
 then
 	status "Installing/Updating Exoscale cloudhost cli tool (exo)"
 	${BUILD_HOME}/installation/InstallExo.sh "${buildos}"
-fi
+fi 
 
-if ( [ "${cloudhost}" = "linode" ] && [ "`${BUILD_HOME}/utilities/config/ExtractBuildStyleValues.sh "ORCHESTRATION_TOOL" | /usr/bin/awk -F':' '{print $NF}'`" = "cli" ] )
+if ( [ "${cloudhost}" = "linode" ] && [ "`/bin/grep "^ORCHESTRATION_TOOL:cli*" ${BUILD_HOME}/configuration/software.dat`" != "" ] )
 then
 	status "Installing/Updating Linode cloudhost cli tool (linode-cli)"
 	${BUILD_HOME}/installation/InstallLinodeCLI.sh "${buildos}"
