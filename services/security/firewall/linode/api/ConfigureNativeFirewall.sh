@@ -246,7 +246,6 @@ fi
 
 ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
 ruleset='['${ruleset}']'
-#firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 firewall_id="`curl -H "Authorization: Bearer $TOKEN" 'https://api.linode.com/v4/networking/firewalls' | jq -r '.data[] | select(.label | contains("'${firewall_name}'")) | select(.label | endswith("'-${BUILD_IDENTIFIER}'")).id'`"
@@ -254,13 +253,9 @@ firewall_id="`curl -H "Authorization: Bearer $TOKEN" 'https://api.linode.com/v4/
 if ( [ "${firewall_id}" = "" ] )
 then
         firewall_id="`curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"label": "'${firewall_name}-${BUILD_IDENTIFIER}'", "rules": {"inbound_policy": "DROP", "outbound_policy": "ACCEPT"}}' 'https://api.linode.com/v4/networking/firewalls' | jq -r '.id'`"
-      #  firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
 else
-       # /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
         curl -X PUT -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"inbound": [], "outbound": [], "inbound_policy": "DROP", "outbound_policy": "ACCEPT"}' 'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
 fi
-
-#/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
 
 curl -X PUT -H 'Content-Type: application/json'  -H "Authorization: Bearer $TOKEN" -d '{"inbound": '"${ruleset}"'}'  'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
 
