@@ -22,6 +22,7 @@
 #######################################################################################################
 #######################################################################################################
 set -x
+set -e
 
 linode_firewall_rules ()
 {
@@ -82,11 +83,7 @@ then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-
-      #  if ( [ "${all_dns_proxy_ips}" = "" ] )
-      #  then
-       #         rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-        #else                 
+                
         if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
         then
                 rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
@@ -122,10 +119,6 @@ then
                 secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
                 rule_wireguard='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
         else
-             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
-             #   then
-             #           rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-             #   else
                 if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
@@ -155,16 +148,10 @@ then
 
         if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
-             #   if ( [ "${all_dns_proxy_ips}" = "" ] )
-             #   then
-             #           rule_ssl='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-             #   else
                 if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
                 fi
-                #        rule_ssl='{"addresses":{"ipv4":["'${all_dns_proxy_ips}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
-                #fi
         fi
 
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
@@ -180,7 +167,6 @@ then
                 fi
         fi
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-
 fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
@@ -195,7 +181,6 @@ then
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         fi
-
 fi
 
 ruleset=""
@@ -246,23 +231,16 @@ fi
 
 ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
 ruleset='['${ruleset}']'
-#firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
-
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
-firewall_id="`curl -H "Authorization: Bearer $TOKEN" 'https://api.linode.com/v4/networking/firewalls' | jq -r '.data[] | select(.label | contains("'${firewall_name}'")) | select(.label | endswith("'-${BUILD_IDENTIFIER}'")).id'`"
+firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
 
 if ( [ "${firewall_id}" = "" ] )
 then
-        firewall_id="`curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"label": "'${firewall_name}-${BUILD_IDENTIFIER}'", "rules": {"inbound_policy": "DROP", "outbound_policy": "ACCEPT"}}' 'https://api.linode.com/v4/networking/firewalls' | jq -r '.id'`"
-      #  firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
+        firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
 else
-       # /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
-        curl -X PUT -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"inbound": [], "outbound": [], "inbound_policy": "DROP", "outbound_policy": "ACCEPT"}' 'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
+        /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
 fi
 
-#/usr/local/bin/linode-cli firewalls rules-update  --inbound ${ruleset} ${firewall_id}
-
-curl -X PUT -H 'Content-Type: application/json'  -H "Authorization: Bearer $TOKEN" -d '{"inbound": '"${ruleset}"'}'  'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
+/usr/local/bin/linode-cli firewalls rules-update --inbound ${ruleset} ${firewall_id}
 
 if ( [ "$?" = "0" ] )
 then
