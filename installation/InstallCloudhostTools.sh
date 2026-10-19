@@ -45,7 +45,7 @@ then
 	${BUILD_HOME}/installation/InstallExo.sh "${buildos}"
 fi
 
-if ( [ "${cloudhost}" = "linode" ] )
+if ( [ "${cloudhost}" = "linode" ] && [ "`${BUILD_HOME}/utilities/config/ExtractBuildStyleValues.sh "ORCHESTRATION_TOOL" | /usr/bin/awk -F':' '{print $NF}'`" = "cli" ] )
 then
 	status "Installing/Updating Linode cloudhost cli tool (linode-cli)"
 	${BUILD_HOME}/installation/InstallLinodeCLI.sh "${buildos}"
