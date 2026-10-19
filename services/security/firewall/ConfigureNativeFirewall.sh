@@ -23,6 +23,21 @@
 #######################################################################################################
 #set -x
 
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+if ( [ "${1}" = "" ] )
+then
+        status "Error: 1 argument is required."
+        status "Usage: $0 <firewall_name>"
+        exit 1
+fi
+
 firewall_name="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
@@ -32,30 +47,45 @@ CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 
 if ( [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ] )
 then
-	if ( [ "${CLOUDHOST}" = "digitalocean" ] )
+
+	software_file="${BUILD_HOME}/configuration/software.dat"
+	if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 	then
-		/bin/echo "`${BUILD_HOME}/services/security/firewall/digitalocean/ConfigureNativeFirewall.sh ${firewall_name}`"
-	elif ( [ "${CLOUDHOST}" = "exoscale" ] )
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+	fi
+	
+	orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+
+	if ( [ "${orchestration_tool}" = "" ] )
 	then
-		/bin/echo "`${BUILD_HOME}/services/security/firewall/exoscale/ConfigureNativeFirewall.sh ${firewall_name}`"
-	elif ( [ "${CLOUDHOST}" = "linode" ] )
+        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        exit 1
+	fi
+
+	script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ConfigureNativeFirewall.sh"
+
+	if ( [ ! -f "${script_path}" ] )
 	then
-		/bin/echo "`${BUILD_HOME}/services/security/firewall/linode/ConfigureNativeFirewall.sh ${firewall_name}`"
-	elif ( [ "${CLOUDHOST}" = "vultr" ] )
+        status "Error: Script not found at ${script_path}" 
+        exit 1
+	fi
+
+	if ( [ ! -x "${script_path}" ] )
 	then
-		/bin/echo "`${BUILD_HOME}/services/security/firewall/vultr/ConfigureNativeFirewall.sh ${firewall_name}`"
+        status "Error: Script at ${script_path} is not executable." 
+        exit 1
+	fi
+
+	/bin/echo "`${script_path} ${firewall_name}`"  
+
+	exit_code=$?
+
+	if ( [ ${exit_code} -ne 0 ] )
+	then
+        status "Error: GetAllRecordIDs.sh failed with exit code $exit_code"
+        exit $exit_code
 	fi
 fi
-    
 
 
-
-
-
-
-
-
-
-
-
-            
