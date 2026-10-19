@@ -33,9 +33,9 @@ ip="${2}"
 
 linode_config_file="/root/.config/dns-linode-cli"
 
-if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
+if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli  ] )
 then
-        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
+        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
 fi
 
 #Make damn sure that the DNS record gets added to the DNS system                        
