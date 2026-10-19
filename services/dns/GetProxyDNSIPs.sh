@@ -19,7 +19,6 @@
 ####################################################################################
 ####################################################################################
 #set -x
-
 set -e
 
 status () {
@@ -27,6 +26,23 @@ status () {
         script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
+
+if ( [ "${1}" = "" ] )
+then
+        status "Error: 1 argument is required."
+        status "Usage: $0 <auth>"
+        exit 1
+fi
+
+auth="${1}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+
+if ( [ "${auth}" = "yes" ] )
+then
+        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+fi
 
 
 software_file="${BUILD_HOME}/configuration/software.dat"
@@ -46,7 +62,7 @@ fi
 
 if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
 then
-	orchestration_tool="api"
+        orchestration_tool="api"
 fi
 
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh"
