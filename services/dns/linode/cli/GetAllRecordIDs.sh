@@ -33,9 +33,9 @@ sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 
 linode_config_file="/root/.config/dns-linode-cli"
 
-if ( [ -f /root/snap/linode-cli/current/.config/linode-cli ] )
+if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
 then
-        linode_config_file="/root/snap/linode-cli/current/.config/linode-cli"
+        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
 fi
 
 export LINODE_CLI_CONFIG=${linode_config_file}
