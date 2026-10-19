@@ -24,8 +24,7 @@
 set -x
 set -e
 
-linode_firewall_rules ()
-{
+linode_firewall_rules () {
         firewall_name="${1}"
         firewall_ports="${2}"
         firewall_rules=""
@@ -45,6 +44,19 @@ linode_firewall_rules ()
         /bin/echo "${firewall_rules}"
 }
 
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+if ( [ "${1}" = "" ] )
+then
+        status "Error: 1 argument is required."
+        status "Usage: $0 <firewall_name>"
+        exit 1
+fi
+
 firewall_name="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
@@ -60,7 +72,6 @@ REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
 AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
 build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
-
 
 if ( [ -f ${BUILD_HOME}/configuration/firewall.dat ] )
 then
@@ -232,15 +243,35 @@ fi
 ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
 ruleset='['${ruleset}']'
 firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
+if ( [ "$?" != "0" ] )
+then
+        status "Unable to list firewalls"
+        exit 1
+fi
 
 if ( [ "${firewall_id}" = "" ] )
 then
         firewall_id="`/usr/local/bin/linode-cli firewalls create --json --label "${firewall_name}-${BUILD_IDENTIFIER}" --rules.inbound_policy DROP   --rules.outbound_policy ACCEPT | /usr/bin/jq -r '.[].id'`"
+        if ( [ "$?" != "0" ] )
+        then
+                status "Unable to create firewall"
+                exit 1
+        fi   
 else
         /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
+        if ( [ "$?" != "0" ] )
+        then
+                status "Unable to update firewall rules"
+                exit 1
+        fi   
 fi
 
 /usr/local/bin/linode-cli firewalls rules-update --inbound ${ruleset} ${firewall_id}
+if ( [ "$?" != "0" ] )
+then
+        status "Unable to update firewall rules"
+        exit 1
+fi  
 
 if ( [ "$?" = "0" ] )
 then
