@@ -83,7 +83,7 @@ then
 
 	if ( [ ${exit_code} -ne 0 ] )
 	then
-        status "Error: GetAllRecordIDs.sh failed with exit code $exit_code"
+        status "Error: ConfigureNativeFirewall.sh failed with exit code $exit_code"
         exit $exit_code
 	fi
 fi
