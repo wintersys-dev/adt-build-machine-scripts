@@ -40,11 +40,6 @@ DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURI
 
 if ( [ "${CLOUDHOST}" = "digitalocean" ] )
 then
-	if ( [ -f ${BUILD_HOME}/.config/doctl/config.yaml ] )
-	then
-		/bin/rm ${BUILD_HOME}/.config/doctl/config.yaml
-	fi
-
 	status "Configuring Digital Ocean CLI tool"
 
 	if ( [ ! -d ${BUILD_HOME}/.config/doctl ] )
@@ -52,8 +47,11 @@ then
 		/bin/mkdir -p ${BUILD_HOME}/.config/doctl
 	fi
 
-	/bin/cp ${BUILD_HOME}/initialisation/digitalocean/configfiles/digitalocean.tmpl ${BUILD_HOME}/.config/doctl/config.yaml
-
+	if ( [ -f ${BUILD_HOME}/initialisation/digitalocean/configfiles/digitalocean.tmpl ] )
+	then
+		/bin/cp ${BUILD_HOME}/initialisation/digitalocean/configfiles/digitalocean.tmpl ${BUILD_HOME}/.config/doctl/config.yaml
+	fi
+	
 	if ( [ "${TOKEN}" != "" ] )
 	then
 		/bin/sed -i "s/XXXXTOKENXXXX/${TOKEN}/" ${BUILD_HOME}/.config/doctl/config.yaml
@@ -98,15 +96,13 @@ fi
 
 if ( [ "${CLOUDHOST}" = "exoscale" ] )
 then
-	if ( [ -f ${BUILD_HOME}/.exoscale.toml ] )
-	then
-		/bin/rm ${BUILD_HOME}/.exoscale.toml
-	fi
-
 	status "Configuring Exoscale CLI tool"
 
-	/bin/cp ${BUILD_HOME}/initialisation/exoscale/configfiles/exoscale.tmpl  ${BUILD_HOME}/.exoscale.toml
-
+	if ( [ -f ${BUILD_HOME}/initialisation/exoscale/configfiles/exoscale.tmpl ] )
+	then
+		/bin/cp ${BUILD_HOME}/initialisation/exoscale/configfiles/exoscale.tmpl  ${BUILD_HOME}/.exoscale.toml
+	fi
+	
 	if ( [ "${CLOUDHOST_ACCOUNT_ID}" != "" ] )
 	then
 		/bin/sed -i "s/XXXXCLOUDEMAILADDRESSXXXX/${CLOUDHOST_ACCOUNT_ID}/" ${BUILD_HOME}/.exoscale.toml
@@ -175,17 +171,15 @@ then
 	fi 
 fi
 
-if ( [ "${CLOUDHOST}" = "linode" ] )
+if ( [ "${CLOUDHOST}" = "linode" ] && [ "`${BUILD_HOME}/utilities/config/ExtractBuildStyleValues.sh "ORCHESTRATION_TOOL" | /usr/bin/awk -F':' '{print $NF}'`" = "cli" ] )
 then
-	if ( [ -f ${BUILD_HOME}/.linode-cli ] )
-	then
-		/bin/rm ${BUILD_HOME}/.linode-cli
-	fi
-
 	status "Configuring Linode CLI tool"
 
-	/bin/cp ${BUILD_HOME}/initialisation/linode/configfiles/linode-cli.tmpl  ${BUILD_HOME}/.linode-cli
-
+	if ( [ -f ${BUILD_HOME}/initialisation/linode/configfiles/linode-cli.tmpl ] )
+	then
+		/bin/cp ${BUILD_HOME}/initialisation/linode/configfiles/linode-cli.tmpl  ${BUILD_HOME}/.linode-cli
+	fi
+	
 	if ( [ "${CLOUDHOST_ACCOUNT_ID}" != "" ] )
 	then
 		/bin/sed -i "s/XXXXLINODEACCOUNTUSERNAMEXXXX/${CLOUDHOST_ACCOUNT_ID}/" ${BUILD_HOME}/.linode-cli
