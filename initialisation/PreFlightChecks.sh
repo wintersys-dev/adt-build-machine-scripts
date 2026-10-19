@@ -32,14 +32,14 @@ REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 
 authorised="no"
-machine_types="as-${REGION}-${BUILD_IDENTIFIER} ws--${REGION}-${BUILD_IDENTIFIER} db--${REGION}-${BUILD_IDENTIFIER}"
+machine_types="as-${REGION}-${BUILD_IDENTIFIER} ws-${REGION}-${BUILD_IDENTIFIER} db-${REGION}-${BUILD_IDENTIFIER}"
 
 for machine_type in ${machine_types}
 do
 	authorised="no"
 	while ( [ "${authorised}" = "no" ] )
 	do
-		if (    [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}" ${CLOUDHOST} 2> /dev/null`" != "" ] )
+		if (    [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}"`" != "" ] )
 		then
 			status "#####################################################################################"
 			status "It seems like there is an ${machine_type} already running please close it down and rebuild"
