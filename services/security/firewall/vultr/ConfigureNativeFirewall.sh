@@ -71,9 +71,9 @@ fi
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "auth"`"
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "yes"`"
 else
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh`"
+        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "no"`"
 fi
 
 firewall_id="`/usr/bin/vultr firewall group list -o json | /usr/bin/jq -r '.firewall_groups[] | select (.description == "'${firewall_name}'-'${BUILD_IDENTIFIER}'").id'`"
