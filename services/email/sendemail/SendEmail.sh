@@ -32,11 +32,13 @@ subject="$1"
 message="$2"
 to_address="$3"
 
-EMAIL_PROVIDER="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILPROVIDER'`"
-FROM_ADDRESS="`${HOME}/utilities/config/ExtractConfigValue.sh 'SYSTEMFROMEMAILADDRESS'`"
-TO_ADDRESS="`${HOME}/utilities/config/ExtractConfigValue.sh 'SYSTEMTOEMAILADDRESS'`"
-USERNAME="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILUSERNAME'`"
-PASSWORD="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILPASSWORD'`"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PROVIDER`"
+FROM_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROMEMAIL_ADDRESS`"
+TO_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TOEMAIL_ADDRESS`"
+USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_USERNAME`"
+PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PASSWORD`"
 
 if ( [ "${to_address}" != "system" ] )
 then
@@ -60,7 +62,7 @@ fi
 
 if ( [ "$?" != "0" ] )
 then
-	/bin/echo "Failed to send email"
-	exit 1
+        /bin/echo "Failed to send email"
+        exit 1
 fi
 	
