@@ -171,7 +171,7 @@ then
 	fi 
 fi
 
-if ( [ "${CLOUDHOST}" = "linode" ] && [ "`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' ${BUILD_HOME}/configuration/software.dat"`" = "cli" ] )
+if ( [ "${CLOUDHOST}" = "linode" ] && [ "`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${BUILD_HOME}/configuration/software.dat"`" = "cli" ] )
 then
 	status "Configuring Linode CLI tool"
 
