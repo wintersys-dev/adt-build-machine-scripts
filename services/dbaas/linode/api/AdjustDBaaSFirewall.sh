@@ -39,7 +39,7 @@ then
     status "Failed to get the database id"
     exit 1
   fi
-  curl -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
+  curl -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
   if ( [ "$?" != "0" ] )
   then
     status "Failed to set allowed ip addresses for DBaaS"
