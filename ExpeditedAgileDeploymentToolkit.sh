@@ -426,11 +426,11 @@ then
 	then
 		${BUILD_HOME}/application/CheckForAssetsOverwrite.sh
 	fi        
-	status ""
-	status "#############################################################"
-	status "Initialising assets datastore, this may or may not take a while"
-	status "#############################################################"
-	${BUILD_HOME}/initialisation/InitialiseAssetDatastore.sh
+#	status ""
+#	status "#############################################################"
+#	status "Initialising assets datastore, this may or may not take a while"
+#	status "#############################################################"
+#	${BUILD_HOME}/initialisation/InitialiseAssetDatastore.sh
 fi
 
 if (  [ "${BUILD_FROM_SNAPSHOT}" != "1" ] )
