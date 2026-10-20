@@ -147,7 +147,7 @@ ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformListFromDat
 
 if ( [ "$?" != "0" ] )
 then
-        status "PerformGetFromDatastore.sh returned an error code"
+        status "PerformListFromDatastore.sh returned an error code"
         exit 1
 fi
 
