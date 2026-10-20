@@ -40,9 +40,9 @@ count="${2}"
 
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
 
-if ( [ "`/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} ls s3://${datastore_to_mount} 2>/dev/null`" = "" ] )
+if ( [ "`/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} ls s3://${datastore_to_mount}  2>&1 >/dev/null`" = "" ] )
 then
-  /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} mb s3://${datastore_to_mount}
+  /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} mb s3://${datastore_to_mount}  2>&1 >/dev/null
   if ( [ "$?" != "0" ] )
   then
     status "Failed to mount bucket s3://${datastore_to_mount}"
