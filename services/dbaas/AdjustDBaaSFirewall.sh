@@ -45,52 +45,10 @@ VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 
 if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 then
-        if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
-        then    
-                database_details="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/sed 's/^.*DBAAS://g'`"
-                database_region="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $2}'`"
-        f
 
-
-        if ( [ "${CLOUDHOST}" = "exoscale" ] && [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] )
-        then
-                database_type="`/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}'`"
-                if ( [ "${database_type}" = "Postgres" ] )
-                then
-                        status "Adjusting the firewall on your postgres database for your webserver with following IPs: 0.0.0.0/0"    
-                        /usr/bin/yes | /usr/bin/exo dbaas update --zone ${database-region} ${DB_NAME} --pg-ip-filter="0.0.0.0/0"
-                elif ( [ "${database_type}" = "MySQL" ] )
-                then
-                        status "Adjusting the firewall on your mysql database for your webserver with following IPs: 0.0.0.0/0"    
-                        /usr/bin/yes | /usr/bin/exo dbaas update --zone ${database_region} ${DB_NAME} --mysql-ip-filter="0.0.0.0/0"
-                fi
-        fi
-
-        if ( [ "${CLOUDHOST}" = "linode" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
-        then
-
-                database_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}'`"
-                label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
-
-                if ( [ "${database_type}" = "MySQL" ] )
-                then
-                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
-                        /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list ${VPC_IP_RANGE} --no-defaults
-                elif ( [ "${database_type}" = "Postgres" ] )
-                then
-                        database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
-                        /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list ${VPC_IP_RANGE} --no-defaults 
-                fi
-        fi
-
-        if ( [ "${CLOUDHOST}" = "vultr" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
-        then
-                dbaas="${DATABASE_DBaaS_INSTALLATION_TYPE}"
-                cluster_name="`/bin/echo ${dbaas} | /usr/bin/awk '{print $8}'`"
-                cluster_id="`/usr/local/bin/doctl database list -o json | /usr/bin/jq -r '.[] | select (.name == "'${cluster_name}'").id'`"
-
-                /usr/bin/vultr database update ${cluster_id} --trusted-ips="${VPC_IP_RANGE}"
-        fi
+ if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
+ then
+        ${BUILD_HOME}/services/dbaas/${CLOUDHOST}/cli/AdjustDBaaSFirewall.sh
 fi
 
 
