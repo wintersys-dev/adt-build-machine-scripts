@@ -43,7 +43,7 @@ host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /usr
 
 if ( [ "`/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} ls s3:`" = "" ] )
 then
-  /usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} mkdir s3:/${datastore_to_mount}
+  /usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} mkdir s3:/${datastore_to_mount} 2>&1 >/dev/null
   if ( [ "$?" != "0" ] )
   then
     status "Failed to mount bucket s3://${datastore_to_mount}"
