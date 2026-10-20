@@ -28,7 +28,7 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] [ "${3}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
         status "Error: 3 arguments are required."
         status "Usage: $0 <original_object> <new_object> <count>"
