@@ -24,47 +24,12 @@ original_object="$1"
 new_object="$2"
 count="$3"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-datastore_tool=""
-if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd`" != "" ] )
-then
-        datastore_tool="/usr/bin/s3cmd"
-elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd`" != "" ] )
-then
-        datastore_tool="/usr/bin/s5cmd"
-elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone`" != "" ] )
-then
-        datastore_tool="/usr/bin/rclone"
-fi
+host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
+/usr/bin/s3cmd --config=/root/.s3cfg-${count} --host=https://${host_base} mv s3://${original_object} s3://${new_object}
 
-if ( [ "${datastore_tool}" = "/usr/bin/s3cmd" ] )
+if ( [ "$?" != "0" ] )
 then
-        host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-        datastore_cmd="${datastore_tool} --config=/root/.s3cfg-${count} --host=https://${host_base} ls s3://"
-        datastore_cmd1="${datastore_tool} --config=/root/.s3cfg-${count} --host=https://${host_base} mv s3://"
-        second_prefix="s3://"
-elif ( [ "${datastore_tool}" = "/usr/bin/s5cmd" ] )
-then
-        host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-        datastore_cmd="${datastore_tool} --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} ls s3://"
-        datastore_cmd1="${datastore_tool} --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} mv s3://"
-        second_prefix="s3://"
-elif ( [ "${datastore_tool}" = "/usr/bin/rclone" ] )
-then
-        host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-        datastore_cmd="${datastore_tool} --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} ls s3:"
-        datastore_cmd1="${datastore_tool} --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} moveto s3:"
-        second_prefix="s3:"
-fi
-
-if ( [ "`${datastore_cmd}${original_object}`" != "" ] )
-then
-        count="0"
-        while ( [ "`${datastore_cmd1}${original_object} ${second_prefix}${new_object} 2>&1 >/dev/null | /bin/grep -E "(ERROR|NOTICE)"`" != "" ] && [ "${count}" -lt "5" ] )
-        do
-                /bin/echo "An error has occured `/usr/bin/expr ${count} + 1` times in script ${0}"
-                /bin/sleep 5
-                count="`/usr/bin/expr ${count} + 1`"
-        done
+        status "Failed to move object ${original_object} to object ${new_object}"
+        exit 1
 fi
