@@ -64,7 +64,7 @@ fi
 
 place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put} s3://${place_to_put}
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put} s3://${place_to_put}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
