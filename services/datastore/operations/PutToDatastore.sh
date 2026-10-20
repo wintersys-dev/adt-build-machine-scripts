@@ -151,6 +151,8 @@ else
         active_bucket="${bucket_type}"
 fi
 
+datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}'`"
+
 no_tokens="`/bin/echo "${S3_ACCESS_KEY}" | /usr/bin/fgrep -o '|' | /usr/bin/wc -l`"
 no_tokens="`/usr/bin/expr ${no_tokens} + 1`"
 
@@ -158,12 +160,12 @@ count="1"
 
 if ( [ "${mode}" = "local" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/PerformPutToDatastore.sh ${file_to_put} ${active_bucket}/${place_to_put} ${delete} ${count}
+        ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformPutToDatastore.sh ${file_to_put} ${active_bucket}/${place_to_put} ${delete} ${count}
 elif ( [ "${mode}" = "distributed" ] )
 then
         while ( [ "${count}" -le "${no_tokens}" ] )
         do
-                ${BUILD_HOME}/services/datastore/operations/PerformPutToDatastore.sh ${file_to_put} ${active_bucket}/${place_to_put} ${delete} ${count}
+                ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformPutToDatastore.sh ${file_to_put} ${active_bucket}/${place_to_put} ${delete} ${count}
                 count="`/usr/bin/expr ${count} + 1`"
         done
 fi
