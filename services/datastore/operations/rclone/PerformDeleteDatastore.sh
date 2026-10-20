@@ -40,3 +40,8 @@ count="${2}"
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /bin/grep "^endpoint" | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
 /usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} purge s3:${datastore_to_delete}
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete datastore"
+        exit 1
+fi
