@@ -39,12 +39,26 @@ PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGI
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
 
+orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+
+if ( [ "${orchestration_tool}" = "" ] )
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        exit 1
+fi
+
+if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+then
+        orchestration_tool="api"
+fi
+
 if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 then
+        if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
+        then
+                ${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/AdjustDBaaSFirewall.sh
 
- if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
- then
-        ${BUILD_HOME}/services/dbaas/${CLOUDHOST}/cli/AdjustDBaaSFirewall.sh
+        fi
 fi
 
 
