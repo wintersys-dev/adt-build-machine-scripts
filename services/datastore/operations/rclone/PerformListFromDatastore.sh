@@ -24,8 +24,8 @@ if ( [ "${file_to_list}" != "" ] )
 then
         include='--include "*'${file_to_list}*'"'
 fi
-
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ${include} ls s3:${file_to_list}
+ 
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ${include} ls s3:${file_to_list}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
