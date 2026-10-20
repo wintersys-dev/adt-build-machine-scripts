@@ -49,3 +49,9 @@ then
 fi
 
 /usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} ${include} delete s3:${file_to_delete}
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete file ${file_to_delete} from datastore"
+        exit 1
+fi
