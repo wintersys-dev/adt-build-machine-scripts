@@ -48,7 +48,7 @@ then
   file_to_delete="`/bin/echo ${file_to_delete} | /usr/bin/cut -d'/' -f1`"
 fi
 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} ${include} delete s3:${file_to_delete}
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} ${include} delete s3:${file_to_delete}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
