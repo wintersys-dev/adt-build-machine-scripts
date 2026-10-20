@@ -21,8 +21,6 @@
 #set -x
 set -e
 
-HOME="`/bin/cat /home/homedir.dat`"
-
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
         status "Error: Minimum of 3 arguments required."
@@ -35,13 +33,16 @@ message="$2"
 to_address="$3"
 content_type="$4"
 
-EMAIL_PROVIDER="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILPROVIDER'`"
-FROM_ADDRESS="`${HOME}/utilities/config/ExtractConfigValue.sh 'SYSTEMFROMEMAILADDRESS'`"
-FROM_NAME="`${HOME}/utilities/config/ExtractConfigValue.sh 'WEBSITEDISPLAYNAME | /usr/bin/sed 's/_//g''`"
-TO_ADDRESS="`${HOME}/utilities/config/ExtractConfigValue.sh 'SYSTEMTOEMAILADDRESS'`"
-USERNAME="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILUSERNAME'`"
-PASSWORD="`${HOME}/utilities/config/ExtractConfigValue.sh 'EMAILPASSWORD'`"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
+EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PROVIDER`"
+FROM_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
+TO_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
+FROM_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_DISPLAY_NAME | /usr/bin/sed 's/_//g'`"
+USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_USERNAME`"
+PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PASSWORD`"
+CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
+BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 
 if ( [ "${to_address}" != "system" ] )
 then
@@ -53,7 +54,7 @@ then
         content_type=""
 fi
 
-if ( [ ! -f ${HOME}/runtime/SSMTP_INITIALISED ] )
+if ( [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/SSMTP_INITIALISED ] )
 then
         if ( [ "${EMAIL_PROVIDER}" = "1" ] )
         then
@@ -72,7 +73,7 @@ then
         /bin/echo "AuthPass=${PASSWORD}" >> /etc/ssmtp/ssmtp.conf
         /bin/echo "FromLineOverride=YES" >> /etc/ssmtp/ssmtp.conf
         /bin/echo "UseSTARTTLS=YES" >> /etc/ssmtp/ssmtp.conf
-        /bin/touch ${HOME}/runtime/SSMTP_INITIALISED
+        /bin/touch ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/SSMTP_INITIALISED
 fi
 
 if ( [ "${content_type}" = "HTML" ] )
