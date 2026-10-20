@@ -147,6 +147,8 @@ then
         destination="."
 fi
 
+datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}'`"
+
 ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformGetFromDatastore.sh ${active_bucket}/${file_to_get} ${destination}
 
 if ( [ "$?" != "0" ] )
