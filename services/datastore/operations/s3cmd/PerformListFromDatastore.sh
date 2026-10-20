@@ -1,3 +1,23 @@
+#set -x
+
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+then
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <file_to_get> <destination>"
+        exit 1
+fi
+
+file_to_list="${1}"
+destination="${2}"
+
 datastore_tool=""
 
 if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd`" != "" ] )
