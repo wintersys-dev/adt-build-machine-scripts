@@ -23,6 +23,23 @@
 #########################################################################################
 set -x
 
+#set -x
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+
+if ( [ "${1}" = "" ] )
+then
+        status "Error: 1 argument is required and 1 optional argument"
+        status "Usage: $0 <bucket_type> <additional_specifier>"
+        exit 1
+fi
+
 bucket_type="${1}"
 additional_specifier="${2}"
 
