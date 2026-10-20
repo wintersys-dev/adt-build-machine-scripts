@@ -40,7 +40,7 @@ new_object="$2"
 count="$3"
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} moveto s3:${original_object} s3:${new_object}
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} moveto s3:${original_object} s3:${new_object}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
