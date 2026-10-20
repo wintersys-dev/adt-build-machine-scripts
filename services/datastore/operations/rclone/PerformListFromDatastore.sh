@@ -8,15 +8,14 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+if ( [ "${1}" = "" ] )
 then
-        status "Error: 2 arguments are required."
-        status "Usage: $0 <file_to_list> <destination>"
+        status "Error: 1 argument is required."
+        status "Usage: $0 <file_to_list>"
         exit 1
 fi
 
 file_to_list="${1}"
-destination="${2}"
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
 include=""
