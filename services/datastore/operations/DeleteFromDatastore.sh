@@ -154,11 +154,21 @@ count="1"
 if ( [ "${mode}" = "local" ] )
 then
         ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDeleteFromDatastore.sh ${active_bucket}/${file_to_delete} ${count}
+        if ( [ "$?" != "0" ] )
+        then
+                status "PerformDeleteFromDatastore.sh returned an error code"
+                exit 1
+        fi
 elif ( [ "${mode}" = "distributed" ] )
 then
         while ( [ "${count}" -le "${no_tokens}" ] )
         do
                 ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDeleteFromDatastore.sh ${active_bucket}/${file_to_delete} ${count}
+                if ( [ "$?" != "0" ] )
+                then
+                        status "PerformDeleteFromDatastore.sh returned an error code"
+                        exit 1
+                fi
                 count="`/usr/bin/expr ${count} + 1`"
         done
 fi
