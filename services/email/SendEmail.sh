@@ -41,7 +41,7 @@ subject="$1"
 message="$2"
 level="$3"
 to_address="$4"
-authentication="${6}"
+authentication="${5}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -51,7 +51,7 @@ then
         message="MESSAGE RELATED TO MACHINE WITH IP ADDRESS: ${ip_address}: ${message}"
 fi
 
-email_util="`/bin/grep "^EMAILUTIL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}`"
+email_util="`/bin/grep "^EMAILUTIL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
 if ( [ "${level}" != "MANDATORY" ] && [ "`${BUILD_HOME}/helpers/services/GetVariableValue.sh EMAIL_NOTIFICATION_LEVEL`" = "ERROR" ] && [ "${level}" != "ERROR" ] )
 then
