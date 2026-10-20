@@ -49,15 +49,7 @@ then
         then    
                 database_details="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/sed 's/^.*DBAAS://g'`"
                 database_region="`/bin/echo ${database_details} | /usr/bin/awk -F':' '{print $2}'`"
-        fi
-
-        if ( [ "${CLOUDHOST}" = "digitalocean" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
-        then
-                dbaas="${DATABASE_DBaaS_INSTALLATION_TYPE}"
-                cluster_name="`/bin/echo ${dbaas} | /usr/bin/awk -F':' '{print $8}'`"
-                cluster_id="`/usr/local/bin/doctl database list -o json | /usr/bin/jq -r '.[] | select (.name == "'${cluster_name}'").id'`"
-                /usr/local/bin/doctl databases firewalls replace ${cluster_id} --rule ip_addr:${VPC_IP_RANGE}
-        fi
+        f
 
 
         if ( [ "${CLOUDHOST}" = "exoscale" ] && [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] )
