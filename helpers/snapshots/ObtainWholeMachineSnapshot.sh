@@ -179,14 +179,25 @@ fi
 
 if ( [ "${CLOUDHOST}" = "linode" ] )
 then
-	machine_name="`/usr/local/bin/linode-cli linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${machine_id}').label'`"
-	disk_id="`/usr/local/bin/linode-cli linodes disks-list ${machine_id} --no-defaults --json | /usr/bin/jq -r '.[] | select (.filesystem == "ext4").id'`"
+        TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"       
+		
+		machine_name="`curl -s -H "Authorization: Bearer ${TOKEN}" "https://api.linode.com/v4/linode/instances" |  /usr/bin/jq -r --argjson machine_id "${machine_id}" '.data[] | select(.id == $machine_id).label'`"
 
-	/bin/echo "##############################################################################################"
-	/bin/echo "################MAKING A SNAPSHOT OF MACHINE: ${machine_label} #####################"
-	/bin/echo "##############################################################################################"
+        disk_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${machine_id}/disks" | /usr/bin/jq -r '.data[] | select(.filesystem == "ext4").id'`"
 
-	snapshot_id="`/usr/local/bin/linode-cli images create --disk_id ${disk_id} --label ${machine_name} --no-defaults --json | /usr/bin/jq -r '.[].id'`"
+        /bin/echo "##############################################################################################"
+        /bin/echo "################MAKING A SNAPSHOT OF MACHINE: ${machine_label} #####################"
+        /bin/echo "##############################################################################################"
+
+
+        snapshot_id="`curl -s -X POST "https://api.linode.com/v4/images" -H 'Authorization: Bearer '$TOKEN -H 'Content-Type: application/json' -d '{"disk_id": '"${disk_id}"', "label": "'"${machine_name}"'"}' | jq -r '.id'`"
+
+        /bin/echo "Waiting for snapshot to attain 'available' status"
+
+        while ( [ "`curl -s -X GET "https://api.linode.com/v4/images/${snapshot_id}" -H 'Authorization: Bearer '"${TOKEN}" | jq -r '.status'`" != "available" ] )
+        do
+                /bin/sleep 10
+        done
 fi
 
 if ( [ "${CLOUDHOST}" = "vultr" ] )
