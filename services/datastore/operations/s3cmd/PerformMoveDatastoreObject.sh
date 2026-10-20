@@ -40,7 +40,7 @@ new_object="$2"
 count="$3"
 
 host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s3cmd --config=/root/.s3cfg-${count} --host=https://${host_base} mv s3://${original_object} s3://${new_object}
+/usr/bin/s3cmd --config=/root/.s3cfg-${count} --host=https://${host_base} mv s3://${original_object} s3://${new_object}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
