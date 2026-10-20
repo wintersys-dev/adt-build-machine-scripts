@@ -18,7 +18,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################################
 ######################################################################################
-set -x
+#set -x
 set -e
 
 status () {
@@ -40,4 +40,15 @@ count="${2}"
 
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
 /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${datastore_to_delete}/*
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete contents of datastore"
+        exit 1
+fi
+
 /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rb s3://${datastore_to_delete}
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete datastore"
+        exit 1
+fi
