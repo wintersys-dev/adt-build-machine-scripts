@@ -21,6 +21,21 @@
 ######################################################################################
 ######################################################################################
 #set -x
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ]  || [ "${5}" = "" ] )
+then
+        status "Error: 5 arguments are required and 1 optional argument"
+        status "Usage: $0 <bucket_type> <file_to_put> <place_to_put> <mode> <delete> <additional_specifier>"
+        exit 1
+fi
 
 bucket_type="${1}"
 file_to_put="${2}"
