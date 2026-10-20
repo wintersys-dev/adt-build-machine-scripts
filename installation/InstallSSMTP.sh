@@ -1,6 +1,6 @@
 #!/bin/sh
 ######################################################################################################
-# Description: This script will install ssmtp
+# Description: This script will install sendemail
 # Author: Peter Winter
 # Date: 17/01/2017
 #######################################################################################################
@@ -22,7 +22,7 @@
 
 if ( [ "${1}" != "" ] )
 then
-	buildos="${1}"
+        buildos="${1}"
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -32,14 +32,16 @@ options=""
 tail_options=""
 if ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt" ] )
 then
-	manager="/usr/bin/apt"
+        manager="/usr/bin/apt"
+        options="-o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y"
 elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "apt-get" ] )
 then
-	manager="/usr/bin/apt-get"
+        manager="/usr/bin/apt-get"
+        options="-o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y"
 elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "nala" ] )
 then
-	manager="/usr/bin/nala"
-	tail_options="-y"
+        manager="/usr/bin/nala"
+        tail_options="-y"
 elif ( [ "`/bin/grep "^PACKAGEMANAGER:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "aptitude" ] )
 then
         manager="/usr/bin/aptitude"
@@ -47,19 +49,19 @@ then
 fi
 
 export DEBIAN_FRONTEND=noninteractive 
-install_command="${manager} -o DPkg::Lock::Timeout=-1 -o Dpkg::Use-Pty=0 -qq -y install " 
+install_command="${manager} ${options} install " 
 
-if ( [ "${apt}" != "" ] )
+if ( [ "${manager}" != "" ] )
 then
-	if ( [ "${buildos}" = "ubuntu" ] )
-	then
-			eval ${install_command} ssmtp ${tail_options}
-			eval ${install_command} mailutils ${tail_options}	
-	fi
+        if ( [ "${buildos}" = "ubuntu" ] )
+        then
+               eval ${install_command} ssmtp ${tail_options}
+               eval ${install_command} mailutils ${tail_options}
+        fi
 
-	if ( [ "${buildos}" = "debian" ] )
-	then
-			eval ${install_command} ssmtp ${tail_options}
-			eval ${install_command} mailutils ${tail_options}	
-	fi
+        if ( [ "${buildos}" = "debian" ] )
+        then
+               eval ${install_command} ssmtp ${tail_options}
+               eval ${install_command} mailutils ${tail_options}
+        fi
 fi
