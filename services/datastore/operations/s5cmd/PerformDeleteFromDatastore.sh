@@ -20,6 +20,25 @@
 ######################################################################################
 #set -x
 
+#set -x
+
+set -e
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+then
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <datastore_to_mount> <count>"
+        exit 1
+fi
+
+
 file_to_delete="${1}"
 count="${2}"
 
