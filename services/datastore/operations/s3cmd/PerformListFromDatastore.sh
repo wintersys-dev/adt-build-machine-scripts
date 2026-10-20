@@ -23,6 +23,6 @@ file_to_list="`/bin/echo ${file_to_list} | /bin/sed 's/\*.*//g'`"
         
 if ( [ "$?" != "0" ] )
 then
-        status "Failed to list file ${file_to_list} from datastore
+        status "Failed to list file ${file_to_list} from datastore"
         exit 1
 fi
