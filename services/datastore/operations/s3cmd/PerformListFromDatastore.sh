@@ -8,7 +8,7 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+if ( [ "${1}" = "" ] )
 then
         status "Error: 1 argument is required."
         status "Usage: $0 <file_to_list>"
