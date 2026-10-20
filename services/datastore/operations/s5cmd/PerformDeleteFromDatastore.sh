@@ -48,3 +48,9 @@ then
   wildcard="*"
 fi
 /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${file_to_delete}${wildcard}
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete file ${file_to_delete} from datastore"
+        exit 1
+fi
