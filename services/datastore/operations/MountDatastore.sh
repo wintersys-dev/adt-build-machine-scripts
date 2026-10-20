@@ -153,7 +153,7 @@ then
         active_bucket="${active_bucket}-${DNS_CHOICE}-snap"
 elif ( [ "${bucket_type}" = "ad-hoc" ] )
 then
-        active_bucket="1$$agile"
+        active_bucket="${additional_specifier}"
 else 
         active_bucket="${bucket_type}"
 fi
