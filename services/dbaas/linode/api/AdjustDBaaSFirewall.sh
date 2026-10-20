@@ -16,7 +16,8 @@ label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{pri
 
 if ( [ "${database_type}" = "MySQL" ] )
 then
-  database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+ # database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+  database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/mysql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
   if ( [ "$?" != "0" ] )
   then
     status "Failed to get the database id"
@@ -30,7 +31,9 @@ then
   fi
 elif ( [ "${database_type}" = "Postgres" ] )
 then    
-  database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
+  #database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
+  database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
+
   if ( [ "$?" != "0" ] )
   then
     status "Failed to get the database id"
