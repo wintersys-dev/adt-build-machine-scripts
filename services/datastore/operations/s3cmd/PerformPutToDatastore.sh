@@ -66,6 +66,11 @@ place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
 host_base="`/bin/grep ^host_base /root/.s3cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
 /usr/bin/s3cmd --config=/root/.s3cfg-${count}  --host=https://${host_base} put ${file_to_put} s3://${place_to_put}
 
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to put ${file_to_put} to s3://${place_to_put}"
+        exit 1
+fi
 
 if ( [ "${delete}" = "yes" ] )
 then
