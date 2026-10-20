@@ -33,11 +33,20 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+
+if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
