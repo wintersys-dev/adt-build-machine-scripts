@@ -148,7 +148,7 @@ else
         active_bucket="${bucket_type}"
 fi
 
-${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformListDatastore.sh ${active_bucket}
+${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformListFromDatastore.sh ${active_bucket}
 
 if ( [ "$?" != "0" ] )
 then
