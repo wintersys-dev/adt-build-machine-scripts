@@ -143,6 +143,8 @@ else
         active_bucket="${bucket_type}"
 fi
 
+datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
+
 no_tokens="`/bin/echo "${S3_ACCESS_KEY}" | /usr/bin/fgrep -o '|' | /usr/bin/wc -l`"
 no_tokens="`/usr/bin/expr ${no_tokens} + 1`"
 
@@ -150,12 +152,16 @@ count="1"
 
 if ( [ "${mode}" = "local" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/PerformDatastoreMount.sh ${active_bucket} ${count}
+        ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDatastoreMount.sh ${active_bucket} ${count}
 elif ( [ "${mode}" = "distributed" ] )
 then
         while ( [ "${count}" -le "${no_tokens}" ] )
         do
-                ${BUILD_HOME}/services/datastore/operations/PerformDatastoreMount.sh ${active_bucket} ${count}
+                ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDatastoreMount.sh ${active_bucket} ${count}
+                if ( [ "$?" != "0" ] )
+                then
+                        status "PerformDatastoreMount.sh returned an error"
+                fi
                 count="`/usr/bin/expr ${count} + 1`"
         done
 fi
