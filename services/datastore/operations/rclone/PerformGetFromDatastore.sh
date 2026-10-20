@@ -19,7 +19,7 @@ file_to_get="${1}"
 destination="${2}"
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base}  copy s3:${file_to_get} ${destination}
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base}  copy s3:${file_to_get} ${destination}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
