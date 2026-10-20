@@ -151,12 +151,12 @@ count="1"
 
 if ( [ "${mode}" = "local" ] )
 then
-        ${BUILD_HOME}/services/datastore/operations/PerformMoveDatastoreObject.sh ${active_bucket}/${original_object} ${active_bucket}/${new_object} ${count}
+        ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformMoveDatastoreObject.sh ${active_bucket}/${original_object} ${active_bucket}/${new_object} ${count}
 elif ( [ "${mode}" = "distributed" ] )
 then
         while ( [ "${count}" -le "${no_tokens}" ] )
         do
-                ${BUILD_HOME}/services/datastore/operations/PerformMoveDatastoreObject.sh ${active_bucket}/${original_object} ${active_bucket}/${new_object} ${count}
+                ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformMoveDatastoreObject.sh ${active_bucket}/${original_object} ${active_bucket}/${new_object} ${count}
                 count="`/usr/bin/expr ${count} + 1`"
         done
 fi
