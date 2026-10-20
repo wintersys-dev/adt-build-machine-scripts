@@ -20,8 +20,6 @@
 ######################################################################################
 #set -x
 
-#set -x
-
 set -e
 
 status () {
@@ -34,7 +32,7 @@ status () {
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
         status "Error: 2 arguments are required."
-        status "Usage: $0 <datastore_to_mount> <count>"
+        status "Usage: $0 <file_to_delete> <count>"
         exit 1
 fi
 
