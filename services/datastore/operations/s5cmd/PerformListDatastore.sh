@@ -18,7 +18,7 @@ fi
 datastore_to_list="${1}"
 
 host_base="`/bin/grep ^host_base /root/.s5cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls s3://${datastore_to_list}
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls s3://${datastore_to_list}  2>&1 >/dev/null
 
 if ( [ "$?" != "0" ] )
 then
