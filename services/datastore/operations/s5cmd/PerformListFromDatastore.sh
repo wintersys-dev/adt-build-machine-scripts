@@ -10,13 +10,13 @@ status () {
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-        status "Error: 2 arguments are required."
-        status "Usage: $0 <file_to_get> <destination>"
+        status "Error: 1 argument is required."
+        status "Usage: $0 <file_to_list>"
         exit 1
 fi
 
 file_to_list="${1}"
-destination="${2}"
+
 
 datastore_tool=""
 
