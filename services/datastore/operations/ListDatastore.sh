@@ -148,37 +148,10 @@ else
         active_bucket="${bucket_type}"
 fi
 
-datastore_tool=""
+${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformListDatastore.sh ${active_bucket}
 
-if ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s3cmd`" != "" ] )
+if ( [ "$?" != "0" ] )
 then
-        datastore_tool="/usr/bin/s3cmd"
-elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep s5cmd`" != "" ] )
-then
-        datastore_tool="/usr/bin/s5cmd"
-elif ( [ "`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /bin/grep rclone`" != "" ] )
-then
-        datastore_tool="/usr/bin/rclone"
-fi
-
-if ( [ "${datastore_tool}" = "/usr/bin/s3cmd" ] )
-then
-        host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-        datastore_cmd="${datastore_tool} --config=/root/.s3cfg-1 --host=https://${host_base} ls"
-elif ( [ "${datastore_tool}" = "/usr/bin/s5cmd" ] )
-then
-        host_base="`/bin/grep ^host_base /root/.s5cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-        datastore_cmd="${datastore_tool} --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls"
-elif ( [ "${datastore_tool}" = "/usr/bin/rclone" ] )
-then
-        host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-        datastore_cmd="${datastore_tool} --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ${include} lsd s3:"
-        file_to_list=""
-fi
-
-if ( [ "${bucket_type}" = "all" ] )
-then
-        ${datastore_cmd} | /bin/sed 's;s3://;;g'
-else
-        ${datastore_cmd}  | /bin/grep -wo "${active_bucket}.*"
+        status "PerformListDatastore.sh returned an error code"
+        exit 1
 fi
