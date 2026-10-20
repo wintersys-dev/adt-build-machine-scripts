@@ -18,7 +18,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################################
 ######################################################################################
-set -x
+#set -x
 set -e
 
 status () {
@@ -39,6 +39,18 @@ datastore_to_delete="${1}"
 count="${2}"
 
 host_base="`/bin/grep ^host_base /root/.s3cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s3cmd --recursive --force  --config=/root/.s3cfg-${count} --host=https://${host_base} del s3://${datastore_to_delete}
-/usr/bin/s3cmd --recursive --force  --config=/root/.s3cfg-${count} --host=https://${host_base} rb s3://${datastore_to_delete}
+/usr/bin/s3cmd --recursive --force --config=/root/.s3cfg-${count} --host=https://${host_base} del s3://${datastore_to_delete}
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete contents from datastore"
+        exit 1
+fi
+/usr/bin/s3cmd --recursive --force --config=/root/.s3cfg-${count} --host=https://${host_base} rb s3://${datastore_to_delete}
+
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete datastore"
+        exit 1
+fi
 
