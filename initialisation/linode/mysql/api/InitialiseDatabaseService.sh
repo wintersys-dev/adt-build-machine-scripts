@@ -93,7 +93,8 @@ then
                 exit 1
         fi
 
-		database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+		#database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+		database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/mysql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
 
 		if ( [ "$?" != "0" ] )
 		then
@@ -136,7 +137,8 @@ then
                 status "Attempting to get database id..."
                 while ( [ "${database_id}" = "" ] )
                 do
-                        database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+                        #database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
+						database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/mysql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
 
                         if ( [ "${database_id}" = "" ] )
                         then
