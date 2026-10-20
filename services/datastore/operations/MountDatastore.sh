@@ -158,13 +158,12 @@ else
         active_bucket="${bucket_type}"
 fi
 
-datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
+datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}'`"
 
 no_tokens="`/bin/echo "${S3_ACCESS_KEY}" | /usr/bin/fgrep -o '|' | /usr/bin/wc -l`"
 no_tokens="`/usr/bin/expr ${no_tokens} + 1`"
 
 count="1"
-
 if ( [ "${mode}" = "local" ] )
 then
         ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDatastoreMount.sh ${active_bucket} ${count}
