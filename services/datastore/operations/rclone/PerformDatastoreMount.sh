@@ -10,7 +10,7 @@
 # Description: This script automates the mounting of an S3 datastore
 #
 # Arguments:
-#              $1 - <datastore_to_mount> : Source object path within the S3 bucket.
+#              $1 - <datastore_to_mount> : Datastore to be mounted
 #              $2 - <count>              : Integer ID used to select the rclone config profile.
 #
 # Requirements:
