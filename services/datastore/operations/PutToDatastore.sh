@@ -1,7 +1,7 @@
 #!/bin/sh
 #####################################################################################
 # Author: Peter Winter
-# Date :  9/4/2016
+# Date :  9/4/2021
 # Suite:  The Agile Deployment Toolkit
 # 
 # Description: This script automates uploading individual files or asset directories 
