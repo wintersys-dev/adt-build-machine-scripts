@@ -371,9 +371,9 @@ CLOUDCLITOOL:doctl:snap
 CLOUDCLITOOL:exo:source
 
 #Linode CLI tool
-#CLOUDCLITOOL:linode-cli:pip
+CLOUDCLITOOL:linode-cli:pip
 #CLOUDCLITOOL:linode-cli:pipx
-CLOUDCLITOOL:linode-cli:snap
+#CLOUDCLITOOL:linode-cli:snap
 #CLOUDCLITOOL:linode-api:ansible
 
 #Vult CLI tool
