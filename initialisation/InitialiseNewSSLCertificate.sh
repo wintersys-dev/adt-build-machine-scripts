@@ -202,8 +202,8 @@ then
                         /bin/rm ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/verify/fullchain.pem 
                 fi
 
-                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${config_datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem" "ssl/${WEBSITE_URL}" "local" "no"
-                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${config_datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem" "ssl/${WEBSITE_URL}" "local" "no"
+                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${config_datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem" "ssl/${WEBSITE_URL}/" "local" "no"
+                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${config_datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem" "ssl/${WEBSITE_URL}/" "local" "no"
                 ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${config_datastore_identifier}" "ssl/${WEBSITE_URL}/privkey.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/verify"
                 ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "${config_datastore_identifier}" "ssl/${WEBSITE_URL}/fullchain.pem" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/verify"
 
