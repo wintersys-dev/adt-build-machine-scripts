@@ -1,9 +1,28 @@
 #!/bin/sh
 #########################################################################################
-# Author: Peter Winter
-# Date :  9/4/2016
-# Description: Get a file from a bucket in the datastore. This will only operate against your
-# first order datastore regardless of whether you are operating in mutli-region mode or not
+# Tool/Script: Context-Aware S3 Datastore Object Retrieval & Fetching Utility
+# Author:      Peter Winter
+# Date :       9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates individual file retrieval tasks from managed cloud 
+#              datastores. It dynamically resolves naming topologies for target S3 
+#              buckets based on specific system classifications. 
+#              Unlike purging utilities, this fetching operation executes strictly against 
+#              your primary first-order datastore instance, skipping replication loops.
+#
+# Arguments:
+#              $1 - <bucket_type>            : Target category classification. 
+#              $2 - <file_to_get>            : Name or relative pathway of the specific cloud object to fetch.
+#              $3 - <destination>            : Local directory path or target file name destination.
+#              $4 - [additional_specifier]   : Optional tracking suffix used for asset paths, directory 
+#                                              roots, or unique runtime token suffixes.
+#
+# Environmental Dependencies:
+#              - /home/buildhome.dat containing valid application root pathway tracking string.
+#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
+#              - Environment registers: WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
+#                                       SSL_GENERATION_SERVICE configuration states.
 #########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -16,7 +35,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 #########################################################################################
 #########################################################################################
 #set -x
