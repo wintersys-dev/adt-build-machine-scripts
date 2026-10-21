@@ -1,3 +1,4 @@
+set -x
 set -e
 
 status () {
@@ -15,8 +16,16 @@ fi
 
 datastore_to_list="${1}"
 
-host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ls s3:${datastore_to_list}  2>&1 >/dev/null
+flag="-x"
+
+if ( [ "${datastore_to_list}" = "all" ] )
+then
+        datastore_to_list=""
+        flag=""
+fi
+
+host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} lsd s3:  | awk '{print $NF}'| sed 's|/.*||' | /bin/grep ${flag} "${datastore_to_list}" 2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
