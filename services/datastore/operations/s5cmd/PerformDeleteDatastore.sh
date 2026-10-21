@@ -2,10 +2,21 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Automated S3 Datastore Purging and Deletion Script.
-#              This script connects to a specific S3 storage endpoint using a 
-#              numbered rclone configuration file, extracts the endpoint path,
-#              and permanently purges/deletes the specified target datastore bucket.
+# Tool/Script: Automated S3 utility to delete a datastore
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates the deleting of an S3 datastore
+#
+# Arguments:
+#              $1 - <datastore_to_delete> : datastore to delete
+#              $2 - <count>               : Integer ID used to select the rclone config profile.
+#
+# Requirements:
+#              - /usr/bin/s5cmd installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
