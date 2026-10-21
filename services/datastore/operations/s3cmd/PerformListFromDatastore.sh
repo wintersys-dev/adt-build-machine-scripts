@@ -17,7 +17,7 @@ fi
 file_to_list="${1}"
 
 host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${file_to_list} | awk '{print $NF}'| sed 's|s3://||' | awk -F'/' '{print $NF}'
+/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${file_to_list} | awk '{print $NF}'| sed 's|s3://||' | awk -F'/' '{print $NF}' 2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
