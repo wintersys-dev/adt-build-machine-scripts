@@ -2,7 +2,7 @@
 ####################################################################################
 # Tool/Script: Context-Aware S3 Datastore Object Purging & Sync Node Deletion Utility
 # Author:      Peter Winter
-# Date :       9/4/2016
+# Date :       9/4/2021
 # Suite:       The Agile Deployment Toolkit
 # 
 # Description: This script automates object or deployment file deletion across multi-mode
