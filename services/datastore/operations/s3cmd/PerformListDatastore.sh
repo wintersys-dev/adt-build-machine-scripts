@@ -17,12 +17,18 @@ fi
 
 datastore_to_list="${1}"
 
+if ( [ "${datastore_to_list}" = "all" ] )
+then
+        datastore_to_list=""
+fi
+
 host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
 result="`/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${datastore_to_list}`"
 
-if ( [ "${result}" = "" ] )
+if ( [ "$?" != "0" ] )
 then
-        result="`/usr/bin/s3cmd --config=/root/.s3cfg-1 --host=https://gb-lon-1.linodeobjects.com  ls | awk '{print $3}'| sed 's|s3://||' | awk -v pat="${datastore_to_list}" '$0 ~ pat'`"
+        echo "Failed to list datastore"
+        exit 1
+else
+        echo ${result}
 fi
-
-echo ${result}
