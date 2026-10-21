@@ -75,7 +75,7 @@ then
 fi
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} moveto ${file_to_put} s3:${place_to_put}  2>/dev/null
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-${count} --s3-endpoint ${host_base} copy ${file_to_put} s3:${place_to_put}  2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
