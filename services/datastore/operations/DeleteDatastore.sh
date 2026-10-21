@@ -1,10 +1,29 @@
 #!/bin/sh 
 ####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2016
-# Description: Delete a file from a bucket in the datastore. This can be called in 
-# local or distributed mode. Local mode is when your servers are operating in single
-# region mode and distributed mode is what is used if you are operating in multi-region mode. 
+# Tool/Script: Context-Aware S3 Datastore Object Purging & Sync Node Deletion Utility
+# Author:      Peter Winter
+# Date :       9/4/2016
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates object or deployment file deletion across multi-mode
+#              cloud datastores. It dynamically constructs naming topologies for target S3
+#              buckets based on specific bucket classifications  and handles execution 
+#              in either a single single-region environment ("local") or maps a multi-node
+#              propagation loop across distributed regional storage setups ("distributed").
+#
+# Arguments:
+#              $1 - <bucket_type>            : Target category classification. 
+#              $2 - <mode>                   : Topology routine selection. Valid values:
+#                                              "local"       -> Single target datastore evaluation.
+#                                              "distributed" -> Multi-token configuration fanout loop.
+#              $3 - [additional_specifier]   : Optional contextual tracking suffix string used for 
+#                                              asset paths, target sub-directories, or unique node tags.
+#
+# Environmental Dependencies:
+#              - /home/buildhome.dat containing valid application root pathway tracking string.
+#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
+#              - Environment registers: S3_ACCESS_KEY, WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
+#                                       SSL_GENERATION_SERVICE configuration states.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -17,7 +36,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
 ######################################################################################
 #set -x
