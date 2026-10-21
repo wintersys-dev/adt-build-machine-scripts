@@ -1,10 +1,31 @@
 #!/bin/sh
 ######################################################################################
 # Author: Peter Winter
-# Date :  9/4/2016
-# Description: Move an object within a datastore. This can be called in 
-# local or distributed mode. Local mode is when your servers are operating in single
-# region mode and distributed mode is what is used if you are operating in multi-region mode. 
+# Date :  9/4/2021
+# Suite:  The Agile Deployment Toolkit
+# 
+# Description: This script automates moving, copying, or renaming individual objects 
+#              natively inside managed cloud datastores. It dynamically constructs 
+#              the correct S3 bucket namespaces according to system classifications. 
+#              It then routes the target object operation to an underlying script execution engine 
+#              in either a single single-region environment ("local") or propagates 
+#              it across multi-node distributed regional clusters ("distributed").
+#
+# Arguments:
+#              $1 - <bucket_type>            : Target category classification. 
+#              $2 - <original_object>        : The absolute path of the source file inside the S3 bucket.
+#              $3 - <new_object>             : The target destination pathway or new filename within the bucket.
+#              $4 - <mode>                   : Topology routine selection. Valid values:
+#                                              "local"       -> Single target datastore evaluation.
+#                                              "distributed" -> Multi-token configuration fanout loop.
+#              $5 - [additional_specifier]   : Optional contextual tracking suffix string used for 
+#                                              asset paths, target sub-directories, or unique node tags.
+#
+# Environmental Dependencies:
+#              - /home/buildhome.dat containing valid application root pathway tracking string.
+#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
+#              - Environment registers: S3_ACCESS_KEY, WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
+#                                       SSL_GENERATION_SERVICE configuration states.
 ######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -17,7 +38,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 #######################################################################################
 #######################################################################################
 #set -x
