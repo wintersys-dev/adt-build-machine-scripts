@@ -39,7 +39,12 @@ datastore_to_delete="${1}"
 count="${2}"
 
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${datastore_to_delete}/*  2>&1 >/dev/null
+
+if ( [ "`/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} ls s3://${datastore_to_delete}/* 2>/dev/null`" != "" ] )
+then
+        /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${datastore_to_delete}/*  2>/dev/null
+fi
+
 if ( [ "$?" != "0" ] )
 then
         status "Failed to delete contents of datastore"
