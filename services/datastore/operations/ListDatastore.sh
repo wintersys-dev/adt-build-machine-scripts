@@ -1,11 +1,26 @@
 #!/bin/sh
 #########################################################################################
-# Author: Peter Winter
-# Date :  9/4/2016
-# Description: List a bucket in the datastore. The  is obtained from the
-# first s3 bucket in the chain of buckets when replication is being used. In other words
-# the first region listed in S3_HOST_BASE in the template is considered to be the authoritative
-# bucket when listing files
+# Tool/Script: Context-Aware S3 Datastore Content Listing Utility
+# Author:      Peter Winter
+# Date :       9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates structural listing tasks across various cloud datastores.
+#              It dynamically evaluates string formats and naming configurations to identify 
+#              the target S3 bucket according to system profiles. When replication chains 
+#              are active across multi-region environments, this mapping points directly to the 
+#              authoritative, first-order bucket instance to read its directory schema.
+#
+# Arguments:
+#              $1 - <bucket_type>            : Target category classification. 
+#              $2 - [additional_specifier]   : Optional contextual tracking suffix string used for 
+#                                              asset paths, target sub-directories, or unique node tags.
+#
+# Environmental Dependencies:
+#              - /home/buildhome.dat containing valid application root pathway tracking string.
+#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
+#              - Environment registers: WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
+#                                       SSL_GENERATION_SERVICE configuration states.
 #########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -18,12 +33,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 #########################################################################################
 #########################################################################################
 set -x
-
-#set -x
 set -e
 
 status () {
