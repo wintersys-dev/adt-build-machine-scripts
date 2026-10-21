@@ -190,8 +190,8 @@ do
 				${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "webserverips" "local"
 			fi
 		fi
-		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "webserverpublicips" "local" "no"
-		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "webserverips" "local" "no"
+		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "webserverpublicips/" "local" "no"
+		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "webserverips/" "local" "no"
 
 		#If the build machine is attached to the VPC we want the private IP address if not we want the public one 
 
