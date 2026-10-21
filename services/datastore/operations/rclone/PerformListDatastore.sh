@@ -2,15 +2,20 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Automated S3 Datastore Listing, Filtering, and Discovery Utility.
-#              This utility extracts the storage endpoint configuration from rclone,
-#              queries the S3 backend for available directories/buckets, and applies
-#              text filtering. It supports a targeted string filter or an "all" flag 
-#              to list every discovered datastore within the environment.
-# Parameters:
-#              - <datastore_to_list>: Target string to filter for, or "all" to match everything.
+# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script will discover if a datastore already exists
+#
+# Arguments:
+#              $1 - <datastore_to_list>     : Name of the datastore to check
+#
 # Requirements:
-#              - Active rclone configuration asset located at /root/.config/rclone/rclone.conf-1
+#              - /usr/bin/rclone installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-1
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
