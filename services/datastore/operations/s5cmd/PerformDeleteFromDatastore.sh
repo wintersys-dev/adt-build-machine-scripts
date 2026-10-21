@@ -61,7 +61,7 @@ then
   file_to_delete="`/bin/echo ${file_to_delete} | /bin/sed "s/root$//g"`"
   wildcard="*"
 fi
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${file_to_delete}${wildcard}  2>&1 >/dev/null
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${file_to_delete}${wildcard}  2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
