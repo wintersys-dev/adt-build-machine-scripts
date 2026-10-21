@@ -22,8 +22,8 @@ then
         datastore_to_list=""
 fi
 
-host_base="`/bin/grep ^host_base /root/.s5cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls | /bin/grep "${datastore_to_list}" | awk '{print $NF}'| sed -e 's|s3://||' -e 's|/.*||' 2>/dev/null
+host_base="`/bin/grep ^host_base /root/.s5cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls | awk '{print $NF}'| sed -e 's|s3://||' -e 's|/.*||' | /bin/grep -x "${datastore_to_list}" 2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
