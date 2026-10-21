@@ -2,7 +2,15 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Implement the listing and filtering of datastores
+# Description: Automated S3 Datastore Listing, Filtering, and Discovery Utility.
+#              This utility extracts the storage endpoint configuration from rclone,
+#              queries the S3 backend for available directories/buckets, and applies
+#              text filtering. It supports a targeted string filter or an "all" flag 
+#              to list every discovered datastore within the environment.
+# Parameters:
+#              - <datastore_to_list>: Target string to filter for, or "all" to match everything.
+# Requirements:
+#              - Active rclone configuration asset located at /root/.config/rclone/rclone.conf-1
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
