@@ -2,10 +2,21 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Automated File Deletion and Filtering Script for S3 Datastores.
-#              This script targets a specific file or patterned file matching group 
-#              within an S3 storage bucket using a numbered rclone configuration.
-#              It handles optional wildcard filters to safely remove targeted items.
+# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates the deletion of a specific file from a datastore
+#
+# Arguments:
+#              $1 - <file_to_delete>     : File held in the datastore to be deleted
+#              $2 - <count>              : Integer ID used to select the rclone config profile.
+#
+# Requirements:
+#              - /usr/bin/rclone installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
