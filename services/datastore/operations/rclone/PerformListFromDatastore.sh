@@ -17,15 +17,8 @@ fi
 
 file_to_list="${1}"
 
-host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-include=""
-
-if ( [ "${file_to_list}" != "" ] )
-then
-        include='--include "*'${file_to_list}*'"'
-fi
- 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ${include} ls s3:${file_to_list}  2>&1 >/dev/null
+host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ls s3:${file_to_list} | awk '{print $NF}'| sed 's|s3://||' | awk -F'/' '{print $NF}' 2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
