@@ -1,5 +1,4 @@
 #set -x
-
 #set -e
 
 status () {
@@ -23,7 +22,7 @@ then
 fi
 
 host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/s3cmd --config=/root/.s3cfg-1 --host=https://${host_base} ls s3:// | /bin/grep ${datastore_to_list} | awk '{print $NF}'| sed -e 's|s3://||' -e 's|/.*||'
+/usr/bin/s3cmd --config="/root/.s3cfg-1" --host="https://${host_base}" ls  | /bin/grep "${datastore_to_list}" | awk '{print $NF}'| sed -e 's|s3://||' -e 's|/.*||'
 
 if ( [ "$?" != "0" ] )
 then
