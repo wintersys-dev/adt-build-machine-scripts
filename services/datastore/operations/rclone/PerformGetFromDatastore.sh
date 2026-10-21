@@ -2,7 +2,14 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Implements the retrieval and downloading of a file from a datastore
+# Description: Automated S3 Object Extraction and Fetching Utility.
+#              This utility establishes connection tracking to a primary storage 
+#              backend configuration endpoint, verifies path specifications, and 
+#              safely copies an individual targeted object or file resource from 
+#              an isolated cloud datastore down to a specified local directory target.
+# Requirements:
+#              - Explicit passing of target file and local destination path.
+#              - A configured rclone.conf-1 asset in /root/.config/rclone/
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -19,7 +26,6 @@
 ######################################################################################
 ######################################################################################
 #set -x
-
 set -e
 
 status () {
