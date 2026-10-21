@@ -2,7 +2,7 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Tool/Script: Automated S3 script to discover if a datastore exists
 # Author:      Peter Winter
 # Date:        9/4/2021
 # Suite:       The Agile Deployment Toolkit
