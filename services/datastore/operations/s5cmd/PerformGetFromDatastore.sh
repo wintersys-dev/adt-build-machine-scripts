@@ -2,7 +2,21 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Implements the retrieval and downloading of a file from a datastore
+# Tool/Script: Automated S3 Datastore utility to obtain a file from the datastore
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates the deletion of a specific file from the datastore
+#
+# Arguments:
+#              $1 - <file_to_get>     : File in a datastore to get
+#              $2 - <destination>     : The local directory to place the file
+#
+# Requirements:
+#              - /usr/bin/s5cmd installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-1
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
