@@ -155,8 +155,8 @@ do
 						${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "reverseproxyips" "local"
                 	fi
 				fi
-                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "reverseproxypublicips" "local" "no" 
-                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "reverseproxyips" "local" "no"
+                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "reverseproxypublicips/" "local" "no" 
+                ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "reverseproxyips/" "local" "no"
 
                 #If the build machine is without our VPC we want the private ip address to connect with if not within the VPC we want
                 #the public address to connect to
