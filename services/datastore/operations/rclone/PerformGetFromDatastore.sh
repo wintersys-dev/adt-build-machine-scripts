@@ -1,3 +1,23 @@
+#!/bin/sh 
+####################################################################################
+# Author: Peter Winter
+# Date :  9/4/2021
+# Description: Implements the retrieval and downloading of a file from a datastore
+#######################################################################################
+# License Agreement:
+# This file is part of The Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+######################################################################################
+######################################################################################
 #set -x
 
 set -e
@@ -19,7 +39,7 @@ file_to_get="${1}"
 destination="${2}"
 
 host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base}  copy s3:${file_to_get} ${destination}  2>&1 >/dev/null
+/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base}  copy s3:${file_to_get} ${destination}  2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
