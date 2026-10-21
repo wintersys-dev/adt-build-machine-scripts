@@ -2,8 +2,20 @@
 #########################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Implement the putting of a file from the filesystem of the server to a
-# datastore
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script  will put a file from the local filesystem to the datastore
+#
+# Arguments:
+#              $1 - <file_to_put>         : File on the local filesystem
+#              $2 - <place_to_put>        : Location to put the file in the datastore
+#              $3 - <delete>              : Whether to delete file $1 or not
+#              $4 - <count>               : Integer used to identify config file
+#
+# Requirements:
+#              - /usr/bin/s3cmd installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 ##########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -19,7 +31,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################################
 #########################################################################################
-#set -x 
+#set -x
 
 set -e
 
