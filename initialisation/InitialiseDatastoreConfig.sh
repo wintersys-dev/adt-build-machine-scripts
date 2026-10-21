@@ -275,10 +275,13 @@ fi
 if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 then
         website_url_token="`/bin/echo ${WEBSITE_URL}-config | /bin/sed 's/\./-/g'`.*"        
-        for bucket in "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep -o ${website_url_token}.*`"
+        for bucket_list in "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep -oE "${website_url_token}\S+"`"
         do
-                additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
-                ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "config" "local" "${additional_specifier}"
+                for bucket in ${bucket_list}
+                do
+                        additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
+                        ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "config" "local" "${additional_specifier}"
+                done
         done
 
         if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-auth-laptop-ips"`" != "" ] )
@@ -320,10 +323,12 @@ fi
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 then
         AUTH_WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-        website_url_token="`/bin/echo ${AUTH_WEBSITE_URL}-config | /bin/sed 's/\./-/g'`.*"        
-        for bucket in "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep -o ${website_url_token}.*`"
+        for bucket_list in "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep -oE "${website_url_token}\S+"`"
         do
-                additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
-                ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "auth-config" "local" "${additional_specifier}"
+                for bucket in ${bucket_list}
+                do
+                        additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
+                        ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "config" "local" "${additional_specifier}"
+                done
         done
 fi
