@@ -40,10 +40,10 @@ new_object="$2"
 count="$3"
 
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} mv s3://${original_object} s3://${new_object}  2>&1 >/dev/null
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} mv s3://${original_object} s3://${new_object}  2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
-        status "Failed to move object ${original_object} to object ${new_object}
+        status "Failed to move object ${original_object} to object ${new_object}"
         exit 1
 fi
