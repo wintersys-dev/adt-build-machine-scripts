@@ -55,10 +55,10 @@ dns_linode_v4_rm() {
         TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
         _domain="`/bin/echo "${full_domain}" | cut -d '.' -f 3-`"
-        _sub_domain="`/bin/echo "${full_domain}" | cut -d '.' -f1`"
+        _sub_domain="`/bin/echo "${full_domain}" | cut -d'.' -f1,2`"
 
         _domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$_domain'")).id'`"
-        _record_id="`curl -s "https://api.linode.com/v4/domains/${_domain_id}/records" -H "Authorization: Bearer $TOKEN" | jq --arg sub "${_sub_domain}" -r '.data[] | select(.name == $sub) | .id'`"
+        _record_id="`curl -s "https://api.linode.com/v4/domains/${_domain_id}/records" -H "Authorization: Bearer $TOKEN" | jq -r '.data[] | select (.name == "'${_sub_domain}'") | .id'`"
 
         curl -s -X DELETE -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/domains/${_domain_id}/records/${_record_id}"
 
