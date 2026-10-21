@@ -2,7 +2,16 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Implement the listing and filtering of datastores
+# Description: Automated S3 Object Content Listing and Parsing Utility.
+#              This utility extracts the storage endpoint configuration from rclone,
+#              queries the target S3 path, and reads back object metadata. It passes
+#              the raw endpoint output through text parsing streams to isolate and 
+#              print individual target file basenames cleanly to the environment.
+# Parameters:
+#              - <file_to_list>: Target S3 bucket path or file pattern to inspect.
+# Requirements:
+#              - Active s5cmd 
+#              - configuration asset located at /root/.config/rclone/rclone.conf-1
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
