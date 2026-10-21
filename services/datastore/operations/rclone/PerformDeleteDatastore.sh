@@ -2,7 +2,7 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Tool/Script: Automated S3 utility to delete a datastore
 # Author:      Peter Winter
 # Date:        9/4/2021
 # Suite:       The Agile Deployment Toolkit
