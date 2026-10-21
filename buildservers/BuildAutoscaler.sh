@@ -153,8 +153,8 @@ do
 				${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "autoscalerips" "local"
 			fi
 		fi
-		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "autoscalerpublicips" "local" "no"
-		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "autoscalerips" "local" "no"
+		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${ip}" "autoscalerpublicips/" "local" "no"
+		${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "config" "${private_ip}" "autoscalerips/" "local" "no"
 
 		#If the build machine is attached to the VPC that the servers are in then we need the private IP address to connect to this autoscaler
 		#with, otherwise we have to use the public IP address
