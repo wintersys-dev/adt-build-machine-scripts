@@ -1,8 +1,18 @@
 #!/bin/sh 
 ####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Description: Implement the listing and filtering of datastores
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script will discover if a datastore already exists
+#
+# Arguments:
+#              $1 - <datastore_to_list>     : Name of the datastore to check
+#
+# Requirements:
+#              - /usr/bin/s3cmd installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-1
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
