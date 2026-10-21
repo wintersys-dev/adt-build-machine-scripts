@@ -274,7 +274,7 @@ fi
 
 if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 then
-        for bucket in `${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "config-all"`
+        for bucket in `${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep "${WEBSITE_URL}-config" | awk '{print $NF}'| sed 's|s3://||'`
         do
                 additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
                 ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "config" "local" "${additional_specifier}"
@@ -318,7 +318,8 @@ fi
 
 if ( [ "${NO_AUTHENTICATORS}" != "0" ] )
 then
-        for bucket in `${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "auth-config"`
+        AUTH_WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
+        for bucket in `${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | grep "${AUTH_WEBSITE_URL}-config" | awk '{print $NF}'| sed 's|s3://||'`
         do
                 additional_specifier="`/bin/echo ${bucket} | /usr/bin/awk -F'-' '{print $NF}'`"
                 ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "auth-config" "local" "${additional_specifier}"
