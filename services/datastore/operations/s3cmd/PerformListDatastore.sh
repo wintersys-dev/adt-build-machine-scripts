@@ -1,4 +1,4 @@
-set -x
+#set -x
 
 #set -e
 
@@ -23,12 +23,10 @@ then
 fi
 
 host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-result="`/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${datastore_to_list}`"
+echo "`/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${datastore_to_list} | awk '{print $NF}'| sed 's|s3://||'`"
 
 if ( [ "$?" != "0" ] )
 then
         echo "Failed to list datastore"
         exit 1
-else
-        echo ${result}
 fi
