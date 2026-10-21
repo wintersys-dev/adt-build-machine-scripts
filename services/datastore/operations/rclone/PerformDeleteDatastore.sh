@@ -1,8 +1,11 @@
 #!/bin/sh 
 ####################################################################################
 # Author: Peter Winter
-# Date :  9/4/2016
-# Description: Implement the deletion of a file from a datastore
+# Date :  9/4/2021
+# Description: Automated S3 Datastore Purging and Deletion Script.
+#              This script connects to a specific S3 storage endpoint using a 
+#              numbered rclone configuration file, extracts the endpoint path,
+#              and permanently purges/deletes the specified target datastore bucket.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -15,10 +18,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
 ######################################################################################
-set -x
+#set -x
 set -e
 
 status () {
