@@ -1,6 +1,6 @@
-#set -x
+set -x
 
-set -e
+#set -e
 
 status () {
         /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
@@ -17,11 +17,12 @@ fi
 
 datastore_to_list="${1}"
 
-host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${datastore_to_list}  2>&1 >/dev/null
-        
-if ( [ "$?" != "0" ] )
+host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
+result="`/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${datastore_to_list}`"
+
+if ( [ "${result}" = "" ] )
 then
-        status "Failed to list datastore ${datastore_to_list}"
-        exit 1
+        result="`/usr/bin/s3cmd --config=/root/.s3cfg-1 --host=https://gb-lon-1.linodeobjects.com  ls | awk '{print $3}'| sed 's|s3://||' | awk -v pat="${datastore_to_list}" '$0 ~ pat'`"
 fi
+
+echo ${result}
