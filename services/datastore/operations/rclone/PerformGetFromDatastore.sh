@@ -2,14 +2,21 @@
 ####################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Automated S3 Object Extraction and Fetching Utility.
-#              This utility establishes connection tracking to a primary storage 
-#              backend configuration endpoint, verifies path specifications, and 
-#              safely copies an individual targeted object or file resource from 
-#              an isolated cloud datastore down to a specified local directory target.
+# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates the deletion of a specific file from the datastore
+#
+# Arguments:
+#              $1 - <file_to_get>     : File in a datastore to get
+#              $2 - <destination>     : The local directory to place the file
+#
 # Requirements:
-#              - Explicit passing of target file and local destination path.
-#              - A configured rclone.conf-1 asset in /root/.config/rclone/
+#              - /usr/bin/rclone installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-1
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
