@@ -2,7 +2,21 @@
 #########################################################################################
 # Author: Peter Winter
 # Date :  9/4/2021
-# Description: Actioning the mounting of a datastore
+# Tool/Script: Automated S3 Datastore Mounting/Creation utility
+# Author:      Peter Winter
+# Date:        9/4/2021
+# Suite:       The Agile Deployment Toolkit
+# 
+# Description: This script automates the mounting of an S3 datastore
+#
+# Arguments:
+#              $1 - <datastore_to_mount> : Datastore to be mounted
+#              $2 - <count>              : Integer ID used to select the rclone config profile.
+#
+# Requirements:
+#              - /usr/bin/s3cmd installed and accessible.
+#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 ##########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -15,7 +29,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 #########################################################################################
 #########################################################################################
 #set -x
