@@ -1,8 +1,11 @@
 #!/bin/sh 
 ####################################################################################
 # Author: Peter Winter
-# Date :  9/4/2016
-# Description: Implement the deletion of a file from a datastore
+# Date :  9/4/2021
+# Description: Automated File Deletion and Filtering Script for S3 Datastores.
+#              This script targets a specific file or patterned file matching group 
+#              within an S3 storage bucket using a numbered rclone configuration.
+#              It handles optional wildcard filters to safely remove targeted items.
 #######################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -15,7 +18,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
 ######################################################################################
 #set -x
