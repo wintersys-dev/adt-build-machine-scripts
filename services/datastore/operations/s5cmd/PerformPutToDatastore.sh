@@ -70,13 +70,15 @@ fi
 if ( [ ! -f ${file_to_put} ] )
 then
         #if there is no file on the file system we can assume that we are being used as a marker like an IP address, so create out own marker file
-        /bin/touch  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}
-        file_to_put="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}"
+        /bin/touch  "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}
+        file_to_put_with_path=""${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}"
+else
+        file_to_put_with_path="${file_to_put}"
 fi
 
 place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
-host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put} s3://${place_to_put}  2>&1 >/dev/null
+host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put_with_path} s3://${place_to_put}/${file_to_put}  2>/dev/null
 
 if ( [ "$?" != "0" ] )
 then
