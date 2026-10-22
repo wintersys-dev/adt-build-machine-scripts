@@ -98,9 +98,9 @@ fi
 
 if ( [ "${CONFIGURATION_REPOSITORY_OWNER}" != "" ] )
 then
-	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/${CONFIGURATION_REPOSITORY_OWNER}/adt-build-machine-scripts.git
+	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/${CONFIGURATION_REPOSITORY_OWNER}/adt-configuration-settings.git
 else
-	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/wintersys-dev/adt-build-machine-scripts.git
+	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/wintersys-dev/adt-configuration-settings.git
 fi
 
 BUILD_HOME="/home/${BUILDMACHINE_USER}/adt-build-machine-scripts"
