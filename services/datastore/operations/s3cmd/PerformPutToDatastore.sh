@@ -57,10 +57,7 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 
-if ( [ "${place_to_put}" = "root" ] )
-then
-        place_to_put=""
-fi
+place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's|root$||'`"
 
 if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea ] )
 then
