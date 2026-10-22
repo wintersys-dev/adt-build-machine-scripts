@@ -35,7 +35,7 @@ then
         authentication_token=":${repository_token}"
 fi
 
-${BUILD_HOME}/services/git/${repository_provider}/GitClone "${repository_provider}" "${repository_username}" "${repository_ownername}" "${repository_name}" "${repository_token}"
+${BUILD_HOME}/services/git/${repository_provider}/GitClone "${repository_provider}" "${authentication_token}" "${repository_username}" "${repository_ownername}" "${repository_name}" 
 
 count="0" 
 /bin/ls /tmp/test.$$
