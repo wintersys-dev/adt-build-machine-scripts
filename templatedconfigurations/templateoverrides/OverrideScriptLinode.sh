@@ -73,14 +73,14 @@ cd /home/${BUILDMACHINE_USER}
 
 if ( [ "${INFRASTRUCTURE_REPOSITORY_OWNER}" != "" ] )
 then
-	/usr/bin/git clone  -b ${git_branch} --single-branch https://github.com/${INFRASTRUCTURE_REPOSITORY_OWNER}/adt-build-machine-scripts.git
+	/usr/bin/git clone  -b ${git_branch} --single-branch https://${INFRASTRUCTURE_REPOSITORY_PROVIDER}/${INFRASTRUCTURE_REPOSITORY_OWNER}/adt-build-machine-scripts.git
 else
 	/usr/bin/git clone  -b ${git_branch} --single-branch https://github.com/wintersys-dev/adt-build-machine-scripts.git
 fi
 
 if ( [ "${CONFIGURATION_REPOSITORY_OWNER}" != "" ] )
 then
-	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/${CONFIGURATION_REPOSITORY_OWNER}/adt-configuration-settings.git
+	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://${CONFIGURATION_REPOSITORY_PROVIDER}/${CONFIGURATION_REPOSITORY_OWNER}/adt-configuration-settings.git
 else
 	/usr/bin/git clone  -b ${config_git_branch} --single-branch https://github.com/wintersys-dev/adt-configuration-settings.git
 fi
