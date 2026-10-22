@@ -76,6 +76,8 @@ else
         file_to_put_with_path="${file_to_put}"
 fi
 
+file_to_put="`/bin/echo ${file_to_put_with_path} | /usr/bin/awk -F'/' '{print $NF}'`"
+
 place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
 host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
 /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put_with_path} s3://${place_to_put}/${file_to_put}  2>/dev/null
