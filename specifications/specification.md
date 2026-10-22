@@ -643,12 +643,15 @@ The token that you generate can be placed here in your template instead of a pas
 -----
 
 ### INFRASTRUCTURE_REPOSITORY_PROVIDER
+### INFRASTRUCTURE_REPOSITORY_PROVIDER_URL
 ### INFRASTRUCTURE_REPOSITORY_OWNER
 ### INFRASTRUCTURE_REPOSITORY_USERNAME
 
 By default these values are set as shown below, if you are building from your own forks you will need to set these according to your fork's criteria 
 
 INFRASTRUCTURE_REPOSITORY_PROVIDER="github"  
+
+INFRASTRUCTURE_REPOSITORY_PROVIDER="github.com"
 
 INFRASTRUCTURE_REPOSITORY_OWNER="wintersys-dev"  
 
