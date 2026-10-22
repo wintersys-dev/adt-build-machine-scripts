@@ -20,6 +20,8 @@
 ######################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 repository_provider="${1}"
 repository_username="${2}"
 repository_ownername="${3}"
@@ -32,6 +34,8 @@ if ( [ "${repository_token}" != "" ] )
 then
         authentication_token=":${repository_token}"
 fi
+
+${BUILD_HOME}/services/git/${repository_provider}/GitClone "${repository_provider}" "${repository_username}" "${repository_ownername}" "${repository_name}" "${repository_token}"
 
 count="0" 
 /bin/ls /tmp/test.$$
