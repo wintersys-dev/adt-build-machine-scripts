@@ -39,6 +39,7 @@ SERVER_USER_PASSWORD="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENT
 SERVER_USER_PASSWORD_HASHED="`/usr/bin/mkpasswd -m sha512crypt ${SERVER_USER_PASSWORD}`"
 INFRASTRUCTURE_REPOSITORY_OWNER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_OWNER`"
 INFRASTRUCTURE_REPOSITORY_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_PROVIDER`"
+INFRASTRUCTURE_REPOSITORY_PROVIDER_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh INFRASTRUCTURE_REPOSITORY_PROVIDER_URL`"
 SSH_PUBLIC_KEY="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER}.pub`"
 SSH_PRIVATE_KEY_TRIMMED="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/keys/id_${ALGORITHM}_AGILE_DEPLOYMENT_BUILD_KEY_${BUILD_IDENTIFIER} | /bin/grep -v '^----' | /usr/bin/tr -d '\n'`"
 TIMEZONE_CONTINENT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_TIMEZONE_CONTINENT`"
@@ -48,7 +49,6 @@ TIMEZONE="${TIMEZONE_CONTINENT}/${TIMEZONE_CITY}"
 SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
 GIT_BRANCH="`/bin/grep "^GITBRANCH:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-git_provider_domain="`${BUILD_HOME}/services/git/GitProviderDomain.sh ${INFRASTRUCTURE_REPOSITORY_PROVIDER}`"
 /bin/cp /dev/null ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/autoscaler_configuration_settings.dat
 
 # source in the environment from the filesystem
@@ -117,7 +117,7 @@ fi
 /bin/sed -i "s;XXXXSSH_PUBLIC_KEYXXXX;${SSH_PUBLIC_KEY};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
 /bin/sed -i "s;XXXXSSH_PRIVATE_KEYXXXX;${SSH_PRIVATE_KEY_TRIMMED};g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
 /bin/sed -i "s/XXXXGIT_BRANCHXXXX/${GIT_BRANCH}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
-/bin/sed -i "s/XXXXGIT_PROVIDER_DOMAINXXXX/${git_provider_domain}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
+/bin/sed -i "s/XXXXGIT_PROVIDER_DOMAINXXXX/${INFRASTRUCTURE_REPOSITORY_PROVIDER_URL}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
 /bin/sed -i "s/XXXXINFRASTRUCTURE_REPOSITORY_OWNERXXXX/${INFRASTRUCTURE_REPOSITORY_OWNER}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
 /bin/sed -i "s/XXXXBUILD_IDENTIFIERXXXX/${BUILD_IDENTIFIER}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
 /bin/sed -i "s/XXXXALGORITHMXXXX/${ALGORITHM}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
