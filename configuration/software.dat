@@ -353,10 +353,10 @@ POSTGRES:repo:18
 #---------------------------------------------BUILD CHAIN------------------------------------------------------------------------------
 BUILDCHAINTYPE:standard
 #---------------------------------------------DATASTORE TOOL----------------------------------------------------------------------------------
-DATASTORETOOL:s3cmd:repo 
+#DATASTORETOOL:s3cmd:repo 
 #DATASTORETOOL:s3cmd:source
 #DATASTORETOOL:s5cmd:source
-#DATASTORETOOL:s5cmd:binary
+DATASTORETOOL:s5cmd:binary
 #DATASTORETOOL:rclone:repo
 #DATASTORETOOL:rclone:script
 #DATASTORETOOL:rclone:binary
