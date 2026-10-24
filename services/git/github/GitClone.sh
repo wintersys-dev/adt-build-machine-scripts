@@ -22,4 +22,18 @@ repository_ownername="${2}"
 repository_name="${3}" 
 authentication_token="${4}" 
 
-/usr/bin/git clone --depth 1 https://${repository_username}${authentication_token}@github.com/${repository_ownername}/${repository_name}.git
+cat << EOF > ${HOME}/.netrc
+machine github.com
+login ${repository_username}
+password ${authentication_token}
+EOF
+
+#I only use the .netrc file for git commands and I construct it and remove it every time I want to use it
+#if I need a .netrc file for curl (for example) I construct a custom file name and use the custom file so there is no clash
+chmod 600 ${HOME}/.netrc
+
+/usr/bin/git clone --depth 1 https://github.com/${repository_ownername}/${repository_name}.git
+
+/bin/rm ${HOME}/.netrc
+
+#/usr/bin/git clone --depth 1 https://${repository_username}${authentication_token}@github.com/${repository_ownername}/${repository_name}.git
