@@ -20,7 +20,24 @@
 #####################################################################################
 #set -x
 
+#set -x
+set -e
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+status () {
+        /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
+then
+        status "Error: 5 arguments are required"
+        status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> <repository_token>"
+        exit 1
+fi
 
 repository_provider="${1}"
 repository_username="${2}"
