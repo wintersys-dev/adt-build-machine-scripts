@@ -29,7 +29,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
 then
         status "Error: 4 arguments are required and 1 optional argument"
@@ -50,7 +49,5 @@ then
         authentication_token=":${repository_token}"
 fi
 
-${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh "${authentication_token}" "${repository_username}" "${repository_ownername}" "${repository_name}" 
-
-
+${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh "${repository_username}" "${repository_ownername}" "${repository_name}" "${authentication_token}"
 
