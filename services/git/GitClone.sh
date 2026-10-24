@@ -30,7 +30,7 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${1}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
 then
         status "Error: 5 arguments are required"
         status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> <repository_token>"
