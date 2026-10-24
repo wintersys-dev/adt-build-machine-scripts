@@ -29,17 +29,17 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-        status "Error: 4 arguments are required and 1 optional argument"
-        status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> [repository_token]"
+        status "Error: 3 arguments are required and 2 optional arguments"
+        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username] [repository_token]"
         exit 1
 fi
 
 repository_provider="${1}"
-repository_username="${2}"
-repository_ownername="${3}"
-repository_name="${4}"
+repository_ownername="${2}"
+repository_name="${3}"
+repository_username="${4}"
 repository_token="${5}"
 
 authentication_token=""
