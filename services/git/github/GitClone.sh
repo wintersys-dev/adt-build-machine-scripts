@@ -10,22 +10,22 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-        status "Error: 3 arguments are required and 1 optional argument"
-        status "Usage: $0 <repository_username> <repository_ownername> <repository_name> [authentication_token]"
+        status "Error: 2 arguments are required and 2 optional arguments"
+        status "Usage: $0 <repository_ownername> <repository_name> [repository_username] [authentication_token]"
         exit 1
 fi
 
-repository_username="${1}"
-repository_ownername="${2}" 
-repository_name="${3}" 
-authentication_token="${4}" 
+repository_ownername="${1}" 
+repository_name="${2}" 
+repository_username="${3}"
+repository_token="${4}" 
 
 cat << EOF > ${HOME}/.netrc
 machine github.com
 login ${repository_username}
-password ${authentication_token}
+password ${repository_token}
 EOF
 
 #I only use the .netrc file for git commands and I construct it and remove it every time I want to use it
