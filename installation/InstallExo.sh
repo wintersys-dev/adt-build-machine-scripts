@@ -67,7 +67,7 @@ then
                                 /bin/mkdir /opt/exoscale
                         fi
                         cd /opt/exoscale
-                        ${BUILD_HOME}/services/git/GitClone.sh "github" "" "exoscale" "cli" ""
+                        ${BUILD_HOME}/services/git/GitClone.sh "github" "exoscale" "cli"
                         cd /opt/exoscale/cli
                         /usr/bin/make build
                         /bin/ln -s /opt/exoscale/cli/bin/exo /usr/bin/exo
@@ -89,7 +89,7 @@ then
                                 /bin/mkdir /opt/exoscale
                         fi
                         cd /opt/exoscale
-                        ${BUILD_HOME}/services/git/GitClone.sh "github" "" "exoscale" "cli" ""
+                        ${BUILD_HOME}/services/git/GitClone.sh "github" "exoscale" "cli"
                         cd /opt/exoscale/cli
                         /usr/bin/make build
                         /bin/ln -s /opt/exoscale/cli/bin/exo /usr/bin/exo
