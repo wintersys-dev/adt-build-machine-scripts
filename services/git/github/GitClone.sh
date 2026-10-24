@@ -10,17 +10,16 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-        status "Error: 4 arguments are required"
-        status "Usage: $0 <authentication_token> <repository_username> <repository_ownername> <repository_name>"
+        status "Error: 3 arguments are required and 1 optional argument"
+        status "Usage: $0 <repository_username> <repository_ownername> <repository_name> [authentication_token]"
         exit 1
 fi
 
-authentication_token="${1}" 
-repository_username="${2}"
-repository_ownername="${3}" 
-repository_name="${4}" 
+repository_username="${1}"
+repository_ownername="${2}" 
+repository_name="${3}" 
+authentication_token="${4}" 
 
 /usr/bin/git clone --depth 1 https://${repository_username}${authentication_token}@github.com/${repository_ownername}/${repository_name}.git
-
