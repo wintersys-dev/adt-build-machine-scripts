@@ -9,17 +9,19 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
+"${repository_ownername}" "${repository_name}" "${repository_username}" 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-        status "Error: 3 arguments are required"
-        status "Usage: $0 <repository_username> <repository_ownername> <repository_name>"
+        status "Error: 2 arguments are required and 1 optional argument"
+        status "Usage: $0  <repository_ownername> <repository_name> [repository_username]"
         exit 1
 fi
 
-repository_username="${1}"
-repository_ownername="${2}" 
-repository_name="${3}" 
+repository_ownername="${1}" 
+repository_name="${2}" 
+repository_username="${3}"
 #repository_token="${4}"
 
 cat << EOF > ${HOME}/.netrc
