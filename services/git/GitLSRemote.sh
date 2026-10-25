@@ -34,8 +34,6 @@
 #####################################################################################
 #####################################################################################
 #set -x
-
-#set -x
 set -e
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -60,4 +58,9 @@ repository_name="${3}"
 repository_username="${4}"
 
 ${BUILD_HOME}/services/git/${repository_provider}/GitLSRemote.sh "${repository_ownername}" "${repository_name}" "${repository_username}" 
+if ( [ "$?" != "0" ] )
+then
+        status "GitLSRemote.sh returned an error code"
+        exit 1
+fi
 
