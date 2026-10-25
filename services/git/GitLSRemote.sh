@@ -32,10 +32,10 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
 then
-        status "Error: 5 arguments are required"
-        status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> <repository_token>"
+        status "Error: 4 arguments are required and 1 optional argument"
+        status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> [repository_token]"
         exit 1
 fi
 
