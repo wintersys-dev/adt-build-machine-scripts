@@ -34,16 +34,15 @@ status () {
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
 then
-        status "Error: 4 arguments are required and 1 optional argument"
-        status "Usage: $0 <repository_provider> <repository_username> <repository_ownername> <repository_name> [repository_token]"
+        status "Error: 3 arguments are required and 1 optional argumment"
+        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username]"
         exit 1
 fi
 
 repository_provider="${1}"
-repository_username="${2}"
-repository_ownername="${3}"
-repository_name="${4}"
-repository_token="${5}"
+repository_ownername="${2}"
+repository_name="${3}"
+repository_username="${4}"
 
 authentication_token=""
 
@@ -52,5 +51,5 @@ then
         authentication_token=":${repository_token}"
 fi
 
-${BUILD_HOME}/services/git/${repository_provider}/GitLSRemote.sh "${authentication_token}" "${repository_username}" "${repository_ownername}" "${repository_name}"
+${BUILD_HOME}/services/git/${repository_provider}/GitLSRemote.sh "${repository_ownername}" "${repository_name}" "${repository_username}" 
 
