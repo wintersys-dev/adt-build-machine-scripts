@@ -32,7 +32,7 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
         status "Error: 3 arguments are required and 1 optional argumment"
         status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username]"
