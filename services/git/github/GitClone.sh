@@ -1,3 +1,30 @@
+##################################################################################
+# SCRIPT      : GitClone.sh (GitHub Provider)
+# AUTHOR      : Peter Winter
+# DATE        : 13/06/2016
+# VERSION     : 1.0.0
+# DESCRIPTION : This script safely executes a shallow Git clone from GitHub. 
+#               It dynamically creates a temporary `.netrc` file for secure 
+#               token authentication and guarantees its removal upon completion.
+#
+# INTERFACE   : $0 <owner_name> <repo_name> [auth_username]
+#
+# PARAMETERS  :
+#   $1 - repository_ownername : GitHub organization or individual profile namespace
+#   $2 - repository_name      : Case-sensitive name of the target repository
+#   $3 - repository_username  : (Optional) GitHub username associated with the token
+#
+# ENVIRONMENT VARIABLES:
+#   - REPOSITORY_TOKEN        : Must be exported in the shell for authentication
+#
+# CONFIGURATION DEPENDENCIES:
+#   - /home/buildhome.dat     : Must contain absolute path to build directory
+#   - ${HOME}/.netrc          : Managed temporarily during runtime (Chmod 600)
+#
+# LICENSE AGREEMENT:
+#   This file is part of The Agile Deployment Toolkit.
+#   Licensed under the GNU General Public License v3 or later.
+# ################################################################################
 #set -x
 set -e
 
