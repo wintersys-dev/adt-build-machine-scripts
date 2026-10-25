@@ -172,7 +172,8 @@ then
 	generated="ok"
 fi
 
-if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_TOKEN}`" = "" ] )
+export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
+if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER}  ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME}`" = "" ] )
 then
 	/bin/echo "I am not sure that your baselined repository ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} generated successfully, please double check using the GUI account for ${APPLICATION_REPOSITORY_USERNAME} on ${APPLICATION_REPOSITORY_PROVIDER}"
 else
@@ -183,3 +184,4 @@ else
 		/bin/echo "I am not entirely sure that a new baseline generated fully/correctly, please check the error logs"
 	fi
 fi
+unset REPOSITORY_TOKEN
