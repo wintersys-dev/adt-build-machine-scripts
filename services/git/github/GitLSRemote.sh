@@ -10,16 +10,29 @@ status () {
 }
 
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-        status "Error: 4 arguments are required"
-        status "Usage: $0 <authentication_token> <repository_username> <repository_ownername> <repository_name>"
+        status "Error: 3 arguments are required"
+        status "Usage: $0 <repository_username> <repository_ownername> <repository_name>"
         exit 1
 fi
 
-authentication_token="${1}" 
-repository_username="${2}"
-repository_ownername="${3}" 
-repository_name="${4}" 
+repository_username="${1}"
+repository_ownername="${2}" 
+repository_name="${3}" 
+#repository_token="${4}"
 
-/usr/bin/git ls-remote https://${repository_username}${authentication_token}@github.com/${repository_ownername}/${repository_name}.git | /bin/grep 'HEAD'
+cat << EOF > ${HOME}/.netrc
+machine github.com
+login ${repository_username}
+password ${REPOSITORY_TOKEN}
+EOF
+
+#I only use the .netrc file for git commands and I construct it and remove it every time I want to use it
+#if I need a .netrc file for curl (for example) I construct a custom file name and use the custom file so there is no clash
+chmod 600 ${HOME}/.netrc
+
+/usr/bin/git ls-remote https://github.com/${repository_ownername}/${repository_name}.git | /bin/grep 'HEAD'
+
+/bin/rm ${HOME}/.netrc
+
