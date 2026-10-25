@@ -40,14 +40,6 @@ repository_provider="${1}"
 repository_ownername="${2}"
 repository_name="${3}"
 repository_username="${4}"
-repository_token="${5}"
 
-#authentication_token=""
-
-#if ( [ "${repository_token}" != "" ] )
-#then
- #       authentication_token=":${repository_token}"
-#fi
-
-${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh "${repository_ownername}" "${repository_name}" "${repository_username}" "${repository_token}"
+${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh "${repository_ownername}" "${repository_name}" "${repository_username}" 
 
