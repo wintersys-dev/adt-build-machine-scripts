@@ -2,7 +2,7 @@
 ##################################################################################
 # SCRIPT      : GitLSRemote.sh
 # AUTHOR      : Peter Winter
-# DATE        : 16/07/2016
+# DATE        : 13/06/2021
 # VERSION     : 1.0.0
 # DESCRIPTION : This script acts detects if a named repository exists for the given
 #               provider and owner
