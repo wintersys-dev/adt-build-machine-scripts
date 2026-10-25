@@ -43,3 +43,9 @@ repository_username="${4}"
 
 ${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh "${repository_ownername}" "${repository_name}" "${repository_username}" 
 
+if ( [ "$?" != "0" ] )
+then
+        status "GitClone.sh exited with an error status"
+        exit 1
+fi
+
