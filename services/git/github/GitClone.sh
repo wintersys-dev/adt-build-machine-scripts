@@ -73,6 +73,7 @@ chmod 600 ${HOME}/.netrc
 /usr/bin/git clone --depth 1 https://github.com/${repository_ownername}/${repository_name}.git
 
 error_code="$?"
+/bin/rm ${HOME}/.netrc
 
 if ( [ "${error_code}" != "0" ] )
 then
@@ -80,5 +81,5 @@ then
         exit 1
 fi
 
-/bin/rm ${HOME}/.netrc
+
 
