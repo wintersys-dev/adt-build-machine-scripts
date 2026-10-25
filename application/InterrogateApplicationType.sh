@@ -63,6 +63,7 @@ if ( [ "${BUILD_ARCHIVE_CHOICE}" = "baseline" ] )
 then
         gitrepo="0"
 
+        export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
         if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_TOKEN} 2>/dev/null`" = "" ] )
         then
                 status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
@@ -79,6 +80,8 @@ then
         else
                 status "I have found potentially usable database baseline sourcecode in your git repo."
         fi
+
+        unset REPOSITORY_TOKEN
 
         status "The build assets have been verified suitable for the build to proceed"
 fi
@@ -119,8 +122,10 @@ fi
 #If we successfully have found the a repository for our baseline then have a go at finding which application it is by baseline
 if ( [ "${gitrepo}" = "1" ] )
 then
+        export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
         ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_TOKEN}
         ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_TOKEN}
+        unset REPOSITORY_TOKEN
         ${BUILD_HOME}/application/WhichApplicationByGitAndBaseline.sh
 fi
 
