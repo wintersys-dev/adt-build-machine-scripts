@@ -1,3 +1,4 @@
+#!/bin/sh
 ##################################################################################
 # SCRIPT      : GitClone.sh (GitHub Provider)
 # AUTHOR      : Peter Winter
