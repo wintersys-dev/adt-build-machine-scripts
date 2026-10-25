@@ -64,7 +64,7 @@ then
         gitrepo="0"
 
         export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
-        if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_TOKEN} 2>/dev/null`" = "" ] )
+        if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} 2>/dev/null`" = "" ] )
         then
                 status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
                 /bin/touch /tmp/END_IT_ALL
@@ -73,7 +73,7 @@ then
                 gitrepo="1"
         fi
 
-        if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} ${APPLICATION_REPOSITORY_TOKEN} 2>/dev/null`" = "" ] )
+        if ( [ "`${BUILD_HOME}/services/git/GitLSRemote.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} 2>/dev/null`" = "" ] )
         then
                 status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
                 /bin/touch /tmp/END_IT_ALL
@@ -123,8 +123,8 @@ fi
 if ( [ "${gitrepo}" = "1" ] )
 then
         export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
-        ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_TOKEN}
-        ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} ${APPLICATION_REPOSITORY_TOKEN}
+        ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} 
+        ${BUILD_HOME}/services/git/GitClone.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME}
         unset REPOSITORY_TOKEN
         ${BUILD_HOME}/application/WhichApplicationByGitAndBaseline.sh
 fi
