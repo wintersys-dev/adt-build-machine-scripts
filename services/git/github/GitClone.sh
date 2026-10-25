@@ -71,9 +71,11 @@ chmod 600 ${HOME}/.netrc
 
 /usr/bin/git clone --depth 1 https://github.com/${repository_ownername}/${repository_name}.git
 
-if ( [ "$?" != "0" ] )
+error_code="$?"
+
+if ( [ "${error_code}" != "0" ] )
 then
-        status "git clone command failed with error code $?"
+        status "git clone exited with error code ${error_code}"
         exit 1
 fi
 
