@@ -1,3 +1,4 @@
+#!/bin/sh
 ##################################################################################
 # SCRIPT      : GitLSRemote.sh (GitHub Provider)
 # AUTHOR      : Peter Winter
