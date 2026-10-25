@@ -1,9 +1,24 @@
 #!/bin/sh
-#####################################################################################
-# Author : Peter Winter
-# Date   : 16/07/2016
-# Description : List a repository - can be used as a check to see if a repository exists
-#####################################################################################
+##################################################################################
+# SCRIPT      : GitLSRemote.sh
+# AUTHOR      : Peter Winter
+# DATE        : 16/07/2016
+# VERSION     : 1.0.0
+# DESCRIPTION : This script acts detects if a named repository exists for the given
+#               provider and owner
+#
+# INTERFACE   : $0 <provider> <owner_name> <repo_name> [auth_username]
+#
+# PARAMETERS  :
+#   $1 - repository_provider  : Hosting vendor string (e.g., github, gitlab)
+#   $2 - repository_ownername : Organization or profile namespace account name
+#   $3 - repository_name      : Case-sensitive project target repository name
+#   $4 - repository_username  : (Optional) Account credential token/user for auth
+#
+# CONFIGURATION DEPENDENCIES:
+#   - /home/buildhome.dat     : Must contain absolute path to build directory
+#   - Sub-driver wrapper path : ${BUILD_HOME}/services/git/<provider>/GitLSRemote.sh
+#
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
