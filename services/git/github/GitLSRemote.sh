@@ -20,7 +20,6 @@ fi
 repository_ownername="${1}" 
 repository_name="${2}" 
 repository_username="${3}"
-#repository_token="${4}"
 
 cat << EOF > ${HOME}/.netrc
 machine github.com
@@ -33,6 +32,12 @@ EOF
 chmod 600 ${HOME}/.netrc
 
 /usr/bin/git ls-remote https://github.com/${repository_ownername}/${repository_name}.git | /bin/grep 'HEAD'
+
+if ( [ "$?" != "0" ] )
+then
+        status "git ls-remote exited with error code $?"
+        exit 1
+fi
 
 /bin/rm ${HOME}/.netrc
 
