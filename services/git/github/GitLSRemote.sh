@@ -9,8 +9,6 @@ status () {
         /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
 }
 
-"${repository_ownername}" "${repository_name}" "${repository_username}" 
-
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
