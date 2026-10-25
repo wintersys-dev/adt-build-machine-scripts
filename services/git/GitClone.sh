@@ -31,8 +31,8 @@ status () {
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
 then
-        status "Error: 3 arguments are required and 2 optional arguments"
-        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username] [repository_token]"
+        status "Error: 3 arguments are required and 1 optional argument"
+        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username]"
         exit 1
 fi
 
