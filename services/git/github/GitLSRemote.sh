@@ -33,9 +33,11 @@ chmod 600 ${HOME}/.netrc
 
 /usr/bin/git ls-remote https://github.com/${repository_ownername}/${repository_name}.git | /bin/grep 'HEAD'
 
-if ( [ "$?" != "0" ] )
+error_code="$?"
+
+if ( [ "${error_code}" != "0" ] )
 then
-        status "git ls-remote exited with error code $?"
+        status "git ls-remote exited with error code ${error_code}"
         exit 1
 fi
 
