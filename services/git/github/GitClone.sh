@@ -33,6 +33,11 @@ chmod 600 ${HOME}/.netrc
 
 /usr/bin/git clone --depth 1 https://github.com/${repository_ownername}/${repository_name}.git
 
+if ( [ "$?" != "0" ] )
+then
+        status "git clone command failed with error code $?"
+        exit 1
+fi
+
 /bin/rm ${HOME}/.netrc
 
-#/usr/bin/git clone --depth 1 https://${repository_username}${authentication_token}@github.com/${repository_ownername}/${repository_name}.git
