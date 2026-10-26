@@ -291,29 +291,39 @@ then
 	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
 fi
 
-if ( [ "`/usr/bin/find ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs -name "*build*" -type f`" != "" ] )
+#if ( [ "`/usr/bin/find ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs -name "*build*" -type f`" != "" ] )
+#then
+
+#	if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive ] )
+#	then
+#		/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
+#	fi
+#
+#	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/*build* ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
+#fi
+
+if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log ] )
 then
-
-	if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive ] )
-	then
-		/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
-	fi
-
-	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/*build* ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
+	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream_archive.log-`/usr/bin/date "+%H:%M"`
 fi
 
-out_file="build_output_stream-`/bin/date | /bin/sed 's/ //g'`"
-exec 1>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}
-err_file="build_error_stream-`/bin/date | /bin/sed 's/ //g'`"
-exec 2>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${err_file}
-status_file="build_status_stream-`/bin/date | /bin/sed 's/ //g'`"
-exec 4>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${status_file}
+if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err ] )
+then
+	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err-`/usr/bin/date "+%H:%M"`
+fi
+
+#out_file="build_output_stream-`/bin/date | /bin/sed 's/ //g'`"
+#exec 1>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}
+#err_file="build_error_stream-`/bin/date | /bin/sed 's/ //g'`"
+#exec 2>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${err_file}
+#status_file="build_status_stream-`/bin/date | /bin/sed 's/ //g'`"
+#exec 4>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${status_file}
 
 # Tell the user where the logging output can be found
-status "The main output log file is located at ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}"
-status "The main error log file is located at ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${err_file}"
-status "To refer to the logs you can run the script ${BUILD_HOME}/Log.sh"
-status "Press <enter> to acknowledge"
+#status "The main output log file is located at ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}"
+#status "The main error log file is located at ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${err_file}"
+#status "To refer to the logs you can run the script ${BUILD_HOME}/Log.sh"
+#status "Press <enter> to acknowledge"
 
 # We store the entire environment in a file ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/build_environment
 # We then reference this file for variable values anywhere we need using the scripts
