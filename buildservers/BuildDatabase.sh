@@ -25,7 +25,7 @@ finished="0" #If the build succeeds, this will be set to 1
 counter="0" #This counts up how many build attempts there has been
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 status ""
