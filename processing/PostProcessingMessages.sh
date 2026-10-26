@@ -60,8 +60,7 @@ else
         db_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
-status "###############################################################################################################################"
-status "`/usr/bin/toilet "IMPORTANT"`"
+status "IMPORTANT" "toilet"
 
 #If this is a virgin build, show the application credentials so that the  application can be installed
 if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
