@@ -45,7 +45,7 @@ if ( [ "${message}" != "" ] )
 then
     if ( [ "${toilet}" = "0" ] )
     then
-        /bin/echo "${clour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
+        /bin/echo "${colour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
     else
         /usr/bin/toilet -f mono12 -F metal "${message}" | /usr/bin/tee -a "${status_file}"
     fi
