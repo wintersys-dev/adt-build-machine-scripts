@@ -109,12 +109,10 @@ then
 	/bin/mv /root/logs/*build* /root/logs/archive
 fi
 
-#Set up a status function that can be called to log the status messages
 status () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh
 }
+
 
 script_dir="`CDPATH= cd -P -- "$(dirname -- "$0")" && pwd -P)`"
 current_dir="`pwd -P`"
