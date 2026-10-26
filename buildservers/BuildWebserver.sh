@@ -26,7 +26,7 @@ finished="0" #This will tell us if the build has failed or succeeded finished="1
 counter="0" #This tracks how many build attempts there has been
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "yellow"
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "purple"
 }
 
 status ""
