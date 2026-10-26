@@ -25,11 +25,7 @@ finished=0 #This will be set to 1 if the build is valid
 counter="0" #This counts how many attempted builds there have been
 
 status () {
-	yellow="`/usr/bin/tput setaf 11`"
-	norm="`/usr/bin/tput sgr0`"
-	/bin/echo "${yellow} ${1} ${norm}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh
 }
 
 status ""
