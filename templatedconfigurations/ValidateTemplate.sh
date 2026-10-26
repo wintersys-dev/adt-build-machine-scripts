@@ -25,34 +25,23 @@
 
 status () {
 	status_set="1"
-	yellow="`/usr/bin/tput setaf 11`"
-	norm="`/usr/bin/tput sgr0`"
-	/bin/echo "${yellow} ${1} ${norm}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-	/bin/echo ""
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "yellow"
 }
 
 status1 () {
-	/bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 status2 () {
-	cyan="`/usr/bin/tput setaf 6`"
-	norm="`/usr/bin/tput sgr0`"
-	/bin/echo "${cyan} ${1} ${norm}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "blue"
 }
 
-echo () {
-	status_set="1"
-	yellow="`/usr/bin/tput setaf 11`"
-	norm="`/usr/bin/tput sgr0`"
-	/bin/echo "${yellow} ${1} ${norm}" 
-}
+#echo () {
+#	status_set="1"
+#	yellow="`/usr/bin/tput setaf 11`"
+#	norm="`/usr/bin/tput sgr0`"
+#	/bin/echo "${yellow} ${1} ${norm}" 
+#}
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 quick_specification="${BUILD_HOME}/specifications/quick_specification.dat"
