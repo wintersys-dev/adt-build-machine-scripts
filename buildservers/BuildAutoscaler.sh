@@ -26,11 +26,7 @@ finished="0" #If the build succeeds, this will be set to "1"
 counter="0" #This keeps track of how many build attempts there have been
 
 status () {
-	red="`/usr/bin/tput setaf 1`"
-	norm="`/usr/bin/tput sgr0`"
-	/bin/echo "${red} ${1} ${norm}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-	script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-	/bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh
 }
 
 status ""
