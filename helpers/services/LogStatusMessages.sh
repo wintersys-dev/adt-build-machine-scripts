@@ -28,7 +28,7 @@ then
     elif ( [ "${2}" = "green" ] )
     then
         colour="${green}"
-    elif ( [ "${2}" = "toilet" ] )
+    elif ( [ "${2}" = "figlet" ] )
     then
         figlet="1"
     fi
