@@ -26,12 +26,10 @@ finished="0" #This will tell us if the build has failed or succeeded finished="1
 counter="0" #This tracks how many build attempts there has been
 
 status () {
-        cyan="`/usr/bin/tput setaf 4`"
-        norm="`/usr/bin/tput sgr0`"
-        /bin/echo "${cyan} ${1} ${norm}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-        script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
-        /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 status ""
 status ""
@@ -39,7 +37,6 @@ status ""
 status "#########################WEBSERVER BUILD MESSAGES ARE IN BLUE#######################"
 
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
