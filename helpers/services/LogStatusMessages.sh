@@ -4,7 +4,7 @@ BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
 # Assign colors dynamically using standard octal escapes
 blue="`/bin/echo -e '\033[34m'`"
-orange="`/bin/echo -e '\033[38;5;208m'`" 
+purple="`/bin/echo -e '\033[35m'`"
 red="`/bin/echo -e '\033[31m'`"
 yellow="`/bin/echo -e '\033[33m'`"
 green="`/bin/echo -e '\033[32m'`"
