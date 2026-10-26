@@ -61,7 +61,7 @@ else
 fi
 
 status "###############################################################################################################################"
-status "`/usr/bin/banner "IMPORTANT"`"
+status "`/usr/bin/toilet "IMPORTANT"`"
 
 #If this is a virgin build, show the application credentials so that the  application can be installed
 if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
