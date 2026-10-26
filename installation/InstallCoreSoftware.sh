@@ -96,8 +96,8 @@ then
 		${BUILD_HOME}/installation/InstallFirewall.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Initialising Firewall"
 		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "ubuntu" >>${upgrade_log} 2>&1
-		status "Installing/Updating SysVBanner"
-		${BUILD_HOME}/installation/InstallSysVBanner.sh "ubuntu" >>${upgrade_log} 2>&1
+		status "Installing/Updating Toilet"
+		${BUILD_HOME}/installation/InstallToilet.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Installing/Updating go"
 		${BUILD_HOME}/installation/InstallGo.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Installing/Updating curl"
@@ -131,8 +131,8 @@ then
 		${BUILD_HOME}/installation/InstallFirewall.sh "debian" >>${upgrade_log} 2>&1
 		status "Initialising Firewall"
 		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "debian" >>${upgrade_log} 2>&1
-		status "Installing/Updating SysVBanner"
-		${BUILD_HOME}/installation/InstallSysVBanner.sh "debian" >>${upgrade_log} 2>&1
+		status "Installing/Updating Toilet"
+		${BUILD_HOME}/installation/InstallToilet.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating go"
 		${BUILD_HOME}/installation/InstallGo.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating curl"
