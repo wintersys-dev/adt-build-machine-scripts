@@ -302,14 +302,23 @@ fi
 #	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/*build* ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
 #fi
 
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log ] )
+out_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log"
+err_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.log"
+status_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_status_stream.log"
+
+if ( [ -f ${out_file} ] )
 then
-	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream_archive.log-`/usr/bin/date "+%H:%M"`
+	/bin/mv ${out_file} ${out_file}-`/usr/bin/date "+%H:%M"`
 fi
 
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err ] )
+if ( [ -f ${err_file} ] )
 then
-	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err-`/usr/bin/date "+%H:%M"`
+	/bin/mv ${err_file} ${err_file}-`/usr/bin/date "+%H:%M"`
+fi
+
+if ( [ -f ${status_file} ] )
+then
+	/bin/mv ${status_file} ${status_file}-`/usr/bin/date "+%H:%M"`
 fi
 
 exec 1> /dev/tty
