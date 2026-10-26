@@ -23,6 +23,12 @@ set -e
 
 #set -x
 
+status () {
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+}
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
         status "Error: 3 Server arguments are required."
