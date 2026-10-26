@@ -79,12 +79,12 @@ then
 	/bin/sed -i "s/^access-token.*/access-token: ${DNS_SECURITY_KEY}/" ${BUILD_HOME}/.config/doctl/dns-do-config.yaml
 	/bin/sed -i "s/^access-token.*/access-token: ${DNS_SECURITY_KEY}/" /root/.config/doctl/dns-do-config.yaml
 
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
-	then
-		/usr/local/bin/doctl balance get >&3
-	else
+	#if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
+	#then
+#		/usr/local/bin/doctl balance get >&3#
+#	else
 		/usr/local/bin/doctl balance get
-	fi
+#	fi
 
 	if ( [ "$?" != "0" ] )
 	then
@@ -156,12 +156,12 @@ then
 	/bin/sed -i 's/key.*/key = "'${DNS_ACCESS_KEY}'"/' /root/.config/exoscale/dns-exoscale.toml
 	/bin/sed -i 's/secret.*/secret = "'${DNS_SECRET_KEY}'"/' /root/.config/exoscale/dns-exoscale.toml
 
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
-	then
-		/usr/bin/exo status >&3
-	else
+#	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
+#	then
+#		/usr/bin/exo status >&3
+#	else
 		/usr/bin/exo status
-	fi
+#	fi
 
 	if ( [ "$?" != "0" ] )
 	then
@@ -234,12 +234,12 @@ then
 		done
 	fi
 
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
-	then
-		/usr/local/bin/linode-cli account view >/dev/null 2>/dev/null >&3
-	else
+#	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
+#	then
+#		/usr/local/bin/linode-cli account view >/dev/null 2>/dev/null >&3
+#	else
 		/usr/local/bin/linode-cli account view >/dev/null 2>/dev/null
-	fi
+#	fi
 
 	if ( [ "$?" != "0" ] )
 	then
@@ -269,12 +269,12 @@ then
 		/bin/touch /tmp/END_IT_ALL
 	fi
 
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
-	then	
-		/usr/bin/vultr account info>&3
-	else
+#	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "0" ] )
+#	then	
+#		/usr/bin/vultr account info>&3
+#	else
 		/usr/bin/vultr account info
-	fi
+#	fi
 
 	if ( [ "$?" != "0" ] )
 	then
