@@ -3,12 +3,12 @@ CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
 BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 
 # Assign colors dynamically using standard octal escapes
-blue="`/bin/echo '\033[34m'`"
-orange="`/bin/echo '\033[38;5;208m'`" 
-red="`/bin/echo '\033[31m'`"
-yellow="`/bin/echo '\033[33m'`"
-green="`/bin/echo '\033[32m'`"
-reset="`/bin/echo '\033[0m'`"
+blue="`/bin/echo -e '\033[34m'`"
+orange="`/bin/echo -e '\033[38;5;208m'`" 
+red="`/bin/echo -e '\033[31m'`"
+yellow="`/bin/echo -e '\033[33m'`"
+green="`/bin/echo -e '\033[32m'`"
+reset="`/bin/echo -e '\033[0m'`"
 
 if ( [ "${2}" != "" ] )
 then
