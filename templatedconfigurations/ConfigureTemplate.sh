@@ -163,10 +163,13 @@ fi
 #load the environment from the template file
 . ${templatefile}
 
-if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-then
-	${BUILD_HOME}/templatedconfigurations/ValidateTemplate.sh ${templatefile}
-fi
+
+#################ADD THIS BACK IN ? status logging needs work if I do
+
+#if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
+#then
+#	${BUILD_HOME}/templatedconfigurations/ValidateTemplate.sh ${templatefile}
+#fi
 
 #Make it live
 if ( [ ! -d ${BUILD_HOME}/runtime/${cloudhost}/${build_identifier} ] )
