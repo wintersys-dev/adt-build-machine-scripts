@@ -83,9 +83,10 @@ then
 	read response1
 fi
 
-error_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_err | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
-output_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_out | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
-status_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_stat | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
+error_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_error_stream.log$ | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
+output_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_output_stream.log$ | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
+status_stream="`/bin/ls -ltr ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs | /bin/grep build_status_stream.log$ | /usr/bin/tail -1 | /usr/bin/awk '{print $NF}'`"
+
 if ( [ "${response1}" = "1" ] )
 then
 	if ( [ "${response}" = "t" ] )
