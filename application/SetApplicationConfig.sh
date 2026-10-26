@@ -72,22 +72,22 @@ then
 	DB_PASSWORD="`/bin/echo ${DB_PASSWORD} | /bin/sed 's/:::/ /g' | /usr/bin/awk '{print $NF}'`"
 fi
 
-if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "1" ] )
-then
-	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
-	then
+#if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "1" ] )
+#then
+#	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
+#	then
 		/bin/echo "Database name: ${DB_NAME}" 
 		/bin/echo "Database username: ${DB_USERNAME}" 
 		/bin/echo "Database password: ${DB_PASSWORD}" 
-	fi
-else
-	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
-	then
-		/bin/echo "Database name: ${DB_NAME}" >&3
-		/bin/echo "Database username: ${DB_USERNAME}" >&3
-		/bin/echo "Database password: ${DB_PASSWORD}" >&3
-	fi
-fi
+#	fi
+#else
+#	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
+#	then
+#		/bin/echo "Database name: ${DB_NAME}" >&3
+#		/bin/echo "Database username: ${DB_USERNAME}" >&3
+#		/bin/echo "Database password: ${DB_PASSWORD}" >&3
+#	fi
+#fi
 
 if ( [ -d ${BUILD_HOME}/application/php/cms/${APPLICATION} ] )
 then
