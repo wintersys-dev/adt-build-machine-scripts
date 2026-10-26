@@ -22,12 +22,11 @@ fi
 #    exec 3>> ${status_file}
 #fi
 
-script_name="${0##*/}"
 message="${1}"
 
 if ( [ "${message}" != "" ] )
 then
-    /bin/echo "${script_name}: ${message}" | /usr/bin/tee -a "${status_file}"
+    /bin/echo "${message}" | /usr/bin/tee -a "${status_file}"
 fi
 
 
