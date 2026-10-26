@@ -502,7 +502,7 @@ start=`/bin/date +%s`
 status ""
 status ""
 status ""
-status "`/usr/bin/banner "Starting......"`" 
+status "`/usr/bin/toilet "Starting......"`" 
 status "##############################################################################################"
 status "OK, about to begin building your deployment........"
 status "##############################################################################################"
