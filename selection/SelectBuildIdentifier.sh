@@ -26,7 +26,7 @@
 #set -x
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+	${BUILD_HOME}/helpers/services/LogInitialStatusMessages.sh "${1}"
 }
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 cloudhost="${1}"
