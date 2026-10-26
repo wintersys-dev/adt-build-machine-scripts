@@ -20,6 +20,12 @@
 ##########################################################################################
 set -e
 
+status () {
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+}
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 if ( [ "${1}" = "" ] )
 then
     status "Error: Server type argument is required." 
@@ -28,8 +34,6 @@ then
 fi
 
 server_type="${1}"
-
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
