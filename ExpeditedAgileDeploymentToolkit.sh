@@ -291,34 +291,16 @@ then
 	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs
 fi
 
-#if ( [ "`/usr/bin/find ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs -name "*build*" -type f`" != "" ] )
-#then
-
-#	if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive ] )
-#	then
-#		/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
-#	fi
-#
-#	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/*build* ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive
-#fi
-
 out_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_output_stream.log"
 err_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.log"
 status_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_status_stream.log"
 
-if ( [ -f ${out_file} ] )
+archive_date="`/usr/bin/date "+%H:%M"`"
+if ( [ -f ${out_file} ] && [ -f ${err_file} ] && [ -f ${status_file} ] )
 then
-	/bin/mv ${out_file} ${out_file}-`/usr/bin/date "+%H:%M"`
-fi
-
-if ( [ -f ${err_file} ] )
-then
-	/bin/mv ${err_file} ${err_file}-`/usr/bin/date "+%H:%M"`
-fi
-
-if ( [ -f ${status_file} ] )
-then
-	/bin/mv ${status_file} ${status_file}-`/usr/bin/date "+%H:%M"`
+	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive/${archive_date}
+	archive_dir="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/archive/${archive_date}"
+	/bin/mv ${out_file} ${err_file} ${status_file} ${archive_dir}
 fi
 
 exec 1>>${out_file}
