@@ -25,9 +25,9 @@ fi
 script_name="${0##*/}"
 message="${1}"
 
-# 1. Print clean message to screen AND append to the regular logfile
-/bin/echo "${script_name}: ${message}" | /usr/bin/tee -a "${status_file}"
+if ( [ "${message}" != "" ] )
+then
+    /bin/echo "${script_name}: ${message}" | /usr/bin/tee -a "${status_file}"
+fi
 
-# 2. Print tagged message to standard error stream AND append to error log
-#/bin/echo "${script_name}: ${message}" | /usr/bin/tee -a "${status_file}" >&2
 
