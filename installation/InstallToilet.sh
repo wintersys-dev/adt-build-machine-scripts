@@ -1,6 +1,6 @@
 #!/bin/sh
 ######################################################################################################
-# Description: This script will install sysvbanner
+# Description: This script will install toilet
 # Author: Peter Winter
 # Date: 17/01/2017
 #######################################################################################################
@@ -55,12 +55,12 @@ if ( [ "${manager}" != "" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		eval ${install_command} sysvbanner ${tail_options}
+		eval ${install_command} toilet ${tail_options}
 	fi
 
 	if ( [ "${buildos}" = "debian" ] )
 	then
-		eval ${install_command} sysvbanner ${tail_options}
+		eval ${install_command} toilet ${tail_options}
 	fi
 fi
 
