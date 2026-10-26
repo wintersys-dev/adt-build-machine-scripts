@@ -8,11 +8,6 @@ err_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_erro
 status_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_status_stream.log"
 
 
-if [ -t 1 ]
-then
-    exec 1>> "${out_file}"
-    exec 2>> "${err_file}"  
-fi
 
 #if  ( [ -t 1 ] )
 #then
