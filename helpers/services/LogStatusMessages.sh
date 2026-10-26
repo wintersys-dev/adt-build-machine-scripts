@@ -7,15 +7,22 @@ out_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_outp
 err_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.log"
 status_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_status_stream.log"
 
-if  ( [ -t 1 ] )
+
+if [ -t 1 ]
 then
-    exec 1>> ${out_file}
+    exec 1>> "${out_file}"
+    exec 2>> "${err_file}"  
 fi
 
-if  ( [ -t 2 ] )
-then
-    exec 2>> ${err_file}
-fi
+#if  ( [ -t 1 ] )
+#then
+#    exec 1>> ${out_file}
+#fi
+
+#if  ( [ -t 2 ] )
+#then
+#    exec 2>> ${err_file}
+#fi
 
 #if  ( [ -t 3 ] )
 #then
