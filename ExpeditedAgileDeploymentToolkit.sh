@@ -312,6 +312,9 @@ then
 	/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_error_stream.err-`/usr/bin/date "+%H:%M"`
 fi
 
+exec 1> /dev/tty
+exec 2> /dev/tty
+
 #out_file="build_output_stream-`/bin/date | /bin/sed 's/ //g'`"
 #exec 1>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}
 #err_file="build_error_stream-`/bin/date | /bin/sed 's/ //g'`"
