@@ -110,7 +110,7 @@ then
 fi
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 
