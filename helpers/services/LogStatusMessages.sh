@@ -10,6 +10,7 @@ yellow="`/bin/echo -e '\033[33m'`"
 green="`/bin/echo -e '\033[32m'`"
 reset="`/bin/echo -e '\033[0m'`"
 
+toilet="0"
 if ( [ "${2}" != "" ] )
 then
     if ( [ "${2}" = "blue" ] )
@@ -27,6 +28,9 @@ then
     elif ( [ "${2}" = "green" ] )
     then
         colour="${green}"
+    elif ( [ "${2}" = "toilet" ] )
+    then
+        toilet="1"
     fi
 else
     colour=""
@@ -39,7 +43,12 @@ message="${1}"
 
 if ( [ "${message}" != "" ] )
 then
-    /bin/echo "${clour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
+    if ( [ "${toilet}" = "0" ] )
+    then
+        /bin/echo "${clour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
+    else
+        /usr/bin/toilet -f mono12 -F metal "${message}" | /usr/bin/tee -a "${status_file}"
+    fi
 fi
 
 
