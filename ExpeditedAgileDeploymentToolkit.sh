@@ -92,27 +92,24 @@ then
 	/bin/mkdir /root/logs
 fi
 
-exec 3>&1
-out_file="initiallogging-out-`/bin/date | /bin/sed 's/ //g'`"
-exec 1>>/root/logs/${out_file}
-err_file="initiallogging-err-`/bin/date | /bin/sed 's/ //g'`"
-exec 2>>/root/logs/${err_file}
-status_file="initiallogging-status-`/bin/date | /bin/sed 's/ //g'`"
-exec 4>>/root/logs/${status_file}
-
-if ( [ "`/usr/bin/find /root/logs -name "*build*" -type f`" != "" ] )
-then
-	if ( [ ! -d /root/logs/archive ] )
-	then
-		/bin/mkdir -p /root/logs/archive
-	fi
-	/bin/mv /root/logs/*build* /root/logs/archive
-fi
+initial_status () {
+	${BUILD_HOME}/helpers/services/LogInitialStatusMessages.sh "${1}"
+}
 
 status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
+out_file="/root/logs/initial_build_output_stream.log"
+err_file="/root/logs/initial_build_error_stream.log"
+
+if ( [ ! -d /root/logs ] )
+then
+	/bin/mkdir -p /root/logs
+fi
+
+exec 1>>${out_file}
+exec 2>>${err_file} 
 
 script_dir="`CDPATH= cd -P -- "$(dirname -- "$0")" && pwd -P)`"
 current_dir="`pwd -P`"
@@ -141,19 +138,19 @@ then
 	# Do some basic sanity checks on any parameters that have been given from the command line
 	if ( [ "`/bin/echo "digitalocean exoscale linode vultr" | /bin/grep ${CLOUDHOST}`" = "" ] )
 	then
-		status "Unknown cloudhost passed as a parameter"
+		initial_status "Unknown cloudhost passed as a parameter"
 		exit
 	fi
 
 	if ( [ "`/bin/echo "ubuntu debian" | /bin/grep ${BUILDOS}`" = "" ] )
 	then
-		status "Unknown build os passed as a parameter"
+		initial_status "Unknown build os passed as a parameter"
 		exit
 	fi
 
 	if ( [ "`/bin/echo "1 2 3" | /bin/grep ${SELECTED_TEMPLATE}`" = "" ] )
 	then
-		status "Unknown template passed as a parameter"
+		initial_status "Unknown template passed as a parameter"
 		exit
 	fi
 fi
@@ -183,13 +180,9 @@ else
 	fi
 fi
 
-#Tell the user where the intial log files are so they know where to look if they need to
-status "The initial output log file is located at /root/logs/${out_file}"
-status "The initial error log file is located at /root/logs/${err_file}"
-
 if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
 then
-	status "Press <enter> to acknowledge"
+	initial_status "Press <enter> to acknowledge"
 	read x
 fi
 
@@ -266,9 +259,6 @@ ${BUILD_HOME}/initialisation/InitialisePrivateNetworking.sh ${CLOUDHOST}
 
 #Run some arbitrary compatibility checks
 ${BUILD_HOME}/initialisation/InitialiseCompatibilityChecks.sh
-
-status ""
-status ""
 
 # Find out what the BUILD_IDENTIFER is to be. The BUILD_IDENTIFIER will be written to the filesystem for persistent reference
 # in the file ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER
