@@ -10,7 +10,7 @@ yellow="`/bin/echo -e '\033[33m'`"
 green="`/bin/echo -e '\033[32m'`"
 reset="`/bin/echo -e '\033[0m'`"
 
-toilet="0"
+figlet="0"
 if ( [ "${2}" != "" ] )
 then
     if ( [ "${2}" = "blue" ] )
@@ -30,7 +30,7 @@ then
         colour="${green}"
     elif ( [ "${2}" = "toilet" ] )
     then
-        toilet="1"
+        figlet="1"
     fi
 else
     colour=""
@@ -43,7 +43,7 @@ message="${1}"
 
 if ( [ "${message}" != "" ] )
 then
-    if ( [ "${toilet}" = "0" ] )
+    if ( [ "${figlet}" = "0" ] )
     then
         /bin/echo "${colour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
     else
