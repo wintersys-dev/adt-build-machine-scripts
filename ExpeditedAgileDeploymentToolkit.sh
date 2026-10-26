@@ -321,8 +321,18 @@ then
 	/bin/mv ${status_file} ${status_file}-`/usr/bin/date "+%H:%M"`
 fi
 
-exec 1> /dev/tty
-exec 2> /dev/tty
+exec 1>>${out_file}
+exec 2>>${err_file} 
+
+status "The main output log file is located at ${out_file}"
+status "The main error log file is located at ${err_file}"
+status "The custom status log file is located at ${status_file}"
+status "To refer to the logs you can run the script ${BUILD_HOME}/Log.sh"
+status "Press <enter> to acknowledge"
+
+
+#exec 1> /dev/tty
+#exec 2> /dev/tty
 
 #out_file="build_output_stream-`/bin/date | /bin/sed 's/ //g'`"
 #exec 1>>${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/${out_file}
