@@ -39,7 +39,6 @@ website_url="${1}"
 ip="${2}"
 auth="${3}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
 
 if ( [ "${auth}" = "yes" ] )
