@@ -39,4 +39,21 @@ server_type="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" |  jq '[.data[] | select(.label | contains("'${server_type}'"))] | length'
+#/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" |  jq '[.data[] | select(.label | contains("'${server_type}'"))] | length'
+
+# 1. Pipe the sensitive token configuration securely into curl's stdin
+response=$(/bin/echo 'header = "Authorization: Bearer '${TOKEN}'"' | curl -m 10 -f -s -K - "https://api.linode.com/v4/linode/instances")
+
+# 2. Capture the exact exit status of the curl operation
+curl_exit=$?
+
+# 3. Check for failures (network drops, timeouts, 404, 500)
+if [ "$curl_exit" -ne 0 ]; then
+    echo "Linode API request failed (Exit code: $curl_exit)"
+    exit 1
+fi
+
+# 4. Safely inject the variable as a string argument into jq
+echo "$response" | jq --arg search "$server_type" '[.data[] | select(.label | contains($search))] | length'
+
+
