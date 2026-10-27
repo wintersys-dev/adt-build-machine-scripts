@@ -39,14 +39,14 @@ server_ip="${1}"
 
 if ( [ "${server_ip}" != "" ] )
 then
-        server_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
+        server_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
         if ( [ "${server_id}" = "" ] )
         then
                 server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
-                server_id="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
+                server_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
         fi
 
-        curl -s -X POST -H "Authorization: Bearer $TOKEN"  "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  -X POST  "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
 
         if ( [ "$?" != "0" ] )
         then
@@ -54,14 +54,14 @@ then
         fi
 
         count="0"
-        while ( [ "`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status'`" != "offline" ] && [ "${count}" -lt "21" ] )
+        while ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status'`" != "offline" ] && [ "${count}" -lt "21" ] )
         do
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
                 /bin/sleep 10
                 count="`/usr/bin/expr ${count} + 1`"
         done
 
-        curl -s -X DELETE -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
 
         if ( [ "$?" != "0" ] )
         then
