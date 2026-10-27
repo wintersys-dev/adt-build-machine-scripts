@@ -46,7 +46,7 @@ then
         max_wait="120"
         sleep_interval="5"
         elapse="0"
-        while ( [ "${elapse}" -lt "${max_wait}" ] && [ "`curl -s -X GET ""https://api.cloudflare.com/client/v4/zones?name=${zone_name}""  -H "X-Auth-Email: ${DNS_USERNAME}"  -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r 'if (.result | length) > 0 then "true" else "false" end'`" = "false" ] )
+        while ( [ "${elapse}" -lt "${max_wait}" ] && [ "`/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X GET ""https://api.cloudflare.com/client/v4/zones?name=${zone_name}""  -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" | /usr/bin/jq -r 'if (.result | length) > 0 then "true" else "false" end'`" = "false" ] )
         do
                 /bin/sleep ${sleep_interval}
                 elapse="`/usr/bin/expr ${elapse} + ${sleep_interval}`"
