@@ -36,12 +36,11 @@ status2 () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "blue"
 }
 
-#echo () {
-#	status_set="1"
-#	yellow="`/usr/bin/tput setaf 11`"
-#	norm="`/usr/bin/tput sgr0`"
-#	/bin/echo "${yellow} ${1} ${norm}" 
-#}
+echo () {
+	yellow="`/bin/echo -e '\033[33m'`"
+	reset="`/bin/echo -e '\033[0m'`"
+	/bin/echo "${yellow} ${1} ${reset}" 
+}
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 quick_specification="${BUILD_HOME}/specifications/quick_specification.dat"
