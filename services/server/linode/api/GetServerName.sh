@@ -39,7 +39,7 @@ server_ip="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances"  |  jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").label'
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances"  |  jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").label'
 
 if ( [ "$?" != "0" ] )
 then
