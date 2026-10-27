@@ -16,9 +16,9 @@ then
     if ( [ "${2}" = "blue" ] )
     then
         colour="${blue}"
-    elif ( [ "${2}" = "orange" ] )
+    elif ( [ "${2}" = "purple" ] )
     then
-        colour="${orange}"
+        colour="${purple}"
     elif ( [ "${2}" = "red" ] )
     then
         colour="${red}"
