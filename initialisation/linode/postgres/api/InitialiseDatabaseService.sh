@@ -77,7 +77,7 @@ then
 		#  db_scope_prefix="private-"
 	fi
 
-	available_engines="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/engines | jq -r '.data[].id'`"
+	available_engines="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/engines" | jq -r '.data[].id'`"
 
 	if ( [ "$?" != "0" ] || [ "${available_engines}" = "" ] )
 	then
@@ -93,7 +93,7 @@ then
 
    # database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
 	#database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
-	database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[] | select(.label == "'$label'") | .id'`"
+	database_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'$label'") | .id'`"
 	if ( [ "$?" != "0" ] )
 	then
 		status "Failed to obtain database id"
@@ -125,7 +125,7 @@ then
 			fi
 		fi
 		
-		curl -X POST https://api.linode.com/v4/databases/postgresql/instances -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
+		/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/databases/postgresql/instances" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
 
 		if ( [ "$?" != "0" ] )
 		then
@@ -139,7 +139,7 @@ then
         do
            # database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
 			#database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
-			database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[] | select(.label == "'$label'") | .id'`"
+			database_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'$label'") | .id'`"
            
 			if ( [ "${database_id}" = "" ] )
             then
@@ -155,7 +155,7 @@ then
         db_status="inactive"
         while ( [ "${db_status}" != "active" ] )
         do
-			db_status="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
+			db_status="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
             if ( [ "${db_status}" != "active" ] )
             then
             	/bin/sleep 20
@@ -170,21 +170,20 @@ then
 		while ( [ "${status}" != "active" ] ) 
 		do
 			/bin/sleep 20
-			status="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
+			status="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
 		done
 	else	
 		#Open up during the build and tighten up afterwards
-		curl -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["0.0.0.0/0"]}'
+		/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Content-Type: application/json"  -d '{"allow_list": ["0.0.0.0/0"]}'
 
 	fi
 
 	#take a note of all our configuration settings
-	export CLUSTER_NAME="`curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.label'`"
-	export DB_IDENTIFIER="`curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN" | jq -r '.hosts.primary'`"
-	export DB_USERNAME="`curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.username'`"
-	export DB_PASSWORD="`curl -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  -H "Authorization: Bearer $TOKEN" | jq -r '.password'`"
-	export DB_PORT="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
-	export DB_PORT="`curl -s -H "Authorization: Bearer $TOKEN"  https://api.linode.com/v4/databases/postgresql/instances/${database_id} | jq -r '.port'`"
+	export CLUSTER_NAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.label'`"
+	export DB_IDENTIFIER="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.hosts.primary'`"
+	export DB_USERNAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  | jq -r '.username'`"
+	export DB_PASSWORD="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials"  | jq -r '.password'`"
+	export DB_PORT="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.port'`"
 	export DB_NAME="${db_name}"
 
 	if ( [ "${db_scope_prefix}" != "" ] )
@@ -193,6 +192,6 @@ then
 	fi
 
 	#grab the cert, why not, we might need it
-    /bin/echo "`curl -s -H "Authorization: Bearer ${TOKEN}"  "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/ssl" | jq -r '.ca_certificate' | base64 --decode`" > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT"
+    /bin/echo "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/ssl" | jq -r '.ca_certificate' | base64 --decode`" > "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT"
 
 fi
