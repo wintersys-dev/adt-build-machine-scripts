@@ -48,7 +48,7 @@ then
         api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
         /bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"  -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].content'
 else
-        /usr/bin/curl -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"  -H "X-Auth-Email: ${DNS_USERNAME}" -H "X-Auth-Key: ${DNS_SECURITY_KEY}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].content'
+        /bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"  -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" | /usr/bin/jq -r '.result[].content'
 fi
 
 if ( [ "$?" != "0" ] )
