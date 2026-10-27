@@ -57,12 +57,12 @@ fi
 if ( [ ! -f /root/DATASTORETOOL_INSTALLED ] &&  [ "${buildos}" = "ubuntu" ] )
 then
 	status "Installing/Updating Datastore tools"
-	${BUILD_HOME}/installation/InstallDatastoreTools.sh "ubuntu" 2>&1 >/dev/null
+	${BUILD_HOME}/installation/InstallDatastoreTools.sh "ubuntu" 
 	/bin/touch /root/DATASTORETOOL_INSTALLED
 elif ( [ ! -f /root/DATASTORETOOL_INSTALLED ] && [ "${buildos}" = "debian" ] )
 then
 	status "Installing/Updating Datastore tools"
-	${BUILD_HOME}/installation/InstallDatastoreTools.sh "debian" 2>&1 >/dev/null
+	${BUILD_HOME}/installation/InstallDatastoreTools.sh "debian" 
 	/bin/touch /root/DATASTORETOOL_INSTALLED
 fi
 
@@ -84,81 +84,75 @@ then
 		read x
 	fi
 
-	status "##################################################################################################################################################"
-	status "Checking that the build software is up to date on this machine. Please wait .....This might take a few minutes the first time you run this script"
-	status "This is best practice to make sure that all the software is at its latest versions prior to the build process"
-	status "A log of the process is available at: ${upgrade_log}"
-	status "##################################################################################################################################################"
-
 	if ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Ubuntu"`" != "" ] )
 	then    
 		status "Installing Firewall"
-		${BUILD_HOME}/installation/InstallFirewall.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallFirewall.sh "ubuntu" 
 		status "Initialising Firewall"
-		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "ubuntu" 
 		status "Installing/Updating Figlet"
-		${BUILD_HOME}/installation/InstallFiglet.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallFiglet.sh "ubuntu" 
 		status "Installing/Updating go"
-		${BUILD_HOME}/installation/InstallGo.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallGo.sh "ubuntu" 
 		status "Installing/Updating curl"
-		${BUILD_HOME}/installation/InstallCurl.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallCurl.sh "ubuntu" 
 		status "Installing/Updating whois"
-		${BUILD_HOME}/installation/InstallWhois.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallWhois.sh "ubuntu" 
 		status "Installing/Updating JQ"
-		${BUILD_HOME}/installation/InstallJQ.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallJQ.sh "ubuntu"
 	#	status "Installing/Updating Ansible"
 #		${BUILD_HOME}/installation/InstallAnsible.sh "ubuntu" >>${upgrade_log} 2>&1
 		status "Installing/Updating Ruby"
-		${BUILD_HOME}/installation/InstallRuby.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallRuby.sh "ubuntu" 
 		status "Installing/Updating SSHPass"
-		${BUILD_HOME}/installation/InstallSSHPass.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallSSHPass.sh "ubuntu" 
 		status "Installing/Updating Sudo"
-		${BUILD_HOME}/installation/InstallSudo.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallSudo.sh "ubuntu" 
 		status "Installing/Updating Cron"
-		${BUILD_HOME}/installation/InstallCron.sh "ubuntu" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallCron.sh "ubuntu"
 		status "Installing/Updating IpCalc"
-		${BUILD_HOME}/installation/InstallIPCalc.sh "ubuntu" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallIPCalc.sh "ubuntu" 
 		status "Installing/Updating Email Utilities"
-		${BUILD_HOME}/installation/InstallEmailUtils.sh "ubuntu" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallEmailUtils.sh "ubuntu" 
 		status "Installing/Updating Virus Scanner"
-		${BUILD_HOME}/installation/InstallVirusScanner.sh "ubuntu" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallVirusScanner.sh "ubuntu" 
 		status "Installing/Updating Text Browser"
-		${BUILD_HOME}/installation/InstallTextBrowser.sh "ubuntu" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallTextBrowser.sh "ubuntu" 
 		/bin/touch ${BUILD_HOME}/runtime/EXUPDATEDSOFTWARE
 	elif ( [ "`/usr/bin/awk -F= '/^NAME/{print $2}' /etc/os-release | /bin/grep "Debian"`" != "" ] )
 	then     
 		status "Installing Firewall"
-		${BUILD_HOME}/installation/InstallFirewall.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallFirewall.sh "debian"
 		status "Initialising Firewall"
-		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/services/security/firewall/InitialiseFirewall.sh "debian" 
 		status "Installing/Updating Figlet"
-		${BUILD_HOME}/installation/InstallFiglet.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallFiglet.sh "debian" 
 		status "Installing/Updating go"
-		${BUILD_HOME}/installation/InstallGo.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallGo.sh "debian" 
 		status "Installing/Updating curl"
-		${BUILD_HOME}/installation/InstallCurl.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallCurl.sh "debian"
 		status "Installing/Updating whois"
-		${BUILD_HOME}/installation/InstallWhois.sh "ubuntu" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallWhois.sh "ubuntu" 
 		status "Installing/Updating JQ"
-		${BUILD_HOME}/installation/InstallJQ.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallJQ.sh "debian" 
 	#	status "Installing/Updating Ansible"
 	#	${BUILD_HOME}/installation/InstallAnsible.sh "debian" >>${upgrade_log} 2>&1
 		status "Installing/Updating Ruby"
-		${BUILD_HOME}/installation/InstallRuby.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallRuby.sh "debian" 
 		status "Installing/Updating SSHPass"
-		${BUILD_HOME}/installation/InstallSSHPass.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallSSHPass.sh "debian" 
 		status "Installing/Updating Sudo"
-		${BUILD_HOME}/installation/InstallSudo.sh "debian" >>${upgrade_log} 2>&1
+		${BUILD_HOME}/installation/InstallSudo.sh "debian"
 		status "Installing/Updating Cron"
-		${BUILD_HOME}/installation/InstallCron.sh "debian" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallCron.sh "debian" 
 		status "Installing/Updating IpCalc"
-		${BUILD_HOME}/installation/InstallIPCalc.sh "debian" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallIPCalc.sh "debian" 
 		status "Installing/Updating Email Utilities"
-		${BUILD_HOME}/installation/InstallEmailUtils.sh "debian" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallEmailUtils.sh "debian"  
 		status "Installing/Updating Virus Scanner"
-		${BUILD_HOME}/installation/InstallVirusScanner.sh "debian" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallVirusScanner.sh "debian"  
 		status "Installing/Updating Text Browser"
-		${BUILD_HOME}/installation/InstallTextBrowser.sh "debian" >>${upgrade_log} 2>&1 
+		${BUILD_HOME}/installation/InstallTextBrowser.sh "debian"  
 		/bin/touch ${BUILD_HOME}/runtime/EXUPDATEDSOFTWARE
 	fi
 	/bin/touch /root/UPDATEDSOFTWARE
