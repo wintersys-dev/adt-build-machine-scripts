@@ -9,5 +9,6 @@ message="${1}"
 
 if ( [ "${message}" != "" ] )
 then
-  /bin/echo "${colour}${message}${reset}" | /usr/bin/tee -a "${initial_status_file}"
+  /bin/echo "${colour}${message}${reset}" 
+  /bin/echo "${message}" >> ${initial_status_file}
 fi
