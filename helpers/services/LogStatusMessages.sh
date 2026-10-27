@@ -43,12 +43,13 @@ message="${1}"
 
 if ( [ "${message}" != "" ] )
 then
-    if ( [ "${figlet}" = "0" ] )
-    then
-        /bin/echo "${colour}${message}${reset}" | /usr/bin/tee -a "${status_file}"
-    else
-        /usr/bin/figlet "${message}" | /usr/bin/tee -a "${status_file}"
-    fi
+        if ( [ "${figlet}" = "0" ] )
+        then
+                /bin/echo "${colour}${message}${reset}" 
+                /bin/echo "${message}" >> ${status_file}
+        else
+                /usr/bin/figlet "${message}" | /usr/bin/tee -a "${status_file}"
+        fi
 fi
 
 
