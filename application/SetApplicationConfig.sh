@@ -74,12 +74,19 @@ fi
 
 #if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" = "1" ] )
 #then
-#	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
-#	then
+	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "`/bin/grep "INTERACTIVE_APPLICATION_INSTALL:yes" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`" != "" ] )
+	then
+		out_file="`lsof -p $$ -a -d 1 -Fn | /bin/sed 's|^./|/|' | /bin/grep '/'`"
+		exec 1>/dev/tty
+		/bin/echo "You are making an interactive virgin installation so I will show you your system credentials that you can enter into the GUI"
 		/bin/echo "Database name: ${DB_NAME}" 
 		/bin/echo "Database username: ${DB_USERNAME}" 
 		/bin/echo "Database password: ${DB_PASSWORD}" 
-#	fi
+		/bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""`"
+        /bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""` (try this one first from your application if it timesout, try the public one)"
+        /bin/echo "The database port is ${DB_PORT}"
+		exec 1>>${out_file}
+	fi
 #else
 #	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
 #	then
