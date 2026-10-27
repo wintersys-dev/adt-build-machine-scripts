@@ -14,14 +14,13 @@ label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{pri
 
 if ( [ "${database_type}" = "MySQL" ] )
 then
- # database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/mysql/instances | jq -r '.data[].id'`"
-  database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/mysql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
+  database_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s https://api.linode.com/v4/databases/mysql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
   if ( [ "$?" != "0" ] )
   then
     status "Failed to get the database id"
     exit 1
   fi
-  curl -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
+  /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
   if ( [ "$?" != "0" ] )
   then
     status "Failed to set allowed ip addresses for DBaaS"
@@ -29,15 +28,14 @@ then
   fi
 elif ( [ "${database_type}" = "Postgres" ] )
 then    
-  #database_id="`curl -s -H "Authorization: Bearer $TOKEN" -H 'X-Filter: {"label": "'$label'"}' https://api.linode.com/v4/databases/postgresql/instances | jq -r '.data[].id'`"
-  database_id="`curl -s -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/databases/postgresql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
+  database_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s https://api.linode.com/v4/databases/postgresql/instances | jq -r --arg lbl "$label" '.data[] | select(.label == $lbl) | .id'`"
 
   if ( [ "$?" != "0" ] )
   then
     status "Failed to get the database id"
     exit 1
   fi
-  curl -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
+  /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" -H "Content-Type: application/json"  -d '{"allow_list": ["'${VPC_IP_RANGE}'"]}'
   if ( [ "$?" != "0" ] )
   then
     status "Failed to set allowed ip addresses for DBaaS"
