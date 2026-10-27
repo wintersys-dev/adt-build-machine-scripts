@@ -34,12 +34,17 @@
 #####################################################################################
 #set -x
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+status () {
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "${2}"
+}
+
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat ] )
 then
 	exit
 fi
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
@@ -76,16 +81,13 @@ fi
 #then
 	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "`/bin/grep "INTERACTIVE_APPLICATION_INSTALL:yes" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`" != "" ] )
 	then
-		out_file="`lsof -p $$ -a -d 1 -Fn | /bin/sed 's|^./|/|' | /bin/grep '/'`"
-		exec 1>/dev/tty
-		/bin/echo "You are making an interactive virgin installation so I will show you your system credentials that you can enter into the GUI"
-		/bin/echo "Database name: ${DB_NAME}" 
-		/bin/echo "Database username: ${DB_USERNAME}" 
-		/bin/echo "Database password: ${DB_PASSWORD}" 
-		/bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
-        /bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""` (try this one first from your application if it timesout, try the public one)"
-        /bin/echo "The database port is ${DB_PORT}"
-		exec 1>>${out_file}
+		status "You are making an interactive virgin installation so I will show you your system credentials that you can enter into the GUI"
+		status "Database name: ${DB_NAME}" 
+		status "Database username: ${DB_USERNAME}" 
+		status "Database password: ${DB_PASSWORD}" 
+		status "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
+        status "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"` (try this one first from your application if it timesout, try the public one)"
+        status "The database port is ${DB_PORT}"
 	fi
 #else
 #	if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
