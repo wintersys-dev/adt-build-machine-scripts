@@ -108,35 +108,6 @@ BUILD_HOME="/home/${BUILDMACHINE_USER}/adt-build-machine-scripts"
 
 /bin/sed -i "s/^GITBRANCH:.*/GITBRANCH:${git_branch}/g" ${BUILD_HOME}/configuration/software.dat
 
-if ( [ -f ${BUILD_HOME}/helpers/services/SyncInfrastructureScriptsUpdates.sh ] )
-then
-	/bin/cp ${BUILD_HOME}/helpers/services/SyncInfrastructureScriptsUpdates.sh /usr/sbin/sync
-	/bin/chmod 755 /usr/sbin/sync
-	/bin/chown root:root /usr/sbin/sync
-fi
-
-if ( [ -f ${BUILD_HOME}/helpers/PushAndSyncInfrastructureScriptsUpdates.sh ] )
-then
-	/bin/cp ${BUILD_HOME}/helpers/PushAndSyncInfrastructureScriptsUpdates.sh /usr/sbin/push-and-sync
-	/bin/chmod 755 /usr/sbin/push-and-sync
-	/bin/chown root:root /usr/sbin/push-and-sync
-fi
-
-if ( [ -f ${BUILD_HOME}/helpers/PushInfrastructureScriptsUpdates.sh ] )
-then
-	/bin/cp ${BUILD_HOME}/helpers/PushInfrastructureScriptsUpdates.sh /usr/sbin/push
-	/bin/chmod 755 /usr/sbin/push
-	/bin/chown root:root /usr/sbin/push
-fi
-
-if ( [ ! -d /home/development ] )
-then
-	/bin/mkdir /home/development
-fi
-
-/bin/cp -r ${BUILD_HOME}/* /home/development  && /bin/cp -r ${BUILD_HOME}/.* /home/development  
-/bin/sh ${BUILD_HOME}/helpers/development/InitialiseToolkitForDevelopment.sh
-
 
 /usr/bin/find /home/${BUILDMACHINE_USER} -type d -exec chmod 755 {} \;
 /usr/bin/find /home/${BUILDMACHINE_USER} -type f -exec chmod 744 {} \;
