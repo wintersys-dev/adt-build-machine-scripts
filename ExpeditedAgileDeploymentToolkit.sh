@@ -97,7 +97,7 @@ initial_status () {
 }
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "${2}"
 }
 
 out_file="/root/logs/initial_build_output_stream.log"
