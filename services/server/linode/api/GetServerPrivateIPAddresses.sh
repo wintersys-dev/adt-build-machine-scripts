@@ -40,9 +40,9 @@ server_type="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-server_ids="`curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances" |  jq -r --arg label_match "$server_type" '.data[] | select(.label | contains($label_match)) | .id'`"
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" |  jq -r --arg label_match "$server_type" '.data[] | select(.label | contains($label_match)) | .id'`"
 
 for id in ${server_ids} 
 do
-        curl -s -H "Authorization: Bearer $TOKEN" "https://api.linode.com/v4/linode/instances/${id}/ips" | jq -r '.ipv4.vpc[] | .address'
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${id}/ips" | jq -r '.ipv4.vpc[] | .address'
 done
