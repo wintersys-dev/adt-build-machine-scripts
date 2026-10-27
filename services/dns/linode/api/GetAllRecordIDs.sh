@@ -32,8 +32,8 @@ sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-domain_id="`curl -H "Authorization: Bearer $TOKEN" https://api.linode.com/v4/domains | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
-curl -s "https://api.linode.com/v4/domains/${domain_id}/records" -H "Authorization: Bearer $TOKEN" | jq --arg sub "${sub_domain}" -r '.data[] | select(.name == $sub) | .id'
+domain_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains/${domain_id}/records" | jq --arg sub "${sub_domain}" -r '.data[] | select(.name == $sub) | .id'
 
 if ( [ "$?" != "0" ] )
 then
