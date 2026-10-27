@@ -146,7 +146,7 @@ then
 
         #Wait until the database has a status of "active" which can take a while
         status "Have got the database id which is: ${database_id}"
-        status "Attempting to get database id...this can be slow but if I am looking for more than 10 minutes something must be wrong"
+        status "Waiting for your database cluster ${database_id} to attain 'active' status ...this can be slow but if it takes more than 10 or 15 minutes then something must be wrong"
 
         db_status="inactive"
         while ( [ "${db_status}" != "active" ] )
