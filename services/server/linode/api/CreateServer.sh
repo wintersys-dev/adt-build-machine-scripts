@@ -1,4 +1,31 @@
 #!/bin/sh
+# ==============================================================================
+# Script Name: CreateServer.sh
+# Description: Automates the provisioning of a Linode compute instance within a 
+#              specified Virtual Private Cloud (VPC) and subnet. Dynamically 
+#              creates the VPC if it does not already exist.
+#
+# Requirements:
+#   - Requires a file at /home/buildhome.dat containing the helper path.
+#   - Relies on external scripts to resolve VPC configurations and tokens.
+#   - Requires curl and jq installed on the host system.
+#
+# Security Note: 
+#   - Accepts an emergency password as a direct argument. 
+#   - Uses secure stdin pipes for curl headers to avoid leaking the Linode 
+#     API Bearer Token into the public process stack (ps aux).
+#
+# Arguments:
+#   $1 - emergency_password (Required : Root password for the new instance)
+#   $2 - region             (Required : Linode region slug, e.g., us-east)
+#   $3 - image              (Required : Base OS image slug or distribution)
+#   $4 - server_size        (Required : Linode plan/size type identifier)
+#   $5 - server_name        (Required : Unique label/hostname for the instance)
+#   $6 - subnet_id          (Required : Target VPC subnet identifier)
+#   $7 - user_data          (Required : Cloud-init base64 script configuration)
+#   $8 - firewall_id        (Required : Target Linode Cloud Firewall ID)
+#   $9 - snapshot_id        (Optional : Overrides $3 image if provided)
+# ========================================================================
 #set -x
 set -e
 
