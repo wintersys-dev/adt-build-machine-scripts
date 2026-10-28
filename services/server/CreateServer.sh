@@ -43,16 +43,10 @@ machine_type="${3}"
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
 BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
-BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
-BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
-OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
 
 machine_category="`/bin/echo ${machine_type} | /bin/sed 's|adt-||'`"
 ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_category}" "${server_name}"
@@ -89,14 +83,6 @@ else
         /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
-if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
-then
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d '{ "label": "'"${VPC_NAME}"'", "region": "'"${REGION}"'", "subnets": [ { "label": "adt-subnet", "ipv4": "'"${VPC_IP_RANGE}"'" } ] }'
-fi
-
-vpc_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
-subnet_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq -r '.data[] | select(.label == "adt-subnet").id'`"
-
 image="${OS_CHOICE}" 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
 then
@@ -109,14 +95,6 @@ cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
 then
     status "Error: Cannot read active cloud host file at ${cloudhost_file}"
-    exit 1
-fi
-
-CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
-
-if ( [ "${CLOUDHOST}" = "" ] )
-then
-    status "Error: CLOUDHOST variable is empty."
     exit 1
 fi
 
@@ -159,8 +137,3 @@ then
     exit $exit_code
 fi
 
-/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d '{ "root_pass": "'"${emergency_password}"'", "region": "'"${REGION}"'", "image": "'"${image}"'", "type": "'"${server_size}"'", "label": "'"${server_name}"'", "interface_generation": "linode", "interfaces": [ {  '"${firewall_active}"' "vpc": { "subnet_id": '"${subnet_id}"', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ], "metadata": { "user_data": "'"${user_data}"'" }, "disk_encryption": "enabled" }'
-if ( [ "$?" != "0" ] )
-then
-        exit 1
-fi
