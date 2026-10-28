@@ -1,9 +1,28 @@
 #!/bin/sh
-################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : Lists all the id's of a server of a particular type
-################################################################################
+###################################################################################
+# @file        ListServerIDs.sh
+# @brief       Resolves active vendor properties and routes queries to list server IDs by type.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script serves as a high-level wrapper layout within the framework. 
+#              It checks core runtime environment metadata to discover the active cloud 
+#              host platform and automated orchestration engine, validates target script 
+#              permissions, forwards the machine target label, and prints the isolated 
+#              resource identifiers to standard output.
+#
+# @param       $1  [Required] The targeted server architecture type or category classification label.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active virtual infrastructure hosting provider.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Target handoff complete and server engine IDs fetched successfully.
+# @exit        1  Failure: Missing positional parameters, unreadable environment configurations, 
+#                 or exceptions encountered executing downstream provider tools.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,9 +34,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ###################################################################################
 ###################################################################################
+#set -x
 set -e
 
 status () {
