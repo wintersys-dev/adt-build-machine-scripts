@@ -83,7 +83,7 @@ ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_cate
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml ] )
 then
-        cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml | /usr/bin/base64 -w 0`" 
+        user_data="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml`" 
 else
         status "Cloud config file not found"
         exit 1
@@ -116,8 +116,6 @@ if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
 then
         image="${snapshot_id}"
 fi
-
-user_data="${cloud_config}"
 
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
