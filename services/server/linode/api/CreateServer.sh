@@ -11,12 +11,17 @@ subnet_id="${6}"
 user_data="${7}"
 firewall_active="${8}"
 
+BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
+
+
 # 2. Dynamic conditional handling for the optional firewall entry
 if [ -n "$firewall_active" ]; then
     FIREWALL_JSON="${firewall_active},"
 else
     FIREWALL_JSON=""
 fi
+
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 
 if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
