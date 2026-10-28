@@ -56,7 +56,7 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] || [ "${7}" = "" ] || [ "${8}" = "" ] )
 then
         status "Error: 8 arguments are required and 1 optional argument"
         status "Usage: $0 <emergency_password> <region> <image> <server_size> <server_name> <subnet_id> <user_data> <firewall_id> [snapshot_id]" 
@@ -77,6 +77,8 @@ if ( [ "${snapshot_id}" != "" ] )
 then
         image="${snapshot_id}"
 fi
+
+user_data="$(/bin/echo ${user_data}  | /usr/bin/base64 -w 0)"
 
 VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
