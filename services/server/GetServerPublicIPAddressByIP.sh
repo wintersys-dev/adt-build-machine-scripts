@@ -43,7 +43,7 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 if ( [ "${1}" = "" ] )
 then
@@ -61,7 +61,7 @@ then
     exit 1
 fi
 
-CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
+CLOUDHOST="$(/bin/cat "${cloudhost_file}")"
 
 if ( [ "${CLOUDHOST}" = "" ] )
 then
@@ -76,7 +76,7 @@ then
     exit 1
 fi
 
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
 if ( [ "${orchestration_tool}" = "" ] )
 then
