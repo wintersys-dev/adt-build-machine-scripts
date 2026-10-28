@@ -1,8 +1,25 @@
 #!/bin/sh
 ############################################################################
-# Author : Peter Winter
-# Date   : 13/06/2016
-# Description : This script gets a machine's public ip based on its private ip
+# @file        GetServerPublicIPAddressByIP.sh
+# @brief       Resolves a machine's public NAT IP based on its private VPC IP.
+# @author      Peter Winter
+# @date        13/06/2021
+# @version     1.0
+#
+# @details     This script connects to the Linode v4 VPC IPs endpoint to query 
+#              network address configurations. It searches the dataset for the 
+#              provided private IP address and extracts its mapped public IPv4 
+#              address via the 'nat_1_1' metadata attribute using jq.
+#
+# @param       $1  [Required] The target private VPC IPv4 address to translate.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: The public NAT IP was found and printed to stdout.
+# @exit        1  Failure: Missing arguments, invalid token, network timeouts, or 
+#                 no matching 1:1 NAT mapping exists for the given private IP.
+#
 #############################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -43,7 +60,7 @@ then
 
         if [ "${output}" = "" ]
         then
-                status "Error: No matching server instance found for server type ${server_type}."
+                status "Error: No matching public IP address found for server ip ${server_ip}."
                 exit 1
         else
                 echo "${output}"
