@@ -38,32 +38,32 @@
 ###################################################################################
 #set -x
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 cloudhost="${1}"
 server_ip="${2}"
 
 if ( [ "${cloudhost}" = "digitalocean" ] )
 then
-	server_name="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip}`"
+	server_name="$(${BUILD_HOME}/services/server/GetServerName.sh ${server_ip})"
 	${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${server_name} 
 fi
 
 if ( [ "${cloudhost}" = "exoscale" ] )
 then
-	server_name="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip}`"
+	server_name="$(${BUILD_HOME}/services/server/GetServerName.sh ${server_ip})"
 	${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${server_name} 
 fi
 
 if ( [ "${cloudhost}" = "linode" ] )
 then
-	server_name="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip}`"
+	server_name="$(${BUILD_HOME}/services/server/GetServerName.sh ${server_ip})"
 	${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${server_name} 
 fi
 
 if ( [ "${cloudhost}" = "vultr" ] )
 then
-	server_name="`${BUILD_HOME}/services/server/GetServerName.sh ${server_ip}`"
+	server_name="$(${BUILD_HOME}/services/server/GetServerName.sh ${server_ip})"
 	if ( [ "${server_name}" = "" ] )
 	then
 		server_name="NOT_SET"
