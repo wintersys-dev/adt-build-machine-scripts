@@ -29,12 +29,12 @@ TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 HEADER="Authorization: Bearer ${TOKEN}"
 
 # Ensure VPC Exists
-vpc_id="$(curl -s -H "${HEADER}" "https://linode.com" | jq -r --arg name "$VPC_NAME" '.data[] | select(.label == $name).id')"
+vpc_id="$(curl -s -H "${HEADER}" "https://api.linode.com/v4/vpcs" | jq -r --arg name "$VPC_NAME" '.data[] | select(.label == $name).id')"
 
 if [ -z "${vpc_id}" ]; then
     vpc_payload="$(jq -n --arg lbl "$VPC_NAME" --arg reg "$region" --arg ip "$VPC_IP_RANGE" '{label: $lbl, region: $reg, subnets: [{label: "adt-subnet", ipv4: $ip}]}')"
     
-    vpc_id="$(curl -s -X POST "https://linode.com" -H "${HEADER}" -H "Content-Type: application/json" -d "${vpc_payload}" | jq -r '.id')"
+    vpc_id="$(curl -s -X POST "https://api.linode.com/v4/vpcs" -H "${HEADER}" -H "Content-Type: application/json" -d "${vpc_payload}" | jq -r '.id')"
 fi
 
 # Get Subnet ID
