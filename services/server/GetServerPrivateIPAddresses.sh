@@ -1,9 +1,28 @@
 #!/bin/sh
-#########################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description :  This script gets the private ip address of a machine given its unique name
-#########################################################################################
+###################################################################################
+# @file        GetServerPrivateIPAddressesMain.sh
+# @brief       Resolves active runtime paths and triggers provider-specific private IP lookup.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script acts as a high-level orchestrator within the framework.
+#              It parses core runtime configuration metadata to determine the active
+#              cloud host and deployment orchestration toolchain, validates script path
+#              permissions, and forwards the server name parameter to the downstream
+#              provider subsystem to isolate private network addresses.
+#
+# @param       $1  [Required] The unique name or type label of the target machine.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active infrastructure hosting platform.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Target handoff complete and server private IP resolved successfully.
+# @exit        1  Failure: Missing positional parameters, unreadable environment configurations,
+#                 or a downstream script processing exception encountered.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,9 +34,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-########################################################################################
-########################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
 #set -x
 
 set -e
