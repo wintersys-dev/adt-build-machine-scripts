@@ -19,15 +19,13 @@
 ########################################################################################
 ########################################################################################
 #set -x
-
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 
 if ( [ "${1}" = "" ] )
 then
@@ -40,9 +38,18 @@ server_type="${1}"
 
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
-if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" |  jq -r '.data[] | select(.label | contains("'${server_type}'")).status'`" = "running" ] )
+if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances")"
 then
-        /bin/echo "running"
+        output="$(echo "${response}" | jq -r --arg search "${server_type}" '.data[] | select(.label | contains($search)).status')"
+
+        if [ "${output}" = "" ]
+        then
+                status "Error: No matching server instance found for server type ${server_type}."
+                exit 1
+        else
+                echo "${output}"
+        fi
 else
-        /bin/echo "not running"
+        status "Network request failed. Check your API token or URL."
+        exit 1
 fi
