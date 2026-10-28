@@ -28,6 +28,9 @@ BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_F
 VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
 VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
+BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
+OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh "linode" "${BUILDOS}" "${BUILDOS_VERSION}" | /bin/sed "s/'//g"`"
 
 
 if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
