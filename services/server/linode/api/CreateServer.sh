@@ -1,21 +1,24 @@
 #!/bin/sh
 # ==============================================================================
-# Script Name: CreateServer.sh
-# Description: Automates the provisioning of a Linode compute instance within a 
-#              specified Virtual Private Cloud (VPC) and subnet. Dynamically 
-#              creates the VPC if it does not already exist.
+# @file : CreateServer.sh
+# @brief: Automates the provisioning of a Linode compute instance within a 
+#         specified Virtual Private Cloud (VPC) and subnet. Dynamically 
+#         creates the VPC if it does not already exist.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
 #
-# Requirements:
+# @details
 #   - Requires a file at /home/buildhome.dat containing the helper path.
 #   - Relies on external scripts to resolve VPC configurations and tokens.
 #   - Requires curl and jq installed on the host system.
 #
-# Security Note: 
+# @security
 #   - Accepts an emergency password as a direct argument. 
 #   - Uses secure stdin pipes for curl headers to avoid leaking the Linode 
 #     API Bearer Token into the public process stack (ps aux).
 #
-# Arguments:
+# @param:
 #   $1 - emergency_password (Required : Root password for the new instance)
 #   $2 - region             (Required : Linode region slug, e.g., us-east)
 #   $3 - image              (Required : Base OS image slug or distribution)
@@ -25,7 +28,31 @@
 #   $7 - user_data          (Required : Cloud-init base64 script configuration)
 #   $8 - firewall_id        (Required : Target Linode Cloud Firewall ID)
 #   $9 - snapshot_id        (Optional : Overrides $3 image if provided)
+# 
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: The instance was successfully shut down and deleted.
+# @exit        1  Failure: Missing arguments, missing configuration, api communication 
+#                 errors, or failure during the deletion sequence.
 # ========================================================================
+
+# @file        DestroyServer.sh
+# @brief       Gracefully shuts down and permanently deletes a Linode server by IP.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script orchestrates the destruction of a specific Linode instance.
+#              It resolves the instance ID via its IPv4 address, issues a shutdown 
+#              POST request, polls the API up to 21 times (3.5 minutes) waiting for 
+#              an 'offline' status, and finally executes a permanent DELETE request.
+#
+# @param       $1  [Required] The target IPv4 address of the instance to destroy.
+#
+# @exit        0  Success: The instance was successfully shut down and deleted.
+# @exit        1  Failure: Missing arguments, missing configuration, api communication 
+#                 errors, or failure during the deletion sequence.
 #set -x
 set -e
 
