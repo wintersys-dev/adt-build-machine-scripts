@@ -1,10 +1,26 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 15/02/2024
-# Description : This script does a rudimentary check to check that your build-machine
-# is connected to a VPC when its supposed to be. If we can't get a private IP address it
-# means that the machine is not connected to a VPC
+# @file        CheckBuildMachineVPC.sh
+# @brief       Verifies whether a provisioning build machine is properly routed into a VPC network block.
+# @author      Peter Winter
+# @date        15/02/2021
+# @version     1.0
+#
+# @details     This script performs a baseline environmental check on a virtual machine.
+#              It queries the active cloud host infrastructure layer to map the public 
+#              IPv4 address to an internal label, then attempts to look up the machine's 
+#              private networking interfaces. If no internal private IP addresses are 
+#              returned, the machine is flagged as detached from its required VPC context.
+#
+# @param       $1  [Required] The targeted cloud hosting infrastructure platform slug.
+# @param       $2  [Required] The public IPv4 address of the target deployment instance.
+#
+# @env         BUILD_HOME  Path to the framework core root layout directory.
+#
+# @exit        0  Success: The connectivity layout check sequence completed without errors.
+# @exit        1  Failure: Missing positional parameters, unreadable environment configurations,
+#                 or network mapping lookup execution failure.
+#
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -17,9 +33,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-####################################################################################
-####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
 #set -x
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
