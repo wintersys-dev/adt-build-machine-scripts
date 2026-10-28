@@ -41,14 +41,7 @@ fi
 subnet_id="$(curl -s -H "${HEADER}" "https://linode.com/${vpc_id}/subnets" | jq -r '.data[] | select(.label == "adt-subnet").id')"
 
 # Build safely escaped Server Payload
-instance_payload="$(jq -n \
-    --arg pass "$emergency_password" \
-    --arg reg "$region" \
-    --arg img "$image" \
-    --arg type "$server_size" \
-    --arg lbl "$server_name" \
-    --arg sub "$subnet_id" \
-    --arg ud "$user_data" \
+instance_payload="$(jq -n --arg pass "$emergency_password" --arg reg "$region" --arg img "$image" --arg type "$server_size" --arg lbl "$server_name" --arg sub "$subnet_id" --arg ud "$user_data" \
     '{
         root_pass: $pass, region: $reg, image: $img, type: $type, label: $lbl,
         interface_generation: "linode",
@@ -58,7 +51,4 @@ instance_payload="$(jq -n \
     }')"
 
 # Create Linode Instance
-curl -f -s -X POST "https://linode.com" \
-    -H "${HEADER}" \
-    -H "Content-Type: application/json" \
-    -d "${instance_payload}"
+curl -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "${HEADER}" -H "Content-Type: application/json" -d "${instance_payload}"
