@@ -42,13 +42,13 @@ cloudhost="${1}"
 buildos="${2}"
 buildos_version="${3}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 if ( [ "${cloudhost}" = "digitalocean" ] )
 then
 	if ( [ "${buildos}" = "ubuntu" ] )
 	then
-		buildos_version="`/bin/echo ${buildos_version} | /bin/sed 's/\./-/g'`"
+		buildos_version="$(/bin/echo ${buildos_version} | /bin/sed 's/\./-/g')"
 		/bin/echo "ubuntu-${buildos_version}-x64"
 	elif ( [ "${buildos}" = "debian" ] )
 	then
@@ -63,7 +63,7 @@ then
 		/bin/echo "Linux Ubuntu ${buildos_version} LTS 64-bit"
 	elif ( [ "${buildos}" = "debian" ] )
 	then
-		os_name="`${BUILD_HOME}/helpers/services/GetOsName.sh | /bin/sed -e "s/\b\(.\)/\u\1/g"`"
+		os_name="$(${BUILD_HOME}/helpers/services/GetOsName.sh | /bin/sed -e "s/\b\(.\)/\u\1/g")"
 		#At the current time (2025), 14 and 15 are here for future proofing not for actual use
 		if ( [ "${buildos_version}" = "12" ] )
 		then
