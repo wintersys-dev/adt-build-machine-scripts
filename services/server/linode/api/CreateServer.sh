@@ -55,7 +55,7 @@ BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_F
 OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
 
 machine_category="`/bin/echo ${machine_type} | /bin/sed 's|adt-||'`"
-${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_category}"
+${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_category}" "${server_name}"
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml ] )
 then
