@@ -1,23 +1,25 @@
 #!/bin/sh
 #########################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description :  This script gets the private ip address of a machine given its unique name
-#########################################################################################
-# License Agreement:
-# This file is part of The Agile Deployment Toolkit.
-# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-########################################################################################
-########################################################################################
+# @file        GetServerPrivateIPAddresses.sh
+# @brief       Retrieves the private VPC IPv4 addresses for a given server type.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script queries the local toolkit environment to identify target 
+#              server IDs matching a specific type string. It then loops through each 
+#              ID, hits the Linode v4 IPs endpoint, and extracts the associated 
+#              private VPC address fields using jq filtering.
+#
+# @param       $1  [Required] The server type/name substring used to resolve server IDs.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: One or more private IP addresses were resolved and printed.
+# @exit        1  Failure: Missing arguments, invalid token, network timeouts, or 
+#                 no valid VPC IP assignments were found for the matching servers.
+#
 #set -x
 set -e
 
