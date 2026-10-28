@@ -3,7 +3,7 @@
 # @file        GetServerName.sh
 # @brief       Retrieves the Linode server label associated with a specific IP address.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script connects to the Linode v4 API, fetches the active instance 
