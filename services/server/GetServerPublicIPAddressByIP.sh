@@ -1,9 +1,27 @@
 #!/bin/sh
-############################################################################
-# Author : Peter Winter
-# Date   : 13/06/2016
-# Description : This script gets a machine's public ip based on its private ip
-#############################################################################
+###################################################################################
+# @file        GetServerPublicIPAddressByIP.sh
+# @brief       Resolves active runtime paths and routes lookups to get public IPs from private IPs.
+# @author      Peter Winter
+# @date        13/06/2021
+# @version     1.0
+#
+# @details     This script serves as a high-level wrapper inside the framework. It reads
+#              global layout parameters to identify the active cloud provider and deployment
+#              automation engine, verifies script executable permissions, and delegates the
+#              private IPv4 address parameter down to the provider-specific metadata query engine.
+#
+# @param       $1  [Required] The target private IPv4 address of the instance.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active infrastructure hosting platform.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Runtime options consolidated and public IP resolved successfully.
+# @exit        1  Failure: Missing positional parameters, unreadable environment configurations,
+#                 or a downstream script processing exception encountered.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,9 +33,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-####################################################################################
-####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
+#set -x
 set -e
 
 status () {
