@@ -1,9 +1,25 @@
 #!/bin/sh
 ##############################################################################################
-# Author: Peter Winter
-# Date  : 13/07/2016
-# Description : This script will get all the server ip addresses of the machines of a specified type
-##############################################################################################
+# @file        GetServerIPAddresses.sh
+# @brief       Retrieves all IPv4 addresses for Linode servers matching a specified type.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script interfaces with the Linode v4 API to pull down active server 
+#              instances. It then parses the resulting JSON stream using jq, isolating 
+#              and printing all IPv4 array items for any instance whose label contains 
+#              the specified server type substring.
+#
+# @param       $1  [Required] The server type/name substring to match within instance labels.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: One or more IP addresses were found and printed to stdout.
+# @exit        1  Failure: Missing arguments, missing configuration, invalid token, 
+#                 network failure, or no server labels matched the target type string.
+#
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
