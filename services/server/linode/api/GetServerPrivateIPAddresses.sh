@@ -18,16 +18,14 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 ########################################################################################
 ########################################################################################
-set -x
-
+#set -x
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 
 if ( [ "${1}" = "" ] )
 then
@@ -37,12 +35,33 @@ then
 fi
 
 server_type="${1}"
-
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+server_ids="$(${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh ${server_type})"
 
-server_ids="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" |  jq -r --arg label_match "$server_type" '.data[] | select(.label | contains($label_match)) | .id'`"
+if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances")"
+then
+        if [ "${response}" = "" ]
+        then
+                status "Error: No matching server instance found for server type ${server_type}."
+                exit 1
+        else
+                for id in ${server_ids}
+                do
+                        if [ ${TOKEN} != "" ] && response1="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${id}/ips")"
+                        then
+                                output="$(echo "${response1}" | jq -r '.ipv4.vpc[] | .address')"
 
-for id in ${server_ids} 
-do
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${id}/ips" | jq -r '.ipv4.vpc[] | .address'
-done
+                                if [ "${output}" = "" ]
+                                then
+                                        status "Error: No matching server instance found for server type ${server_type}."
+                                        exit 1
+                                else
+                                        echo "${output}"
+                                fi
+                        fi
+                done
+        fi
+else
+        status "Network request failed. Check your API token or URL."
+        exit 1
+fi
