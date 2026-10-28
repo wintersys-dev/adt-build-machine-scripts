@@ -17,14 +17,14 @@
 # @param       $2  [Required] The OS distribution image slug or custom image source.
 # @param       $3  [Required] The server plan hardware size and performance profile tier.
 # @param       $4  [Required] The human-readable label/hostname for the instance.
-# @param       $5  [Required] The security firewall ID applied to the primary interface.
-# @param       $6  [Optional] Overriding backup snapshot ID matching a recovery build.
+# @param       $5  [Required] Path to the prepared cloud-init user data file.
+# @param       $6  [Required] The security firewall ID applied to the primary interface.
+# @param       $7  [Optional] Overriding backup snapshot ID matching a recovery build.
 #
 # @env         BUILD_HOME     Path to the toolkit core framework layout directory.
 # @env         VPC_IP_RANGE   The network block CIDR configured for VPC initialization.
 # @env         VPC_NAME       The matching environment tag pattern for infrastructure filtering.
 # @env         TOKEN          The active Linode API Bearer security credentials string.
-# @env         USER_DATA      Needs to be exported from above as its secuity sensitive
 # @env         EMERGENCY_PASSWORD  Needs to be exported from above as its security sensitive
 #
 # @exit        0  Success: The server instance was successfully instantiated and registered.
@@ -55,10 +55,10 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ]  )
 then
-        status "Error: 5 arguments are required and 1 optional argument"
-        status "Usage: $0 <region> <image> <server_size> <server_name> <firewall_id> [snapshot_id]" 
+        status "Error: 6 arguments are required and 1 optional argument"
+        status "Usage: $0 <region> <image> <server_size> <server_name> <user_data> <firewall_id> [snapshot_id]" 
         exit 1
 fi
 
@@ -66,18 +66,13 @@ region="${1}"
 image="${2}"
 server_size="${3}"
 server_name="${4}"
-firewall_id="${5}"
-snapshot_id="${6}"
+user_data="${5}"
+firewall_id="${6}"
+snapshot_id="${7}"
 
 if ( [ "${EMERGENCY_PASSWORD}" = "" ] )
 then
         status "Error: EMERGENCY_PASSWORD environment variable not set"
-        exit 1
-fi
-
-if ( [ "${USER_DATA}" = "" ] )
-then
-        status "Error: USER_DATA environment variable not set"
         exit 1
 fi
 
@@ -86,7 +81,7 @@ then
         image="${snapshot_id}"
 fi
 
-user_data="$(/bin/echo ${USER_DATA} | /usr/bin/base64 -w 0)"
+user_data="$(/bin/cat ${USER_DATA} | /usr/bin/base64 -w 0)"
 
 VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
