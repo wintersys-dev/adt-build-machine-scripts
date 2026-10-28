@@ -54,7 +54,7 @@ status () {
         ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
 then
@@ -67,23 +67,22 @@ server_size="${1}"
 server_name="${2}"
 machine_type="${3}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
-REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
-BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
-BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
-BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
-OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
+CLOUDHOST="$(/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST)"
+BUILD_IDENTIFIER="$(/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER)"
+REGION="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION)"
+WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL)"
+ACTIVE_FIREWALL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS)"
+BUILDOS="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS)"
+BUILDOS_VERSION="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION)"
+BUILD_FROM_SNAPSHOT="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT)"
+OS_CHOICE="$(${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g")"
 
-machine_category="`/bin/echo ${machine_type} | /bin/sed 's|adt-||'`"
+machine_category="$(/bin/echo ${machine_type} | /bin/sed 's|adt-||')"
 ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_category}" "${server_name}"
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml ] )
 then
-        user_data="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml`" 
+        user_data="$(/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml)" 
 else
         status "Cloud config file not found"
         exit 1
@@ -96,7 +95,7 @@ then
         status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
 fi
 
-firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
+firewall_id="$(${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}')"
 
 if ( [ "${firewall_id}" = "" ] )
 then
@@ -105,9 +104,9 @@ fi
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
 then    
-        emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
+        emergency_password="$(/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD)"
 else
-        emergency_password="`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16`"
+        emergency_password="$(/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16)"
         /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
 fi
 
