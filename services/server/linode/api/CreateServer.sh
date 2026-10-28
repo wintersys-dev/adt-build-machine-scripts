@@ -1,40 +1,37 @@
 #!/bin/sh
-# ==============================================================================
-# @file : CreateServer.sh
-# @brief: Automates the provisioning of a Linode compute instance within a 
-#         specified Virtual Private Cloud (VPC) and subnet. Dynamically 
-#         creates the VPC if it does not already exist.
+###################################################################################
+# @file        CreateServer.sh
+# @brief       Provisions a Linode compute instance securely within a managed VPC.
 # @author      Peter Winter
 # @date        13/07/2021
 # @version     1.0
 #
-# @details
-#   - Requires a file at /home/buildhome.dat containing the helper path.
-#   - Relies on external scripts to resolve VPC configurations and tokens.
-#   - Requires curl and jq installed on the host system.
+# @details     This script connects to the Linode v4 API to provision a virtual
+#              machine. It validates the existence of the targeted Virtual Private
+#              Cloud (VPC), dynamically creates the VPC and its core subnet if 
+#              missing, resolves the relevant internal subnet IDs, and executes 
+#              the final infrastructure deployment transaction securely using 
+#              piped authorization streams.
 #
-# @security
-#   - Accepts an emergency password as a direct argument. 
-#   - Uses secure stdin pipes for curl headers to avoid leaking the Linode 
-#     API Bearer Token into the public process stack (ps aux).
+# @param       $1  [Required] The root emergency password assigned to the instance.
+# @param       $2  [Required] The target Linode region slug for deployment location.
+# @param       $3  [Required] The OS distribution image slug or custom image source.
+# @param       $4  [Required] The server plan hardware size and performance profile tier.
+# @param       $5  [Required] The human-readable label/hostname for the instance.
+# @param       $6  [Required] The incoming fallback subnet identifier constraint.
+# @param       $7  [Required] The Cloud-init user data customization payload.
+# @param       $8  [Required] The security firewall ID applied to the primary interface.
+# @param       $9  [Optional] Overriding backup snapshot ID matching a recovery build.
 #
-# @param:
-#   $1 - emergency_password (Required : Root password for the new instance)
-#   $2 - region             (Required : Linode region slug, e.g., us-east)
-#   $3 - image              (Required : Base OS image slug or distribution)
-#   $4 - server_size        (Required : Linode plan/size type identifier)
-#   $5 - server_name        (Required : Unique label/hostname for the instance)
-#   $6 - subnet_id          (Required : Target VPC subnet identifier)
-#   $7 - user_data          (Required : Cloud-init base64 script configuration)
-#   $8 - firewall_id        (Required : Target Linode Cloud Firewall ID)
-#   $9 - snapshot_id        (Optional : Overrides $3 image if provided)
-# 
-# @env         BUILD_HOME  Path to the framework root directory (read from file).
-# @env         TOKEN       Linode API bearer authorization token.
+# @env         BUILD_HOME     Path to the toolkit core framework layout directory.
+# @env         VPC_IP_RANGE   The network block CIDR configured for VPC initialization.
+# @env         VPC_NAME       The matching environment tag pattern for infrastructure filtering.
+# @env         TOKEN          The active Linode API Bearer security credentials string.
 #
-# @exit        0  Success: The instance was successfully shut down and deleted.
-# @exit        1  Failure: Missing arguments, missing configuration, api communication 
-#                 errors, or failure during the deletion sequence.
+# @exit        0  Success: The server instance was successfully instantiated and registered.
+# @exit        1  Failure: Argument mismatch, invalid VPC configurations, or an unexpected
+#                 HTTP error encountered during processing via the cloud host provider API.
+#
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -47,9 +44,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-###################################################################################
-###################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+####################################################################################
 #set -x
 set -e
 
