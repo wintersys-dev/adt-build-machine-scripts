@@ -22,7 +22,7 @@
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -36,18 +36,12 @@ then
 fi
 
 server_ip="${1}"
+server_name="$(${BUILD_HOME}/services/server/linode/api/GetServerName.sh ${server_ip})"
 
-if ( [ "${server_ip}" != "" ] )
+if [ "${server_name}" != "" ] 
 then
-        server_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
-        if ( [ "${server_id}" = "" ] )
-        then
-                server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
-                server_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances" | jq -r '.data[] | select(.ipv4[] == "'${server_ip}'").id')`"
-        fi
-
+        server_id="$(${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh ${server_name})"
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  -X POST  "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-
         if ( [ "$?" != "0" ] )
         then
                 exit 1
@@ -67,6 +61,6 @@ then
         then
                 exit 1
         else
-                status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
+                status "Machine with id: ${server_id} and ip address ${server_ip} has been deleted"
         fi
 fi
