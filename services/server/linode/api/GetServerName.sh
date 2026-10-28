@@ -1,23 +1,42 @@
 #!/bin/sh
-####################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will get the name of a server of the specified ip address
-####################################################################################
+#####################################################################################
+# @file        GetServerName.sh
+# @brief       Retrieves the Linode server label associated with a specific IP address.
+# @author      Peter Winter
+# @date        13/07/2016
+# @version     1.0
+#
+# @details     This script connects to the Linode v4 API, fetches the active instance 
+#              catalog, and filters the JSON payload to match the provided IPv4 
+#              argument. It requires a valid token configuration from the Agile 
+#              Deployment Toolkit framework.
+#
+# @param       $1  [Required] The target IPv4 address of the server instance.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: The server label was found and printed to stdout.
+# @exit        1  Failure: Missing arguments, missing configuration, invalid token, 
+#                 network timeouts, or no server matched the specified IP address.
+#
+# ---------------------------------------------------------------------------------
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
+#
 # The Agile Deployment Toolkit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
+#
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit. If not, see <http://gnu.org>.
 #####################################################################################
-#####################################################################################
+
 #set -x
 set -e
 
