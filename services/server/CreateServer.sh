@@ -1,9 +1,35 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# @file        CreateServer.sh
+# @brief       Orchestrates the metadata preparation and triggers provider-specific instance deployment.
+# @author      Peter Winter
+# @date        13/07/2016
+# @version     1.0
+#
+# @details     This script gathers environment configuration data (cloudhost, region, 
+#              OS configurations, firewalls, and credentials), serializes the cloud-init 
+#              payload into base64 format, resolves potential snapshot restorations, 
+#              and passes the consolidated parameters down to the active provider's 
+#              underlying orchestration creation subsystem script.
+#
+# @param       $1  [Required] The targeted server hardware size plan / tier.
+# @param       $2  [Required] The human-readable label/hostname assigned to the server.
+# @param       $3  [Required] The structural type or architecture category of the machine.
+#
+# @env         BUILD_HOME          Path to the toolkit root (sourced from /home/buildhome.dat).
+# @env         CLOUDHOST           The target infrastructure hosting vendor.
+# @env         BUILD_IDENTIFIER    The active tracking identifier for the deployment runtime sequence.
+# @env         REGION              Geographic datacentre designation for resource placement.
+# @env         WEBSITE_URL         Domain routing reference point used to resolve platform asset paths.
+# @env         ACTIVE_FIREWALLS    Runtime firewall control layout state mappings.
+# @env         BUILDOS             The designated base operating system platform target.
+# @env         BUILDOS_VERSION     The requested operating system version target.
+# @env         BUILD_FROM_SNAPSHOT Binary flag mapping state to indicate base image vs snapshot source recovery.
+#
+# @exit        0  Success: Runtime options consolidated and server provisioner launched successfully.
+# @exit        1  Failure: Missing positional arguments, unreadable configurations, or failure 
+#                 encountered executing down-stack orchestration tooling.
+#
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -16,9 +42,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-####################################################################################
-####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
 set -e
 
 #set -x
