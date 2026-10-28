@@ -25,6 +25,7 @@
 # @env         BUILDOS             The designated base operating system platform target.
 # @env         BUILDOS_VERSION     The requested operating system version target.
 # @env         BUILD_FROM_SNAPSHOT Binary flag mapping state to indicate base image vs snapshot source recovery.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
 #
 # @exit        0  Success: Runtime options consolidated and server provisioner launched successfully.
 # @exit        1  Failure: Missing positional arguments, unreadable configurations, or failure 
