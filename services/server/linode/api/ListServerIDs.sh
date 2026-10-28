@@ -1,8 +1,24 @@
 #!/bin/sh
 ################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : Lists all the id's of a server of a particular type
+# @file        ListServerIDs.sh
+# @brief       Lists all Linode instance IDs that match a given server type keyword.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script contacts the Linode v4 API, retrieves the list of active 
+#              instances, and filters them using jq. It extracts the numerical 
+#              ID for any instance whose label contains the specified server 
+#              type keyword.
+#
+# @param       $1  [Required] The server type substring to find within instance labels.
+#
+# @env         BUILD_HOME  Path to the toolchain framework root directory.
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: One or more matching IDs were found and printed to stdout.
+# @exit        1  Failure: Missing arguments, missing configuration, invalid token, 
+#                 network failure, or no labels matched the criteria.
 ################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
