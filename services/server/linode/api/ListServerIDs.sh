@@ -58,7 +58,7 @@ TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances")"
 then
-        output="$(echo "${response}" | jq -r '.data[] | select(.label | contains("'${server_type}'")).id')"
+        output="$(echo "${response}" |  jq -r --arg search "${server_type}" '.data[] | select(.label | contains($search)).id')"
 
         if [ "${output}" = "" ]
         then
