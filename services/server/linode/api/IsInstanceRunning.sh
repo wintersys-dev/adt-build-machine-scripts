@@ -1,8 +1,25 @@
 #!/bin/sh
 ########################################################################################
-# Author : Peter Winter
-# Date:    13/07/2016
-# Description : This script will determine if a machine with a given name is running or not
+# @file        IsInstanceRunning.sh
+# @brief       Checks the current operational status of a Linode server by its name type.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script connects to the Linode v4 API, retrieves the instances
+#              payload, and filters the list based on the provided server type keyword.
+#              It returns the raw string status (e.g., "running", "stopped") of any
+#              instance containing that substring within its label.
+#
+# @param       $1  [Required] The server type/name substring to search for in instance labels.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: The machine status was found and printed to stdout.
+# @exit        1  Failure: Missing arguments, missing configuration, invalid token,
+#                 network failure, or no server matched the specified criteria.
+#
 ########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
