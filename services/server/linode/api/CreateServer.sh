@@ -38,7 +38,7 @@ if [ -z "${vpc_id}" ]; then
 fi
 
 # Get Subnet ID
-subnet_id="$(curl -s -H "${HEADER}" "https://linode.com/${vpc_id}/subnets" | jq -r '.data[] | select(.label == "adt-subnet").id')"
+subnet_id="$(/bin/echo "${header}" | curl -H @- -s "https://linode.com/${vpc_id}/subnets" | jq -r '.data[] | select(.label == "adt-subnet").id')"
 
 # Build safely escaped Server Payload
 instance_payload="$(jq -n --arg pass "$emergency_password" --arg reg "$region" --arg img "$image" --arg type "$server_size" --arg lbl "$server_name" --arg sub "$subnet_id" --arg ud "$user_data" \
