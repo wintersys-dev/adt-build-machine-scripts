@@ -2,16 +2,14 @@
 # Strict error handling for POSIX shell
 set -e
 
-# 1. Define and fallback variables (POSIX standard syntax)
-TOKEN="${TOKEN:-}"
-REGION="${REGION:-us-east}"
-image="${image:-linode/ubuntu24.04}"
-server_size="${server_size:-g6-standard-1}"
-server_name="${server_name:-my-server}"
-emergency_password="${emergency_password}"
-subnet_id="${subnet_id}"
-user_data="${user_data:-}"
-firewall_active="${firewall_active:-}" # Expected form: '"firewall_id": 12345,'
+emergency_password="${1}"
+region="${2}"
+image="${3}"
+server_size="${4}"
+server_name="${5}"
+subnet_id="${6}"
+user_data="${7}"
+firewall_active="${8}"
 
 # 2. Dynamic conditional handling for the optional firewall entry
 if [ -n "$firewall_active" ]; then
