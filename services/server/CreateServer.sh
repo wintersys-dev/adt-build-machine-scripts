@@ -149,7 +149,7 @@ then
     exit 1
 fi
 
-"${script_path}" "${emergency_password}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${subnet_id}" "${user_data}" "${firewall_active}"
+"${script_path}" "${emergency_password}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${subnet_id}" "${user_data}" "${firewall_active}" "${snapshot_id}"
 
 exit_code=$?
 
