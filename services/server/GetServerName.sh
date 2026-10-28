@@ -1,9 +1,28 @@
 #!/bin/sh
-####################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will get the name of a server of the specified ip address
-####################################################################################
+###################################################################################
+# @file        GetServerName.sh
+# @brief       Resolves active provider configurations and triggers label discovery by IP.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script acts as the entry orchestrator within the framework for 
+#              server metadata lookup. It verifies active cloud environment states,
+#              determines the downstream orchestration toolchain, validates script 
+#              permissions, and hands off the target IPv4 address to find its 
+#              corresponding host system name.
+#
+# @param       $1  [Required] The targeted public IPv4 address of the server instance.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active virtual infrastructure hosting provider.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Target handoff complete and server name resolved successfully.
+# @exit        1  Failure: Missing arguments, unreadable environment configurations, 
+#                 or an error encountered executing downstream provider scripts.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,9 +34,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################################
-#####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
+#set -x
 set -e
 
 status () {
