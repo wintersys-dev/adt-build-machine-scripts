@@ -10,17 +10,19 @@ server_name="${5}"
 subnet_id="${6}"
 user_data="${7}"
 firewall_active="${8}"
+snapshot_id="${9}"
 
-BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
-
-
-# 2. Dynamic conditional handling for the optional firewall entry
-if [ -n "$firewall_active" ]; then
-    FIREWALL_JSON="${firewall_active},"
-else
-    FIREWALL_JSON=""
+if ( [ "${firewall_active}" = "none" ] )
+then
+    firewall_active=""
 fi
 
+if ( [ "${snapshot_id}" = "none" ] )
+then
+    snapshot_id=""
+fi
+
+BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 
@@ -33,7 +35,7 @@ vpc_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api
 subnet_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq -r '.data[] | select(.label == "adt-subnet").id'`"
 
 image="${OS_CHOICE}" 
-if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
+if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ "${snapshot_id}" != "" ] )
 then
         image="${snapshot_id}"
 fi
