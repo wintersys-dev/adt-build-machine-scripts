@@ -1,9 +1,26 @@
 #!/bin/sh
-#############################################################################################
-# Author: Peter Winter
-# Date  : 13/07/2016
-# Description : This script will get the version of the operating system that we are building for
-#############################################################################################
+###################################################################################
+# @file        GetOperatingSystemVersion.sh
+# @brief       Translates generic OS labels into provider-specific image marketplace slugs.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script maps a normalized distribution family name and major version
+#              number to the exact image identification string or image query pattern 
+#              expected by the targeted hosting platform's API (DigitalOcean, Exoscale, 
+#              Linode, or Vultr).
+#
+# @param       $1  [Required] The target cloud host infrastructure platform slug.
+# @param       $2  [Required] The requested base operating system family name (e.g., ubuntu, debian).
+# @param       $3  [Required] The specific release version identifier string.
+#
+# @env         BUILD_HOME  Path to the framework core root layout directory.
+#
+# @exit        0  Success: A matching image string was resolved and printed to stdout.
+# @exit        1  Failure: Invalid arguments or an unhandled provider configuration.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,10 +32,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-############################################################################################
-############################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+####################################################################################
 #set -x
+set -e
 
 cloudhost="${1}"
 buildos="${2}"
