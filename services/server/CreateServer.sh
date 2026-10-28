@@ -81,7 +81,7 @@ ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh "${machine_cate
 
 if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml ] )
 then
-        user_data="$(/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml)" 
+       # user_data="$(/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml)" 
         user_data="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml" 
 else
         status "Cloud config file not found"
@@ -153,12 +153,10 @@ then
 fi
 
 export EMERGENCY_PASSWORD="${emergency_password}"
-export USER_DATA=$(/bin/cat "${user_data}")
 
-"${script_path}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${firewall_id}" "${snapshot_id}"
+"${script_path}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${user_data}" "${firewall_id}" "${snapshot_id}"
 
 unset EMERGENCY_PASSWORD
-unset USER_DATA
 
 exit_code=$?
 
