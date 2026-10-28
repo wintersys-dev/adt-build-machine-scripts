@@ -104,6 +104,60 @@ fi
 
 user_data="${cloud_config}"
 
+cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
+if ( [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ] )
+then
+    status "Error: Cannot read active cloud host file at ${cloudhost_file}"
+    exit 1
+fi
+
+CLOUDHOST="`/bin/cat "${cloudhost_file}"`"
+
+if ( [ "${CLOUDHOST}" = "" ] )
+then
+    status "Error: CLOUDHOST variable is empty."
+    exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
+then
+    status "Error: Cannot read software configuration file at ${software_file}" 
+    exit 1
+fi
+
+orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+
+if ( [ "${orchestration_tool}" = "" ] )
+then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_tool}"
+    exit 1
+fi
+
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+
+if ( [ ! -f "${script_path}" ] )
+then
+    status "Error: Script not found at ${script_path}" 
+    exit 1
+fi
+
+if ( [ ! -x "${script_path}" ] )
+then
+    status "Error: Script at ${script_path} is not executable."
+    exit 1
+fi
+
+"${script_path}" "${emergency_password}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${firewall_active}" "${subnet_id}" "${user_data}"
+
+exit_code=$?
+
+if ( [ ${exit_code} -ne 0 ] )
+then
+    status "Error: GetServerName.sh failed with exit code $exit_code"
+    exit $exit_code
+fi
+
 /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d '{ "root_pass": "'"${emergency_password}"'", "region": "'"${REGION}"'", "image": "'"${image}"'", "type": "'"${server_size}"'", "label": "'"${server_name}"'", "interface_generation": "linode", "interfaces": [ {  '"${firewall_active}"' "vpc": { "subnet_id": '"${subnet_id}"', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ], "metadata": { "user_data": "'"${user_data}"'" }, "disk_encryption": "enabled" }'
 if ( [ "$?" != "0" ] )
 then
