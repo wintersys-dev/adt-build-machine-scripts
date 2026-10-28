@@ -69,7 +69,7 @@ then
 
                                 if [ "${output}" = "" ]
                                 then
-                                        status "Error: No matching server instance found for server type ${server_type}."
+                                        status "Error: No matching private ip address found for server id ${id}."
                                         exit 1
                                 else
                                         echo "${output}"
