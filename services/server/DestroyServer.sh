@@ -3,7 +3,7 @@
 # @file        DestroyServerMain.sh
 # @brief       Resolves runtime configurations and triggers provider-specific instance termination.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script acts as the entry orchestrator for system decommissioning.
