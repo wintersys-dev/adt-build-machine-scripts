@@ -68,7 +68,7 @@ fi
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 then
 	snapshot_id="`/bin/grep ${machine_category} ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	status "Deploying ${machine_category machine from snapshot with ID ${snapshot_id}"
+	status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
 fi
 
 firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
