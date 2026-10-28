@@ -1,4 +1,5 @@
 #!/bin/sh
+#set -x
 set -e
 
 BUILD_HOME="$(cat /home/buildhome.dat)"
@@ -15,10 +16,11 @@ snapshot_id="${9}"
 
 # Normalize inputs
 [ "${firewall_active}" = "none" ] && firewall_active=""
+
 if [ "${snapshot_id}" = "none" ] || [ -z "${snapshot_id}" ]; then
-    snapshot_id=""
+        snapshot_id=""
 else
-    image="${snapshot_id}"
+        image="${snapshot_id}"
 fi
 
 # Fetch system configurations
@@ -26,29 +28,24 @@ VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANG
 VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-header="Authorization: Bearer ${TOKEN}"
-
-# Ensure VPC Exists
-vpc_id="$(/bin/echo "${header}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | jq -r --arg name "$VPC_NAME" '.data[] | select(.label == $name).id')"
-
-if [ -z "${vpc_id}" ]; then
-    vpc_payload="$(jq -n --arg lbl "$VPC_NAME" --arg reg "$region" --arg ip "$VPC_IP_RANGE" '{label: $lbl, region: $reg, subnets: [{label: "adt-subnet", ipv4: $ip}]}')"
-    
-    vpc_id="$(/bin/echo "${header}" | curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}" | jq -r '.id')"
+if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
+then
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d '{ "label": "'"${VPC_NAME}"'", "region": "'"${REGION}"'", "subnets": [ { "label": "adt-subnet", "ipv4": "'"${VPC_IP_RANGE}"'" } ] }'
 fi
 
-# Get Subnet ID
-subnet_id="$(/bin/echo "${header}" | curl -H @- -s "https://linode.com/${vpc_id}/subnets" | jq -r '.data[] | select(.label == "adt-subnet").id')"
+vpc_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`"
+subnet_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq -r '.data[] | select(.label == "adt-subnet").id'`"
 
-# Build safely escaped Server Payload
-instance_payload="$(jq -n --arg pass "$emergency_password" --arg reg "$region" --arg img "$image" --arg type "$server_size" --arg lbl "$server_name" --arg sub "$subnet_id" --arg ud "$user_data" \
-    '{
-        root_pass: $pass, region: $reg, image: $img, type: $type, label: $lbl,
-        interface_generation: "linode",
-        interfaces: [{ vpc: { subnet_id: ($sub | tonumber), ipv4: { addresses: [{ address: "auto", nat_1_1_address: "auto" }] } } }],
-        metadata: { user_data: $ud },
-        disk_encryption: "enabled"
-    }')"
+image="${OS_CHOICE}"
+if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
+then
+        image="${snapshot_id}"
+fi
 
-# Create Linode Instance
-/bin/echo "${header}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "${HEADER}" -H "Content-Type: application/json" -d "${instance_payload}"
+user_data="${cloud_config}"
+
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d '{ "root_pass": "'"${emergency_password}"'", "region": "'"${REGION}"'", "image": "'"${image}"'", "type": "'"${server_size}"'", "label": "'"${server_name}"'", "interface_generation": "linode", "interfaces": [ {  '"${firewall_active}"' "vpc": { "subnet_id": '"${subnet_id}"', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ], "metadata": { "user_data": "'"${user_data}"'" }, "disk_encryption": "enabled" }'
+if ( [ "$?" != "0" ] )
+then
+        exit 1
+fi
