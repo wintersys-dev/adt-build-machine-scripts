@@ -1,8 +1,27 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will destroy the specified server by ip address
+# @file        DestroyServerMain.sh
+# @brief       Resolves runtime configurations and triggers provider-specific instance termination.
+# @author      Peter Winter
+# @date        13/07/2016
+# @version     1.0
+#
+# @details     This script acts as the entry orchestrator for system decommissioning.
+#              It reads global framework variables to determine the active cloud host
+#              and deployment toolchain, validates the targeted execution pathways,
+#              and hands off the target IPv4 address argument to the underlying
+#              provider infrastructure demolition script.
+#
+# @param       $1  [Required] The target public IPv4 address of the instance to destroy.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active virtual infrastructure hosting provider.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Target handoff complete and server terminated successfully.
+# @exit        1  Failure: Missing parameters, missing host state metadata, or errors
+#                 encountered during downstream platform cleanup tasks.
+#
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -15,7 +34,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ###################################################################################
 ###################################################################################
 #set -x
