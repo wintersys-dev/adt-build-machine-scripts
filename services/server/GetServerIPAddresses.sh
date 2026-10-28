@@ -1,9 +1,28 @@
 #!/bin/sh
-##############################################################################################
-# Author: Peter Winter
-# Date  : 13/07/2016
-# Description : This script will get all the server ip addresses of the machines of a specified type
-##############################################################################################
+###################################################################################
+# @file        GetServerIPAddresses.sh
+# @brief       Resolves infrastructure paths and triggers provider-specific IP lookup.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script acts as a high-level orchestrator within the framework. 
+#              It reads global toolkit configuration files to determine the active 
+#              cloud host and deployment orchestration toolchain, validates the 
+#              downstream script paths, and routes the targeted server type 
+#              argument to the provider-specific discovery subsystem.
+#
+# @param       $1  [Required] The targeted server architecture type or category classification label.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         CLOUDHOST           The active infrastructure hosting platform.
+# @env         ORCHESTRATION_TOOL  The underlying automation mechanism used to interact with cloud APIs.
+#
+# @exit        0  Success: Target handoff complete and server IP addresses fetched successfully.
+# @exit        1  Failure: Missing positional arguments, unreadable configuration metadata, 
+#                 or error encountered within downstream orchestration processes.
+#
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,11 +34,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#############################################################################################
-#############################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+###################################################################################
+###################################################################################
 #set -x
-
 set -e
 
 status () {
