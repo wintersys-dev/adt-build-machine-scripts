@@ -3,7 +3,7 @@
 # @file        CreateServer.sh
 # @brief       Orchestrates the metadata preparation and triggers provider-specific instance deployment.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script gathers environment configuration data (cloudhost, region, 
