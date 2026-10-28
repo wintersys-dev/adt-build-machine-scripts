@@ -1,8 +1,24 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will destroy the specified server by ip address
+# @file        DestroyServer.sh
+# @brief       Gracefully shuts down and permanently deletes a Linode server by IP.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script orchestrates the destruction of a specific Linode instance.
+#              It resolves the instance ID via its IPv4 address, issues a shutdown 
+#              POST request, polls the API up to 21 times (3.5 minutes) waiting for 
+#              an 'offline' status, and finally executes a permanent DELETE request.
+#
+# @param       $1  [Required] The target IPv4 address of the instance to destroy.
+#
+# @env         BUILD_HOME  Path to the framework root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: The instance was successfully shut down and deleted.
+# @exit        1  Failure: Missing arguments, missing configuration, api communication 
+#                 errors, or failure during the deletion sequence.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
