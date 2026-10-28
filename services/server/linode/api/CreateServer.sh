@@ -55,7 +55,7 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] || [ "${7}" = "" ] )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] )
 then
         status "Error: 5 arguments are required and 1 optional argument"
         status "Usage: $0 <region> <image> <server_size> <server_name> <firewall_id> [snapshot_id]" 
@@ -68,6 +68,18 @@ server_size="${3}"
 server_name="${4}"
 firewall_id="${5}"
 snapshot_id="${6}"
+
+if ( [ "${EMERGENCY_PASSWORD}" = "" ] )
+then
+        status "Error: EMERGENCY_PASSWORD environment variable not set"
+        exit 1
+fi
+
+if ( [ "${USER_DATA}" = "" ] )
+then
+        status "Error: USER_DATA environment variable not set"
+        exit 1
+fi
 
 if ( [ "${snapshot_id}" != "" ] )
 then
