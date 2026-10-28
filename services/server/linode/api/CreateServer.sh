@@ -81,8 +81,6 @@ then
         image="${snapshot_id}"
 fi
 
-user_data="$(/bin/cat ${USER_DATA} | /usr/bin/base64 -w 0)"
-
 VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
@@ -101,6 +99,8 @@ then
         status "Failed to obtain VPC subnet id"
         exit 1
 fi
+
+user_data="$(/bin/cat ${user_data} | /usr/bin/base64 -w 0)"
 
 # Temporary disable set -e to handle the error manually
 set +e
