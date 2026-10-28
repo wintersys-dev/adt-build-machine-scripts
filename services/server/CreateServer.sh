@@ -91,7 +91,7 @@ fi
 snapshot_id=""
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
 then
-        snapshot_id="`/bin/grep ${machine_category} ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
+        snapshot_id="$(/bin/grep ${machine_category} ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}')"
         status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
 fi
 
@@ -130,7 +130,7 @@ then
         exit 1
 fi
 
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
 if ( [ "${orchestration_tool}" = "" ] )
 then
