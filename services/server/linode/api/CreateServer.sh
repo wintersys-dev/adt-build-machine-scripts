@@ -35,24 +35,21 @@
 # @exit        0  Success: The instance was successfully shut down and deleted.
 # @exit        1  Failure: Missing arguments, missing configuration, api communication 
 #                 errors, or failure during the deletion sequence.
-# ========================================================================
-
-# @file        DestroyServer.sh
-# @brief       Gracefully shuts down and permanently deletes a Linode server by IP.
-# @author      Peter Winter
-# @date        13/07/2021
-# @version     1.0
-#
-# @details     This script orchestrates the destruction of a specific Linode instance.
-#              It resolves the instance ID via its IPv4 address, issues a shutdown 
-#              POST request, polls the API up to 21 times (3.5 minutes) waiting for 
-#              an 'offline' status, and finally executes a permanent DELETE request.
-#
-# @param       $1  [Required] The target IPv4 address of the instance to destroy.
-#
-# @exit        0  Success: The instance was successfully shut down and deleted.
-# @exit        1  Failure: Missing arguments, missing configuration, api communication 
-#                 errors, or failure during the deletion sequence.
+###################################################################################
+# License Agreement:
+# This file is part of The Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+###################################################################################
+###################################################################################
 #set -x
 set -e
 
@@ -68,8 +65,6 @@ then
         status "Usage: $0 <emergency_password> <region> <image> <server_size> <server_name> <subnet_id> <user_data> <firewall_id> [snapshot_id]" 
         exit 1
 fi
-
-
 
 emergency_password="${1}"
 region="${2}"
