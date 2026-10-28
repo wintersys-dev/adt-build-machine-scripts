@@ -42,7 +42,7 @@ status () {
         ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 if ( [ "${1}" = "" ] )
 then
@@ -53,7 +53,7 @@ fi
 
 server_type="${1}"
 
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
 if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances")"
 then
