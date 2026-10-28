@@ -79,14 +79,19 @@ then
     exit 1
 fi
 
-"${script_path}" "${server_type}"
+result="`"${script_path}" "${server_type}" | /bin/grep -v "Error"`"
 
 exit_code=$?
 
 if ( [ ${exit_code} -ne 0 ] )
 then
-    status "Error: ListServerIDs.sh failed with exit code $exit_code"
-    exit $exit_code
+        status "Error: ListServerIDs.sh failed with exit code $exit_code"
+        exit $exit_code
+fi
+
+if ( [ "${result}" != "" ] )
+then
+        echo ${result}
 fi
 
 
