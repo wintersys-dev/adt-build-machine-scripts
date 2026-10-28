@@ -1,3 +1,24 @@
+#!/bin/sh
+# Strict error handling for POSIX shell
+set -e
+
+emergency_password="${1}"
+region="${2}"
+image="${3}"
+server_size="${4}"
+server_name="${5}"
+subnet_id="${6}"
+user_data="${7}"
+firewall_active="${8}"
+
+# 2. Dynamic conditional handling for the optional firewall entry
+if [ -n "$firewall_active" ]; then
+    FIREWALL_JSON="${firewall_active},"
+else
+    FIREWALL_JSON=""
+fi
+
+
 if ( [ "`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r '.data[] | select(.label == "'${VPC_NAME}'").id'`" = "" ] )
 then
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d '{ "label": "'"${VPC_NAME}"'", "region": "'"${REGION}"'", "subnets": [ { "label": "adt-subnet", "ipv4": "'"${VPC_IP_RANGE}"'" } ] }'
