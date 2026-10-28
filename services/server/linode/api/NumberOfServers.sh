@@ -1,8 +1,25 @@
 #!/bin/sh
+#!/bin/sh
 ############################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This scripts lists the number of servers of a particular type that are running
+# @file        NumberOfServers.sh
+# @brief       Counts the number of active Linode servers containing a specific type string.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script queries the Linode v4 API to fetch all active instances, 
+#              then parses the JSON response using jq to determine how many server 
+#              labels match or contain the provided 'server_type' substring. It acts 
+#              as an integrated module within the Agile Deployment Toolkit.
+#
+# @param       $1  [Required] The server type substring to search for within instance labels.
+#
+# @env         BUILD_HOME  Path to the core toolchain root directory (read from file).
+# @env         TOKEN       Linode API bearer authorization token.
+#
+# @exit        0  Success: A count was calculated and printed to stdout.
+# @exit        1  Failure: Missing arguments, missing configurations, invalid token, 
+#                 network timeouts, or API payload execution issues.
 ############################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
