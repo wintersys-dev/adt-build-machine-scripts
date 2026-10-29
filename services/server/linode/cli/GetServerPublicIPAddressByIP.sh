@@ -36,10 +36,13 @@ fi
 
 server_ip="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 /usr/local/bin/linode-cli --no-defaults --json  vpcs ips-all-list | /usr/bin/jq -r --arg ip "$server_ip" '.[] | select(.address == $server_ip).nat_1_1'
 
 if ( [ "$?" != "0" ] )
 then
-        exit 1
+	unset LINODE_CLI_TOKEN
+    exit 1
 fi
+unset LINODE_CLI_TOKEN
