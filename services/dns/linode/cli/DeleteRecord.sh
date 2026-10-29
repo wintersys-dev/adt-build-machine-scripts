@@ -30,14 +30,16 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 record_id="${1}"
 domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
 
-linode_config_file="/root/.config/dns-linode-cli"
+#linode_config_file="/root/.config/dns-linode-cli"
 
-if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
-then
-        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
-fi
+#if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
+#then
+#        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
+#fi
 
-export LINODE_CLI_CONFIG=${linode_config_file}
+#export LINODE_CLI_CONFIG=${linode_config_file}
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
 /usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults
@@ -45,8 +47,9 @@ domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/b
 if ( [ $? != "0" ] )
 then
         status "Failed to delete record with id ${record_id} for domain ${domain_url}"
-        unset LINODE_CLI_CONFIG
+        unset LINODE_CLI_TOKEN
         exit  1
 fi
-unset LINODE_CLI_CONFIG
+
+unset LINODE_CLI_TOKEN
 
