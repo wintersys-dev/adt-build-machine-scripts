@@ -25,22 +25,6 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-linode_run() {
-        (
-                old_umask=$(umask)
-                umask 077
-                tmp_conf="${BUILD_HOME}/.linode-cfg.$$"
-                trap 'rm -f "${tmp_conf}"' EXIT INT TERM
-                export TOKEN="$TOKEN"
-                envsubst < "${BUILD_HOME}/.linode-cli" > "${tmp_conf}"
-                umask "$old_umask"
-                export LINODE_CONFIG_PATH="${tmp_conf}"
-                linode-cli --no-defaults --json "$@"
-                unset TOKEN
-                unset LINODE_CONFIG_PATH
-        )
-}
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${1}" = "" ] )
@@ -55,7 +39,7 @@ TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if ( [ "${server_ip}" != "" ] )
 then
-        server_id="`linode_run linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
+        server_id="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 
         if ( [ "$?" != "0" ] )
         then
@@ -65,7 +49,7 @@ then
         if ( [ "${server_id}" = "" ] )
         then
                 server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
-                server_id="`linode_run linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
+                server_id="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
 
                 if ( [ "$?" != "0" ] )
                 then
@@ -80,14 +64,14 @@ then
         fi
 
         count="0"
-        while ( [ "`linode_run linodes view ${server_id} --format status --no-headers | jq -r '.[].status'`" != "offline" ] && [ "${count}" -lt "20" ] )
+        while ( [ "`/usr/local/bin/linode-cli --no-defaults --json linodes view ${server_id} --format status --no-headers | jq -r '.[].status'`" != "offline" ] && [ "${count}" -lt "20" ] )
         do
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
                 /bin/sleep 10
                 count="`/usr/bin/expr ${count} + 1`"
         done
 
-        linode_run linodes delete ${server_id}
+        /usr/local/bin/linode-cli --no-defaults --json linodes delete ${server_id}
 
         if ( [ "$?" != "0" ] )
         then
