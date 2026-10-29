@@ -25,17 +25,17 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
-sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
+domain_url="$(/bin/echo ${1} | /usr/bin/cut -d'.' -f2-)"
+sub_domain="$(/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}')"
 
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
-domain_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
+domain_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id')"
 /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains/${domain_id}/records" | jq --arg sub "${sub_domain}" -r '.data[] | select(.name == $sub) | .id'
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ]
 then
         status "Failed to get all record IDs from the DNS system for root domain ${domain_url} and sub domain ${sub_domain}"
         exit 1
