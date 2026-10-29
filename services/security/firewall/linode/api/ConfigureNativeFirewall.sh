@@ -1,6 +1,23 @@
 #!/bin/sh
+# @file        ConfigureNativeFirewall.sh
+# @brief       Manages the lifecycle of a Linode Cloud Firewall by locating or creating it, flushing existing configurations, and applying a JSON-specified inbound ruleset.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+# @details     This script queries the Linode API to find a firewall matching a composite label ('firewall_name' combined with a dynamically loaded build identifier). 
+#              If the firewall does not exist, it provisions a new one with a default drop-all inbound policy. 
+#              It then flushes any pre-existing configurations before injecting the fresh inbound ruleset provided via the arguments.
+# @param       1 (firewall_name) The base descriptive label used to identify or create the firewall.
+# @param       2 (ruleset)       A JSON string representing the array of inbound security rules to be applied.
+# @env         TOKEN             The Linode API personal access token required for authenticating requests.
+# @env         BUILD_IDENTIFIER  A unique identifier appended to the firewall label to distinguish between build environments.
+# @exit        0                 Success. The firewall was located or created, and the updated rules were applied.
+# @exit        1                 Failure. Occurs if the firewall creation fails, rule updates fail, or the ruleset payload is invalid.
+
+
 
 #set -x
+set -e
 
 firewall_name="${1}"
 ruleset="${2}"
