@@ -31,15 +31,16 @@ domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 
 DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 
-linode_config_file="/root/.config/dns-linode-cli"
+#linode_config_file="/root/.config/dns-linode-cli"
         
-if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
-then
-        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
-fi
+#if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
+#then
+ #       linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
+#fi
                         
-export LINODE_CLI_CONFIG=${linode_config_file}      
-
+#export LINODE_CLI_CONFIG=${linode_config_file}      
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+export LINODE_CLI_TOKEN="${TOKEN}"
                 
 if ( [ "`/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id'`" = "" ] )
 then
@@ -49,7 +50,7 @@ fi
 if ( [ $? != "0" ] )
 then
         status "Failed to create zone for domain ${domain_url}"
-        unset LINODE_CLI_CONFIG
+        unset LINODE_CLI_TOKEN
         exit  1
 fi
-unset LINODE_CLI_CONFIG
+unset LINODE_CLI_TOKEN
