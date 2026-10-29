@@ -26,9 +26,9 @@ status () {
 }
 
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] )
+if  [ "${1}" = "" ]
 then
     status "Error: Server type argument is required."
     status "Usage: $0 <server_type>" 
@@ -36,12 +36,13 @@ then
 fi
 
 server_type="${1}"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-/usr/local/bin/linode-cli --no-defaults --json  linodes list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'
+/usr/local/bin/linode-cli --no-defaults --json  linodes list --region ${REGION} | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ] 
 then
 	unset LINODE_CLI_TOKEN
 	exit 1
