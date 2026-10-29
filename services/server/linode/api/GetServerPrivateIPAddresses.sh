@@ -15,6 +15,7 @@
 #
 # @env         BUILD_HOME  Path to the framework root directory (read from file).
 # @env         TOKEN       Linode API bearer authorization token.
+# @env         REGION      The region that the servers are running in
 #
 # @exit        0  Success: One or more private IP addresses were resolved and printed.
 # @exit        1  Failure: Missing arguments, invalid token, network timeouts, or 
@@ -52,6 +53,8 @@ fi
 
 server_type="${1}"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
+
 server_ids="$(${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh ${server_type})"
 
 if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/linode/instances")"
