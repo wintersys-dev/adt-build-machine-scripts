@@ -1,11 +1,18 @@
 #!/bin/sh
 ######################################################################################################
-# Description: This will configure the native firewall to restrict access by ip address to our infrastructure
-# according to what our configuration needs are. Sometimes machines are only accessible through the VPC they
-# are in and sometimes they have to be accessible across the internet. The policy is designed to keep access
-# to the machines as strict and as limited as possible. 
-# Author: Peter Winter
-# Date: 17/01/2021
+# @brief       Orchestrates the platform-specific native firewall generation and configuration process.
+# @details     This script acts as a high-level wrapper that reads multi-tier architecture profiles 
+#              (Authenticators, Autoscalers, Reverse Proxies, Web Servers, Databases) to determine proper 
+#              network isolation rules. It constructs a complex JSON ruleset dynamically—injecting target 
+#              VPC IP ranges, secure ports, build machine overrides, and custom whitelists—and hands execution 
+#              off to the native script corresponding to the active cloud provider infrastructure.
+# @param       1 (firewall_name) The architectural role name (e.g., adt-authenticator, adt-webserver) used 
+#                                to evaluate specific conditional rulesets.
+# @env         BUILD_HOME        The path to the installation directory of the deployment toolkit.
+# @env         CLOUDHOST         The specific cloud platform active for this build target (e.g., linode).
+# @exit        0                 Success. The platform ruleset was computed and successfully dispatched.
+# @exit        1                 Failure. Generated if arguments are missing, structural configuration 
+#                                files are unreadable, or downstream execution fails.
 #######################################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -59,43 +66,43 @@ fi
 
 firewall_name="${1}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`" 
-ACTIVE_FIREWALLS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
-SSH_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT`"
-DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
-VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
-NO_REVERSE_PROXIES="`${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES`"
-REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-BUILD_MACHINE_VPC="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC`"
-AUTHENTICATOR_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE`"
-build_machine_ip="`${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)" 
+ACTIVE_FIREWALLS="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS)"
+CLOUDHOST="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST)"
+BUILD_IDENTIFIER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER)"
+BUILD_MACHINE_VPC="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC)"
+SSH_PORT="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh SSH_PORT)"
+DB_PORT="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT)"
+VPC_IP_RANGE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE)"
+NO_REVERSE_PROXIES="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh NO_REVERSE_PROXIES)"
+REGION="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION)"
+BUILD_MACHINE_VPC="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_MACHINE_VPC)"
+AUTHENTICATOR_TYPE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTHENTICATOR_TYPE)"
+build_machine_ip="$(${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh)"
 
 if ( [ -f ${BUILD_HOME}/configuration/firewall.dat ] )
 then
-        authenticator_firewall_ports="`/bin/grep "^AUTHENTICATORPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
-        autoscaler_firewall_ports="`/bin/grep "^AUTOSCALERPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
-        reverseproxy_firewall_ports="`/bin/grep "^REVERSEPROXYPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
-        webserver_firewall_ports="`/bin/grep "^WEBSERVERPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
-        database_firewall_ports="`/bin/grep "^DATABASEPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}'`"
+        authenticator_firewall_ports="$(/bin/grep "^AUTHENTICATORPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}')"
+        autoscaler_firewall_ports="$(/bin/grep "^AUTOSCALERPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}')"
+        reverseproxy_firewall_ports="$(/bin/grep "^REVERSEPROXYPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}')"
+        webserver_firewall_ports="$(/bin/grep "^WEBSERVERPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}')"
+        database_firewall_ports="$(/bin/grep "^DATABASEPORTS" ${BUILD_HOME}/configuration/firewall.dat | /usr/bin/awk -F':' '{print $2}')"
 fi
 
 if ( [ "${firewall_name}" = "adt-authenticator" ] )
 then
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "yes"`"
+        all_dns_proxy_ips="$(${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "yes")"
 else
-        all_dns_proxy_ips="`${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "no"`"
+        all_dns_proxy_ips="$(${BUILD_HOME}/services/dns/GetProxyDNSIPs.sh "no")"
 fi
 
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-authenticator"`" != "" ] )
+if ( [ "$(/bin/echo ${firewall_name} | /bin/grep "adt-authenticator")" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${authenticator_firewall_ports}"`"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
 
-        if ( [ "`/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+        if ( [ "$(/bin/grep "^AUTHENTICATORPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare)" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
         then
                 rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
         fi
@@ -107,9 +114,9 @@ then
         fi
 fi
 
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler"`" != "" ] )
+if ( [ "$(/bin/echo ${firewall_name} | /bin/grep "adt-autoscaler")" != "" ] )
 then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${autoscaler_firewall_ports}"`"
+        firewall_rules="$(linode_firewall_rules "${firewall_name}" "${autoscaler_firewall_ports}")"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
         rule_build_machine=""
@@ -119,18 +126,18 @@ then
         fi
 fi
 
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy"`" != "" ] )
+if ( [ "$(/bin/echo ${firewall_name} | /bin/grep "adt-reverseproxy")" != "" ] )
 then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}"`"
+        firewall_rules="$(linode_firewall_rules "${firewall_name}" "${reverseproxy_firewall_ports}")"
 
         rule_wireguard=""
         rule_ssl=""
         if ( [ "${AUTHENTICATOR_TYPE}" = "wire-guard" ] )
         then
-                secure_port="`/usr/bin/expr ${SSH_PORT} + 1`"
+                secure_port="$(/usr/bin/expr ${SSH_PORT} + 1)"
                 rule_wireguard='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"UDP","ports":"'${secure_port}'"},{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"TCP","ports":"'${secure_port}'"}'
         else
-                if ( [ "`/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+                if ( [ "$(/bin/grep "^REVERSEPROXYPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare)" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
                 fi
@@ -154,12 +161,12 @@ fi
 
 if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-webserver"`" != "" ] )
 then
-        firewall_rules="`linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}"`"
+        firewall_rules="$(linode_firewall_rules "${firewall_name}" "${webserver_firewall_ports}")"
         rule_vpc_ssl='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'443'"}'
 
         if ( [ "${NO_REVERSE_PROXIES}" = "0" ] )
         then
-                if ( [ "`/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare`" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
+                if ( [ "$(/bin/grep "^WEBSERVERPORTS:" ${BUILD_HOME}/configuration/firewall.dat | /bin/grep cloudflare)" != "" ] && [ "${all_dns_proxy_ips}" != "" ] )
                 then
                         rule_ssl='{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"TCP","ports":"'443'"},{"addresses":{"ipv4":['${all_dns_proxy_ips}']},"action":"ACCEPT","protocol":"UDP","ports":"'443'"}'
                 fi
@@ -180,7 +187,7 @@ then
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
 fi
 
-if ( [ "`/bin/echo ${firewall_name} | /bin/grep "adt-database"`" != "" ] )
+if ( [ "$(/bin/echo ${firewall_name} | /bin/grep "adt-database")" != "" ] )
 then
         firewall_rules="`linode_firewall_rules "${firewall_name}" "${database_firewall_ports}"`"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
@@ -240,7 +247,7 @@ then
         firewall_rules="${firewall_rules},"
 fi
 
-ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
+ruleset="$(/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g')"
 ruleset='['${ruleset}']'
 
 software_file="${BUILD_HOME}/configuration/software.dat"
@@ -250,7 +257,7 @@ then
         exit 1
 fi
 
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
 if ( [ "${orchestration_tool}" = "" ] )
 then
@@ -272,7 +279,7 @@ then
         exit 1
 fi
 
-/bin/echo "`"${script_path}" "${firewall_name}" "${ruleset}"`"  
+/bin/echo "$("${script_path}" "${firewall_name}" "${ruleset}")"  
 
 exit_code=$?
 
