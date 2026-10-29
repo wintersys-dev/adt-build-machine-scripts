@@ -36,6 +36,7 @@ fi
 
 server_ip="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 if ( [ "${server_ip}" != "" ] )
 then
@@ -43,6 +44,7 @@ then
 
         if ( [ "$?" != "0" ] )
         then
+				unset LINODE_CLI_TOKEN
                 exit 1
         fi
 
@@ -53,6 +55,7 @@ then
 
                 if ( [ "$?" != "0" ] )
                 then
+						unset LINODE_CLI_TOKEN
                         exit 1
                 fi
         fi
@@ -60,6 +63,7 @@ then
         /usr/local/bin/linode-cli linodes shutdown ${server_id}
         if ( [ "$?" != "0" ] )
         then
+				unset LINODE_CLI_TOKEN
                 exit 1
         fi
 
@@ -75,8 +79,10 @@ then
 
         if ( [ "$?" != "0" ] )
         then
+				unset LINODE_CLI_TOKEN
                 exit 1
         else
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} has been deleted"
         fi
 fi
+unset LINODE_CLI_TOKEN
