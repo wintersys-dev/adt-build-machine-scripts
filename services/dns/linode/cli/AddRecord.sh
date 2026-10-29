@@ -31,19 +31,10 @@ sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 ip="${2}"
 
-#linode_config_file="/root/.config/dns-linode-cli"
-
-#if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli  ] )
-#then
-#        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
-#fi
-
-#Make damn sure that the DNS record gets added to the DNS system                        
-#export LINODE_CLI_CONFIG="${linode_config_file}"
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
+domain_id="$(/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id')"
 
 if ( [ "$?" != "0" ] )
 then
