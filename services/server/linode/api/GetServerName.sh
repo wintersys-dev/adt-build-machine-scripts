@@ -15,6 +15,7 @@
 #
 # @env         BUILD_HOME  Path to the framework root directory (read from file).
 # @env         TOKEN       Linode API bearer authorization token.
+# @env         REGION      The region that the servers are running in
 #
 # @exit        0  Success: The server label was found and printed to stdout.
 # @exit        1  Failure: Missing arguments, missing configuration, invalid token, 
