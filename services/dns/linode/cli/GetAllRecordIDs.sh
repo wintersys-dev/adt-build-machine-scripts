@@ -26,9 +26,9 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
-sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+domain_url="$(/bin/echo ${1} | /usr/bin/cut -d'.' -f2-)"
+sub_domain="$(/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}')"
 
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
 export LINODE_CLI_TOKEN="${TOKEN}"
