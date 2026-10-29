@@ -96,7 +96,7 @@ then
 fi
 
 vpc_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
-subnet_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq -r --arg lbl "adt-subnet" '.data[] | select(.label == $lbl).id')"
+subnet_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq -r --arg lbl "adt-subnet" '.data[] | select(.label == $lbl).id')"
 
 if ( [ "${subnet_id}" = "" ] )
 then
