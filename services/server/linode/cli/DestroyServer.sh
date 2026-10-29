@@ -72,7 +72,7 @@ then
         do
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
                 /bin/sleep 10
-                count="`/usr/bin/expr ${count} + 1`"
+                count="$(/usr/bin/expr ${count} + 1)"
         done
 
         /usr/local/bin/linode-cli --no-defaults --json linodes delete ${server_id}
