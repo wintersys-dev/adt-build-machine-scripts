@@ -26,17 +26,17 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 record_id="${1}"
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+domain_url="$(/bin/echo ${2} | /usr/bin/cut -d'.' -f2-)"
 
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
-domain_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id'`"
+domain_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq -r '.data[] | select(.domain | contains("'$domain_url'")).id')"
 /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X DELETE "https://api.linode.com/v4/domains/${domain_id}/records/${record_id}"
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ]
 then
         status "Failed to delete record from DNS system"
         exit 1
