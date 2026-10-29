@@ -51,6 +51,7 @@ then
 fi
 
 server_ip="${1}"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if ( [ "${server_ip}" != "" ] )
 then
