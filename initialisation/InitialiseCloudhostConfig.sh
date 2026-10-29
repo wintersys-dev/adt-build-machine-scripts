@@ -187,13 +187,13 @@ then
 		/bin/touch /tmp/END_IT_ALL
 	fi
 
-	if ( [ "${TOKEN}" != "" ] )
-	then
-		/bin/sed -i "s/XXXXTOKENXXXX/${TOKEN}/" ${BUILD_HOME}/.linode-cli
-	else 
-		status "Couldn't find your linode account personal access token in your template, will have to exit"
-		/bin/touch /tmp/END_IT_ALL
-	fi
+#	if ( [ "${TOKEN}" != "" ] )
+#	then
+#		/bin/sed -i "s/XXXXTOKENXXXX/${TOKEN}/" ${BUILD_HOME}/.linode-cli
+#	else 
+#		status "Couldn't find your linode account personal access token in your template, will have to exit"
+#		/bin/touch /tmp/END_IT_ALL
+#	fi
 
 	if ( [ "${REGION}" != "" ] )
 	then
