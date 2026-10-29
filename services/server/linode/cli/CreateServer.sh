@@ -56,7 +56,7 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ]  )
+if [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ] 
 then
         status "Error: 6 arguments are required and 1 optional argument"
         status "Usage: $0 <region> <image> <server_size> <server_name> <user_data> <firewall_id> [snapshot_id]" 
@@ -71,25 +71,25 @@ user_data="${5}"
 firewall_id="${6}"
 snapshot_id="${7}"
 
-if ( [ "${EMERGENCY_PASSWORD}" = "" ] )
+if [ "${EMERGENCY_PASSWORD}" = "" ]
 then
         status "Error: EMERGENCY_PASSWORD environment variable not set"
         exit 1
 fi
 
-if ( [ "${snapshot_id}" != "" ] )
+if [ "${snapshot_id}" != "" ]
 then
         image="${snapshot_id}"
 fi
 
-VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
-VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
-TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
-REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
+VPC_IP_RANGE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE)"
+VPC_NAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME)"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+REGION="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION)"
 
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-if ( [ "$(/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id')" = "" ] )
+if [ "$(/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id')" = "" ]
 then
         /usr/local/bin/linode-cli --no-defaults --json vpcs create --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
 fi
