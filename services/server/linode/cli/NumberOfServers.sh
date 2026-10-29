@@ -25,6 +25,20 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
+linode_run() {
+    (
+        old_umask=$(umask)
+        umask 077
+        tmp_conf="${BUILD_HOME}/.linode-cfg.$$"
+        trap 'rm -f "${tmp_conf}"' EXIT INT TERM
+        export TOKEN="$TOKEN"
+        envsubst < "${BUILD_HOME}/.linode-cli" > "${tmp_conf}"
+        umask "$old_umask"
+        linode-cli --config "${tmp_conf}" "$@"
+		unset TOKEN
+    )
+}
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${1}" = "" ] )
