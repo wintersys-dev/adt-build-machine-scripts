@@ -89,13 +89,13 @@ REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-if ( [ "`/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
+if ( [ "$(/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id')" = "" ] )
 then
         /usr/local/bin/linode-cli --no-defaults --json vpcs create --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
 fi
 
-vpc_id="`/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
-subnet_id="`/usr/local/bin/linode-cli --no-defaults --json vpcs subnets-list ${vpc_id}  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
+vpc_id="$(/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id')"
+subnet_id="$(/usr/local/bin/linode-cli --no-defaults --json vpcs subnets-list ${vpc_id}  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id')"
 
 user_data="$(/bin/cat ${user_data} | /usr/bin/base64 -w 0)"
 
