@@ -95,7 +95,11 @@ then
         status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
 fi
 
-firewall_id="$(${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}')"
+firewall_id=""
+if ( [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ] )
+then
+        firewall_id="$(${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}')"
+fi
 
 if ( [ "${firewall_id}" = "" ] )
 then
