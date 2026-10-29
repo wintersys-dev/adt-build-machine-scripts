@@ -36,6 +36,7 @@ fi
 
 server_type="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 if ( [ "`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).status' 2>/dev/null`" = "running" ] )
 then
@@ -43,4 +44,5 @@ then
 else
 	/bin/echo "not running"
 fi
+unset LINODE_CLI_TOKEN
 
