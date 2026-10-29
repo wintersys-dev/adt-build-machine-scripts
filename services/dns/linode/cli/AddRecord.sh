@@ -40,7 +40,7 @@ ip="${2}"
 
 #Make damn sure that the DNS record gets added to the DNS system                        
 #export LINODE_CLI_CONFIG="${linode_config_file}"
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
