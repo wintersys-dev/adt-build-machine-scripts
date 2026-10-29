@@ -36,6 +36,7 @@ fi
 
 server_type="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 
 linodeids="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
@@ -46,8 +47,10 @@ do
 	privateip="`/usr/local/bin/linode-cli --no-defaults --json linodes ips-list ${linodeid} | /usr/bin/jq -r '.[].ipv4.vpc[].address' 2>/dev/null`"		
 	if ( [ "$?" != "0" ] )
 	then
+		unset LINODE_CLI_TOKEN
 		exit 1
 	fi
+	unset LINODE_CLI_TOKEN
 	privateips=${privateips}" ${privateip}"
 done
 
