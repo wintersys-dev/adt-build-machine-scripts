@@ -1,9 +1,37 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# @file        CreateServer.sh
+# @brief       Provisions a Linode compute instance securely within a managed VPC.
+# @author      Peter Winter
+# @date        13/07/2021
+# @version     1.0
+#
+# @details     This script connects to the Linode v4 API to provision a virtual
+#              machine. It validates the existence of the targeted Virtual Private
+#              Cloud (VPC), dynamically creates the VPC and its core subnet if 
+#              missing, resolves the relevant internal subnet IDs, and executes 
+#              the final infrastructure deployment transaction securely using 
+#              piped authorization streams.
+#
+# @param       $1  [Required] The target Linode region slug for deployment location.
+# @param       $2  [Required] The OS distribution image slug or custom image source.
+# @param       $3  [Required] The server plan hardware size and performance profile tier.
+# @param       $4  [Required] The human-readable label/hostname for the instance.
+# @param       $5  [Required] Path to the prepared cloud-init user data file.
+# @param       $6  [Required] The security firewall ID applied to the primary interface.
+# @param       $7  [Optional] Overriding backup snapshot ID matching a recovery build.
+#
+# @env         BUILD_HOME     Path to the toolkit core framework layout directory.
+# @env         VPC_IP_RANGE   The network block CIDR configured for VPC initialization.
+# @env         VPC_NAME       The matching environment tag pattern for infrastructure filtering.
+# @env         TOKEN          The active Linode API Bearer security credentials string.
+# @env         EMERGENCY_PASSWORD  Needs to be exported from above as its security sensitive
+# @env         REGION         The region that the servers are running in 
+#
+# @exit        0  Success: The server instance was successfully instantiated and registered.
+# @exit        1  Failure: Argument mismatch, invalid VPC configurations, or an unexpected
+#                 HTTP error encountered during processing via the cloud host provider API.
+#
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -16,137 +44,49 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 ####################################################################################
+#set -x
 set -e
 
-#set -x
-
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]  )
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ]  )
 then
-        status "Error: 3 Server arguments are required."
-        status "Usage: $0 <server_type>"
+        status "Error: 6 arguments are required and 1 optional argument"
+        status "Usage: $0 <region> <image> <server_size> <server_name> <user_data> <firewall_id> [snapshot_id]" 
         exit 1
 fi
 
-server_size="${1}"
-server_name="${2}"
-machine_type="${3}"
+region="${1}"
+image="${2}"
+server_size="${3}"
+server_name="${4}"
+user_data="${5}"
+firewall_id="${6}"
+snapshot_id="${7}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-CLOUDHOST="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST`"
-BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
-
-BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
-BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
-REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
-VPC_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_NAME`"
-ACTIVE_FIREWALL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
-ALGORITHM="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ALGORITHM`"
-BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
-OS_CHOICE="`${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh ${CLOUDHOST} ${BUILDOS} ${BUILDOS_VERSION} | /bin/sed "s/'//g"`"
-
-if ( [ "${machine_type}" = "adt-autoscaler" ] )
+if ( [ "${EMERGENCY_PASSWORD}" = "" ] )
 then
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml ] )
-        then
-                server_name_match="`/bin/grep "^hostname: " ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml | /usr/bin/awk '{print $NF}'`"
-                /bin/sed -i "s/XXXXAUTOSCALER_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
-                /bin/sed -i "s/${server_name_match}/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml
-                cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/autoscaler.yaml | /usr/bin/base64 -w 0`"
-        fi
-
-        if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
-        then
-                snapshot_id="`/bin/grep autoscaler ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-                status "Deploying autoscaler machine from snapshot with ID ${snapshot_id}"
-        fi
-elif ( [ "${machine_type}" = "adt-webserver" ] )
-then
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml ] )
-        then
-                server_name_match="`/bin/echo ${server_name} | /usr/bin/awk -F'-' 'NF{NF--};1' | /bin/sed 's/ /-/g'`"
-                /bin/sed -i "s/XXXXWEBSERVER_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
-                /bin/sed -i "s/${server_name_match}.*$/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml
-                cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/webserver.yaml | /usr/bin/base64 -w 0`"    
-        fi
-
-        if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
-        then
-                snapshot_id="`/bin/grep webserver ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-                status "Deploying webserver machine from snapshot with ID ${snapshot_id}"
-                ${BUILD_HOME}/helpers/services/SetVariableValue.sh SNAPSHOT_ID=${snapshot_id}
-        fi
-elif ( [ "${machine_type}" = "adt-database" ] )
-then
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml ] )
-        then
-                /bin/sed -i "s/XXXXDATABASE_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml
-                cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/database.yaml | /usr/bin/base64 -w 0`"        
-        fi
-
-        if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
-        then
-                snapshot_id="`/bin/grep database ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-                status "Deploying database machine from snapshot with ID ${snapshot_id}"
-        fi
-elif ( [ "${machine_type}" = "adt-authenticator" ] )
-then
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/authenticator.yaml ] )
-        then
-                server_name_match="`/bin/grep "^hostname: " ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/authenticator.yaml | /usr/bin/awk '{print $NF'`"
-                /bin/sed -i "s/XXXXAUTHENTICATOR_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/authenticator.yaml
-                /bin/sed -i "s/${server_name_match}/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/authenticator.yaml
-                cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/authenticator.yaml | /usr/bin/base64 -w 0`"        
-        fi
-
-        if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
-        then
-                snapshot_id="`/bin/grep authenticator ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-                status "Deploying authenticator machine from snapshot with ID ${snapshot_id}"
-        fi
-elif ( [ "${machine_type}" = "adt-reverseproxy" ] )
-then
-
-        if ( [ -f  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml ] )
-        then            
-                server_name_match="`/bin/grep "^hostname: " ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml | /usr/bin/awk '{print $NF}'`" 
-                /bin/sed -i "s/XXXXREVERSEPROXY_HOSTNAMEXXXX/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml
-                /bin/sed -i "s/${server_name_match}/${server_name}/g" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml
-                cloud_config="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/reverseproxy.yaml | /usr/bin/base64 -w 0`"         
-        fi
-
-        if (  [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat ] )
-        then
-                snapshot_id="`/bin/grep reverseproxy ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat | /usr/bin/awk -F':' '{print $NF}'`"
-                status "Deploying reverse proxy machine from snapshot with ID ${snapshot_id}"
-        fi
+        status "Error: EMERGENCY_PASSWORD environment variable not set"
+        exit 1
 fi
 
-firewall_id="`${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh "${machine_type}" | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print  $NF}'`"
-
-firewall_active=""
-if ( [ "${ACTIVE_FIREWALL}" = "2" ] || [ "${ACTIVE_FIREWALL}" = "3" ] )
+if ( [ "${snapshot_id}" != "" ] )
 then
-        #       firewall_active="\"firewall_id\": ${firewall_id}, " 
-        firewall_active='"firewall_id": '${firewall_id}', '
+        image="${snapshot_id}"
 fi
 
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD ] )
-then    
-        emergency_password="`/bin/cat ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD`"
-else
-        emergency_password="`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16`"
-        /bin/echo "${emergency_password}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD
-fi
+VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
+VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
+
 
 if ( [ "`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
 then
@@ -156,16 +96,11 @@ fi
 vpc_id="`/usr/local/bin/linode-cli vpcs list --no-defaults --json | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
 subnet_id="`/usr/local/bin/linode-cli vpcs subnets-list ${vpc_id} --no-defaults --json  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
 
-image="--image ${OS_CHOICE}" 
-if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] )
-then
-        image="--image ${snapshot_id}"
-fi
+user_data="$(/bin/cat ${user_data} | /usr/bin/base64 -w 0)"
 
-user_data="--metadata.user_data ${cloud_config}"
+interfaces=$(jq -n --argjson fw_id "${firewall_id}" --argjson sub_id "${subnet_id}" '[ { "firewall_id": $fw_id, "vpc": { "subnet_id": $sub_id, "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]')
 
-
-/usr/local/bin/linode-cli linodes create --root_pass "${emergency_password}" --region ${REGION} ${image} --type ${server_size} --label "${server_name}" --no-defaults --interface_generation "linode" --interfaces '[ { '"${firewall_active}"' "vpc": { "subnet_id": '${subnet_id}', "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]' ${user_data} --disk_encryption "enabled"
+/usr/local/bin/linode-cli linodes create --root_pass "${EMERGENCY_PASSWORD}"  --region "${REGION}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data}" --disk_encryption enabled
 
 if ( [ "$?" != "0" ] )
 then
