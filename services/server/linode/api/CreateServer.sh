@@ -26,6 +26,7 @@
 # @env         VPC_NAME       The matching environment tag pattern for infrastructure filtering.
 # @env         TOKEN          The active Linode API Bearer security credentials string.
 # @env         EMERGENCY_PASSWORD  Needs to be exported from above as its security sensitive
+# @env         REGION         The region that the servers are running in 
 #
 # @exit        0  Success: The server instance was successfully instantiated and registered.
 # @exit        1  Failure: Argument mismatch, invalid VPC configurations, or an unexpected
