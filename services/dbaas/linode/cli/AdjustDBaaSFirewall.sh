@@ -4,17 +4,17 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
-DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
-VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+DATABASE_DBaaS_INSTALLATION_TYPE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE)"
+VPC_IP_RANGE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE)"
 
-database_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}'`"
-label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
+database_type="$(/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}')"
+label="$(/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}')"
 
 if [ "${database_type}" = "MySQL" ]
 then
-  database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id'`"
+  database_id="$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq -r '.[] | select(.label | contains ("'${label}'")) | .id')"
   if [ "$?" != "0" ] 
   then
     status "Failed to get the database id"
@@ -28,7 +28,7 @@ then
   fi
 elif [ "${database_type}" = "Postgres" ]
 then    
-  database_id="`/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
+  database_id="$(/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json | /usr/bin/jq '.[] | select(.label | contains ("'${label}'")) | .id')"
   if  [ "$?" != "0" ] 
   then
     status "Failed to get the database id"
