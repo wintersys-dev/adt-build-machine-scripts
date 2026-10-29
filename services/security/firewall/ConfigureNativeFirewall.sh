@@ -8,8 +8,18 @@
 #              off to the native script corresponding to the active cloud provider infrastructure.
 # @param       1 (firewall_name) The architectural role name (e.g., adt-authenticator, adt-webserver) used 
 #                                to evaluate specific conditional rulesets.
-# @env         BUILD_HOME        The path to the installation directory of the deployment toolkit.
-# @env         CLOUDHOST         The specific cloud platform active for this build target (e.g., linode).
+# @env         BUILD_HOME        The filesystem path to the installation base of the deployment toolkit.
+# @env         ACTIVE_FIREWALLS  A comma or space-separated list of globally active firewall definitions.
+# @env         CLOUDHOST         The infrastructure provider context identifier (e.g., linode, aws).
+# @env         BUILD_IDENTIFIER  A unique build execution identifier used for resource segregation.
+# @env         BUILD_MACHINE_VPC A configuration flag ('0' or '1') declaring if the build machine resides inside the target VPC.
+# @env         SSH_PORT          The custom TCP port configured for administrative secure shell access.
+# @env         DB_PORT           The target application-tier network port deployed for database instances.
+# @env         VPC_IP_RANGE      The standard internal private subnet CIDR block allocated to the deployment VPC.
+# @env         NO_REVERSE_PROXIES A boolean setting determining whether direct SSL rules bypass traditional reverse proxies.
+# @env         REGION            The physical cloud provider data centre location where infrastructure is provisioned.
+# @env         BUILD_MACHINE_VPC Explicit duplicate evaluation matching internal state validation passes.
+# @env         AUTHENTICATOR_TYPE The identity verification backend protocol chosen for instance peering (e.g., wire-guard).
 # @exit        0                 Success. The platform ruleset was computed and successfully dispatched.
 # @exit        1                 Failure. Generated if arguments are missing, structural configuration 
 #                                files are unreadable, or downstream execution fails.
