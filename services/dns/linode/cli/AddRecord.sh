@@ -31,31 +31,35 @@ sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
 domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 ip="${2}"
 
-linode_config_file="/root/.config/dns-linode-cli"
+#linode_config_file="/root/.config/dns-linode-cli"
 
-if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli  ] )
-then
-        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
-fi
+#if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli  ] )
+#then
+#        linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
+#fi
 
 #Make damn sure that the DNS record gets added to the DNS system                        
-export LINODE_CLI_CONFIG="${linode_config_file}"
+#export LINODE_CLI_CONFIG="${linode_config_file}"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 domain_id="`/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id'`"
 
 if ( [ "$?" != "0" ] )
 then
-        exit 1
+	unset LINODE_CLI_TOKEN
+    exit 1
 fi
 
 /usr/local/bin/linode-cli domains records-create "${domain_id}" --type A --name "${sub_domain}" --target "${ip}" --ttl_sec 60 --no-defaults
 
 if ( [ "$?" != "0" ] )
 then
-        status "Failed to add DNS record for domain ${domain_url}, sub domain ${sub_domain} and ip address ${ip}"
-        unset LINODE_CLI_CONFIG
-        exit 1
+    status "Failed to add DNS record for domain ${domain_url}, sub domain ${sub_domain} and ip address ${ip}"
+	unset LINODE_CLI_TOKEN
+    exit 1
 fi
-unset LINODE_CLI_CONFIG
+	
+unset LINODE_CLI_TOKEN
 
 
