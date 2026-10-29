@@ -25,8 +25,8 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+domain_url="$(/bin/echo ${1} | /usr/bin/cut -d'.' -f2-)"
 
 DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"     
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
