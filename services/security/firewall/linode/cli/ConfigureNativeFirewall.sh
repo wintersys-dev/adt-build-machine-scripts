@@ -44,12 +44,15 @@ status () {
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 BUILD_IDENTIFIER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER)"
 
+export LINODE_CLI_TOKEN="${TOKEN}"
+
 firewall_id="`/usr/local/bin/linode-cli --json firewalls list | /usr/bin/jq -r '.[] | select (.label | contains ("'${firewall_name}'")) |  select (.label | endswith ("'-${BUILD_IDENTIFIER}'")).id'`"
 
 if ( [ "$?" != "0" ] )
 then
-        status "Unable to list firewalls"
-        exit 1
+	unset LINODE_CLI_TOKEN
+    status "Unable to list firewalls"
+    exit 1
 fi
 
 if ( [ "${firewall_id}" = "" ] )
@@ -58,15 +61,17 @@ then
        
 		if ( [ "$?" != "0" ] )
         then
-                status "Unable to create firewall"
-                exit 1
+			unset LINODE_CLI_TOKEN
+            status "Unable to create firewall"
+            exit 1
         fi   
 else
         /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
         if ( [ "$?" != "0" ] )
         then
-                status "Unable to update firewall rules"
-                exit 1
+			unset LINODE_CLI_TOKEN
+            status "Unable to update firewall rules"
+            exit 1
         fi   
 fi
 
@@ -74,11 +79,11 @@ fi
 
 if ( [ "$?" != "0" ] )
 then
-        status "Unable to update firewall rules"
-        exit 1
+	unset LINODE_CLI_TOKEN
+    status "Unable to update firewall rules"
+    exit 1
 fi  
 
-if ( [ "$?" = "0" ] )
-then
-        /bin/echo "ADT_FIREWALL_ID:${firewall_id}"
-fi
+unset LINODE_CLI_TOKEN
+/bin/echo "ADT_FIREWALL_ID:${firewall_id}"
+
