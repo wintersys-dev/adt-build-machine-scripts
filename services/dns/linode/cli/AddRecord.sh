@@ -25,10 +25,10 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-sub_domain="`/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}'`"
-domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+sub_domain="$(/bin/echo ${1} | /usr/bin/awk -F'.' '{print $1}')"
+domain_url="$(/bin/echo ${1} | /usr/bin/cut -d'.' -f2-)"
 ip="${2}"
 
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
