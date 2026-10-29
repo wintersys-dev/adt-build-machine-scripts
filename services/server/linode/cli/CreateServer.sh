@@ -103,7 +103,7 @@ interfaces=$(jq -n --argjson fw_id "${firewall_id}" --argjson sub_id "${subnet_i
 
 /usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${EMERGENCY_PASSWORD}"  --region "${REGION}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data}" --disk_encryption enabled
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ]
 then
         unset LINODE_CLI_TOKEN
         exit 1
