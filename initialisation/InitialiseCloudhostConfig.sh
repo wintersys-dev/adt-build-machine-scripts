@@ -187,13 +187,13 @@ then
 		/bin/touch /tmp/END_IT_ALL
 	fi
 
-#	if ( [ "${TOKEN}" != "" ] )
-#	then
-#		/bin/sed -i "s/XXXXTOKENXXXX/${TOKEN}/" ${BUILD_HOME}/.linode-cli
-#	else 
-#		status "Couldn't find your linode account personal access token in your template, will have to exit"
-#		/bin/touch /tmp/END_IT_ALL
-#	fi
+	if ( [ "${TOKEN}" != "" ] )
+	then
+		/bin/sed -i "s/XXXXTOKENXXXX/${TOKEN}/" ${BUILD_HOME}/.linode-cli
+	else 
+		status "Couldn't find your linode account personal access token in your template, will have to exit"
+		/bin/touch /tmp/END_IT_ALL
+	fi
 
 	if ( [ "${REGION}" != "" ] )
 	then
@@ -238,7 +238,7 @@ then
 #	then
 #		/usr/local/bin/linode-cli account view >/dev/null 2>/dev/null >&3
 #	else
-		/usr/local/bin/linode-cli account view >/dev/null 2>/dev/null
+		/usr/local/bin/linode-cli account view 
 #	fi
 
 	if ( [ "$?" != "0" ] )
@@ -246,7 +246,13 @@ then
 		status "Couldn't get the Linode CLI tool to work. Is your personal access token valid in your template?"
 		/bin/touch /tmp/END_IT_ALL
 	fi 
-	/usr/local/bin/linode-cli region-table >/dev/null 2>/dev/null >&3
+	/usr/local/bin/linode-cli region-table >/dev/null 
+	
+	/bin/sed -i "s/${TOKEN}/\${TOKEN}" ${BUILD_HOME}/.linode-cli
+	/bin/sed -i "s/${TOKEN}/\${TOKEN}" /root/.config/linode-cli
+	/bin/sed -i "s/${TOKEN}/\${TOKEN}" ${BUILD_HOME}/.dns-linode-cli
+	/bin/sed -i "s/${TOKEN}/\${TOKEN}" /root/.config/dns-linode-cli
+
 fi
 
 if ( [ "${CLOUDHOST}" = "vultr" ] )
