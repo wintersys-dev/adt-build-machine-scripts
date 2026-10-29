@@ -36,7 +36,7 @@ export LINODE_CLI_TOKEN="${TOKEN}"
 
 domain_id="$(/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id')"
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ]
 then
 	unset LINODE_CLI_TOKEN
     exit 1
@@ -44,7 +44,7 @@ fi
 
 /usr/local/bin/linode-cli domains records-create "${domain_id}" --type A --name "${sub_domain}" --target "${ip}" --ttl_sec 60 --no-defaults
 
-if ( [ "$?" != "0" ] )
+if [ "$?" != "0" ]
 then
     status "Failed to add DNS record for domain ${domain_url}, sub domain ${sub_domain} and ip address ${ip}"
 	unset LINODE_CLI_TOKEN
