@@ -35,10 +35,11 @@ then
 fi
 
 server_type="${1}"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-if ( [ "`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).status' 2>/dev/null`" = "running" ] )
+if ( [ "`/usr/local/bin/linode-cli --no-defaults --json linodes list --region ${REGION} | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).status' 2>/dev/null`" = "running" ] )
 then
 	/bin/echo "running"
 else
