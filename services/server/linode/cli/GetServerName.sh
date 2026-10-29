@@ -26,24 +26,7 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-linode_run() {
-        (
-                old_umask=$(umask)
-                umask 077
-                tmp_conf="${BUILD_HOME}/.linode-cfg.$$"
-                trap 'rm -f "${tmp_conf}"' EXIT INT TERM
-                export TOKEN="$TOKEN"
-                envsubst < "${BUILD_HOME}/.linode-cli" > "${tmp_conf}"
-                umask "$old_umask"
-                export LINODE_CONFIG_PATH="${tmp_conf}"
-                linode-cli --no-defaults --json "$@"
-                unset TOKEN
-                unset LINODE_CONFIG_PATH
-        )
-}
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 
 if ( [ "${1}" = "" ] )
 then
@@ -55,7 +38,7 @@ fi
 server_ip="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-linode_run linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
+/usr/local/bin/linode-cli --no-defaults --json  linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").label' 
 if ( [ "$?" != "0" ] )
 then
 	exit 1
