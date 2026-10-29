@@ -1,5 +1,7 @@
 #!/bin/sh
 
+firewall_name="${1}"
+ruleset="${2}"
 
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 BUILD_IDENTIFIER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER)"
