@@ -53,6 +53,7 @@ fi
 
 server_ip="${1}"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
 if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}'  "https://api.linode.com/v4/linode/instances")" 
 then
