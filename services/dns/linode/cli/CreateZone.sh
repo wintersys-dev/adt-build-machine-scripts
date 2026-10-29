@@ -26,23 +26,13 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
 domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
 
-DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
-
-#linode_config_file="/root/.config/dns-linode-cli"
-        
-#if ( [ -f /root/snap/linode-cli/current/.config/dns-linode-cli ] )
-#then
- #       linode_config_file="/root/snap/linode-cli/current/.config/dns-linode-cli"
-#fi
-                        
-#export LINODE_CLI_CONFIG=${linode_config_file}      
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
+DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"     
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
 export LINODE_CLI_TOKEN="${TOKEN}"
                 
-if ( [ "`/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id'`" = "" ] )
+if ( [ "$(/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id')" = "" ] )
 then
         /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${DNS_USERNAME} --no-defaults
 fi
