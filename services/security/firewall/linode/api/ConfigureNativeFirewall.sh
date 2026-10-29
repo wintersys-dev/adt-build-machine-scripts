@@ -14,7 +14,7 @@ status () {
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 BUILD_IDENTIFIER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER)"
 
-firewall_id=$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s 'https://api.linode.com/v4/networking/firewalls' | jq -r '.data[] | select(.label | contains("'${firewall_name}'")) | select(.label | endswith("'-${BUILD_IDENTIFIER}'")).id')
+firewall_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/networking/firewalls" | jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id')"
 
 if [ "${firewall_id}" = "" ] 
 then
