@@ -39,7 +39,7 @@ DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
 #fi
                         
 #export LINODE_CLI_CONFIG=${linode_config_file}      
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
 export LINODE_CLI_TOKEN="${TOKEN}"
                 
 if ( [ "`/usr/local/bin/linode-cli domains list --domain ${domain_url} --json | jq '.[].id'`" = "" ] )
