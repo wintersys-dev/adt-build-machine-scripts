@@ -243,8 +243,6 @@ fi
 ruleset="`/bin/echo ${rule_build_machine}${rule_build_machine_ssl}${rule_wireguard}${rule_vpc_ssh}${rule_vpc_db}${rule_vpc_ssl}${rule_ssl}${rule_icmp}${firewall_rules} | /bin/sed 's/,$//g'`"
 ruleset='['${ruleset}']'
 
-
-
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
@@ -274,7 +272,7 @@ then
         exit 1
 fi
 
-/bin/echo "`${script_path} ${firewall_name}`"  
+/bin/echo "`"${script_path}" "${firewall_name}" "${ruleset}"`"  
 
 exit_code=$?
 
