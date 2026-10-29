@@ -44,7 +44,7 @@ status () {
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
-if ( [ "${1}" = "" ] )
+if [ "${1}" = "" ]
 then
         status "Error: Server ip argument is required."
         status "Usage: $0 <server_ip>" 
@@ -58,22 +58,22 @@ if [ "${server_name}" != "" ]
 then
         server_id="$(${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh ${server_name})"
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  -X POST  "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-        if ( [ "$?" != "0" ] )
+        if  [ "$?" != "0" ]
         then
                 exit 1
         fi
 
         count="0"
-        while ( [ "$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status')"  != "offline" ] && [ "${count}" -lt "21" ] )
+        while  [ "$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | jq -r '.status')"  != "offline" ] && [ "${count}" -lt "21" ]
         do
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
                 /bin/sleep 10
-                count="`/usr/bin/expr ${count} + 1`"
+                count="$(/usr/bin/expr ${count} + 1)"
         done
 
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
 
-        if ( [ "$?" != "0" ] )
+        if [ "$?" != "0" ] 
         then
                 exit 1
         else
