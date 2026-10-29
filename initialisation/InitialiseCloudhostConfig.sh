@@ -248,10 +248,10 @@ then
 	fi 
 	/usr/local/bin/linode-cli region-table >/dev/null 
 	
-	/bin/sed -i "s/${TOKEN}/\${TOKEN}" ${BUILD_HOME}/.linode-cli
-	/bin/sed -i "s/${TOKEN}/\${TOKEN}" /root/.config/linode-cli
-	/bin/sed -i "s/${TOKEN}/\${TOKEN}" ${BUILD_HOME}/.dns-linode-cli
-	/bin/sed -i "s/${TOKEN}/\${TOKEN}" /root/.config/dns-linode-cli
+	/bin/sed -i "s/${TOKEN}/\$TOKEN/" ${BUILD_HOME}/.linode-cli
+	/bin/sed -i "s/${TOKEN}/\$TOKEN/" /root/.config/linode-cli
+	/bin/sed -i "s/${TOKEN}/\$TOKEN/" ${BUILD_HOME}/.dns-linode-cli
+	/bin/sed -i "s/${TOKEN}/\$TOKEN/" /root/.config/dns-linode-cli
 
 fi
 
