@@ -44,7 +44,7 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] )
+if [ "${1}" = "" ]
 then
         status "Error: Server type argument is required."
         status "Usage: $0 <server_type>" 
