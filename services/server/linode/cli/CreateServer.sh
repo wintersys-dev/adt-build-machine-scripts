@@ -54,22 +54,6 @@ status () {
         ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-linode_run() {
-        (
-                old_umask=$(umask)
-                umask 077
-                tmp_conf="${BUILD_HOME}/.linode-cfg.$$"
-                trap 'rm -f "${tmp_conf}"' EXIT INT TERM
-                export TOKEN="$TOKEN"
-                envsubst < "${BUILD_HOME}/.linode-cli" > "${tmp_conf}"
-                umask "$old_umask"
-                export LINODE_CONFIG_PATH="${tmp_conf}"
-                linode-cli --no-defaults --json "$@"
-                unset TOKEN
-                unset LINODE_CONFIG_PATH
-        )
-}
-
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ] || [ "${5}" = "" ] || [ "${6}" = "" ]  )
@@ -103,20 +87,23 @@ VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
+export LINODE_CLI_TOKEN="${TOKEN}"
 
-if ( [ "`linode_run vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
+if ( [ "`/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`" = "" ] )
 then
-        linode_run vpcs create --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
+        /usr/local/bin/linode-cli --no-defaults --json vpcs create --label ${VPC_NAME} --region ${REGION} --subnets.label adt-subnet --subnets.ipv4 ${VPC_IP_RANGE}
 fi
 
-vpc_id="`linode_run vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
-subnet_id="`linode_run vpcs subnets-list ${vpc_id}  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
+vpc_id="`/usr/local/bin/linode-cli --no-defaults --json vpcs list | /usr/bin/jq -r '.[] | select (.label == "'${VPC_NAME}'").id'`"
+subnet_id="`/usr/local/bin/linode-cli --no-defaults --json vpcs subnets-list ${vpc_id}  | /usr/bin/jq  -r '.[] | select (.label == "adt-subnet").id'`"
 
 user_data="$(/bin/cat ${user_data} | /usr/bin/base64 -w 0)"
 
 interfaces=$(jq -n --argjson fw_id "${firewall_id}" --argjson sub_id "${subnet_id}" '[ { "firewall_id": $fw_id, "vpc": { "subnet_id": $sub_id, "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]')
 
-linode_run linodes create --root_pass "${EMERGENCY_PASSWORD}"  --region "${REGION}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data}" --disk_encryption enabled
+/usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${EMERGENCY_PASSWORD}"  --region "${REGION}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data}" --disk_encryption enabled
+
+unset LINODE_CLI_TOKEN
 
 if ( [ "$?" != "0" ] )
 then
