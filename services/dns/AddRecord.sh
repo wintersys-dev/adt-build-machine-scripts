@@ -26,9 +26,9 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
+if [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] 
 then
         status "Error: 3 arguments are required."
         status "Usage: $0 <website_url> <ip> <auth>"
@@ -39,42 +39,42 @@ website_url="${1}"
 ip="${2}"
 auth="${3}"
 
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
-if ( [ "${auth}" = "yes" ] )
+if [ "${auth}" = "yes" ]
 then
-        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+        DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
 fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
-if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] 
 then
         status "Error: Cannot read software configuration file at ${software_file}"
         exit 1
 fi
 
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
-if ( [ "${orchestration_tool}" = "" ] )
+if  [ "${orchestration_tool}" = "" ] 
 then
         status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
         exit 1
 fi
 
-if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
+if  [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] 
 then
         orchestration_tool="api"
 fi
 
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/AddRecord.sh"
 
-if ( [ ! -f "${script_path}" ] )
+if [ ! -f "${script_path}" ] 
 then
         status "Error: Script not found at ${script_path}" 
         exit 1
 fi
 
-if ( [ ! -x "${script_path}" ] )
+if [ ! -x "${script_path}" ]
 then
         status "Error: Script at ${script_path} is not executable." 
         exit 1
@@ -85,7 +85,7 @@ fi
 
 exit_code=$?
 
-if ( [ ${exit_code} -ne 0 ] )
+if [ ${exit_code} -ne 0 ]
 then
         status "Error: AddRecord.sh failed with exit code $exit_code"
         exit $exit_code
