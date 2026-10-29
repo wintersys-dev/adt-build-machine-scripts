@@ -25,9 +25,9 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] )
+if [ "${1}" = "" ]
 then
         status "Error: Server ip argument is required."
         status "Usage: $0 <server_ip>" 
@@ -35,25 +35,25 @@ then
 fi
 
 server_ip="${1}"
-TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-if ( [ "${server_ip}" != "" ] )
+if [ "${server_ip}" != "" ]
 then
-        server_id="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
+        server_id="$(/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id')"
 
-        if ( [ "$?" != "0" ] )
+        if [ "$?" != "0" ]
         then
 				unset LINODE_CLI_TOKEN
                 exit 1
         fi
 
-        if ( [ "${server_id}" = "" ] )
+        if [ "${server_id}" = "" ]
         then
-                server_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip}`"
-                server_id="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id'`"
+                server_ip="$(${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh ${server_ip})"
+                server_id="$(/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.ipv4[] == "'${server_ip}'").id')"
 
-                if ( [ "$?" != "0" ] )
+                if [ "$?" != "0" ]
                 then
 						unset LINODE_CLI_TOKEN
                         exit 1
@@ -61,14 +61,14 @@ then
         fi
 
         /usr/local/bin/linode-cli linodes shutdown ${server_id}
-        if ( [ "$?" != "0" ] )
+        if [ "$?" != "0" ]
         then
 				unset LINODE_CLI_TOKEN
                 exit 1
         fi
 
         count="0"
-        while ( [ "`/usr/local/bin/linode-cli --no-defaults --json linodes view ${server_id} --format status --no-headers | jq -r '.[].status'`" != "offline" ] && [ "${count}" -lt "20" ] )
+        while [ "$(/usr/local/bin/linode-cli --no-defaults --json linodes view ${server_id} --format status --no-headers | jq -r '.[].status')" != "offline" ] && [ "${count}" -lt "20" ] 
         do
                 status "Waiting for machine with id: ${server_id} and ip address ${server_ip} to be offline following a shutdown request"
                 /bin/sleep 10
@@ -77,7 +77,7 @@ then
 
         /usr/local/bin/linode-cli --no-defaults --json linodes delete ${server_id}
 
-        if ( [ "$?" != "0" ] )
+        if [ "$?" != "0" ]
         then
 				unset LINODE_CLI_TOKEN
                 exit 1
