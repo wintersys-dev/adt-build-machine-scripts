@@ -37,7 +37,7 @@ then
         /usr/local/bin/linode-cli domains create --type master --domain ${domain_url} --soa_email ${DNS_USERNAME} --no-defaults
 fi
 
-if ( [ $? != "0" ] )
+if [ $? != "0" ]
 then
         status "Failed to create zone for domain ${domain_url}"
         unset LINODE_CLI_TOKEN
