@@ -24,21 +24,21 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-domain_url="`/bin/echo ${1} | /usr/bin/cut -d'.' -f2-`"
+domain_url="$(/bin/echo ${1} | /usr/bin/cut -d'.' -f2-)"
 
-TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
-DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
+TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"
 
-domain_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id'`"
+domain_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains" | jq --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id')"
 
-if ( [ "${domain_id}" = "" ] )
+if [ "${domain_id}" = "" ]
 then
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/domains" -H "Content-Type: application/json" -d '{ "type": "master", "domain": "'"${domain_url}"'", "soa_email": "'"${DNS_USERNAME}"'" }'
 fi
 
-if ( [ $? != "0" ] )
+if [ $? != "0" ]
 then
         status "Fauled to create zone in the DNS system"
         exit  1
