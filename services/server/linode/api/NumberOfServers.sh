@@ -1,5 +1,4 @@
 #!/bin/sh
-#!/bin/sh
 ############################################################################################
 # @file        NumberOfServers.sh
 # @brief       Counts the number of active Linode servers containing a specific type string.
