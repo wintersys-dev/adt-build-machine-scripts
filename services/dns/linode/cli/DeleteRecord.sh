@@ -25,10 +25,10 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 record_id="${1}"
-domain_url="`/bin/echo ${2} | /usr/bin/cut -d'.' -f2-`"
+domain_url="$(/bin/echo ${2} | /usr/bin/cut -d'.' -f2-)"
 
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
 export LINODE_CLI_TOKEN="${TOKEN}"
