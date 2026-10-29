@@ -25,22 +25,6 @@ status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-linode_run() {
-        (
-                old_umask=$(umask)
-                umask 077
-                tmp_conf="${BUILD_HOME}/.linode-cfg.$$"
-                trap 'rm -f "${tmp_conf}"' EXIT INT TERM
-                export TOKEN="$TOKEN"
-                envsubst < "${BUILD_HOME}/.linode-cli" > "${tmp_conf}"
-                umask "$old_umask"
-                export LINODE_CONFIG_PATH="${tmp_conf}"
-                linode-cli --no-defaults --json "$@"
-                unset TOKEN
-                unset LINODE_CONFIG_PATH
-        )
-}
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 if ( [ "${1}" = "" ] )
@@ -54,12 +38,12 @@ server_type="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 
-linodeids="`linode_run linodes list | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
+linodeids="`/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r '.[] | select (.label | contains("'${server_type}'")).id'`"
 
 privateips=""
 for linodeid in ${linodeids}
 do
-	privateip="`linode_run linodes ips-list ${linodeid} | /usr/bin/jq -r '.[].ipv4.vpc[].address' 2>/dev/null`"		
+	privateip="`/usr/local/bin/linode-cli --no-defaults --json linodes ips-list ${linodeid} | /usr/bin/jq -r '.[].ipv4.vpc[].address' 2>/dev/null`"		
 	if ( [ "$?" != "0" ] )
 	then
 		exit 1
