@@ -54,7 +54,7 @@ fi
 server_ip="${1}"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
-if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/ips")"
+if [ ${TOKEN} != "" ] && response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs/ips")"
 then
         output="$(echo "${response}" | jq -r --arg ip "${server_ip}" '.data[] | select(.address == $ip).nat_1_1')"
 
