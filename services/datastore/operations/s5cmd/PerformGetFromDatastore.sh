@@ -1,23 +1,36 @@
 #!/bin/sh 
-####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Tool/Script: Automated S3 Datastore utility to obtain a file from the datastore
-# Author:      Peter Winter
-# Date:        9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates the deletion of a specific file from the datastore
+###################################################################################
+# @file        PerformGetFromDatastore.sh
+# @brief       Automated S5cmd Datastore Object Retrieval and Fetching Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
 #
-# Arguments:
-#              $1 - <file_to_get>     : File in a datastore to get
-#              $2 - <destination>     : The local directory to place the file
+# @details     This script automates fetching or copying a specific object target from 
+#              a managed S3 cloud datastore into a local path workspace using s5cmd. It 
+#              queries the primary master s5cmd configuration profile directly to extract 
+#              the correct cloud backend host base endpoint, skipping downstream distributed 
+#              cluster loops to pull the object source immediately from the master repo.
 #
-# Requirements:
-#              - /usr/bin/s5cmd installed and accessible.
-#              - A valid profile located at /root/.config/rclone/rclone.conf-1
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-#######################################################################################
+# @param       $1  [Required] Relative cloud object pathway or file target to be fetched.
+# @param       $2  [Required] Local directory target workspace path to deposit the retrieved file.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.s5cfg-1 base master workspace profile for endpoint and credential routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/s5cmd parallel S3 command-line execution tool binary.
+#
+# @security    
+#              - Anchors operations to the root profile context (`.s5cfg-1`) to verify source integrity.
+#              - Shunts system diagnostic channels silently into internal null streams (2>/dev/null).
+#              - Forces script automation tools to map to unalterable system bin environments (/bin, /usr/bin).
+#
+# @exit        0  Success: Target object configuration was successfully retrieved and staged locally.
+# @exit        1  Failure: Missing parameters or an error code returned by the s5cmd cp driver.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
