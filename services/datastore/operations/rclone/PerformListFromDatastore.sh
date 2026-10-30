@@ -1,17 +1,35 @@
 #!/bin/sh 
-####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Description: Automated S3 Object Content Listing and Parsing Utility.
-#              This utility extracts the storage endpoint configuration from rclone,
-#              queries the target S3 path, and reads back object metadata. It passes
-#              the raw endpoint output through text parsing streams to isolate and 
-#              print individual target file basenames cleanly to the environment.
-# Parameters:
-#              - <file_to_list>: Target S3 bucket path or file pattern to inspect.
-# Requirements:
-#              - Active rclone configuration asset located at /root/.config/rclone/rclone.conf-1
-#######################################################################################
+###################################################################################
+# @file        PerformListFromDatastore.sh
+# @brief       Automated S3 Datastore Object File Content Listing and Parsing Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
+#
+# @details     This script automates granular object content listing tasks to parse and
+#              inspect specific file payloads within an S3 datastore. It extracts the
+#              storage host configuration from the primary master rclone profile map.
+#              The utility pipes the raw storage outputs through data truncation streams 
+#              to strip directory layers and isolate target file basenames cleanly.
+#
+# @param       $1  [Required] Target S3 bucket pathway or file pattern to inspect.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.config/rclone/rclone.conf-1 base master workspace profile for endpoint routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/rclone cloud storage sync and manipulation tool binary.
+#
+# @security    
+#              - Anchors specific file object parsing queries to the core master profile context.
+#              - Shunts unexpected connection diagnostic information into quiet null targets (2>/dev/null).
+#              - Anchors core text manipulation and query engines strictly to system partitions (/bin, /usr/bin).
+#
+# @exit        0  Success: Target object names were resolved and output successfully.
+# @exit        1  Failure: Missing parameters or an error state thrown by the extraction pipeline.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
