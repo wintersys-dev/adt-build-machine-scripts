@@ -1,23 +1,37 @@
 #!/bin/sh 
-####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Tool/Script: Automated S3 utility to delete a datastore
-# Author:      Peter Winter
-# Date:        9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates the deleting of an S3 datastore
+###################################################################################
+# @file        PerformDeleteDatastore.sh
+# @brief       Automated S3cmd Datastore Bucket Purging and Removal Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
 #
-# Arguments:
-#              $1 - <datastore_to_delete> : datastore to delete
-#              $2 - <count>               : Integer ID used to select the rclone config profile.
+# @details     This script automates the complete destruction and removal of an S3
+#              cloud datastore bucket using the s3cmd utility. It dynamically extracts
+#              the target host base endpoint from a numbered s3cmd configuration profile.
+#              The driver performs a recursive forced deletion of all internal object 
+#              payloads before executing a final remove-bucket transaction against the 
+#              endpoint.
 #
-# Requirements:
-#              - /usr/bin/s3cmd installed and accessible.
-#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-#######################################################################################
+# @param       $1  [Required] The exact name of the S3 datastore bucket to purge and delete.
+# @param       $2  [Required] Integer ID used to select the indexed s3cmd configuration profile.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.s3cfg-${count} workspace configuration file for endpoint and credential routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
+#
+# @security    
+#              - Requires root-level access privileges to inspect and evaluate specific configuration profiles.
+#              - Routes diagnostic payloads securely to the absolute null space (2>&1 >/dev/null).
+#              - Binds operational tools explicitly to full filesystem binary paths (/bin, /usr/bin).
+#
+# @exit        0  Success: Target cloud datastore contents and bucket structure were fully dropped.
+# @exit        1  Failure: Missing parameters or an error returned during deletion/removal routines.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
