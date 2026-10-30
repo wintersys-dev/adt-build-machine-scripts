@@ -1,29 +1,43 @@
 #!/bin/sh
-#########################################################################################
-# Tool/Script: Context-Aware S3 Datastore Object Retrieval & Fetching Utility
-# Author:      Peter Winter
-# Date :       9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates individual file retrieval tasks from managed cloud 
+###################################################################################
+# @file        GetFromDatastore.sh
+# @brief       Context-Aware S3 Datastore Object Retrieval & Fetching Utility.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
+#
+# @details     This script automates individual file retrieval tasks from managed cloud 
 #              datastores. It dynamically resolves naming topologies for target S3 
-#              buckets based on specific system classifications. 
-#              Unlike purging utilities, this fetching operation executes strictly against 
-#              your primary first-order datastore instance, skipping replication loops.
+#              buckets based on specific system classifications. Unlike purging utilities, 
+#              this fetching operation executes strictly against your primary first-order 
+#              datastore instance, skipping replication loops.
 #
-# Arguments:
-#              $1 - <bucket_type>            : Target category classification. 
-#              $2 - <file_to_get>            : Name or relative pathway of the specific cloud object to fetch.
-#              $3 - <destination>            : Local directory path or target file name destination.
-#              $4 - [additional_specifier]   : Optional tracking suffix used for asset paths, directory 
-#                                              roots, or unique runtime token suffixes.
+# @param       $1  [Required] The target category classification bucket type string.
+# @param       $2  [Required] Name or relative pathway of the specific cloud object to fetch.
+# @param       $3  [Required] Local directory path or target file name destination.
+# @param       $4  [Optional] Contextual tracking suffix string for paths or node tags.
 #
-# Environmental Dependencies:
-#              - /home/buildhome.dat containing valid application root pathway tracking string.
-#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
-#              - Environment registers: WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
-#                                       SSL_GENERATION_SERVICE configuration states.
-#########################################################################################
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         WEBSITE_URL             Primary base domain identifier mapping out schemas.
+# @env         DNS_CHOICE              Configuration flag used to tag platform routing options.
+# @env         SSL_GENERATION_SERVICE  Target backend token logic router (LETSENCRYPT/ZEROSSL).
+# @env         SERVER_USER             Base tracking string used to generate local tokens.
+# @env         TOKEN                   Four-character truncated identifier used to separate environments.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
+#              - PerformGetFromDatastore.sh object retrieval engine driver matching the active tool setup.
+#
+# @security    
+#              - Avoids multi-node replication loops by anchoring targets to primary datastore contexts.
+#              - Standardises the destination parameter to the local directory (.) if left blank.
+#              - Isolates path execution variables by relying on hardened system paths (/bin, /usr/bin).
+#
+# @exit        0  Success: The specified cloud object was retrieved and stored locally.
+# @exit        1  Failure: Missing arguments or error status returned by the retrieval driver.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
