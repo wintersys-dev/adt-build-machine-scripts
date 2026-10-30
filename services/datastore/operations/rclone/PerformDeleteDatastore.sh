@@ -1,23 +1,36 @@
 #!/bin/sh 
-####################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Tool/Script: Automated S3 utility to delete a datastore
-# Author:      Peter Winter
-# Date:        9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates the deleting of an S3 datastore
+###################################################################################
+# @file        PerformDeleteDatastore.sh
+# @brief       Automated S3 Datastore Bucket Purging and Removal Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
 #
-# Arguments:
-#              $1 - <datastore_to_delete> : datastore to delete
-#              $2 - <count>               : Integer ID used to select the rclone config profile.
+# @details     This script automates the destruction and purging of an entire target 
+#              S3 cloud datastore bucket. It dynamically extracts the host base endpoint
+#              from a specific, micro-targeted rclone configuration profile instance.
+#              The script completely removes the storage structures and forcefully purges 
+#              all internal directory tracks using raw backend orchestration tool mappings.
 #
-# Requirements:
-#              - /usr/bin/rclone installed and accessible.
-#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-#######################################################################################
+# @param       $1  [Required] The exact name of the S3 datastore bucket to purge and delete.
+# @param       $2  [Required] Integer ID used to select the indexed rclone configuration profile.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.config/rclone/rclone.conf-${count} workspace configuration file for endpoint routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/rclone cloud storage sync and manipulation tool binary.
+#
+# @security    
+#              - Requires root-level evaluation access to process system rclone configuration tokens.
+#              - Routes diagnostic payloads securely to the absolute null space (2>&1 >/dev/null).
+#              - Forces tool maps to run exclusively from static, validated platform partitions (/bin, /usr/bin).
+#
+# @exit        0  Success: Target cloud datastore and its directory configurations were dropped.
+# @exit        1  Failure: Missing parameters or an error returned during bucket destruction loops.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
