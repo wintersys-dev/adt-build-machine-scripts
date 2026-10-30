@@ -1,26 +1,40 @@
 #!/bin/sh
-#########################################################################################
-# Tool/Script: Context-Aware S3 Datastore Content Listing Utility
-# Author:      Peter Winter
-# Date :       9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates structural listing tasks across various cloud datastores.
+###################################################################################
+# @file        LisDatastore.sh
+# @brief       Context-Aware S3 Datastore Content Listing Utility.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
+#
+# @details     This script automates structural listing tasks across various cloud datastores.
 #              It dynamically evaluates string formats and naming configurations to identify 
 #              the target S3 bucket according to system profiles. When replication chains 
 #              are active across multi-region environments, this mapping points directly to the 
 #              authoritative, first-order bucket instance to read its directory schema.
 #
-# Arguments:
-#              $1 - <bucket_type>            : Target category classification. 
-#              $2 - [additional_specifier]   : Optional contextual tracking suffix string used for 
-#                                              asset paths, target sub-directories, or unique node tags.
+# @param       $1  [Required] The target category classification bucket type string.
+# @param       $2  [Optional] Contextual tracking suffix string for paths or node tags.
 #
-# Environmental Dependencies:
-#              - /home/buildhome.dat containing valid application root pathway tracking string.
-#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
-#              - Environment registers: WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
-#                                       SSL_GENERATION_SERVICE configuration states.
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         WEBSITE_URL             Primary base domain identifier mapping out schemas.
+# @env         DNS_CHOICE              Configuration flag used to tag platform routing options.
+# @env         SSL_GENERATION_SERVICE  Target backend token logic router (LETSENCRYPT/ZEROSSL).
+# @env         SERVER_USER             Base tracking string used to generate local tokens.
+# @env         TOKEN                   Four-character truncated identifier used to separate environments.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
+#              - PerformListDatastore.sh data structure listing engine driver matching the active tool setup.
+#
+# @security    
+#              - Safeguards secondary multi-region nodes by querying the authoritative first-order bucket.
+#              - Sanitizes `config-all` lookups using inverse pattern matching to filter restricted structures.
+#              - Calls core text manipulation and evaluation bins explicitly from hardened paths (/bin, /usr/bin).
+#
+# @exit        0  Success: The specified cloud datastore schema directory was successfully indexed.
+# @exit        1  Failure: Missing required parameter or error status returned by the listing driver.
 #########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
