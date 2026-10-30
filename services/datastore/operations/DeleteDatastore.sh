@@ -1,30 +1,42 @@
-#!/bin/sh 
-####################################################################################
-# Tool/Script: Context-Aware S3 Datastore Object Purging & Sync Node Deletion Utility
-# Author:      Peter Winter
-# Date :       9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script automates object or deployment file deletion across multi-mode
+#!/bin/sh
+###################################################################################
+# @file        DeleteDatastore.sh
+# @brief       Context-Aware S3 Datastore Object Purging & Sync Node Deletion Utility.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
+#
+# @details     This script automates object or deployment file deletion across multi-mode
 #              cloud datastores. It dynamically constructs naming topologies for target S3
-#              buckets based on specific bucket classifications  and handles execution 
-#              in either a single single-region environment ("local") or maps a multi-node
+#              buckets based on specific bucket classifications and handles execution 
+#              in either a single-region environment ("local") or maps a multi-node
 #              propagation loop across distributed regional storage setups ("distributed").
 #
-# Arguments:
-#              $1 - <bucket_type>            : Target category classification. 
-#              $2 - <mode>                   : Topology routine selection. Valid values:
-#                                              "local"       -> Single target datastore evaluation.
-#                                              "distributed" -> Multi-token configuration fanout loop.
-#              $3 - [additional_specifier]   : Optional contextual tracking suffix string used for 
-#                                              asset paths, target sub-directories, or unique node tags.
+# @param       $1  [Required] The target category classification bucket type string.
+# @param       $2  [Required] Topology routine selection ("local" or "distributed").
+# @param       $3  [Optional] Contextual tracking suffix string for paths or node tags.
 #
-# Environmental Dependencies:
-#              - /home/buildhome.dat containing valid application root pathway tracking string.
-#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
-#              - Environment registers: S3_ACCESS_KEY, WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
-#                                       SSL_GENERATION_SERVICE configuration states.
-#######################################################################################
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         S3_ACCESS_KEY           Access token configurations used for fanout loops.
+# @env         WEBSITE_URL             Primary base domain identifier mapping out schemas.
+# @env         DNS_CHOICE              Configuration flag used to tag platform routing options.
+# @env         SSL_GENERATION_SERVICE  Target backend token logic router (LETSENCRYPT/ZEROSSL).
+# @env         SERVER_USER             Base tracking string used to generate local tokens.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
+#              - PerformDeleteDatastore.sh data removal driver selected by software parameters.
+#
+# @security    
+#              - Requires isolation of S3_ACCESS_KEY environment arrays containing active tokens.
+#              - Filters system platform usernames via narrow truncation to minimize information exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent hijack exploits.
+#
+# @exit        0  Success: Datastore evaluation and target deletion completed successfully.
+# @exit        1  Failure: Missing mandatory arguments or mismatched input states.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
