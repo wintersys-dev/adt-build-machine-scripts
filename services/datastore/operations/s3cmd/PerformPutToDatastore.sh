@@ -1,22 +1,43 @@
 #!/bin/sh
-#########################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script  will put a file from the local filesystem to the datastore
+###################################################################################
+# @file        PerformPutToDatastore.sh
+# @brief       Automated S3cmd Datastore Object Staging and File Upload Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
 #
-# Arguments:
-#              $1 - <file_to_put>         : File on the local filesystem
-#              $2 - <place_to_put>        : Location to put the file in the datastore
-#              $3 - <delete>              : Whether to delete file $1 or not
-#              $4 - <count>               : Integer used to identify config file
+# @details     This script handles uploading individual local files or dynamically 
+#              generated environment markers into a targeted S3 cloud datastore bucket 
+#              using the s3cmd utility. It reads server endpoint targets from a specified 
+#              s3cmd configuration profile, allocates dedicated workspace areas under 
+#              its active runtime environment, strips explicit trailing root tokens, and 
+#              carries out data transmissions natively. An optional post-upload parameter 
+#              enables localized file storage purging to guarantee a minimal footprint.
 #
-# Requirements:
-#              - /usr/bin/s3cmd installed and accessible.
-#              - A valid profile located at /root/.config/rclone/rclone.conf-${count}
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-##########################################################################################
+# @param       $1  [Required] Absolute or relative local pathway of the file/marker to upload.
+# @param       $2  [Required] Location path inside the S3 bucket ("root" suffix is automatically stripped).
+# @param       $3  [Required] Cleanup instruction flag ("yes" triggers post-upload source deletion).
+# @param       $4  [Required] Integer ID used to select the indexed s3cmd configuration profile.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         CLOUDHOST               System variable defining the underlying cloud provider.
+# @env         BUILD_IDENTIFIER        System tracking variable isolating distinct platform deployments.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.s3cfg-${count} workspace configuration file for endpoint and credential routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
+#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
+#
+# @security    
+#              - Demands root execution authorization levels to read restricted profile targets.
+#              - Shunts unexpected connection diagnostic information into quiet null targets (2>&1 >/dev/null).
+#              - Mitigates system data footprints by isolating deletion evaluations strictly to validated targets.
+#
+# @exit        0  Success: Target data blocks or tracking flags were successfully uploaded.
+# @exit        1  Failure: Missing parameters or an error returned during the upload routine.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
