@@ -1,19 +1,35 @@
 #!/bin/sh 
-####################################################################################
-# Author:      Peter Winter
-# Date:        9/4/2021
-# Suite:       The Agile Deployment Toolkit
-# 
-# Description: This script will discover if a datastore already exists
+###################################################################################
+# @file        PerformListDatastore.sh
+# @brief       Automated S3cmd Datastore Directory Structural Listing Driver.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
 #
-# Arguments:
-#              $1 - <datastore_to_list>     : Name of the datastore to check
+# @details     This script automates directory structural parsing tasks to discover if a
+#              target S3 datastore bucket exists, or maps out all active instances using s3cmd.
+#              It extracts the cloud storage endpoint path from the primary master s3cmd profile.
+#              If the target parameter matches "all", it lists all structural blocks; otherwise,
+#              it targets a strict exact match using localized string filtering constraints.
 #
-# Requirements:
-#              - /usr/bin/s3cmd installed and accessible.
-#              - A valid profile located at /root/.config/rclone/rclone.conf-1
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-#######################################################################################
+# @param       $1  [Required] The target datastore name to search for, or "all" to map everything.
+#
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /root/.s3cfg-1 base master workspace profile for endpoint and credential routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
+#
+# @security    
+#              - Anchors target validation queries exclusively to the core master account configuration map.
+#              - Suppresses unhandled communication exceptions silently inside internal channels (2>/dev/null).
+#              - Forces script evaluation tasks to execute out of verified system partitions (/bin, /usr/bin).
+#
+# @exit        0  Success: Target datastores were successfully listed or confirmed to exist.
+# @exit        1  Failure: Missing parameters or the target datastore structure was not discovered.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
