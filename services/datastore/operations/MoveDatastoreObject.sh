@@ -1,32 +1,47 @@
 #!/bin/sh
-######################################################################################
-# Author: Peter Winter
-# Date :  9/4/2021
-# Suite:  The Agile Deployment Toolkit
-# 
-# Description: This script automates moving, copying, or renaming individual objects 
+###################################################################################
+# @file        MoveDatastoreObject.sh
+# @brief       Context-Aware S3 Datastore Object Moving, Copying & Renaming Utility.
+# @author      Peter Winter
+# @date        09/04/2021
+# @version     1.0
+#
+# @details     This script automates moving, copying, or renaming individual objects 
 #              natively inside managed cloud datastores. It dynamically constructs 
 #              the correct S3 bucket namespaces according to system classifications. 
 #              It then routes the target object operation to an underlying script execution engine 
 #              in either a single single-region environment ("local") or propagates 
 #              it across multi-node distributed regional clusters ("distributed").
 #
-# Arguments:
-#              $1 - <bucket_type>            : Target category classification. 
-#              $2 - <original_object>        : The absolute path of the source file inside the S3 bucket.
-#              $3 - <new_object>             : The target destination pathway or new filename within the bucket.
-#              $4 - <mode>                   : Topology routine selection. Valid values:
-#                                              "local"       -> Single target datastore evaluation.
-#                                              "distributed" -> Multi-token configuration fanout loop.
-#              $5 - [additional_specifier]   : Optional contextual tracking suffix string used for 
-#                                              asset paths, target sub-directories, or unique node tags.
+# @param       $1  [Required] The target category classification bucket type string.
+# @param       $2  [Required] The absolute path of the source file inside the S3 bucket.
+# @param       $3  [Required] The target destination pathway or new filename within the bucket.
+# @param       $4  [Required] Topology routine selection ("local" or "distributed").
+# @param       $5  [Optional] Contextual tracking suffix string for paths or node tags.
 #
-# Environmental Dependencies:
-#              - /home/buildhome.dat containing valid application root pathway tracking string.
-#              - Toolkit helpers: GetVariableValue.sh script infrastructure for variable evaluations.
-#              - Environment registers: S3_ACCESS_KEY, WEBSITE_URL, DNS_CHOICE, SERVER_USER, 
-#                                       SSL_GENERATION_SERVICE configuration states.
-######################################################################################
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         S3_ACCESS_KEY           Access token configurations used for fanout loops.
+# @env         WEBSITE_URL             Primary base domain identifier mapping out schemas.
+# @env         DNS_CHOICE              Configuration flag used to tag platform routing options.
+# @env         SSL_GENERATION_SERVICE  Target backend token logic router (LETSENCRYPT/ZEROSSL).
+# @env         SERVER_USER             Base tracking string used to generate local tokens.
+# @env         TOKEN                   Four-character truncated identifier used to separate environments.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
+#              - PerformMoveDatastoreObject.sh internal engine driver managing native object restructuring.
+#
+# @security    
+#              - Ensures proper boundary isolation of S3_ACCESS_KEY array payloads during fanout processing.
+#              - Normalizes platform runtime identifiers to lowercase blocks to safeguard asset paths.
+#              - Maps core textual evaluation binaries explicitly to restricted platform spaces (/bin, /usr/bin).
+#
+# @exit        0  Success: The targeted object manipulation transaction executed successfully.
+# @exit        1  Failure: Missing mandatory parameter constraints or failed internal loop states.
+###################################################################################
+
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
