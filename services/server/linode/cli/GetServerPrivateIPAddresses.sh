@@ -3,7 +3,7 @@
 # @file        GetServerPrivateIPAddresses.sh
 # @brief       Retrieves the internal VPC private IP addresses of instances by name pattern.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script connects to the Linode CLI to filter instance identifiers
