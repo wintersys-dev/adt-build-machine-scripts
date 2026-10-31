@@ -62,21 +62,9 @@ then
         /bin/mkdir -p "${BUILD_HOME}/runtime/logs/provisioning"
 fi
 
-# Define log file destination path
-LOG_FILE="${BUILD_HOME}/runtime/logs/provisioning/CheckServerStatus.log"
-
-# Unified status wrapper mimicking the original behavior and appending to log streams safely
 status()
 {
-        # Execute the original framework status tool safely
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
-        
-        # Mirror output to dedicated runtime log if target directory is writable
-        status_msg="[$(/bin/date '+%Y-%m-%d %H:%M:%S')] STATUS: ${1}"
-        if [ -w "${LOG_FILE}" ] || [ -w "$(/usr/bin/dirname "${LOG_FILE}")" ]
-        then
-                /bin/echo "${status_msg}" >> "${LOG_FILE}"
-        fi
 }
 
 # Input validation
