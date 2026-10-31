@@ -126,17 +126,17 @@ TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
 # Evaluate the active platform VPC landscape topology via safe headers
-vpc_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://linode.com" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
+vpc_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
 
 if [ -z "${vpc_id}" ] 
 then
         status "VPC network not found. Initiating dynamic deployment schema..."
         vpc_payload="$(/usr/bin/jq -n --arg lbl "${VPC_NAME}" --arg reg "${REGION}" --arg ip "${VPC_IP_RANGE}" '{label: $lbl, region: $reg, subnets: [{label: "adt-subnet", ipv4: $ip}]}')"
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://linode.com" -H "Content-Type: application/json" -d "${vpc_payload}"
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}"
 fi
 
 # Refresh identifiers tracking the target workspace
-vpc_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://linode.com" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
+vpc_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
 subnet_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com/${vpc_id}/subnets" | /usr/bin/jq -r --arg lbl "adt-subnet" '.data[] | select(.label == $lbl).id')"
 
 if [ -z "${subnet_id}" ] 
