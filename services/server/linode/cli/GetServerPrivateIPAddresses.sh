@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetServerPrivateIPsByName.sh
+# @file        GetServerPrivateIPAddresses.sh
 # @brief       Retrieves the internal VPC private IP addresses of instances by name pattern.
 # @author      Peter Winter
 # @date        13/07/2016
