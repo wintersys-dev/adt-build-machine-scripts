@@ -3,7 +3,7 @@
 # @file        DestroyServer.sh
 # @brief       Decommissions and destroys a specific Linode instance by IP address.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script connects to the Linode CLI to resolve a virtual machine 
