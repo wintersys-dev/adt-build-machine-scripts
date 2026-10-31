@@ -53,9 +53,7 @@ else
 fi
 
 status () {
-    set +e
-    "${HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
-    set -e
+    ${HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
 
 # 1. Check for the required argument safely
