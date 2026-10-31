@@ -1,9 +1,9 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetServerIDsByType.sh
+# @file        ListServerIDs.sh
 # @brief       Retrieves all unique instance identifiers matching a type pattern.
 # @author      Peter Winter
-# @date        13/07/2016
+# @date        13/07/2021
 # @version     1.0
 #
 # @details     This script connects to the Linode CLI to list all active instances
