@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetServerPublicIPByPrivateIP.sh
+# @file        GetServerPublicIPByIP.sh
 # @brief       Resolves an instance's public IP address based on its private VPC IP.
 # @author      Peter Winter
 # @date        13/06/2016
