@@ -125,7 +125,7 @@ then
         status "Executing permanent deletion routine for instance ID: ${server_id}..."
         
         # Dispatch final removal payload transaction securely
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X DELETE "https://linode.com{server_id}" > /dev/null
+        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
         
         status "Machine with id: ${server_id} and ip address ${server_ip} has been deleted"
 else
