@@ -111,7 +111,7 @@ then
 fi
 
 set +e
-result="$("${script_path}" "${server_type}" 2>/dev/null | /bin/grep -v "Error")"
+result="$("${script_path}" "${server_type}" 2>/dev/null)"
 exit_code=$?
 set -e
 
@@ -123,6 +123,7 @@ fi
 
 if [ -n "${result}" ]
 then
+        result="$(/bin/echo ${result} | /bin/grep -v 'Error')"
         /bin/echo "${result}"
 fi
 
