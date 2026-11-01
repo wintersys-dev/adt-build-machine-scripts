@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        LisDatastore.sh
+# @file        ListDatastore.sh
 # @brief       Context-Aware S3 Datastore Content Listing Utility.
 # @author      Peter Winter
 # @date        09/04/2021
