@@ -53,7 +53,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for all 3 arguments safely
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
     /bin/echo "Error: 3 arguments are required."
@@ -74,7 +73,6 @@ then
     exit 1
 fi
 
-# Note: Fixed an upstream bug where host_base was hardcoded to resolve from .s3cfg-1 instead of .s3cfg-${count}
 host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
 set +e
