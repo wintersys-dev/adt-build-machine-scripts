@@ -24,6 +24,8 @@
 finished="0" #If the build succeeds, this will be set to 1
 counter="0" #This counts up how many build attempts there has been
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "cyan"
 }
@@ -34,7 +36,6 @@ status ""
 status "#########################DATABASE BUILD MESSAGES ARE IN WHITE#######################"
 
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
