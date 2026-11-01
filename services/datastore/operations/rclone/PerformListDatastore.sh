@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Directory Structural Listing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.0
+# @version     1.1
 #
 # @details     This script automates directory structural parsing tasks to discover if a
 #              target S3 datastore bucket exists, or maps out all active instances. It
@@ -24,7 +24,7 @@
 #
 # @security    
 #              - Anchors target validation queries exclusively to the core master account configuration map.
-#              - Suppresses unhandled communication exceptions silently inside internal channels (2>/dev/null).
+#              - Suppresses unhandled communication exceptions silently inside internal channels (>/dev/null 2>&1).
 #              - Forces script evaluation tasks to execute out of verified system partitions (/bin, /usr/bin).
 #
 # @exit        0  Success: Target datastores were successfully listed or confirmed to exist.
@@ -43,38 +43,61 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
-######################################################################################
 #set -x
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] )
+# Verify required parameters
+if [ -z "$1" ]
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <datastore_to_list>"
+    status "Error: 1 argument is required."
+    status "Usage: $0 <datastore_to_list>"
+    exit 1
+fi
+
+datastore_to_list="$1"
+cfg_file="/root/.config/rclone/rclone.conf-1"
+
+if [ ! -f "$cfg_file" ]
+then
+    /bin/echo "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
+fi
+
+# Extract host base endpoint path cleanly using tr for spacing pruning
+host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+# Run rclone directly into a memory buffer to verify tool health and true connection status
+rclone_raw_output=$(/usr/bin/rclone --config "$cfg_file" --s3-endpoint "${host_base}" lsd s3: 2>/dev/null)
+rclone_status=$?
+set -e
+
+if [ $rclone_status -ne 0 ]
+then
+    status "Failed to list datastores: rclone connection or configuration failure."
+    exit 1
+fi
+
+# Clean up raw response structural columns out of local memory buffer
+parsed_list=$(/bin/echo "$rclone_raw_output" | /usr/bin/awk '{print $NF}' | /usr/bin/sed 's|/.*||')
+
+if [ "$datastore_to_list" = "all" ]
+then
+    /bin/echo "$parsed_list"
+else
+    # Exact pattern line boundaries ensure secure POSIX-compliant matching without cross-platform flag errors
+    /bin/echo "$parsed_list" | /bin/grep -E "^${datastore_to_list}$" || {
+        status "Failed to list datastore ${datastore_to_list}: element not found."
         exit 1
+    }
 fi
 
-datastore_to_list="${1}"
+exit 0
 
-flag="-x"
-
-if ( [ "${datastore_to_list}" = "all" ] )
-then
-        datastore_to_list=""
-        flag=""
-fi
-
-host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} lsd s3:  | awk '{print $NF}'| sed 's|/.*||' | /bin/grep ${flag} "${datastore_to_list}" 2>/dev/null
-
-if ( [ "$?" != "0" ] )
-then
-        status "Failed to list datastore ${datastore_to_list}"
-        exit 1
-fi
