@@ -45,15 +45,7 @@ then
     exit 1
 fi
 
-orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
-
-if [ -z "${orchestration_tool}" ]
-then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
-    exit 1
-fi
-
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CheckBuildMachineVPC.sh ${buildmachine_ip}"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/CheckBuildMachineVPC.sh ${buildmachine_ip}"
 
 if [ ! -f "${script_path}" ]
 then
