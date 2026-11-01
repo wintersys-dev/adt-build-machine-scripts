@@ -80,12 +80,10 @@ host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $N
 
 set +e
 /usr/bin/s3cmd --config="$cfg_file" --host="https://${host_base}" ls 2>/dev/null | /usr/bin/awk '{print $NF}' | /usr/bin/sed -e 's|s3://||' -e 's|/.*||' | /bin/grep -E "${grep_pattern}"
-
 pipeline_status=$?
 set -e
 
 if [ $pipeline_status -ne 0 ]
 then
-    /bin/echo "Failed to list datastore"
     exit 1
 fi
