@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Object Purging & Wildcard Tree Deletion Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.0
+# @version     1.1
 #
 # @details     This script automates low-level data removal operations inside targeted
 #              cloud datastores using the high-performance s5cmd tool. It extracts 
@@ -48,12 +48,12 @@
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# 1. Check for all 2 arguments safely
+# Verify required parameters
 if [ -z "$1" ] || [ -z "$2" ]
 then
     /bin/echo "Error: 2 arguments are required."
@@ -75,6 +75,7 @@ fi
 
 host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
+# Determine wildcard suffix tracking based on custom 'root' trailing token matches
 wildcard=""
 if [ "${file_to_delete%root}" != "$file_to_delete" ]
 then
@@ -83,7 +84,7 @@ then
 fi
 
 set +e
-/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" rm "s3://${file_to_delete}${wildcard}" 2>/dev/null
+/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" rm "s3://${file_to_delete}${wildcard}" >/dev/null 2>&1
 s5cmd_status=$?
 set -e
 
@@ -95,3 +96,4 @@ then
 fi
 
 exit 0
+
