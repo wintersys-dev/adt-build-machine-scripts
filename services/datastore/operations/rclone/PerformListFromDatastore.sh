@@ -51,7 +51,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for the 1 required argument safely
 if [ -z "$1" ]
 then
     /bin/echo "Error: 1 argument is required."
@@ -62,7 +61,6 @@ fi
 
 file_to_list="$1"
 
-# Strip wildcard markers defensively
 file_to_list=$(/bin/echo "$file_to_list" | /usr/bin/tr -d '*')
 
 cfg_file="/root/.config/rclone/rclone.conf-1"
