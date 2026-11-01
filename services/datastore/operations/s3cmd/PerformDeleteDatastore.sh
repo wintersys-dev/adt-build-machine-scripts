@@ -41,7 +41,6 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# Verify required parameters
 if [ -z "$1" ] || [ -z "$2" ]
 then
     status "Error: 2 arguments are required."
