@@ -1,24 +1,23 @@
 #set -x
 set -e
 
-
-BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
-BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
-
-# Sourced application root tracking pathway string
-if [ -r /home/homedir.dat ]
+if [ -r /home/buildhome.dat ]
 then
-        HOME="$(/bin/cat /home/homedir.dat)"
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application root configuration file missing at /home/homedir.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
 status () {
-    ${HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+    ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
 
-cloudhost_file="${HOME}/runtime/ACTIVE_CLOUDHOST"
+
+BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
+BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
+
+cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
 then
     status "Error: Cannot read active cloud host file at ${cloudhost_file}"
@@ -33,7 +32,7 @@ then
     exit 1
 fi
 
-software_file="${HOME}/configuration/software.dat"
+software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
     status "Error: Cannot read software configuration file at ${software_file}" 
@@ -48,7 +47,7 @@ then
     exit 1
 fi
 
-script_path="${HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetOperatingSystemVersion.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetOperatingSystemVersion.sh"
 
 if [ ! -f "${script_path}" ]
 then
