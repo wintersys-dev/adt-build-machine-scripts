@@ -81,7 +81,5 @@ then
     /bin/echo "Target exists: [s3://${target_to_check}]"
     exit 0
 else
-    /bin/echo "Target does not exist (or is inaccessible): [s3://${target_to_check}]"
-    status "s3cmd info failed for s3://${target_to_check} (Exit code: $s3cmd_status)"
     exit 1
 fi
