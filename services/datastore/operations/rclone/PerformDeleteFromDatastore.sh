@@ -52,7 +52,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for all 2 arguments safely
 if [ -z "$1" ] || [ -z "$2" ]
 then
     /bin/echo "Error: 2 arguments are required."
@@ -83,7 +82,6 @@ fi
 
 set +e
 if [ -n "$rmdirs" ]
-# If it is a directory structure purge, invoke with rmdirs tracking active
 then
     /usr/bin/rclone --config "$cfg_file" --s3-endpoint "$host_base" delete "s3:${file_to_delete}" --rmdirs >/dev/null 2>&1
 else
