@@ -1,34 +1,35 @@
-#!/bin/sh 
+#!/bin/sh
 ###################################################################################
 # @file        PerformListFromDatastore.sh
-# @brief       Automated S5cmd Datastore Object File Content Listing and Parsing Driver.
+# @brief       Automated S3 Datastore Object Content Listing and Parsing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
 # @version     1.0
 #
-# @details     This script automates granular object content listing tasks to parse and
-#              inspect specific file payloads within an S3 datastore using s5cmd. It 
-#              extracts the storage host configuration from the primary master s5cmd 
-#              profile map. The utility queries the target S3 path and isolates individual 
-#              target file basenames cleanly using text extraction layers.
+# @details     This script automates low-level item inspection within targeted cloud
+#              datastores using s5cmd. It extracts the storage endpoint configuration 
+#              from the primary s5cmd credential file, queries the target S3 path, 
+#              and reads back object metadata. It passes the raw endpoint output 
+#              through text parsing streams to isolate and print individual target 
+#              file basenames cleanly to file descriptors.
 #
 # @param       $1  [Required] Target S3 bucket pathway or file pattern to inspect.
 #
-# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /root/.s5cfg-1 base master workspace profile for endpoint and credential routing.
-#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
-#              - /usr/bin/s5cmd parallel S3 command-line execution tool binary.
+#              - /usr/bin/s5cmd high-performance storage integration software utility.
+#              - /root/.s5cfg-1 base primary cluster registration credentials file.
+#              - Standard output/logging routes configured on File Descriptors 3 and 4.
 #
 # @security    
-#              - Anchors specific file object parsing queries to the core master profile context.
-#              - Shunts unexpected connection diagnostic information into quiet null targets (2>/dev/null).
-#              - Anchors core text manipulation and query engines strictly to system partitions (/bin, /usr/bin).
+#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
+#              - Filters pipeline output to restrict terminal visibility to targeted metadata records.
 #
-# @exit        0  Success: Target object names were resolved and output successfully.
-# @exit        1  Failure: Missing parameters or an error state thrown by the extraction pipeline.
+# @exit        0  Success: Target path successfully interrogated and structural objects listed.
+# @exit        1  Failure: Missing mandatory parameters or s5cmd execution driver failure.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -43,9 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
-######################################################################################
 #set -x
-
 set -e
 
 status () {
@@ -54,21 +53,44 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] )
+status () {
+    /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+    script_name="`/bin/echo ${0} | /usr/bin/awk -F'/' '{print $NF}'`"
+    /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+}
+
+# 1. Check for the 1 required argument safely
+if [ -z "$1" ]
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <file_to_list>"
-        exit 1
+    status "Error: 1 argument is required."
+    status "Usage: $0 <file_to_list>"
+    status "Script invoked with missing arguments."
+    exit 1
 fi
 
-file_to_list="${1}"
+file_to_list="$1"
 
-host_base="`/bin/grep ^host_base /root/.s5cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-1 --endpoint-url https://${host_base} ls s3://${file_to_list}  | /usr/bin/awk '{print $NF}' 2>/dev/null
-
-if ( [ "$?" != "0" ] )
+cfg_file="/root/.s5cfg-1"
+if [ ! -f "$cfg_file" ]
 then
-        status "Failed to list file ${file_to_list} from datastore"
-        exit 1
+    status "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
 fi
+
+host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${file_to_list}" 2>/dev/null | /usr/bin/awk '{print $NF}'
+s5cmd_status=$?
+set -e
+
+if [ $s5cmd_status -ne 0 ]
+then
+    status "Failed to list file ${file_to_list} from datastore"
+    status "s5cmd failed to list objects at s3://${file_to_list} (Exit code: $s5cmd_status)"
+    exit 1
+fi
+
+exit 0
 
