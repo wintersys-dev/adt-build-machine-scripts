@@ -58,11 +58,6 @@ else
         exit 1
 fi
 
-if [ ! -d ${BUILD_HOME}/runtime/logs/provisioning ]
-then
-        /bin/mkdir -p ${BUILD_HOME}/runtime/logs/provisioning
-fi
-
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
