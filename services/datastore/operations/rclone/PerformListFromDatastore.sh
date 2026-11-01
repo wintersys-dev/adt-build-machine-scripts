@@ -1,34 +1,33 @@
 #!/bin/sh 
 ###################################################################################
 # @file        PerformListFromDatastore.sh
-# @brief       Automated S3 Datastore Object File Content Listing and Parsing Driver.
+# @brief       Automated S3 Datastore Object Content Listing and Parsing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
 # @version     1.0
 #
-# @details     This script automates granular object content listing tasks to parse and
-#              inspect specific file payloads within an S3 datastore. It extracts the
-#              storage host configuration from the primary master rclone profile map.
-#              The utility pipes the raw storage outputs through data truncation streams 
-#              to strip directory layers and isolate target file basenames cleanly.
+# @details     This script automates low-level item inspection within targeted cloud
+#              datastores. It extracts the storage endpoint configuration from standard
+#              rclone profile records, queries the target S3 path, and reads back object 
+#              metadata. It passes the raw endpoint output through filtering text parsing 
+#              streams to isolate and print individual target file basenames cleanly.
 #
 # @param       $1  [Required] Target S3 bucket pathway or file pattern to inspect.
 #
-# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /root/.config/rclone/rclone.conf-1 base master workspace profile for endpoint routing.
-#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
-#              - /usr/bin/rclone cloud storage sync and manipulation tool binary.
+#              - /usr/bin/rclone storage integration engine software utility.
+#              - /root/.config/rclone/rclone.conf-1 base primary cluster registration file.
 #
 # @security    
-#              - Anchors specific file object parsing queries to the core master profile context.
-#              - Shunts unexpected connection diagnostic information into quiet null targets (2>/dev/null).
-#              - Anchors core text manipulation and query engines strictly to system partitions (/bin, /usr/bin).
+#              - Strips global wildcard assets (`*`) from target inputs to limit unexpected pattern extraction.
+#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
 #
-# @exit        0  Success: Target object names were resolved and output successfully.
-# @exit        1  Failure: Missing parameters or an error state thrown by the extraction pipeline.
+# @exit        0  Success: Target path successfully interrogated and structural objects listed.
+# @exit        1  Failure: Missing mandatory parameters or rclone execution driver failure.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -43,7 +42,6 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
-######################################################################################
 #set -x
 set -e
 
@@ -53,20 +51,40 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] )
+# 1. Check for the 1 required argument safely
+if [ -z "$1" ]
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <file_to_list>"
-        exit 1
+    /bin/echo "Error: 1 argument is required."
+    /bin/echo "Usage: $0 <file_to_list>"
+    status "Script invoked with missing arguments."
+    exit 1
 fi
 
-file_to_list="${1}"
+file_to_list="$1"
 
-host_base="`/bin/grep ^endpoint /root/.config/rclone/rclone.conf-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/rclone --config /root/.config/rclone/rclone.conf-1 --s3-endpoint ${host_base} ls s3:${file_to_list} | awk '{print $NF}'| sed 's|s3://||' | awk -F'/' '{print $NF}' 2>/dev/null
+# Strip wildcard markers defensively
+file_to_list=$(/bin/echo "$file_to_list" | /usr/bin/tr -d '*')
 
-if ( [ "$?" != "0" ] )
+cfg_file="/root/.config/rclone/rclone.conf-1"
+if [ ! -f "$cfg_file" ]
 then
-        status "Failed to list file ${file_to_list} from datastore"
-        exit 1
+    /bin/echo "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
 fi
+
+host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+/usr/bin/rclone --config "$cfg_file" --s3-endpoint "$host_base" ls "s3:${file_to_list}" 2>/dev/null | /usr/bin/awk '{print $NF}' | /bin/sed 's|s3://||' | /usr/bin/awk -F'/' '{print $NF}'
+rclone_status=$?
+set -e
+
+if [ $rclone_status -ne 0 ]
+then
+    /bin/echo "Failed to list file ${file_to_list} from datastore"
+    status "rclone failed to list objects at s3:${file_to_list} (Exit code: $rclone_status)"
+    exit 1
+fi
+
+exit 0
