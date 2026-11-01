@@ -1,35 +1,33 @@
 #!/bin/sh 
 ###################################################################################
 # @file        PerformListFromDatastore.sh
-# @brief       Automated S3cmd Datastore Object File Content Listing and Parsing Driver.
+# @brief       Automated S3 Datastore Object Content Listing and Parsing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
 # @version     1.0
 #
-# @details     This script automates granular object content listing tasks to parse and
-#              inspect specific file payloads within an S3 datastore using s3cmd. It 
-#              extracts the storage host configuration from the primary master s3cmd 
-#              profile map. The utility recursively inspects target pathways and pipes 
-#              the raw outputs through data truncation streams to strip directory layers 
-#              and isolate target file basenames cleanly.
+# @details     This script automates low-level item inspection within targeted cloud
+#              datastores using s3cmd. It extracts the storage endpoint configuration 
+#              from the primary s3cmd configuration profile, queries the target S3 path 
+#              recursively, and processes the raw metadata through filtering text parsing 
+#              streams to isolate and print individual target file basenames cleanly.
 #
 # @param       $1  [Required] Target S3 bucket pathway or file pattern to inspect.
 #
-# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /root/.s3cfg-1 base master workspace profile for endpoint and credential routing.
-#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
-#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
+#              - /home/homedir.dat configuration file tracking the active application root path.
+#              - /usr/bin/s3cmd storage integration command-line software utility.
+#              - /root/.s3cfg-1 base primary cluster registration configuration file.
 #
 # @security    
-#              - Anchors specific file object parsing queries to the core master profile context.
-#              - Shunts unexpected connection diagnostic information into quiet null targets (2>/dev/null).
-#              - Anchors core text manipulation and query engines strictly to system partitions (/bin, /usr/bin).
+#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
+#              - Limits terminal output purely to parsed un-hashed structural path basenames.
 #
-# @exit        0  Success: Target object names were resolved and output successfully.
-# @exit        1  Failure: Missing parameters or an error state thrown by the extraction pipeline.
+# @exit        0  Success: Target path successfully interrogated and structural objects listed.
+# @exit        1  Failure: Missing mandatory parameters or s3cmd execution driver failure.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -44,7 +42,6 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
-######################################################################################
 #set -x
 set -e
 
@@ -54,20 +51,37 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] )
+# 1. Check for the 1 required argument safely
+if [ -z "$1" ]
 then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <file_to_list>"
-        exit 1
+    /bin/echo "Error: 1 argument is required."
+    /bin/echo "Usage: $0 <file_to_list>"
+    status "Script invoked with missing arguments."
+    exit 1
 fi
 
-file_to_list="${1}"
+file_to_list="$1"
 
-host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
-/usr/bin/s3cmd --recursive --config=/root/.s3cfg-1 --host=https://${host_base} ls s3://${file_to_list} | awk '{print $NF}'| sed 's|s3://||' | awk -F'/' '{print $NF}' 2>/dev/null
-
-if ( [ "$?" != "0" ] )
+cfg_file="/root/.s3cfg-1"
+if [ ! -f "$cfg_file" ]
 then
-        status "Failed to list file ${file_to_list} from datastore"
-        exit 1
+    /bin/echo "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
 fi
+
+host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+/usr/bin/s3cmd --recursive --config="$cfg_file" --host="https://${host_base}" ls "s3://${file_to_list}" 2>/dev/null | /usr/bin/awk '{print $NF}' | /usr/bin/sed 's|s3://||' | /usr/bin/awk -F'/' '{print $NF}'
+s3cmd_status=$?
+set -e
+
+if [ $s3cmd_status -ne 0 ]
+then
+    /bin/echo "Failed to list file ${file_to_list} from datastore"
+    status "s3cmd failed to list objects recursively at s3://${file_to_list} (Exit code: $s3cmd_status)"
+    exit 1
+fi
+
+exit 0
