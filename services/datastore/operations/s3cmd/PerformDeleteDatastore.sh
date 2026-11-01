@@ -4,7 +4,7 @@
 # @brief       Automated S3cmd Datastore Bucket Purging and Removal Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.1
+# @version     1.0
 #
 # @details     This script automates the complete destruction and removal of an S3
 #              cloud datastore bucket using the s3cmd utility. It dynamically extracts
@@ -26,7 +26,7 @@
 #
 # @security    
 #              - Requires root-level access privileges to inspect and evaluate specific configuration profiles.
-#              - Routes diagnostic payloads securely to the absolute null space (>/dev/null 2>&1).
+#              - Routes diagnostic payloads securely to the absolute null space (2>&1 >/dev/null).
 #              - Binds operational tools explicitly to full filesystem binary paths (/bin, /usr/bin).
 #
 # @exit        0  Success: Target cloud datastore contents and bucket structure were fully dropped.
@@ -45,60 +45,41 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
+######################################################################################
 #set -x
 set -e
 
 status () {
-    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# Verify required parameters
-if [ -z "$1" ] || [ -z "$2" ]
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-    status "Error: 2 arguments are required."
-    status "Usage: $0 <datastore_to_delete> <count>"
-    exit 1
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <datastore_to_delete> <count>"
+        exit 1
 fi
 
-datastore_to_delete="$1"
-count="$2"
+datastore_to_delete="${1}"
+count="${2}"
 
-cfg_file="/root/.s3cfg-${count}"
-if [ ! -f "$cfg_file" ]
+host_base="`/bin/grep ^host_base /root/.s3cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
+/usr/bin/s3cmd --recursive --force --config=/root/.s3cfg-${count} --host=https://${host_base} del s3://${datastore_to_delete}  2>&1 >/dev/null
+
+if ( [ "$?" != "0" ] )
 then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+        status "Failed to delete contents from datastore"
+        exit 1
 fi
+/usr/bin/s3cmd --recursive --force --config=/root/.s3cfg-${count} --host=https://${host_base} rb s3://${datastore_to_delete}  2>&1 >/dev/null
 
-host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
-
-set +e
-
-# 1. Purge all internal bucket contents recursively
-/usr/bin/s3cmd --recursive --force --config="$cfg_file" --host="https://${host_base}" del "s3://${datastore_to_delete}" >/dev/null 2>&1
-del_status=$?
-
-if [ $del_status -ne 0 ]
+if ( [ "$?" != "0" ] )
 then
-    status "Failed to delete contents from datastore: s3://${datastore_to_delete} (Exit code: $del_status)"
-    exit 1
+        status "Failed to delete datastore"
+        exit 1
 fi
-
-# 2. Drop the empty bucket structure completely
-/usr/bin/s3cmd --config="$cfg_file" --host="https://${host_base}" rb "s3://${datastore_to_delete}" >/dev/null 2>&1
-rb_status=$?
-
-set -e
-
-if [ $rb_status -ne 0 ]
-then
-    status "Failed to delete datastore bucket structure: s3://${datastore_to_delete} (Exit code: $rb_status)"
-    exit 1
-fi
-
-exit 0
 
 
