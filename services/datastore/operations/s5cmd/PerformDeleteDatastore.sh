@@ -4,7 +4,7 @@
 # @brief       Automated S5cmd Datastore Bucket Purging and Removal Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.1
+# @version     1.0
 #
 # @details     This script automates the complete destruction and removal of an S3
 #              cloud datastore bucket using the high-performance s5cmd utility. It 
@@ -26,7 +26,7 @@
 #
 # @security    
 #              - Requires root-level access privileges to inspect and evaluate specific configuration profiles.
-#              - Routes structural cleanup diagnostic outputs safely away to internal null streams (>/dev/null 2>&1).
+#              - Routes structural cleanup diagnostic outputs safely away to internal null streams (2>/dev/null).
 #              - Forces tool maps to run exclusively from static, validated platform partitions (/bin, /usr/bin).
 #
 # @exit        0  Success: Target cloud datastore contents and bucket structure were fully dropped.
@@ -45,64 +45,44 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
+######################################################################################
 #set -x
 set -e
 
 status () {
-    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# Verify required parameters
-if [ -z "$1" ] || [ -z "$2" ]
+
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-    status "Error: 2 arguments are required."
-    status "Usage: $0 <datastore_to_delete> <count>"
-    exit 1
-fi
-
-datastore_to_delete="$1"
-count="$2"
-
-cfg_file="/root/.s5cfg-${count}"
-if [ ! -f "$cfg_file" ]
-then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
-fi
-
-host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
-
-set +e
-
-# 1. Check for existing content and purge objects using high-performance s5cmd formatting
-s5_objects=$(/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${datastore_to_delete}/*" 2>/dev/null)
-
-if [ -n "$s5_objects" ]
-then
-    /usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" rm "s3://${datastore_to_delete}/*" >/dev/null 2>&1
-    rm_status=$?
-    
-    if [ $rm_status -ne 0 ]
-    then
-        status "Failed to delete contents of datastore s3://${datastore_to_delete} (Exit code: $rm_status)"
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <datastore_to_delete> <count>"
         exit 1
-	fi
 fi
 
-# 2. Drop the empty bucket structure completely
-/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" rb "s3://${datastore_to_delete}" >/dev/null 2>&1
-rb_status=$?
+datastore_to_delete="${1}"
+count="${2}"
 
-set -e
+host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
 
-if [ $rb_status -ne 0 ]
+if ( [ "`/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} ls s3://${datastore_to_delete}/* 2>/dev/null`" != "" ] )
 then
-    status "Failed to delete datastore bucket structure s3://${datastore_to_delete} (Exit code: $rb_status)"
-    exit 1
+        /usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rm s3://${datastore_to_delete}/*  2>/dev/null
 fi
 
-exit 0
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete contents of datastore"
+        exit 1
+fi
+
+/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} rb s3://${datastore_to_delete}  2>&1 >/dev/null
+if ( [ "$?" != "0" ] )
+then
+        status "Failed to delete datastore"
+        exit 1
+fi
 
