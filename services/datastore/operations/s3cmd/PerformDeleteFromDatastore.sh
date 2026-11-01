@@ -1,35 +1,36 @@
 #!/bin/sh 
 ###################################################################################
 # @file        PerformDeleteFromDatastore.sh
-# @brief       Automated S3 Datastore Object Purging & Recursive Tree Deletion Driver.
+# @brief       Automated S3cmd Datastore Object and Target File Deletion Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.1
+# @version     1.0
 #
-# @details     This script automates low-level file deletion and directory scrubbing 
-#              operations inside targeted cloud datastores using s3cmd. It extracts 
-#              endpoint parameters from partitioned s3cmd configuration profiles, 
-#              processes dynamic 'root' directory overrides for absolute tree wipes, 
-#              and commands the storage engine to drop targets and prune structural paths.
+# @details     This script automates the deletion of a specific file or target path from
+#              a managed S3 cloud datastore using the s3cmd utility. It dynamically extracts
+#              the required cloud host base endpoint from a numbered s3cmd configuration profile.
+#              If the target path contains a trailing 'root' specifier, the driver applies
+#              a recursive deletion flag, strip tokens, and sanitizes wildcard markers to target
+#              the storage layer natively.
 #
-# @param       $1  [Required] S3 bucket target pathway and the specific object key to delete.
-# @param       $2  [Required] Integer configuration ID used to select the targeted s3cmd profile suffix.
+# @param       $1  [Required] File path or relative cloud object target directory to delete.
+# @param       $2  [Required] Integer ID used to select the indexed s3cmd configuration profile.
 #
-# @env         None explicitly sourced from top-level environment registers.
+# @env         BUILD_HOME              Sourced application root tracking pathway string.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /usr/bin/s3cmd storage integration command-line software utility.
-#              - /root/.s3cfg-${count} targeted cluster registration configuration file.
+#              - /root/.s3cfg-${count} workspace configuration file for endpoint and credential routing.
+#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
+#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
 #
 # @security    
-#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
-#              - Enforces structural path filtering by scrubbing trailing "root" overrides from namespaces.
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
+#              - Demands root execution authorization levels to read restricted profile targets.
+#              - Redirects unexpected platform communication errors safely away to standard null spaces (2>/dev/null).
+#              - Keeps environment commands restricted to static system-level paths (/bin, /usr/bin).
 #
-# @exit        0  Success: Target object successfully purged from the datastore namespace.
-# @exit        1  Failure: Missing mandatory parameters or s3cmd execution driver failure.
+# @exit        0  Success: Target file or structural object directory was discarded cleanly.
+# @exit        1  Failure: Missing parameters or error status returned by the s3cmd deletion task.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -44,57 +45,41 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
+######################################################################################
 #set -x
+
 set -e
 
 status () {
-    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# Verify required parameters
-if [ -z "$1" ] || [ -z "$2" ]
+if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
 then
-    /bin/echo "Error: 2 arguments are required."
-    /bin/echo "Usage: $0 <file_to_delete> <count>"
-    status "Script invoked with missing arguments."
-    exit 1
+        status "Error: 2 arguments are required."
+        status "Usage: $0 <file_to_delete> <count>"
+        exit 1
 fi
 
-file_to_delete="$1"
-count="$2"
+file_to_delete="${1}"
+count="${2}"
 
-cfg_file="/root/.s3cfg-${count}"
-if [ ! -f "$cfg_file" ]
+recursive=""
+if ( [ "`/bin/echo ${file_to_delete} | /bin/grep 'root$'`" != "" ] )
 then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+  file_to_delete="`/bin/echo ${file_to_delete} | /bin/sed "s/root$//g"`"
+  recursive="--recursive"
 fi
 
-host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+file_to_delete="`/bin/echo ${file_to_delete} | /bin/sed 's/\*$//g'`"
+host_base="`/bin/grep ^host_base /root/.s3cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`" 
+/usr/bin/s3cmd ${recursive} --force  --config=/root/.s3cfg-${count} --host=https://${host_base} del s3://${file_to_delete} 2>/dev/null
 
-# Determine if recursive flags are required by evaluating suffix overrides
-extra_flags=""
-if [ "${file_to_delete%root}" != "$file_to_delete" ]
+if ( [ "$?" != "0" ] )
 then
-    file_to_delete="${file_to_delete%root}"
-    extra_flags="--recursive"
+        status "Failed to delete file ${file_to_delete} from datastore"
+        exit 1
 fi
-
-set +e
-# Execute s3cmd drop stream safely by unpacking contextual flag variables dynamically
-/usr/bin/s3cmd $extra_flags --force --config="$cfg_file" --host="https://${host_base}" del "s3://${file_to_delete}" >/dev/null 2>&1
-s3cmd_status=$?
-set -e
-
-if [ $s3cmd_status -ne 0 ]
-then
-    /bin/echo "Failed to delete file ${file_to_delete} from datastore"
-    status "s3cmd failed to delete s3://${file_to_delete} (Recursive: ${extra_flags:-no}, Exit code: $s3cmd_status)"
-    exit 1
-fi
-
-exit 0
 
