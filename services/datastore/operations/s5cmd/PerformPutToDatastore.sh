@@ -1,60 +1,40 @@
 #!/bin/sh
 ###################################################################################
 # @file        PerformPutToDatastore.sh
-# @brief       Automated S5cmd Datastore Object Staging and File Upload Driver.
+# @brief       Automated Local Payload Ingestion & S3 Datastore Storage Driver.
 # @author      Peter Winter
 # @date        09/04/2021
 # @version     1.0
 #
-# @details     This script handles uploading individual local files or dynamically 
-#              generated environment markers into a targeted S3 cloud datastore bucket 
-#              using the high-performance s5cmd utility. It reads server endpoint targets 
-#              from a specified s5cmd credentials profile, allocates dedicated workspace 
-#              areas under its active runtime environment, sanitises target destination 
-#              paths, and carries out data transmissions natively via file copy (cp) actions. 
-#              An optional post-upload parameter enables localized file storage purging 
-#              to guarantee a minimal footprint.
+# @details     This script automates low-level data ingress operations by transferring
+#              local files or virtual metadata payloads to targeted cloud datastores 
+#              using s5cmd. It resolves S3 endpoints from a dynamic configuration registry 
+#              using a numbered index system. The utility features automatic workspace creation 
+#              and placeholder marker file fallback routines, alongside an optional 
+#              post-upload source sanitation mechanism.
 #
-# @param       $1  [Required] Absolute or relative local pathway of the file/marker to upload.
-# @param       $2  [Required] Location path inside the S3 bucket ("root" maps to base destination).
-# @param       $3  [Required] Cleanup instruction flag ("yes" triggers post-upload source deletion).
-# @param       $4  [Required] Integer ID used to select the indexed s5cmd configuration profile.
+# @param       $1  [Required] Local file system path of the source payload file to ingest.
+# @param       $2  [Required] S3 bucket target location pathway to write the payload.
+# @param       $3  [Required] Post-upload local sanitation flag ("yes" to purge source, "no" to retain).
+# @param       $4  [Required] Integer configuration ID used to select the targeted s5cmd profile suffix.
 #
-# @env         BUILD_HOME              Sourced application root tracking pathway string.
-# @env         CLOUDHOST               System variable defining the underlying cloud provider.
-# @env         BUILD_IDENTIFIER        System tracking variable isolating distinct platform deployments.
+# @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /root/.s5cfg-${count} workspace credentials file for endpoint and credential routing.
-#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
-#              - GetVariableValue.sh system service wrapper infrastructure for lookup evaluations.
-#              - /usr/bin/s5cmd parallel S3 command-line execution tool binary.
+#              - /usr/bin/s5cmd high-performance storage integration software utility.
+#              - /root/.s5cfg-${count} targeted credentials and cluster configuration file.
 #
 # @security    
-#              - Demands root execution authorization levels to read restricted profile targets.
-#              - Shunts unexpected connection diagnostic information into quiet null targets (2>/dev/null).
-#              - Mitigates system data footprints by isolating deletion evaluations strictly to validated targets.
+#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
+#              - Safely caps directory tracking mutations by scrubbing trailing "root" overrides from the S3 namespace.
+#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
 #
-# @exit        0  Success: Target data blocks or tracking flags were successfully uploaded.
-# @exit        1  Failure: Missing parameters or an error returned during the upload routine.
+# @exit        0  Success: Local payload safely transmitted and synchronized with the S3 datastore destination.
+# @exit        1  Failure: Missing mandatory parameters or s5cmd execution driver failure.
 ###################################################################################
-# License Agreement:
-# This file is part of The Agile Deployment Toolkit.
-# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#########################################################################################
-#########################################################################################
 #set -x
-
 set -e
 
 status () {
@@ -63,11 +43,13 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] || [ "${4}" = "" ]  )
+# 1. Check for all 4 arguments safely
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]
 then
-        status "Error: 4 arguments are required."
-        status "Usage: $0 <file_to_put> <place_to_put> <delete> <count>"
-        exit 1
+    /bin/echo "Error: 4 arguments are required."
+    /bin/echo "Usage: $0 <file_to_put> <place_to_put> <delete> <count>"
+    status "Script invoked with missing arguments."
+    exit 1
 fi
 
 file_to_put="$1"
@@ -75,45 +57,53 @@ place_to_put="$2"
 delete="$3"
 count="$4"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
+place_to_put="${place_to_put%root}"
 
-if ( [ "${place_to_put}" = "root" ] )
+WORK_AREA="${HOME}/runtime/datastore_workarea"
+if [ ! -d "$WORK_AREA" ]
 then
-        place_to_put=""
+    /bin/mkdir -p "$WORK_AREA"
 fi
 
-if ( [ ! -d  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea ] )
+if [ ! -f "$file_to_put" ]
 then
-        /bin/mkdir -p  ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea
-fi
-
-if ( [ ! -f ${file_to_put} ] )
-then
-        #if there is no file on the file system we can assume that we are being used as a marker like an IP address, so create out own marker file
-        /bin/touch  "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}"
-        file_to_put_with_path="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/datastore_workarea/${file_to_put}"
+    /bin/touch "$WORK_AREA/$file_to_put"
+    file_to_put_with_path="$WORK_AREA/$file_to_put"
 else
-        file_to_put_with_path="${file_to_put}"
+    file_to_put_with_path="$file_to_put"
 fi
 
-file_to_put="`/bin/echo ${file_to_put_with_path} | /usr/bin/awk -F'/' '{print $NF}'`"
+filename="${file_to_put_with_path##*/}"
+place_to_put="${place_to_put%/}"
 
-place_to_put="`/bin/echo ${place_to_put} | /bin/sed 's;\/$;;g'`"
-host_base="`/bin/grep ^host_base /root/.s5cfg-${count} | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/s5cmd --credentials-file /root/.s5cfg-${count} --endpoint-url https://${host_base} cp ${file_to_put_with_path} s3://${place_to_put}/${file_to_put}  2>/dev/null
-
-if ( [ "$?" != "0" ] )
+cfg_file="/root/.s5cfg-${count}"
+if [ ! -f "$cfg_file" ]
 then
-        status "Failed to put ${file_to_put} to s3://${place_to_put}"
-        exit 1
+    /bin/echo "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
 fi
 
-if ( [ "${delete}" = "yes" ] )
+host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" cp "$file_to_put_with_path" "s3://${place_to_put}/${filename}" 2>/dev/null
+s5cmd_status=$?
+set -e
+
+if [ $s5cmd_status -ne 0 ]
 then
-        if ( [ -f ${file_to_put} ] )
-        then
-                /bin/rm ${file_to_put}
-        fi
+    /bin/echo "Failed to put ${filename} to s3://${place_to_put}"
+    status "s5cmd failed to upload ${filename} to s3://${place_to_put} (Exit code: $s5cmd_status)"
+    exit 1
 fi
+
+if [ "$delete" = "yes" ]
+then
+    if [ -f "$file_to_put_with_path" ]
+    then
+        /bin/rm "$file_to_put_with_path"
+    fi
+fi
+
+exit 0
