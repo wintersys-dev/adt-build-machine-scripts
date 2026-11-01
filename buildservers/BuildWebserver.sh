@@ -25,6 +25,9 @@ set -x
 finished="0" #This will tell us if the build has failed or succeeded finished="1" means the build succeeded
 counter="0" #This tracks how many build attempts there has been
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+
 status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "purple"
 }
@@ -34,8 +37,6 @@ status ""
 status ""
 status "#########################WEBSERVER BUILD MESSAGES ARE IN BLUE#######################"
 
-
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
