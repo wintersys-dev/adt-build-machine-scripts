@@ -78,7 +78,7 @@ set -e
 
 if [ $s3cmd_status -eq 0 ]
 then
-    /bin/echo "Target exists: [s3://${target_to_check}]"
+    /bin/echo "${target_to_check}"
     exit 0
 else
     exit 1
