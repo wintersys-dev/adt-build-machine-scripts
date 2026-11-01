@@ -58,7 +58,7 @@ if [ -z "$1" ] || [ -z "$2" ]
 then
     /bin/echo "Error: 2 arguments are required."
     /bin/echo "Usage: $0 <file_to_delete> <count>"
-    log_error "Script invoked with missing arguments."
+    status "Script invoked with missing arguments."
     exit 1
 fi
 
