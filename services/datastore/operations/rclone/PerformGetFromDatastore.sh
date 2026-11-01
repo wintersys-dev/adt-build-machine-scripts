@@ -52,7 +52,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for all 2 arguments safely
 if [ -z "$1" ] || [ -z "$2" ]
 then
     /bin/echo "Error: 2 arguments are required."
