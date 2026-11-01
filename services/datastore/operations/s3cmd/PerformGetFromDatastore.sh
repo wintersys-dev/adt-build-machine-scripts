@@ -1,35 +1,34 @@
 #!/bin/sh 
 ###################################################################################
 # @file        PerformGetFromDatastore.sh
-# @brief       Automated S3cmd Datastore Object Retrieval and Fetching Driver.
+# @brief       Automated S3 Datastore Object Retrieval and Local Ingestion Driver.
 # @author      Peter Winter
 # @date        09/04/2021
 # @version     1.0
 #
-# @details     This script automates fetching or copying a specific object target from 
-#              a managed S3 cloud datastore into a local path workspace using s3cmd. It 
-#              queries the primary master s3cmd configuration profile directly to extract 
-#              the correct cloud backend host base endpoint, skipping downstream distributed 
-#              cluster loops to pull the object source immediately from the master repo.
+# @details     This script automates low-level file download and transfer tasks from
+#              managed cloud datastores to local file system targets using s3cmd.
+#              It extracts target cloud endpoint parameters from the primary s3cmd
+#              profile record, configures single-node data pipes, and drops the 
+#              requested remote object cleanly into the destination directory path.
 #
-# @param       $1  [Required] Relative cloud object pathway or file target to be fetched.
-# @param       $2  [Required] Local directory target workspace path to deposit the retrieved file.
+# @param       $1  [Required] S3 bucket target pathway and the specific object key to pull.
+# @param       $2  [Required] Local directory path or target file name destination for the download.
 #
-# @env         BUILD_HOME              Sourced application root tracking pathway string.
+# @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /root/.s3cfg-1 base master workspace profile for endpoint and credential routing.
-#              - LogStatusMessages.sh framework helper module for centralized runtime tracking.
-#              - /usr/bin/s3cmd command-line tool for managing Amazon S3 and compatible storage providers.
+#              - /usr/bin/s3cmd storage integration command-line software utility.
+#              - /root/.s3cfg-1 base primary cluster registration configuration file.
 #
 # @security    
-#              - Anchors operations to the root profile context (`.s3cfg-1`) to verify source integrity.
-#              - Shunts system diagnostic channels silently into internal null streams (2>&1 >/dev/null).
-#              - Forces script automation tools to map to unalterable system bin environments (/bin, /usr/bin).
+#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
+#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
+#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
 #
-# @exit        0  Success: Target object configuration was successfully retrieved and staged locally.
-# @exit        1  Failure: Missing parameters or an error code returned by the s3cmd get driver.
+# @exit        0  Success: Cloud object securely retrieved and copied to local workspace destinations.
+# @exit        1  Failure: Missing mandatory parameters or s3cmd execution driver failure.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -44,9 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ######################################################################################
-######################################################################################
 #set -x
-
 set -e
 
 status () {
@@ -55,24 +52,41 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+# 1. Check for all 2 arguments safely
+if [ -z "$1" ] || [ -z "$2" ]
 then
-        status "Error: 2 arguments are required."
-        status "Usage: $0 <file_to_get> <destination>"
-        exit 1
+    /bin/echo "Error: 2 arguments are required."
+    /bin/echo "Usage: $0 <file_to_get> <destination>"
+    status "Script invoked with missing arguments."
+    exit 1
 fi
 
-file_to_get="${1}"
-destination="${2}"
+file_to_get="$1"
+destination="$2"
 
-host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/s3cmd --config=/root/.s3cfg-1 --host=https://${host_base} get s3://${file_to_get} ${destination}  2>&1 >/dev/null
-
-if ( [ "$?" != "0" ] )
+cfg_file="/root/.s3cfg-1"
+if [ ! -f "$cfg_file" ]
 then
-        status "Failed to get file ${file_to_get} from datastore"
-        exit 1
+    /bin/echo "Error: Configuration profile $cfg_file not found."
+    status "Profile configuration file missing: $cfg_file"
+    exit 1
 fi
+
+host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+
+set +e
+/usr/bin/s3cmd --config="$cfg_file" --host="https://${host_base}" get "s3://${file_to_get}" "${destination}" 2>/dev/null
+s3cmd_status=$?
+set -e
+
+if [ $s3cmd_status -ne 0 ]
+then
+    /bin/echo "Failed to get file ${file_to_get} from datastore"
+    status "s3cmd failed to download s3://${file_to_get} to ${destination} (Exit code: $s3cmd_status)"
+    exit 1
+fi
+
+exit 0
 
 
 
