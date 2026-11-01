@@ -1,5 +1,6 @@
 
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 # Input validation
 if [ -z "${1}" ] 
