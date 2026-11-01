@@ -100,7 +100,7 @@ ACTIVE_FIREWALLS="$("${HOME}/helpers/services/GetVariableValue.sh" ACTIVE_FIREWA
 BUILDOS="$("${HOME}/helpers/services/GetVariableValue.sh" BUILDOS 2>/dev/null)"
 BUILDOS_VERSION="$("${HOME}/helpers/services/GetVariableValue.sh" BUILDOS_VERSION 2>/dev/null)"
 BUILD_FROM_SNAPSHOT="$("${HOME}/helpers/services/GetVariableValue.sh" BUILD_FROM_SNAPSHOT 2>/dev/null)"
-OS_CHOICE="$("${HOME}/services/server/GetOperatingSystemVersion.sh" "${CLOUDHOST}" "${BUILDOS}" "${BUILDOS_VERSION}" 2>/dev/null | /bin/sed "s/'//g")"
+OS_CHOICE="$("${HOME}/services/server/GetOperatingSystemVersion.sh" 2>/dev/null | /bin/sed "s/'//g")"
 set -e
 
 machine_category="$(/bin/echo "${machine_type}" | /bin/sed 's|adt-||')"
