@@ -19,12 +19,12 @@
 # @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
-#              - /home/homedir.dat configuration file tracking the active application root path.
-#              - ${HOME}/helpers/services/LogStatusMessages.sh utility to capture build updates.
-#              - ${HOME}/helpers/services/GetVariableValue.sh framework configuration mapping layer.
-#              - ${HOME}/services/server/GetOperatingSystemVersion.sh distribution matching software.
-#              - ${HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh initialization driver.
-#              - ${HOME}/services/security/firewall/ConfigureNativeFirewall.sh framework security orchestrator.
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh utility to capture build updates.
+#              - ${BUILD_HOME}/helpers/services/GetVariableValue.sh framework configuration mapping layer.
+#              - ${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh distribution matching software.
+#              - ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh initialization driver.
+#              - ${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh framework security orchestrator.
 #
 # @security    
 #              - Unsets the critical `EMERGENCY_PASSWORD` register immediately after execution context terminates.
@@ -51,17 +51,16 @@
 #set -x
 set -e
 
-# Sourced application root tracking pathway string
-if [ -r /home/homedir.dat ]
+if [ -r /home/buildhome.dat ]
 then
-        HOME="$(/bin/cat /home/homedir.dat)"
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application root configuration file missing at /home/homedir.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
 status () {
-    ${HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+    ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
 
 # 1. Check for all 3 arguments safely
@@ -76,14 +75,14 @@ server_size="$1"
 server_name="$2"
 machine_type="$3"
 
-cloudhost_file="${HOME}/runtime/ACTIVE_CLOUDHOST"
+cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
 then
     status "Error: Cannot read active cloud host file at ${cloudhost_file}"
     exit 1
 fi
 
-build_id_file="${HOME}/runtime/ACTIVE_BUILD_IDENTIFIER"
+build_id_file="${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER"
 if [ ! -f "${build_id_file}" ] || [ ! -r "${build_id_file}" ]
 then
     status "Error: Cannot read active build identifier file at ${build_id_file}"
@@ -94,22 +93,22 @@ CLOUDHOST="$(/bin/cat "${cloudhost_file}")"
 BUILD_IDENTIFIER="$(/bin/cat "${build_id_file}")"
 
 set +e
-REGION="$("${HOME}/helpers/services/GetVariableValue.sh" REGION 2>/dev/null)"
-WEBSITE_URL="$("${HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL 2>/dev/null)"
-ACTIVE_FIREWALLS="$("${HOME}/helpers/services/GetVariableValue.sh" ACTIVE_FIREWALLS 2>/dev/null)"
-BUILDOS="$("${HOME}/helpers/services/GetVariableValue.sh" BUILDOS 2>/dev/null)"
-BUILDOS_VERSION="$("${HOME}/helpers/services/GetVariableValue.sh" BUILDOS_VERSION 2>/dev/null)"
-BUILD_FROM_SNAPSHOT="$("${HOME}/helpers/services/GetVariableValue.sh" BUILD_FROM_SNAPSHOT 2>/dev/null)"
-OS_CHOICE="$("${HOME}/services/server/GetOperatingSystemVersion.sh" 2>/dev/null | /bin/sed "s/'//g")"
+REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION 2>/dev/null)"
+WEBSITE_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL 2>/dev/null)"
+ACTIVE_FIREWALLS="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" ACTIVE_FIREWALLS 2>/dev/null)"
+BUILDOS="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILDOS 2>/dev/null)"
+BUILDOS_VERSION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILDOS_VERSION 2>/dev/null)"
+BUILD_FROM_SNAPSHOT="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILD_FROM_SNAPSHOT 2>/dev/null)"
+OS_CHOICE="$("${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh" 2>/dev/null | /bin/sed "s/'//g")"
 set -e
 
 machine_category="$(/bin/echo "${machine_type}" | /bin/sed 's|adt-||')"
 
 set +e
-"${HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh" "${machine_category}" "${server_name}" 2>/dev/null
+"${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh" "${machine_category}" "${server_name}" 2>/dev/null
 set -e
 
-yaml_path="${HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml"
+yaml_path="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml"
 if [ -f "${yaml_path}" ]
 then
     user_data="${yaml_path}" 
@@ -121,7 +120,7 @@ fi
 snapshot_id=""
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ]
 then
-    snapshot_file="${HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat"
+    snapshot_file="${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat"
     if [ -f "${snapshot_file}" ]
     then
         snapshot_id="$(/bin/grep "${machine_category}" "${snapshot_file}" 2>/dev/null | /usr/bin/awk -F':' '{print $NF}')"
