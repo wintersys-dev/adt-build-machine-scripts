@@ -66,11 +66,9 @@ if [ ! -f "$cfg_file" ]; then
     exit 1
 fi
 
-# Extract host base endpoint cleanly
 host_base="$(grep ^host_base "$cfg_file" | awk -F'=' '{print $NF}' | tr -d ' ')"
 
 set +e
-# Run s3cmd first into a variable to capture the raw connection output and true exit status
 s3_raw_output="$(/usr/bin/s3cmd --config="$cfg_file" --host="https://${host_base}" ls 2>/dev/null)"
 s3cmd_status=$?
 set -e
