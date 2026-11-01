@@ -24,6 +24,8 @@ set -x
 finished=0 #This will be set to 1 if the build is valid
 counter="0" #This counts how many attempted builds there have been
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "blue"
 }
@@ -33,7 +35,6 @@ status ""
 status ""
 status "#########################AUTHENTICATION SERVER BUILD MESSAGES ARE IN YELLOW#######################"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
