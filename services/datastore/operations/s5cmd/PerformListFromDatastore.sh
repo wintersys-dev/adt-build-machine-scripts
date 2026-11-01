@@ -53,7 +53,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for the 1 required argument safely
 if [ -z "$1" ]
 then
     status "Error: 1 argument is required."
