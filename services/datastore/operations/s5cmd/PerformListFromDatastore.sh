@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Object Content Listing and Parsing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.0
+# @version     1.1
 #
 # @details     This script automates low-level item inspection within targeted cloud
 #              datastores using s5cmd. It extracts the storage endpoint configuration 
@@ -47,13 +47,22 @@
 #set -x
 set -e
 
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+
+# Consolidated logging interface routing to dynamic file descriptors and framework trackers
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
+    script_name="$(/bin/echo "${0}" | /usr/bin/awk -F'/' '{print $NF}')"
+    /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
+    
+    # Cascade events out to the system logger macro map if available
+    if [ -x "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" ]
+    then
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" >/dev/null 2>&1 || true
+    fi
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-# 1. Check for the 1 required argument safely
+# Verify required parameters
 if [ -z "$1" ]
 then
     status "Error: 1 argument is required."
@@ -74,17 +83,27 @@ fi
 
 host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
+# Temporary cache file used to secure exit code telemetry tracking data structures
+s5_out="$(/bin/mktemp)"
+
 set +e
-/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${file_to_list}" 2>/dev/null | /usr/bin/awk '{print $NF}'
+# Run s5cmd query directly to an atomic target to isolate and evaluate the command process exit code
+/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${file_to_list}" > "$s5_out" 2>/dev/null
 s5cmd_status=$?
 set -e
 
-if [ $s5cmd_status -ne 0 ]
+if [ $s5cmd_status -eq 0 ]
 then
+    # Extract structural basename string blocks cleanly via awk once exit checks clear
+    /usr/bin/awk '{print $NF}' "$s5_out"
+    /bin/rm -f "$s5_out"
+else
+    /bin/rm -f "$s5_out"
     status "Failed to list file ${file_to_list} from datastore"
     status "s5cmd failed to list objects at s3://${file_to_list} (Exit code: $s5cmd_status)"
     exit 1
 fi
 
 exit 0
+
 
