@@ -53,7 +53,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-# 1. Check for all 3 arguments safely
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
     /bin/echo "Error: 3 arguments are required."
