@@ -17,7 +17,7 @@
 # @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - /home/homedir.dat configuration file tracking the active application root path.
 #              - /usr/bin/rclone storage integration engine software utility.
 #              - /root/.config/rclone/rclone.conf-1 base primary cluster registration file.
 #
