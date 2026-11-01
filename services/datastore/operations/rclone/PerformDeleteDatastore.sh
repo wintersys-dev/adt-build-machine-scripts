@@ -53,7 +53,6 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# Verify required parameters
 if [ -z "$1" ] || [ -z "$2" ]
 then
     status "Error: 2 arguments are required."
@@ -72,11 +71,9 @@ then
     exit 1
 fi
 
-# Cleaned up the duplicate grep sequence and used 'tr' instead of 'sed' for faster spacing cleanup
 host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
 set +e
-# Run rclone purge directly and store the exit status safely. Changed 's3:' to 's3::' syntax if it maps to a remote identifier.
 /usr/bin/rclone --config "$cfg_file" --s3-endpoint "${host_base}" purge "s3:${datastore_to_delete}" >/dev/null 2>&1
 rclone_status=$?
 set -e
