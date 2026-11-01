@@ -52,7 +52,6 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# Verify required parameters
 if [ -z "$1" ]
 then
     status "Error: 1 argument is required."
@@ -70,11 +69,9 @@ then
     exit 1
 fi
 
-# Extract host base endpoint path cleanly using tr for spacing pruning
 host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
 set +e
-# Run rclone directly into a memory buffer to verify tool health and true connection status
 rclone_raw_output=$(/usr/bin/rclone --config "$cfg_file" --s3-endpoint "${host_base}" lsd s3: 2>/dev/null)
 rclone_status=$?
 set -e
@@ -85,14 +82,12 @@ then
     exit 1
 fi
 
-# Clean up raw response structural columns out of local memory buffer
 parsed_list=$(/bin/echo "$rclone_raw_output" | /usr/bin/awk '{print $NF}' | /usr/bin/sed 's|/.*||')
 
 if [ "$datastore_to_list" = "all" ]
 then
     /bin/echo "$parsed_list"
 else
-    # Exact pattern line boundaries ensure secure POSIX-compliant matching without cross-platform flag errors
     /bin/echo "$parsed_list" | /bin/grep -E "^${datastore_to_list}$" || {
         status "Failed to list datastore ${datastore_to_list}: element not found."
         exit 1
