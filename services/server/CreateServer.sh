@@ -60,15 +60,15 @@ else
 fi
 
 status () {
-    ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
 
 # 1. Check for all 3 arguments safely
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
-    status "Error: 3 Server arguments are required."
-    status "Usage: $0 <server_size> <server_name> <machine_type>"
-    exit 1
+        status "Error: 3 Server arguments are required."
+        status "Usage: $0 <server_size> <server_name> <machine_type>"
+        exit 1
 fi
 
 server_size="$1"
@@ -78,15 +78,15 @@ machine_type="$3"
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
 then
-    status "Error: Cannot read active cloud host file at ${cloudhost_file}"
-    exit 1
+        status "Error: Cannot read active cloud host file at ${cloudhost_file}"
+        exit 1
 fi
 
 build_id_file="${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER"
 if [ ! -f "${build_id_file}" ] || [ ! -r "${build_id_file}" ]
 then
-    status "Error: Cannot read active build identifier file at ${build_id_file}"
-    exit 1
+        status "Error: Cannot read active build identifier file at ${build_id_file}"
+        exit 1
 fi
 
 CLOUDHOST="$(/bin/cat "${cloudhost_file}")"
@@ -111,78 +111,78 @@ set -e
 yaml_path="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml"
 if [ -f "${yaml_path}" ]
 then
-    user_data="${yaml_path}" 
+        user_data="${yaml_path}" 
 else
-    status "Cloud config file not found"
-    exit 1
+        status "Cloud config file not found"
+        exit 1
 fi
 
 snapshot_id=""
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ]
 then
-    snapshot_file="${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat"
-    if [ -f "${snapshot_file}" ]
-    then
-        snapshot_id="$(/bin/grep "${machine_category}" "${snapshot_file}" 2>/dev/null | /usr/bin/awk -F':' '{print $NF}')"
-        status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
-    fi
+        snapshot_file="${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/snapshot_ids.dat"
+        if [ -f "${snapshot_file}" ]
+        then
+                snapshot_id="$(/bin/grep "${machine_category}" "${snapshot_file}" 2>/dev/null | /usr/bin/awk -F':' '{print $NF}')"
+                status "Deploying ${machine_category} machine from snapshot with ID ${snapshot_id}"
+        fi
 fi
 
 firewall_id=""
 if [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ]
 then
-    set +e
-    firewall_id="$("${HOME}/services/security/firewall/ConfigureNativeFirewall.sh" "${machine_type}" 2>/dev/null | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print $NF}')"
-    set -e
+        set +e
+        firewall_id="$("${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh" "${machine_type}" 2>/dev/null | /bin/grep 'ADT_FIREWALL_ID:' | /usr/bin/awk -F':' '{print $NF}')"
+        set -e
 fi
 
 if [ -z "${firewall_id}" ]
 then
-    firewall_id="-1"
+        firewall_id="-1"
 fi
 
-pass_file="${HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD"
+pass_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD"
 if [ -f "${pass_file}" ]
 then    
-    emergency_password="$(/bin/cat "${pass_file}")"
+        emergency_password="$(/bin/cat "${pass_file}")"
 else
-    emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16)"
-    /bin/echo "${emergency_password}" > "${pass_file}"
+        emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16)"
+        /bin/echo "${emergency_password}" > "${pass_file}"
 fi
 
 image="${OS_CHOICE}" 
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -n "${snapshot_id}" ]
 then
-    image="${snapshot_id}"
+        image="${snapshot_id}"
 fi
 
-software_file="${HOME}/configuration/software.dat"
+software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-    status "Error: Cannot read software configuration file at ${software_file}" 
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}" 
+        exit 1
 fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
-    exit 1
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
 fi
 
-script_path="${HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
 
 if [ ! -f "${script_path}" ]
 then
-    status "Error: Script not found at ${script_path}" 
-    exit 1
+        status "Error: Script not found at ${script_path}" 
+        exit 1
 fi
 
 if [ ! -x "${script_path}" ]
 then
-    status "Error: Script at ${script_path} is not executable."
-    exit 1
+        status "Error: Script at ${script_path} is not executable."
+        exit 1
 fi
 
 export EMERGENCY_PASSWORD="${emergency_password}"
@@ -196,8 +196,8 @@ unset EMERGENCY_PASSWORD
 
 if [ ${exit_code} -ne 0 ]
 then
-    status "Error: CreateServer.sh failed with exit code $exit_code"
-    exit $exit_code
+        status "Error: CreateServer.sh failed with exit code $exit_code"
+        exit $exit_code
 fi
 
 exit 0
