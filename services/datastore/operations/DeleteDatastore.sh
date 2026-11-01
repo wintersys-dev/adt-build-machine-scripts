@@ -59,9 +59,9 @@ status () {
         ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: 2 arguments are required and 1 optional argument"
         status "Usage: $0 <bucket_type> <mode> <additional_specifier>"
@@ -72,91 +72,91 @@ bucket_type="${1}"
 mode="${2}"
 additional_specifier="${3}"
 
-S3_ACCESS_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh S3_ACCESS_KEY`"
-WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
-SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_SERVICE`"
-SERVER_USER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER`"
-TOKEN="`/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1 | /usr/bin/tr '[:upper:]' '[:lower:]'`"
+S3_ACCESS_KEY="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh S3_ACCESS_KEY)"
+WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL)"
+DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
+SSL_GENERATION_SERVICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_SERVICE)"
+SERVER_USER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh SERVER_USER)"
+TOKEN="$(/bin/echo ${SERVER_USER} | /usr/bin/fold -w 4 | /usr/bin/head -n 1 | /usr/bin/tr '[:upper:]' '[:lower:]')"
 
 case "${bucket_type}" in
         "ssl")
-                if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
+                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
                 then
                         service_token="lets"
-                elif ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
+                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
                 then
                         service_token="zero" 
                 fi
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
                 ;;
         "auth-ssl")
-                WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-                DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
-                if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
+                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
+                DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
+                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
                 then
                         service_token="lets"
-                elif ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
+                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
                 then
                         service_token="zero"
                 fi
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
                 ;;
         "auth-ssl-1")
-                WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-                WEBSITE_URL="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/'`"
-                DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
-                if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
+                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
+                WEBSITE_URL="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/')"
+                DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
+                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
                 then
                         service_token="lets"
-                elif ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
+                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
                 then
                         service_token="zero"
                 fi
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
                 ;;
         "multi-region")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-multi-region"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-multi-region"
                 ;;
         "webroot-sync"|"config-sync")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${bucket_type}-tunnel`/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g'`"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}-tunnel$(/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g')"
                 ;;
         "config")
-                active_bucket="`/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g'`-${additional_specifier}"
+                active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
         "auth-config")
-                WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-                active_bucket="`/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g'`-${additional_specifier}"
+                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
+                active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
         "asset")
-                active_bucket="`/bin/echo "${WEBSITE_URL}-assets-${additional_specifier}" | /bin/sed -e 's/\./-/g' -e 's;/;-;g' -e 's/--/-/g'`"
+                active_bucket="$(/bin/echo "${WEBSITE_URL}-assets-${additional_specifier}" | /bin/sed -e 's/\./-/g' -e 's;/;-;g' -e 's/--/-/g')"
                 ;;
         "scaling"|"backup-web")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${additional_specifier}"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
         "firewall-auth-laptop-ips"|"whitelist-auth-laptop-ips"|"firewall-emailed-links"|"whitelist-emailed-links"|"basic-auth-credentials")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-${bucket_type}"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}"
                 ;;
         "wire-guard")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-wireguard"
                 ;;
         "wire-guard-emails")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard-emails"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-wireguard-emails"
                 ;;
         "wire-guard-emailed-links")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-wireguard-emailed-links"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-wireguard-emailed-links"
                 ;;
         "backup-db")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-db-${additional_specifier}"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-db-${additional_specifier}"
                 ;;
         "auth")
                 active_bucket="authip-adt-allowed-${additional_specifier}"
                 ;;
         "dbaas")
-                active_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`"
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-dbaas"
                 ;;
         "ad-hoc")
@@ -167,21 +167,22 @@ case "${bucket_type}" in
                 ;;
 esac
 
-datastore_tool="`/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}'`"
+datastore_tool="$(/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}')"
 
-no_tokens="`/bin/echo "${S3_ACCESS_KEY}" | /usr/bin/fgrep -o '|' | /usr/bin/wc -l`"
-no_tokens="`/usr/bin/expr ${no_tokens} + 1`"
+no_tokens="$(/bin/echo "${S3_ACCESS_KEY}" | /usr/bin/fgrep -o '|' | /usr/bin/wc -l)"
+no_tokens="$(/usr/bin/expr ${no_tokens} + 1)"
 
 count="1"
 
-if ( [ "${mode}" = "local" ] )
+if [ "${mode}" = "local" ]
 then
         ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDeleteDatastore.sh ${active_bucket} ${count}
-elif ( [ "${mode}" = "distributed" ] )
+elif [ "${mode}" = "distributed" ]
 then
-        while ( [ "${count}" -le "${no_tokens}" ] )
+        while [ "${count}" -le "${no_tokens}" ]
         do
                 ${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformDeleteDatastore.sh ${active_bucket} ${count}
-                count="`/usr/bin/expr ${count} + 1`"
+                count="$(/usr/bin/expr ${count} + 1)"
         done
 fi
+
