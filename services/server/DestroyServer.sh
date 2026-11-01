@@ -17,8 +17,8 @@
 # @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
-#              - /home/homedir.dat configuration file tracking the active application root path.
-#              - ${HOME}/helpers/services/LogStatusMessages.sh utility to capture build updates.
+#              - /home/buildhome.dat configuration file tracking the active application root path.
+#              - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh utility to capture build updates.
 #
 # @security    
 #              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
@@ -44,17 +44,16 @@
 #set -x
 set -e
 
-# Sourced application root tracking pathway string
-if [ -r /home/homedir.dat ]
+if [ -r /home/buildhome.dat ]
 then
-        HOME="$(/bin/cat /home/homedir.dat)"
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application root configuration file missing at /home/homedir.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
 status () {
-    ${HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+    ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
 
 # 1. Check for the required argument safely
@@ -67,7 +66,7 @@ fi
 
 server_ip="$1"
 
-cloudhost_file="${HOME}/runtime/ACTIVE_CLOUDHOST"
+cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
 then
     status "Error: Cannot read active cloud host file at ${cloudhost_file}" 
@@ -82,7 +81,7 @@ then
     exit 1
 fi
 
-software_file="${HOME}/configuration/software.dat"
+software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
     status "Error: Cannot read software configuration file at ${software_file}"
@@ -97,7 +96,7 @@ then
     exit 1
 fi
 
-script_path="${HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh"
 
 if [ ! -f "${script_path}" ]
 then
