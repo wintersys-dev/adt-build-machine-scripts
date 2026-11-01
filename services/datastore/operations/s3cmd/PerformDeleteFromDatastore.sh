@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Object Purging & Recursive Tree Deletion Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.0
+# @version     1.1
 #
 # @details     This script automates low-level file deletion and directory scrubbing 
 #              operations inside targeted cloud datastores using s3cmd. It extracts 
@@ -48,12 +48,12 @@
 set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# 1. Check for all 2 arguments safely
+# Verify required parameters
 if [ -z "$1" ] || [ -z "$2" ]
 then
     /bin/echo "Error: 2 arguments are required."
@@ -75,28 +75,26 @@ fi
 
 host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
 
-recursive=""
+# Determine if recursive flags are required by evaluating suffix overrides
+extra_flags=""
 if [ "${file_to_delete%root}" != "$file_to_delete" ]
 then
     file_to_delete="${file_to_delete%root}"
-    recursive="--recursive"
+    extra_flags="--recursive"
 fi
 
 set +e
-if [ -n "$recursive" ]
-then
-    /usr/bin/s3cmd --recursive --force --config="$cfg_file" --host="https://${host_base}" del "s3://${file_to_delete}" >/dev/null 2>&1
-else
-    /usr/bin/s3cmd --force --config="$cfg_file" --host="https://${host_base}" del "s3://${file_to_delete}" >/dev/null 2>&1
-fi
+# Execute s3cmd drop stream safely by unpacking contextual flag variables dynamically
+/usr/bin/s3cmd $extra_flags --force --config="$cfg_file" --host="https://${host_base}" del "s3://${file_to_delete}" >/dev/null 2>&1
 s3cmd_status=$?
 set -e
 
 if [ $s3cmd_status -ne 0 ]
 then
     /bin/echo "Failed to delete file ${file_to_delete} from datastore"
-    status "s3cmd failed to delete s3://${file_to_delete} (Recursive: ${recursive:-no}, Exit code: $s3cmd_status)"
+    status "s3cmd failed to delete s3://${file_to_delete} (Recursive: ${extra_flags:-no}, Exit code: $s3cmd_status)"
     exit 1
 fi
 
 exit 0
+
