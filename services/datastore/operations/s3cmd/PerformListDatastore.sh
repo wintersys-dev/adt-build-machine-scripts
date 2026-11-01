@@ -45,35 +45,50 @@
 ######################################################################################
 ######################################################################################
 #set -x
-#set -e
+set -e
 
 status () {
-        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+BUILD_HOME="$(cat /home/buildhome.dat)"
 
-if ( [ "${1}" = "" ] )
-then
-        status "Error: 1 argument is required."
-        status "Usage: $0 <datastore_to_list>"
+if [ -z "$1" ]; then
+    status "Error: 1 argument is required. Usage: $0 <datastore_to_list>"
+    exit 1
+fi
+
+datastore_to_list="$1"
+cfg_file="/root/.s3cfg-1"
+
+if [ ! -f "$cfg_file" ]; then
+    status "Error: Configuration profile $cfg_file not found."
+    exit 1
+fi
+
+# Extract host base endpoint cleanly
+host_base="$(grep ^host_base "$cfg_file" | awk -F'=' '{print $NF}' | tr -d ' ')"
+
+set +e
+# Run s3cmd first into a variable to capture the raw connection output and true exit status
+s3_raw_output="$(/usr/bin/s3cmd --config="$cfg_file" --host="https://${host_base}" ls 2>/dev/null)"
+s3cmd_status=$?
+set -e
+
+if [ $s3cmd_status -ne 0 ]; then
+    echo "Failed to list datastore: s3cmd command failed."
+    exit 1
+fi
+
+parsed_list="$(echo "$s3_raw_output" | awk '{print $NF}' | sed -e 's|s3://||' -e 's|/.*||')"
+
+if [ "$datastore_to_list" = "all" ]; then
+    echo "$parsed_list"
+else
+    echo "$parsed_list" | grep -E "^${datastore_to_list}$" || {
+        echo "Failed to list datastore: [${datastore_to_list}] not found."
         exit 1
+    }
 fi
 
-datastore_to_list="${1}"
-
-flag="-x"
-if ( [ "${datastore_to_list}" = "all" ] )
-then
-        datastore_to_list=""
-        flag=""
-fi
-
-host_base="`/bin/grep ^host_base /root/.s3cfg-1 | /usr/bin/awk -F'=' '{print  $NF}' | /bin/sed 's/ //g'`"
-/usr/bin/s3cmd --config="/root/.s3cfg-1" --host="https://${host_base}" ls | awk '{print $NF}'| sed -e 's|s3://||' -e 's|/.*||'  | /bin/grep ${flag} "${datastore_to_list}" 2>/dev/null
-
-if ( [ "$?" != "0" ] )
-then
-        echo "Failed to list datastore"
-        exit 1
-fi
+exit 0
