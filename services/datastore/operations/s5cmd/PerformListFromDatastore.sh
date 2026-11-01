@@ -47,20 +47,11 @@
 #set -x
 set -e
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
-
-# Consolidated logging interface routing to dynamic file descriptors and framework trackers
 status () {
-    /bin/echo "${1}" | /usr/bin/tee /dev/fd/3 2>/dev/null
-    script_name="$(/bin/echo "${0}" | /usr/bin/awk -F'/' '{print $NF}')"
-    /bin/echo "${script_name}: ${1}" | /usr/bin/tee -a /dev/fd/4 2>/dev/null
-    
-    # Cascade events out to the system logger macro map if available
-    if [ -x "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" ]
-    then
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" >/dev/null 2>&1 || true
-    fi
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
+
+BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
 # Verify required parameters
 if [ -z "$1" ]
