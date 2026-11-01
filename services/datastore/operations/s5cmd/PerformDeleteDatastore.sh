@@ -54,7 +54,6 @@ status () {
 
 BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 
-# Verify required parameters
 if [ -z "$1" ] || [ -z "$2" ]
 then
     status "Error: 2 arguments are required."
@@ -77,7 +76,6 @@ host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $N
 
 set +e
 
-# 1. Safely list contents into a variable to see if the bucket is populated
 s5_objects=$(/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${datastore_to_delete}/*" 2>/dev/null)
 
 if [ -n "$s5_objects" ]
