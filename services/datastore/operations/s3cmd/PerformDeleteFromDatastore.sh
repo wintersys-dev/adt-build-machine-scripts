@@ -18,7 +18,7 @@
 # @env         None explicitly sourced from top-level environment registers.
 #
 # @dependencies
-#              - /home/homedir.dat configuration file tracking the active application root path.
+#              - /home/buildhome.dat configuration file tracking the active application root path.
 #              - /usr/bin/s3cmd storage integration command-line software utility.
 #              - /root/.s3cfg-${count} targeted cluster registration configuration file.
 #
