@@ -1,6 +1,10 @@
 #set -x
 set -e
 
+
+BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
+BUILDOS_VERSION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS_VERSION`"
+
 # Sourced application root tracking pathway string
 if [ -r /home/homedir.dat ]
 then
@@ -13,16 +17,6 @@ fi
 status () {
     ${HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
 }
-
-# 1. Check for the required argument safely
-if [ -z "$1" ]
-then
-    status "Error: Server IP address argument is required."
-    status "Usage: $0 <server_ip>" 
-    exit 1
-fi
-
-server_ip="$1"
 
 cloudhost_file="${HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
@@ -69,7 +63,7 @@ then
 fi
 
 set +e
-"${script_path}" "${server_ip}"
+"${script_path}" "${BUILDOS}" "${BUILDOS_VERSION}"
 exit_code=$?
 set -e
 
