@@ -25,6 +25,8 @@
 finished="0" #If the build succeeds, this will be set to "1"
 counter="0" #This keeps track of how many build attempts there have been
 
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
 status () {
 	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "orange"
 }
@@ -34,7 +36,6 @@ status ""
 status ""
 status "#########################AUTOSCALER BUILD MESSAGES ARE IN RED#######################"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
