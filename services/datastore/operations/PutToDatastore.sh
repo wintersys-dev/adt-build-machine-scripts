@@ -117,41 +117,24 @@ case "${bucket_type}" in
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
                 ;;
-        "auth-ssl-1")
-                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
-                WEBSITE_URL="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/')"
-                DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
-                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
-                then
-                        service_token="lets"
-                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
-                then
-                        service_token="zero"
-                fi
-                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
-                active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
-                ;;
         "multi-region")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-multi-region"
                 ;;
-        "webroot-sync"|"config-sync")
-                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}-tunnel$(/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g')"
+#     "config-sync")
+ #               active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}-tunnel$(/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g')"
+ #               ;;
+        "config")
+                active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
-        "config"|"auth-config")
-                if [ "${bucket_type}" = "auth-config" ]
-                then
-                        WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
-                fi
-                active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${TOKEN}"
+        "auth-config")
+                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
+                active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
         "asset")
                 active_bucket="$(/bin/echo "${WEBSITE_URL}-assets-${additional_specifier}" | /bin/sed -e 's/\./-/g' -e 's;/;-;g' -e 's/--/-/g')"
                 ;;
-        "backup-web"|"scaling")
+        "scaling"|"backup-web")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${additional_specifier}"
-                ;;
-        "backup-db")
-                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-db-${additional_specifier}"
                 ;;
         "firewall-auth-laptop-ips"|"whitelist-auth-laptop-ips"|"firewall-emailed-links"|"whitelist-emailed-links"|"basic-auth-credentials")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}"
@@ -165,18 +148,18 @@ case "${bucket_type}" in
         "wire-guard-emailed-links")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-wireguard-emailed-links"
                 ;;
+        "backup-db")
+                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-db-${additional_specifier}"
+                ;;
         "auth")
                 active_bucket="authip-adt-allowed-${additional_specifier}"
                 ;;
-        "dbaas"|"snap")
+        "dbaas")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
-                active_bucket="${active_bucket}-${DNS_CHOICE}-${bucket_type}"
+                active_bucket="${active_bucket}-${DNS_CHOICE}-dbaas"
                 ;;
         "ad-hoc")
                 active_bucket="${additional_specifier}"
-                ;;
-        *)
-                active_bucket="${bucket_type}"
                 ;;
 esac
 
