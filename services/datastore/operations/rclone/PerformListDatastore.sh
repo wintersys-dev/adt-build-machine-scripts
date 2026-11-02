@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Directory Structural Listing Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.1
+# @version     1.0
 #
 # @details     This script automates directory structural parsing tasks to discover if a
 #              target S3 datastore bucket exists, or maps out all active instances. It
