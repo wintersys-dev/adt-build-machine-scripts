@@ -249,22 +249,15 @@ fi
 
 if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]  )
 then
-        #       multi_region_bucket="`/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g'`-multi-region"
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region"`" != "" ] && [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-        then
-                status "####################HALT################################"
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "multi-region"
+		
+		if ( [ "$?" != "1" ] )
+		then
+		        status "####################HALT################################"
                 status "You are deploying a primary region, are you sure as I am about to delete existing multi-region"
                 status "credentials and any existing primary region configuration are you sure 100%? (Y|y), anything else to exit"
                 status "####################HALT###############################"
                 read response
-                if ( [ "`/bin/echo "Y y" | /bin/grep ${response}`" = "" ] )
-                then
-                        /bin/touch /tmp/END_IT_ALL
-                fi 
-        fi
-        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "multi-region"
-		if ( [ "$?" != "1" ] )
-		then
 		#is this working....check
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "delete-all" "distributed" 
         else
