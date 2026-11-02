@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Bucket Purging and Removal Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     1.1
+# @version     1.0
 #
 # @details     This script automates the destruction and purging of an entire target 
 #              S3 cloud datastore bucket. It dynamically extracts the host base endpoint
