@@ -282,37 +282,44 @@ then
                 done
         done
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-auth-laptop-ips"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-auth-laptop-ips"
+		if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "firewall-auth-laptop-ips" "root" "distributed" 
         fi
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-emailed-links"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "firewall-emailed-links"
+        if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "firewall-emailed-links" "root" "distributed" 
         fi
         
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "basic-auth-credentials"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "basic-auth-credentials"
+		if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "basic-auth-credentials" "root" "distributed" 
         fi
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "whitelist-auth-laptop-ips"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "whitelist-auth-laptop-ips"
+        if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "whitelist-auth-laptop-ips" "root" "distributed" 
         fi
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard"`" != "" ] )
-        then
-                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard" "root" "distributed" 
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard"
+		if ( [ "$?" != "1" ] )
+        then                
+			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard" "root" "distributed" 
         fi
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emails"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emails"
+        if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard-emails" "root" "distributed" 
         fi
 
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emailed-links"`" != "" ] )
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "wire-guard-emailed-links"
+		if ( [ "$?" != "1" ] )
         then
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "wire-guard-emailed-links" "root" "distributed" 
         fi
