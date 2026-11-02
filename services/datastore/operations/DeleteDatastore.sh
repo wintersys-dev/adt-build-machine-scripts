@@ -104,26 +104,12 @@ case "${bucket_type}" in
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
                 active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
                 ;;
-        "auth-ssl-1")
-                WEBSITE_URL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL)"
-                WEBSITE_URL="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/[^.]*/auth/')"
-                DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
-                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
-                then
-                        service_token="lets"
-                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
-                then
-                        service_token="zero"
-                fi
-                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')"
-                active_bucket="${active_bucket}-${DNS_CHOICE}-${service_token}-ssl"
-                ;;
         "multi-region")
                 active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-multi-region"
                 ;;
-        "webroot-sync"|"config-sync")
-                active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}-tunnel$(/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g')"
-                ;;
+#     "config-sync")
+ #               active_bucket="$(/bin/echo ${WEBSITE_URL} | /bin/sed 's/\./-/g')-${bucket_type}-tunnel$(/bin/echo ${additional_specifier} | /bin/sed 's:/:-:g')"
+ #               ;;
         "config")
                 active_bucket="$(/bin/echo "${WEBSITE_URL}"-config | /bin/sed 's/\./-/g')-${additional_specifier}"
                 ;;
@@ -161,9 +147,6 @@ case "${bucket_type}" in
                 ;;
         "ad-hoc")
                 active_bucket="${additional_specifier}"
-                ;;
-        *)
-                active_bucket="${bucket_type}"
                 ;;
 esac
 
