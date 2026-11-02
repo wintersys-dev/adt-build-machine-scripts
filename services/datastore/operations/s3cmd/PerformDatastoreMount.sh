@@ -4,7 +4,7 @@
 # @brief       Automated S3 Datastore Creation and Workspace Initialisation Driver.
 # @author      Peter Winter
 # @date        09/04/2021
-# @version     2.0
+# @version     1.0
 #
 # @details     This script automates backend volume initialisation for target cloud
 #              datastores using s3cmd. It resolves endpoint configurations from dynamic 
