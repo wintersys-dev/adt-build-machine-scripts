@@ -262,8 +262,10 @@ then
                         /bin/touch /tmp/END_IT_ALL
                 fi 
         fi
-        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region"`" != "" ] )
-        then
+        ${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "multi-region"
+		if ( [ "$?" != "1" ] )
+		then
+		#is this working....check
                 ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "delete-all" "distributed" 
         else
                 ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
