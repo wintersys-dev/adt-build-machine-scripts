@@ -144,6 +144,9 @@ case "${bucket_type}" in
         "ad-hoc")
                 active_bucket="${additional_specifier}"
                 ;;
+        "all")
+                active_bucket="all"
+                ;;
 esac
 
 datastore_tool="$(/bin/grep "^DATASTORETOOL:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $2}')"
