@@ -31,7 +31,7 @@
 AUTHENTICATORPORTS:443|ipv4|TCP|cloudflare|ACCEPT
 REVERSEPROXYPORTS:443|ipv4|TCP|0.0.0.0/0|ACCEPT
 AUTOSCALERPORTS:
-WEBSERVERPORTS:443|ipv4|TCP|0.0.0.0/0|ACCEPT 444|ipv4|TCP|0.0.0.0/0|ACCEPT
+WEBSERVERPORTS:443|ipv4|TCP|0.0.0.0/0|ACCEPT
 DATABASEPORTS:
 ############################################################################################################
 # CONFIGURATION 2: This is the firewall configuration you use when you want your webservers to be accessible
