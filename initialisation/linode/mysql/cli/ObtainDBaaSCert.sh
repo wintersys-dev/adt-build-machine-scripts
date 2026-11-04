@@ -19,6 +19,8 @@ then
   status "DBaaS certificate not present or invalid"
   unset LINODE_CLI_TOKEN
   exit 1
+else 
+  status "DBaaS cerificate present and valid...OK to proceed"
 fi
 
 unset LINODE_CLI_TOKEN
