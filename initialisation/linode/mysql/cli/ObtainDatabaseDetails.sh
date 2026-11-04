@@ -3,6 +3,14 @@
 database_id="${1}"
 db_name="${2}"
 
+if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
+then
+	db_scope_prefix="public-"
+else
+	db_scope_prefix=""
+fi
+
+
 export database_id
 CLUSTER_NAME=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .label')
 DB_IDENTIFIER=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .hosts.primary')
