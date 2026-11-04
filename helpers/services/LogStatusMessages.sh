@@ -6,7 +6,7 @@ BUILD_IDENTIFIER="`/bin/cat ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER`"
 blue="`/bin/echo -e '\033[34m'`"
 purple="`/bin/echo -e '\033[35m'`"
 cyan="`/bin/echo -e '\033[36m'`"
-yellow="`/bin/echo -e '\033[33m'`"
+orange="`/bin/echo -e '\033[33m'`"
 green="`/bin/echo -e '\033[32m'`"
 reset="`/bin/echo -e '\033[0m'`"
 
@@ -22,9 +22,9 @@ then
     elif ( [ "${2}" = "cyan" ] )
     then
         colour="${cyan}"
-    elif ( [ "${2}" = "yellow" ] )
+    elif ( [ "${2}" = "orange" ] )
     then
-        colour="${yellow}"
+        colour="${orange}"
     elif ( [ "${2}" = "green" ] )
     then
         colour="${green}"
