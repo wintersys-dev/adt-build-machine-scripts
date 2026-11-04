@@ -8,17 +8,13 @@ DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableVal
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
 
-export LINODE_CLI_TOKEN="${TOKEN}"
-
-available_engines=$(/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id' 2>/dev/null)
+available_engines="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/engines" | jq -r '.data[].id'`"
 
 if [ $? -ne 0 ] || [ -z "$available_engines" ]
 then
         status "Failed to obtain list of available engines"
         exit 1
 fi
-
-unset LINODE_CLI_TOKEN
 
 if ! echo "$available_engines" | /bin/grep -q -w "${engine}"
 then
