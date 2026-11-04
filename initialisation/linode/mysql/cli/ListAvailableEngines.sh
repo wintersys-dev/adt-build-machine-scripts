@@ -4,6 +4,8 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
+engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
 
 available_engines=$(/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id' 2>/dev/null)
 
