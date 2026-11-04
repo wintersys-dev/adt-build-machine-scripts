@@ -30,8 +30,7 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
-PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
+
 
 ${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
 if [ $? != "0" ] 
