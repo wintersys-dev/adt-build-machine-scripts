@@ -29,6 +29,6 @@ else
   public_access="--private_network.public_access false"
 fi
 
-export LINODE_CLI_TOKEN="${TOKEN}"
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/databases/mysql/instances" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
+
               
-/usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
