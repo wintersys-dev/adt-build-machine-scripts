@@ -9,9 +9,7 @@ DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableVal
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
 
-
-export LINODE_CLI_TOKEN="${TOKEN}"
-database_id=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq --arg lbl "$label" '.[] | select(.label | contains($lbl)) | .id' 2>/dev/null)
+database_id="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'$label'") | .id'`"
 
 if [ $? -ne 0 ] || [ -z "$database_id" ]
 then
@@ -20,5 +18,3 @@ then
 else
         /bin/echo ${database_id}
 fi
-
-unset LINODE_CLI_TOKEN
