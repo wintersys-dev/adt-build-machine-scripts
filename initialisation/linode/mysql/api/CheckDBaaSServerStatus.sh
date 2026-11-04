@@ -15,11 +15,9 @@ attempt=1
 
 status "Waiting for database '$label' to become active..."
 
-export LINODE_CLI_TOKEN="${TOKEN}"
-
 while true 
 do
-    db_status=$(/usr/local/bin/linode-cli databases mysql-list --json | jq -r --arg lbl "$label" '.[] | select(.label == $lbl).status' 2>/dev/null)
+    db_status="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
 
     if [ -z "$db_status" ]
     then
@@ -45,5 +43,3 @@ do
     attempt=$(/usr/bin/expr ${attempt} + 1)
     sleep "${sleep_interval}"
 done
-
-unset LINODE_CLI_TOKEN
