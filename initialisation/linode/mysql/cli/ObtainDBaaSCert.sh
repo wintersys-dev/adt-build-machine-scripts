@@ -1,4 +1,8 @@
 
+set -x
+status () {
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+}
 
 database_id="${1}"
 
