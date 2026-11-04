@@ -7,6 +7,7 @@ BUILD_HOME=$(/bin/cat /home/buildhome.dat)
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
 db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
@@ -19,6 +20,8 @@ else
 	db_scope_prefix=""
 fi
 
+export LINODE_CLI_TOKEN="${TOKEN}"
+
 export database_id
 CLUSTER_NAME=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .label')
 DB_IDENTIFIER=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .hosts.primary')
@@ -26,6 +29,8 @@ DB_USERNAME=$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_i
 DB_PASSWORD=$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[].password')
 DB_PORT=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)).port')
 DB_NAME="${db_name}"
+
+unset LINODE_CLI_TOKEN
 
 if [ -n "${db_scope_prefix}" ]
 then
