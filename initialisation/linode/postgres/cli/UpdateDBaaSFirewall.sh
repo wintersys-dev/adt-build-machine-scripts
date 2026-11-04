@@ -7,7 +7,7 @@ BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-/usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "${allow_list}" --no-defaults
+/usr/local/bin/linode-cli databases postgresql-update ${database_id} --allow_list "${allow_list}" --no-defaults
 
 if [ $? -ne 0 ] 
 then
