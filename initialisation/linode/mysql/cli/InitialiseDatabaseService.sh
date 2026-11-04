@@ -61,7 +61,19 @@ else
 	fi
 fi
 
-${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id} ${db_name}
+db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id} ${db_name})
+
+if [ $? -eq 0 ] && [ -n "$db_payload" ]
+then
+    eval "$db_payload"
+    
+    echo "Connected to cluster: $CLUSTER_NAME"
+    echo "Host: $DB_IDENTIFIER"
+    echo "Port: $DB_PORT"
+else
+    status "Error: Failed to retrieve database details." >&2
+    exit 1
+fi
 
 
 
