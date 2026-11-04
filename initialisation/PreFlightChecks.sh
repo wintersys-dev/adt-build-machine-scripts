@@ -18,10 +18,10 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################################
 #########################################################################################
-#set -x
+set -x
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -34,19 +34,20 @@ machine_types="as-${REGION}-${BUILD_IDENTIFIER} ws-${REGION}-${BUILD_IDENTIFIER}
 
 for machine_type in ${machine_types}
 do
-	authorised="no"
-	while ( [ "${authorised}" = "no" ] )
-	do
-		if (    [ "`${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}"`" != "" ] )
-		then
-			status "#####################################################################################"
-			status "It seems like there is an ${machine_type} already running please close it down and rebuild"
-			status "#####################################################################################"
-			status "Press <enter> to try again (once the ${machine_type} I found is offline"
-			read x
-		else
-			authorised="yes"
-		fi
-	done
+        authorised="no"
+        while ( [ "${authorised}" = "no" ] )
+        do
+                ${BUILD_HOME}/services/server/ListServerIDs.sh "${machine_type}"
+                if [ $? -ne 1 ]
+                then
+                        status "#####################################################################################"
+                        status "It seems like there is an ${machine_type} already running please close it down and rebuild"
+                        status "#####################################################################################"
+                        status "Press <enter> to try again (once the ${machine_type} I found is offline"
+                        read x
+                else
+                        authorised="yes"
+                fi
+        done
 done
 
