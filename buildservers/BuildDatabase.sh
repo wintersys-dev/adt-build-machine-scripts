@@ -33,7 +33,7 @@ status () {
 status ""
 status ""
 status ""
-status "#########################DATABASE BUILD MESSAGES ARE IN WHITE#######################"
+status "#########################DATABASE BUILD MESSAGES ARE IN CYAN#######################"
 
 
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
