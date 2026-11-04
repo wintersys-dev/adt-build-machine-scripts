@@ -31,7 +31,6 @@ status () {
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
-
 ${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
 if [ $? != "0" ] 
 then
@@ -67,154 +66,15 @@ if [ $? -eq 0 ] && [ -n "$db_payload" ]
 then
     eval "$db_payload"
     
-    echo "Connected to cluster: $CLUSTER_NAME"
-    echo "Host: $DB_IDENTIFIER"
-    echo "Port: $DB_PORT"
+  #  echo "Connected to cluster: $CLUSTER_NAME"
+  #  echo "Host: $DB_IDENTIFIER"
+  #  echo "Port: $DB_PORT"
 else
     status "Error: Failed to retrieve database details." >&2
     exit 1
 fi
 
+${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${datbase_id}
 
-
-
-
-#take a certificate copy in case we need it
-/bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 
 	
-	
-
-
-#If we are here then this is a linode deployment
-if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
-then
-        #extract the database's configuration detaila from DATABASE_DBaaS_INSTALLATION_TYPE
-        engine="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $3}'`"
-        cluster_size="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $6}'`" 
-        db_region="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $4}'`"
-        machine_type="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $5}'`"
-        label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
-        db_name="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $8}'`"
-        db_username="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $9}'`"
-        db_password="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $10}'`"
-        vpc_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $11}'`"
-        subnet_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $12}'`"
-
-        if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
-        then
-                public_access="--private_network.public_access true"
-                db_scope_prefix="public-"
-        else
-                public_access="--private_network.public_access false"
-                db_scope_prefix=""
-                #  db_scope_prefix="private-"
-        fi
-
-        available_engines="`/usr/local/bin/linode-cli databases engines --json | jq -r '.[].id'`"
-
-        if ( [ "$?" != "0" ] || [ "${available_engines}" = "" ] )
-		then
-	        status "Failed to obtain list of available engines"
-	        exit 1
-		fi
-
-        if ( [ "`/bin/echo ${available_engines} | /bin/grep ${engine}`" = "" ] )
-        then
-                status "The database engine you have selected is not available please correct and re deploy"
-                exit 1
-        fi
-
-        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"
-       
-        if ( [ "$?" != "0" ] )
-		then
-	        status "An error occured obtaining the database id"
-	        exit 1
-		fi
-
-        if ( [ "${database_id}" = "" ] )
-        then
-                status "Your database is being provisioned, please wait....."
-
-                if ( [ "${DB_INSTALL_MODE}" = "0" ] || [ "${DB_INSTALL_MODE}" = "2" ] )
-                then
-                        status "You must have DB_INSTALL_MODE set to 1 for a newly provisioned database"
-                        status "Do want me to set DB_INSTALL_MODE to '1' so that the build will continue (Y|y) otherwise I will have to exit"
-                        response="Y"
-                        if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-                        then
-                                read response
-                        fi
-
-                        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-                        then
-                                DB_INSTALL_MODE="1"
-                        else 
-                                status "Can't continue with installation, DB_INSTALL_MODE not set as required"
-                                exit -1
-                        fi
-                fi
-
-                /usr/local/bin/linode-cli databases mysql-create --no-defaults --label "${label}" --region "${db_region}" --type "${machine_type}" --cluster_size "${cluster_size}" --engine "${engine}" --ssl_connection true --allow_list "0.0.0.0/0" --private_network.vpc_id "${vpc_id}"  --private_network.subnet_id "${subnet_id}" ${public_access}
-
-                if ( [ "$?" != "0" ] )
-				then
-	                status "failed to provision database"
-	                exit 1
-				fi
-				
-                database_id=""
-                status "Attempting to get database id..."
-                while ( [ "${database_id}" = "" ] )
-                do
-                        database_id="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | jq '.[] | select(.label | contains ("'${label}'")) | .id'`"     
-
-                        if ( [ "${database_id}" = "" ] )
-                        then
-                                status "Still probing for the database id"
-                                /bin/sleep 20
-                        fi
-                done
-
-                status "Have got the database id which is: ${database_id}"
-                status "Waiting for your database cluster ${database_id} to attain 'active' status ...this can be slow but if it takes more than 10 or 15 minutes then something must be wrong"
-
-                db_status="inactive"
-                while ( [ "${db_status}" != "active" ] )
-                do
-                        db_status="`/usr/local/bin/linode-cli databases mysql-list --json | jq -r '.[] | select(.label == "'${label}'").status'`"
-						
-                        if ( [ "${db_status}" != "active" ] )
-                        then
-                                /bin/sleep 20
-                        fi
-                done
-        else
-                status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
-                /usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
-                if ( [ "$?" != "0" ] )
-	        then
-	                status "failed to update firewall allowed ip list"
-	                exit 1
-	        fi
-        fi
-
-		
-
-        #Take a note of all our database details
-        export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
-        export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
-        export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
-        export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
-        export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
-        export DB_NAME="${db_name}"
-
-        if ( [ "${db_scope_prefix}" != "" ] )
-        then
-                DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
-        fi
-
-        #take a certificate copy in case we need it
-        /bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
-fi
