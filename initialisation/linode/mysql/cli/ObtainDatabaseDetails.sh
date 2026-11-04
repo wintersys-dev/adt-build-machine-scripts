@@ -1,7 +1,6 @@
 #!/bin/sh
 
 database_id="${1}"
-db_name="${2}"
 
 
 BUILD_HOME=$(/bin/cat /home/buildhome.dat)
