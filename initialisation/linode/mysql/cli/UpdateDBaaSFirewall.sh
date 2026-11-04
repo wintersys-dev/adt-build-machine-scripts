@@ -2,6 +2,8 @@
 database_id="${1}"
 allow_list="${2}"
 
+BUILD_HOME="$(/bin/cat /home/buldhome.dat)"
+
 TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 export LINODE_CLI_TOKEN="${TOKEN}"
   
