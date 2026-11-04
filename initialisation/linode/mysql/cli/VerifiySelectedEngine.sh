@@ -15,6 +15,7 @@ available_engines=$(/usr/local/bin/linode-cli databases engines --json | jq -r '
 if [ $? -ne 0 ] || [ -z "$available_engines" ]
 then
         status "Failed to obtain list of available engines"
+        unset LINODE_CLI_TOKEN
         exit 1
 fi
 
