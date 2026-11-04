@@ -23,10 +23,10 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################################
 #########################################################################################
-#set -x
+set -x
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -49,147 +49,145 @@ WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 software_file="${BUILD_HOME}/configuration/software.dat"
 if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
 then
-    status "Error: Cannot read software configuration file at ${software_file}"
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
 fi
 
 orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
 
 if ( [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
 then
-	status "You are attempting to provision a managed database in development mode, this isn't supported you need to redeploy in production mode"
-	exit 1
+        status "You are attempting to provision a managed database in development mode, this isn't supported you need to redeploy in production mode"
+        exit 1
 fi
 
 if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) ) )
 then
-	database_type_lower="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}' | tr '[:upper:]' '[:lower:]'`"
-	
-	#. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/${orchestration_tool}/InitialiseDatabaseService.sh
+        database_type_lower="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}' | tr '[:upper:]' '[:lower:]'`"
 
-	###############added
+        #. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/${orchestration_tool}/InitialiseDatabaseService.sh
 
-	${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
-	if [ $? != "0" ] 
-	then
-		status "Database Engine not successfully verified"
-		exit 1
-	fi
+        ###############added
 
-	database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
+        ${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
+        if [ $? != "0" ] 
+        then
+                status "Database Engine not successfully verified"
+                exit 1
+        fi
 
-	if [ -z "$database_id" ]
-	then
-		${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
-		${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
-		if [ $? != "0" ] 
-		then
-			status "Could not verify DBaaS Server status"
-			exit 1
-		fi
-	else
-		status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
-		${BUILD_HOME}/initialisation/linode/mysql/cli/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
-		if ( [ "$?" != "0" ] )
-		then
-			status "failed to update firewall allowed ip list"
-			exit 1
-		fi
-	fi
+        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
 
-	db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id})
+        if [ $? -ne 0 ]
+        then
+                ${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
+                ${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
+                if [ $? != "0" ] 
+                then
+                        status "Could not verify DBaaS Server status"
+                        exit 1
+                fi
+        else
+                status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
+                ${BUILD_HOME}/initialisation/linode/mysql/cli/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
+                if ( [ "$?" != "0" ] )
+                then
+                        status "failed to update firewall allowed ip list"
+                        exit 1
+                fi
+        fi
 
-	if [ $? -eq 0 ] && [ -n "$db_payload" ]
-	then
-    	eval "$db_payload"
-    
-  		#  echo "Connected to cluster: $CLUSTER_NAME"
-  		#  echo "Host: $DB_IDENTIFIER"
-  		#  echo "Port: $DB_PORT"
-	else
-    	status "Error: Failed to retrieve database details." >&2
-    	exit 1
-	fi
 
-	${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
-	if [ $? -eq 0 ] 
-	then
-		status "Database considered to be in a running state"
-	fi
+        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
 
-#	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-#	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
+        if  [ $? -eq  0 ] && [ -n "${database_id}" ]
+        then
+                db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id})
 
-	status ""
-	status "The rest of the settings for your database are as follows:"
-	status "##########################################################"
-	status "USERNAME:${DB_USERNAME}"
-	status "PASSWORD:${DB_PASSWORD}"
-	status "HOST:${DB_IDENTIFIER}"
-	status "PORT:${DB_PORT}"
-	status "DB NAME:${DB_NAME}"
-	status "##########################################################"
-	status "If these settings look OK to you, press <enter>"
+                if [ $? -eq 0 ] && [ -n "$db_payload" ]
+                then
+                        eval "$db_payload"
 
-	if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-	then
-		read x
-	fi
+                else
+                        status "Error: Failed to retrieve database details." >&2
+                        exit 1
+                fi
+
+                ${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
+                if [ $? -eq 0 ] 
+                then
+                        status "Database considered to be in a running state"
+                fi
+
+                status ""
+                status "The rest of the settings for your database are as follows:"
+                status "##########################################################"
+                status "USERNAME:${DB_USERNAME}"
+                status "PASSWORD:${DB_PASSWORD}"
+                status "HOST:${DB_IDENTIFIER}"
+                status "PORT:${DB_PORT}"
+                status "DB NAME:${DB_NAME}"
+                status "##########################################################"
+                status "If these settings look OK to you, press <enter>"
+        else
+                status "Could not obtain database id"
+                exit 1
+        fi
+
 else
-	#If we are here then we are self managed so we generate our own username and passwords here which will be used to access
-	#our self managed database everywhere in the deployment. These are generated fresh for each deployment
-	DB_NAME="n`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`n"
-	DB_PASSWORD="p`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`p"
-	DB_USERNAME="u`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`u"
-	DB_IDENTIFIER="self-managed"
+        #If we are here then we are self managed so we generate our own username and passwords here which will be used to access
+        #our self managed database everywhere in the deployment. These are generated fresh for each deployment
+        DB_NAME="n`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`n"
+        DB_PASSWORD="p`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`p"
+        DB_USERNAME="u`/usr/bin/openssl rand -base64 32 | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-8 | /usr/bin/tr '[:upper:]' '[:lower:]'`u"
+        DB_IDENTIFIER="self-managed"
 fi
 
 if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "0" ] ) 
 then
-	${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
-	if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
-	then
-		${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "multi-region" "credentials.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
-		DB_NAME="`/bin/grep DB_NAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PASSWORD="`/bin/grep DB_PASSWORD ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat| /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_USERNAME="`/bin/grep DB_USERNAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_PORT="`/bin/grep DB_PORT ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
-		DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
-	else
-		status "Credentials not found when making a multi region deployment to a non primary region"
-		exit 1
-	fi
+        ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
+        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "multi-region" "credentials.dat" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
+                DB_NAME="`/bin/grep DB_NAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
+                DB_PASSWORD="`/bin/grep DB_PASSWORD ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat| /usr/bin/awk -F'=' '{print $NF}'`"
+                DB_USERNAME="`/bin/grep DB_USERNAME ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
+                DB_PORT="`/bin/grep DB_PORT ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat | /usr/bin/awk -F'=' '{print $NF}'`"
+                DB_IDENTIFIER="${DBaaS_PUBLIC_ENDPOINT}"
+        else
+                status "Credentials not found when making a multi region deployment to a non primary region"
+                exit 1
+        fi
 fi
 
 if ( [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -f ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat ] )
 then
-	DB_USERNAME="`/bin/grep USERNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_PASSWORD="`/bin/grep PASSWORD ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
-	DB_NAME="`/bin/grep DBNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
+        DB_USERNAME="`/bin/grep USERNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
+        DB_PASSWORD="`/bin/grep PASSWORD ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
+        DB_NAME="`/bin/grep DBNAME ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat | /usr/bin/awk -F':' '{print $NF}'`"
 
-	if ( [ ! -d ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots ] )
-	then
-		/bin/mkdir -p ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots
-	fi
+        if ( [ ! -d ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots ] )
+        then
+                /bin/mkdir -p ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots
+        fi
 
-	/bin/echo "USERNAME:${DB_USERNAME}" > ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "PASSWORD:${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
-	/bin/echo "DBNAME:${DB_NAME}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
+        /bin/echo "USERNAME:${DB_USERNAME}" > ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
+        /bin/echo "PASSWORD:${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
+        /bin/echo "DBNAME:${DB_NAME}" >> ${BUILD_HOME}/runtime/wholemachinesnapshots/${WEBSITE_URL}/snapshots/db_credentials.dat.candidate
 fi
 
 if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
 then
-	/bin/echo "DB_NAME=${DB_NAME}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PASSWORD=${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_USERNAME=${DB_USERNAME}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
-	/bin/echo "DB_PORT=${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
+        /bin/echo "DB_NAME=${DB_NAME}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
+        /bin/echo "DB_PASSWORD=${DB_PASSWORD}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
+        /bin/echo "DB_USERNAME=${DB_USERNAME}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
+        /bin/echo "DB_PORT=${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat
 
-       # multi_region_bucket="`/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g'`-multi-region"
        ${BUILD_HOME}/services/datastore/operations/MountDatastore.sh "multi-region" "distributed"
 
        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "multi-region" "credentials.dat"`" != "" ] )
        then
-	       ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "credentials.dat" "distributed"
+               ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "multi-region" "credentials.dat" "distributed"
        fi
 
        ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "multi-region" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials.dat" "root" "distributed" "no"
