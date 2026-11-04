@@ -67,6 +67,13 @@ export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${dat
 export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
 export DB_NAME="${db_name}"
 
+if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
+then
+	db_scope_prefix="public-"
+else
+	db_scope_prefix=""
+fi
+
 if ( [ "${db_scope_prefix}" != "" ] )
 then
 	DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
