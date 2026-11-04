@@ -21,11 +21,11 @@ else
 fi
 
 export database_id
-export CLUSTER_NAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}" | jq -r '.label'`"
-export DB_IDENTIFIER="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}" | jq -r '.hosts.primary'`"
-export DB_USERNAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}/credentials" | jq -r '.username'`"
-export DB_PASSWORD="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}/credentials" | jq -r '.password'`"
-export DB_PORT="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances/${database_id}" | jq -r '.port'`"
+export CLUSTER_NAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.label'`"
+export DB_IDENTIFIER="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.hosts.primary'`"
+export DB_USERNAME="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials" | jq -r '.username'`"
+export DB_PASSWORD="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials" | jq -r '.password'`"
+export DB_PORT="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances/${database_id}" | jq -r '.port'`"
 export DB_NAME="${db_name}"
 
 for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME
