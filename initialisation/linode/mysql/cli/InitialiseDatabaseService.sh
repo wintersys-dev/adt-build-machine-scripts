@@ -74,7 +74,7 @@ else
     exit 1
 fi
 
-${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${datbase_id}
+${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
 
 
 	
