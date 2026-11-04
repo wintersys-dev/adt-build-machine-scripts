@@ -1,5 +1,13 @@
 
 
+status () {
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+}
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
+label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
+
 max_attempts=50   # Maximum number of checks
 sleep_interval=20 # Time to wait between checks (in seconds)
 attempt=1
