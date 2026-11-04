@@ -65,6 +65,9 @@ database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
 
 if [ -z "$database_id" ]
 then
+	${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
+
+	
 	
 
 
