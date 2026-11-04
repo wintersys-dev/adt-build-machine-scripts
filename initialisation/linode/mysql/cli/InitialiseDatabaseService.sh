@@ -67,6 +67,8 @@ if [ -z "$database_id" ]
 then
 	${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
 
+	${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
+
 	
 	
 
