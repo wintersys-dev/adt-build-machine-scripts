@@ -1,7 +1,7 @@
 
-
+set -x
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -15,8 +15,10 @@ database_id=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --jso
 
 if [ $? -ne 0 ] || [ -z "$database_id" ]
 then
-    status "Database ID not available for label ${label}"
-	exit 1
+        status "Database ID not available for label ${label}"
+        exit 1
+else
+        /bin/echo ${database_id}
 fi
 
 unset LINODE_CLI_TOKEN
