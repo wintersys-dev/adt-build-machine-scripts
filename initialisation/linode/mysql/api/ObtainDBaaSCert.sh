@@ -18,4 +18,6 @@ if [ ! -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT ] ||
 then
   status "DBaaS certificate not present or invalid"
   exit 1
+else 
+  status "DBaaS cerificate present and valid...OK to proceed"
 fi
