@@ -115,8 +115,8 @@ then
 
 	status "Database considered to be in a running state"
 
-	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
+#	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
+#	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
 
 	status ""
 	status "The rest of the settings for your database are as follows:"
