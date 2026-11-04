@@ -32,6 +32,15 @@ DB_NAME="${db_name}"
 
 unset LINODE_CLI_TOKEN
 
+for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME
+do
+    eval "var_val=\$$var_name"
+    if [ -z "$var_val" ]; then
+        status "Error: Required variable '$var_name' is not set or is empty."
+        exit 1
+    fi
+done
+
 if [ -n "${db_scope_prefix}" ]
 then
     DB_IDENTIFIER=$(echo "${DB_IDENTIFIER}" | /bin/sed "s/^private-/${db_scope_prefix}/")
