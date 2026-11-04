@@ -193,20 +193,20 @@ else
 	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
-if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
-then
-	status "Adjusting DBaaS firewall"
-	if ( [ "${no_autoscalers}" = "1" ] )
-	then
-		/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${as_active_ip} "${SUDO} /home/${SERVER_USER}/services/dbaas/AdjustDBaaSFirewall.sh" 2>/dev/null
-	elif ( [ "${no_autoscalers}" != "0" ] )
-	then
-        for as_active_ip in ${as_active_ips}
-        do
-                /usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${as_active_ip} "${SUDO} /home/${SERVER_USER}/services/dbaas/AdjustDBaaSFirewall.sh" 2>/dev/null
-        done
-	fi
-fi
+#if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] )
+#then
+#	status "Adjusting DBaaS firewall"
+#	if ( [ "${no_autoscalers}" = "1" ] )
+#	then
+#		/usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${as_active_ip} "${SUDO} /home/${SERVER_USER}/services/dbaas/AdjustDBaaSFirewall.sh" 2>/dev/null
+#	elif ( [ "${no_autoscalers}" != "0" ] )
+#	then
+ #       for as_active_ip in ${as_active_ips}
+  #      do
+   #             /usr/bin/ssh -q -p ${SSH_PORT} -i ${BUILD_KEY} ${OPTIONS_WS} ${SERVER_USER}@${as_active_ip} "${SUDO} /home/${SERVER_USER}/services/dbaas/AdjustDBaaSFirewall.sh" 2>/dev/null
+    #    done
+#	fi
+#fi
 
 #We are satisfied that all is well so far so lets do a finally battery of tests to be as sure as we can be that we are on our feet
 if ( [ "`/bin/grep "^${WEBSERVER_CHOICE}:source" ${BUILD_HOME}/configuration/software.dat`" != "" ] )
