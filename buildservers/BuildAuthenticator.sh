@@ -33,7 +33,7 @@ status () {
 status ""
 status ""
 status ""
-status "#########################AUTHENTICATION SERVER BUILD MESSAGES ARE IN YELLOW#######################"
+status "#########################AUTHENTICATION SERVER BUILD MESSAGES ARE IN BLUE#######################"
 
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
