@@ -54,11 +54,6 @@ then
         exit 1
 fi
 
-if ( [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] )
-then
-        orchestration_tool="api"
-fi
-
 if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
 then
         if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
