@@ -97,7 +97,7 @@ then
 		fi
 	fi
 
-	db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id} ${db_name})
+	db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id})
 
 	if [ $? -eq 0 ] && [ -n "$db_payload" ]
 	then
@@ -112,8 +112,10 @@ then
 	fi
 
 	${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
-
-	status "Database considered to be in a running state"
+	if [ $? -eq 0 ] 
+	then
+		status "Database considered to be in a running state"
+	fi
 
 #	export DB_USERNAME="${DB_USERNAME}:::${db_username}"
 #	export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
