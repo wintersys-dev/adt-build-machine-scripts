@@ -68,6 +68,20 @@ then
 	${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
 
 	${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
+	if [ $? != "0" ] 
+	then
+		status "Could not verify DBaaS Server status"
+		exit 1
+	fi
+else
+	status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
+	/usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
+	if ( [ "$?" != "0" ] )
+	then
+		status "failed to update firewall allowed ip list"
+		exit 1
+	fi
+fi
 
 	
 	
