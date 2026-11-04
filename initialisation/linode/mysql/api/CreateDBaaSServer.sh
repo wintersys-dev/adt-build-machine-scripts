@@ -31,4 +31,8 @@ fi
 
 /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/databases/mysql/instances" -H "Content-Type: application/json" -d '{ "label": "'"${label}"'", "region": "'"${db_region}"'", "type": "'"${machine_type}"'", "engine": "'"${engine}"'", "cluster_size": '"${cluster_size}"', "ssl_connection": true, "allow_list": ["0.0.0.0/0"], "private_network": { "vpc_id": '"${vpc_id}"', "subnet_id": '"${subnet_id}"' } }'
 
-              
+if [ $? -ne 0 ] 
+then
+	status "Failed to provision DBaaS server"
+	exit 1
+fi
