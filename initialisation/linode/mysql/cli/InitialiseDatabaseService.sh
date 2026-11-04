@@ -30,29 +30,6 @@ status () {
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
-DB_INSTALL_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_INSTALL_MODE`"
-VPC_IP_RANGE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE`"
-DB_PORT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DB_PORT`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh REGION`"
-BUILD_FROM_SNAPSHOT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_FROM_SNAPSHOT`"
-MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
-PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
-DBaaS_PUBLIC_ENDPOINT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DBaaS_PUBLIC_ENDPOINT`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
-DEPLOYMENT_MODE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DEPLOYMENT_MODE`"
-WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
-
-
-#########################################################################################################
-#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
-#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql/8:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
-#########################################################################################################
-
-
 
 ${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
 if [ $? != "0" ] 
@@ -82,6 +59,21 @@ else
 		exit 1
 	fi
 fi
+
+export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
+export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
+export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
+export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
+export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
+export DB_NAME="${db_name}"
+
+if ( [ "${db_scope_prefix}" != "" ] )
+then
+	DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
+fi
+
+#take a certificate copy in case we need it
+/bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
 
 	
 	
