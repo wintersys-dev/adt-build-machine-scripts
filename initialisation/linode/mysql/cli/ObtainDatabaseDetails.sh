@@ -3,6 +3,7 @@
 database_id="${1}"
 db_name="${2}"
 
+
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 
@@ -25,6 +26,9 @@ if [ -n "${db_scope_prefix}" ]
 then
     DB_IDENTIFIER=$(echo "${DB_IDENTIFIER}" | /bin/sed "s/^private-/${db_scope_prefix}/")
 fi
+
+export DB_USERNAME="${DB_USERNAME}:::${db_username}"
+export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
 
 cat <<EOF
 CLUSTER_NAME='${CLUSTER_NAME}'
