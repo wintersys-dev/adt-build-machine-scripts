@@ -61,6 +61,10 @@ then
 	exit 1
 fi
 
+database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
+
+if [ "${database_id}" = "" ]
+
 #If we are here then this is a linode deployment
 if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
 then
