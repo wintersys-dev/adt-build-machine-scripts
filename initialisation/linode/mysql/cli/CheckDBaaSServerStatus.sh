@@ -27,10 +27,12 @@ do
     elif [ "$db_status" = "active" ]
     then
         status "Database is ready and active!"
+		unset LINODE_CLI_TOKEN
         break
     elif [ "$db_status" = "failed" ] || [ "$db_status" = "error" ]
     then
         status "Database deployment failed with status: $db_status"
+		unset LINODE_CLI_TOKEN
         exit 1
     else
         status "Current status: '$db_status' (Attempt $attempt/${max_attempts})..."
@@ -39,6 +41,7 @@ do
     if [ "$attempt" -ge "${max_attempts}" ]
     then
         status "Timed out waiting for database to become active after $(/usr/bin/expr ${max_attempts} * ${sleep_interval})) seconds."
+		unset LINODE_CLI_TOKEN
         exit 1
     fi
 
