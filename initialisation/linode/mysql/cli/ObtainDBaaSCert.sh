@@ -2,10 +2,6 @@
 
 database_id="${1}"
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
-}
-
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
