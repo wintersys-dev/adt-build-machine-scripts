@@ -69,19 +69,19 @@ then
 
         ###############added
 
-        ${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
+        ${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/VerifiySelectedEngine.sh
         if [ $? != "0" ] 
         then
                 status "Database Engine not successfully verified"
                 exit 1
         fi
 
-        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
+        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/ObtainDatabaseID.sh)
 
         if [ $? -ne 0 ]
         then
-                ${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
-                ${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
+                ${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/CreateDBaaSServer.sh
+                ${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/CheckDBaaSServerStatus.sh
                 if [ $? != "0" ] 
                 then
                         status "Could not verify DBaaS Server status"
@@ -89,7 +89,7 @@ then
                 fi
         else
                 status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
-                ${BUILD_HOME}/initialisation/linode/mysql/cli/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
+                ${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
                 if ( [ "$?" != "0" ] )
                 then
                         status "failed to update firewall allowed ip list"
@@ -98,11 +98,11 @@ then
         fi
 
 
-        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
+        database_id=$(${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/ObtainDatabaseID.sh)
 
         if  [ $? -eq  0 ] && [ -n "${database_id}" ]
         then
-                db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id})
+                db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/ObtainDatabaseDetails.sh ${database_id})
 
                 if [ $? -eq 0 ] && [ -n "$db_payload" ]
                 then
@@ -113,7 +113,7 @@ then
                         exit 1
                 fi
 
-                ${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
+                ${BUILD_HOME}/initialisation/linode/mysql/${orchestration_tool}/ObtainDBaaSCert.sh ${database_id}
                 if [ $? -eq 0 ] 
                 then
                         status "Database considered to be in a running state"
