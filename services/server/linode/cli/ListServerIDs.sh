@@ -100,6 +100,8 @@ fi
 if [ -n "${id_list}" ]
 then
         /bin/echo "${id_list}"
+else
+        exit 1
 fi
 
 unset LINODE_CLI_TOKEN
