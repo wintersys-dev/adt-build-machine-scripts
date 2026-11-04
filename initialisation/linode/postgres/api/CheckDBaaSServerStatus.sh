@@ -15,7 +15,7 @@ status "Waiting for database '$label' to become active..."
 
 while true 
 do
-    db_status="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
+    db_status="`/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances" | jq -r '.data[] | select(.label == "'${label}'").status'`"
 
     if [ -z "$db_status" ]
     then
