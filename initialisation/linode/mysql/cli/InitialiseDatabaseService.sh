@@ -75,7 +75,7 @@ then
 	fi
 else
 	status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
-	/usr/local/bin/linode-cli databases mysql-update ${database_id} --allow_list "0.0.0.0/0" --no-defaults
+	${BUILD_HOME}/initialisation/linode/mysql/cli/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
 	if ( [ "$?" != "0" ] )
 	then
 		status "failed to update firewall allowed ip list"
