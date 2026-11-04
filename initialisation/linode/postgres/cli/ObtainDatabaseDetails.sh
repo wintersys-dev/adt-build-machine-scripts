@@ -23,11 +23,11 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 export database_id
-CLUSTER_NAME=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .label')
-DB_IDENTIFIER=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .hosts.primary')
-DB_USERNAME=$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[].username')
-DB_PASSWORD=$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[].password')
-DB_PORT=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)).port')
+CLUSTER_NAME=$(/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .label')
+DB_IDENTIFIER=$(/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)) | .hosts.primary')
+DB_USERNAME=$(/usr/local/bin/linode-cli databases postgresql-creds-view "${database_id}" --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[].username')
+DB_PASSWORD=$(/usr/local/bin/linode-cli databases postgresql-creds-view "${database_id}" --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[].password')
+DB_PORT=$(/usr/local/bin/linode-cli databases postgresql-list --no-defaults --json 2>/dev/null | /usr/bin/jq -r '.[] | select(.id == (env.database_id | tonumber)).port')
 DB_NAME="${db_name}"
 
 unset LINODE_CLI_TOKEN
