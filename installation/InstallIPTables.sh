@@ -51,37 +51,42 @@ fi
 export DEBIAN_FRONTEND=noninteractive 
 install_command="${manager} ${options} install " 
 
-if ( [ "${manager}" != "" ] )
-then
-	if ( [ "${buildos}" = "ubuntu" ] )
+count="0"
+while ( [ "`/usr/bin/dpkg -l | /bin/grep -E "iptables-persistent|netfilter-persistent" | /usr/bin/wc -l`" != "2" ] && [ "${count}" -lt "5" ] )
+do
+	if ( [ "${manager}" != "" ] )
 	then
-		if ( [ -f /usr/sbin/ufw ] )                                                                             
-		then                                                                                                    
-			/usr/sbin/ufw disable                                                                           
-		fi                                                                                                      
+		if ( [ "${buildos}" = "ubuntu" ] )
+		then
+			if ( [ -f /usr/sbin/ufw ] )                                                                             
+			then                                                                                                    
+				/usr/sbin/ufw disable                                                                           
+			fi                                                                                                      
 
-		eval ${install_command} iptables ${tail_options}              
+			eval ${install_command} iptables ${tail_options}              
 
-		/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
-		/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
+			/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
+			/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
 
-		eval ${install_command} netfilter-persistent ${tail_options}     
-		eval ${install_command} iptables-persistent ${tail_options}      
-	fi
+			eval ${install_command} netfilter-persistent ${tail_options}     
+			eval ${install_command} iptables-persistent ${tail_options}      
+		fi
 
-	if ( [ "${buildos}" = "debian" ] )
-	then
-		if ( [ -f /usr/sbin/ufw ] )                                                                            
-		then                                                                                                    
-			/usr/sbin/ufw disable                                                                           
-		fi   
+		if ( [ "${buildos}" = "debian" ] )
+		then
+			if ( [ -f /usr/sbin/ufw ] )                                                                            
+			then                                                                                                    
+				/usr/sbin/ufw disable                                                                           
+			fi   
 	
-		eval ${install_command} iptables ${tail_options}
+			eval ${install_command} iptables ${tail_options}
   
-		/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
-		/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
+			/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
+			/bin/echo iptables-persistent iptables-persistent/autosave_v4 boolean true | /usr/bin/sudo debconf-set-selections 
 
-		eval ${install_command} netfilter-persistent ${tail_options}    
-		eval ${install_command} iptables-persistent ${tail_options}     
+			eval ${install_command} netfilter-persistent ${tail_options}    
+			eval ${install_command} iptables-persistent ${tail_options}     
+		fi
+		count="`/usr/bin/expr ${count} + 1`"
 	fi
-fi
+done
