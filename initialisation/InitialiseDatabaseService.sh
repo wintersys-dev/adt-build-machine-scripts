@@ -128,7 +128,6 @@ then
                 status "PORT:${DB_PORT}"
                 status "DB NAME:${DB_NAME}"
                 status "##########################################################"
-                status "If these settings look OK to you, press <enter>"
         else
                 status "Could not obtain database id"
                 exit 1
