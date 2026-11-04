@@ -19,7 +19,7 @@ export LINODE_CLI_TOKEN="${TOKEN}"
 
 while true 
 do
-    db_status=$(/usr/local/bin/linode-cli databases mysql-list --json | jq -r --arg lbl "$label" '.[] | select(.label == $lbl).status' 2>/dev/null)
+    db_status=$(/usr/local/bin/linode-cli databases postgresql-list --json | jq -r --arg lbl "$label" '.[] | select(.label == $lbl).status' 2>/dev/null)
 
     if [ -z "$db_status" ]
     then
