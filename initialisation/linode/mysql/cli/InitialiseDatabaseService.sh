@@ -54,7 +54,12 @@ WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 
 
 
-${BUILD_HOME}/initialisation/linode/mysql/cli
+${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
+if [ $? != "0" ] 
+then
+	status "Database Engine not successfully verified"
+	exit 1
+fi
 
 #If we are here then this is a linode deployment
 if ( [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
