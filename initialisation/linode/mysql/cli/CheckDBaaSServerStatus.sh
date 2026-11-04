@@ -7,12 +7,15 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
 label="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $7}'`"
+TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN`"
 
 max_attempts=50   # Maximum number of checks
 sleep_interval=20 # Time to wait between checks (in seconds)
 attempt=1
 
 status "Waiting for database '$label' to become active..."
+
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 while true 
 do
@@ -42,3 +45,5 @@ do
     attempt=$(/usr/bin/expr ${attempt} + 1)
     sleep "${sleep_interval}"
 done
+
+unset LINODE_CLI_TOKEN
