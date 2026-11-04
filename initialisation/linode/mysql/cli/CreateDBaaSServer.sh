@@ -24,10 +24,10 @@ subnet_id="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '
 if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
 then
   public_access="--private_network.public_access true"
-  db_scope_prefix="public-"
+ # db_scope_prefix="public-"
 else
   public_access="--private_network.public_access false"
-  db_scope_prefix=""
+ # db_scope_prefix=""
 fi
                 
               
