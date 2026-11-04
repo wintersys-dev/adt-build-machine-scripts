@@ -28,13 +28,13 @@ counter="0" #This keeps track of how many build attempts there have been
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "orange"
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "yellow"
 }
 
 status ""
 status ""
 status ""
-status "#########################AUTOSCALER BUILD MESSAGES ARE IN RED#######################"
+status "#########################AUTOSCALER BUILD MESSAGES ARE IN YELLOW#######################"
 
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
