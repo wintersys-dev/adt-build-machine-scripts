@@ -3,6 +3,7 @@
 database_id="${1}"
 db_name="${2}"
 
+BUILD_HOME=$(/bin/cat /home/buildhome.dat)
 
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
