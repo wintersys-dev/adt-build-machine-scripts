@@ -62,24 +62,11 @@ else
 	fi
 fi
 
-export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
-export DB_IDENTIFIER="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .hosts.primary'`"
-export DB_USERNAME="`/usr/local/bin/linode-cli databases mysql-creds-view ${database_id} --no-defaults --json | /usr/bin/jq -r '.[].username'`"
-export DB_PASSWORD="`/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json | /usr/bin/jq -r '.[].password'`"
-export DB_PORT="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}').port'`"
-export DB_NAME="${db_name}"
+${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id} ${db_name}
 
-if ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
-then
-	db_scope_prefix="public-"
-else
-	db_scope_prefix=""
-fi
 
-if ( [ "${db_scope_prefix}" != "" ] )
-then
-	DB_IDENTIFIER="`/bin/echo ${DB_IDENTIFIER} | /bin/sed "s/^private-/${db_scope_prefix}"`"
-fi
+
+
 
 #take a certificate copy in case we need it
 /bin/echo "`/usr/local/bin/linode-cli databases mysql-ssl-cert ${database_id} --no-headers --no-defaults --json | /usr/bin/jq -r '.[].ca_certificate' | /usr/bin/base64 --decode`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/DBaaS_CERT
@@ -201,6 +188,8 @@ then
 	                exit 1
 	        fi
         fi
+
+		
 
         #Take a note of all our database details
         export CLUSTER_NAME="`/usr/local/bin/linode-cli databases mysql-list --no-defaults --json | /usr/bin/jq -r '.[] | select (.id == '${database_id}') | .label'`" 
