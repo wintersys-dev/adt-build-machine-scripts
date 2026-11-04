@@ -65,7 +65,53 @@ if ( [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && ( [ "${MULTI_REGION}" = "0
 then
 	database_type_lower="`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /usr/bin/awk -F':' '{print $1}' | tr '[:upper:]' '[:lower:]'`"
 	
-	. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/${orchestration_tool}/InitialiseDatabaseService.sh
+	#. ${BUILD_HOME}/initialisation/${CLOUDHOST}/${database_type_lower}/${orchestration_tool}/InitialiseDatabaseService.sh
+
+	###############added
+
+	${BUILD_HOME}/initialisation/linode/mysql/cli/VerifiySelectedEngine.sh
+	if [ $? != "0" ] 
+	then
+		status "Database Engine not successfully verified"
+		exit 1
+	fi
+
+	database_id=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseID.sh)
+
+	if [ -z "$database_id" ]
+	then
+		${BUILD_HOME}/initialisation/linode/mysql/cli/CreateDBaaSServer.sh
+		${BUILD_HOME}/initialisation/linode/mysql/cli/CheckDBaaSServerStatus.sh
+		if [ $? != "0" ] 
+		then
+			status "Could not verify DBaaS Server status"
+			exit 1
+		fi
+	else
+		status "A database ${label} with id ${database_id} is already active, not provisioning a new one"
+		${BUILD_HOME}/initialisation/linode/mysql/cli/UpdateDBaaSFirewall.sh ${database_id} "0.0.0.0/0"
+		if ( [ "$?" != "0" ] )
+		then
+			status "failed to update firewall allowed ip list"
+			exit 1
+		fi
+	fi
+
+	db_payload=$(${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDatabaseDetails.sh ${database_id} ${db_name})
+
+	if [ $? -eq 0 ] && [ -n "$db_payload" ]
+	then
+    	eval "$db_payload"
+    
+  		#  echo "Connected to cluster: $CLUSTER_NAME"
+  		#  echo "Host: $DB_IDENTIFIER"
+  		#  echo "Port: $DB_PORT"
+	else
+    	status "Error: Failed to retrieve database details." >&2
+    	exit 1
+	fi
+
+	${BUILD_HOME}/initialisation/linode/mysql/cli/ObtainDBaaSCert.sh ${database_id}
 
 	status "Database considered to be in a running state"
 
