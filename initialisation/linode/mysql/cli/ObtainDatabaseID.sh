@@ -13,4 +13,5 @@ database_id=$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --jso
 if [ $? -ne 0 ] || [ -z "$database_id" ]
 then
     status "Database ID not available for label ${label}"
+	exit 1
 fi
