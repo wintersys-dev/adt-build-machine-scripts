@@ -35,7 +35,7 @@ status () {
 status ""
 status ""
 status ""
-status "#########################WEBSERVER BUILD MESSAGES ARE IN BLUE#######################"
+status "#########################WEBSERVER BUILD MESSAGES ARE IN PURPLE#######################"
 
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
 BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
