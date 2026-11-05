@@ -11,7 +11,7 @@
 #              dependencies, evaluates the authentication layout to determine API parsing 
 #              protocols, and queries Cloudflare for record IDs matching the sub-domain context.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
