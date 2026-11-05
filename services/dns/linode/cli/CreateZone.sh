@@ -11,7 +11,7 @@
 #              CLI to prevent duplicate allocation states, and issues a secure authorized 
 #              command to instantiate the master zone schema if missing.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
