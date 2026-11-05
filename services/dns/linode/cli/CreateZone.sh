@@ -114,11 +114,11 @@ then
         set -e
 
         if [ "${create_exit_code}" -ne 0 ]
-        {
+        then
                 status "Failed to create zone for domain ${domain_url} via Linode CLI."
                 unset LINODE_CLI_TOKEN
                 exit 1
-        }
+        fi
 
         status "DNS master zone successfully initialized via CLI for domain: ${domain_url}"
 else
