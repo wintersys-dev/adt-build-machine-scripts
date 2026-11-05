@@ -75,7 +75,7 @@ status "Waiting for database '${label}' to become active..."
 while true 
 do
         # Safely query provider endpoints with hidden piped streams to prevent token leaks
-        db_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com" | /usr/bin/jq -r --arg lbl "${label}" '.data[] | select(.label == $lbl).status')"
+        db_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances" | /usr/bin/jq -r --arg lbl "${label}" '.data[] | select(.label == $lbl).status')"
 
         if [ -z "${db_status}" ]
         then
