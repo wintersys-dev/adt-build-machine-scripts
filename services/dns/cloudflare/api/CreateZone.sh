@@ -1,9 +1,37 @@
 #!/bin/sh
-######################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : Given a zone name if the zone doesn't exist the API is used to create it
-######################################################################################
+###################################################################################
+# @file        CreateZone.sh
+# @brief       Provisions a new authoritative DNS zone within the Cloudflare architecture.
+# @author      Peter Winter
+# @date        05/11/2026
+# @version     1.0
+#
+# @details     This script parses a target Fully Qualified Domain Name (FQDN) to extract
+#              its zone apex domain root, checks the provider catalog dynamically to
+#              prevent duplicate allocations, routes authentication logic (Bearer token
+#              vs. X-Auth credentials), provisions the zone, and blocks execution
+#              defensively until the zone is verified active.
+#
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - external dependencies: cat, echo, cut, grep, awk, curl, jq, sleep, expr
+#
+# @security    
+#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Eliminates redundant subshell grouping fork performance bottlenecks.
+#              - Masks API interactions securely via stream piping using the @- syntax.
+#              - Safely validates variable constraints under explicit character boundaries.
+#
+# @exit        0  Success: Cloudflare DNS zone verified active or created successfully.
+# @exit        1  Failure: Missing context paths, input parameter errors, or API timeouts.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,11 +43,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#######################################################################################
-#######################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
 #set -x
-
 set -e
 
 status () {
