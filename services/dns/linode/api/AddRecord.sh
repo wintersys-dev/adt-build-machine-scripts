@@ -4,7 +4,7 @@
 # @brief       Provisions a new dynamic A-record entry within the DNS provider matrix.
 # @author      Peter Winter
 # @date        05/11/2026
-# @version     2.0
+# @version     1.0
 #
 # @details     This script parses a target fully qualified domain name (FQDN) into 
 #              isolated sub-domain and baseline zone properties, queries provider catalogs
