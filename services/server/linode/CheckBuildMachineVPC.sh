@@ -61,6 +61,13 @@ buildmachine_ip="${1}"
 
 server_name="$("${BUILD_HOME}/services/server/GetServerName.sh" "${buildmachine_ip}")"
 
-${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "${server_name}"
+private_ips="$(${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "${server_name}")"
+
+if [ -z "${private_ips}" ]
+then
+        status "VPC for the build machine doesn't seem to be active or configured, please investigate you need to attach a valid VPC when provisioning the buld machine"
+        exit 1
+fi
+        
 
 exit 0
