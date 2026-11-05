@@ -102,6 +102,11 @@ json_payload="$(/bin/cat <<EOF
 EOF
 )"
 
+#########################################################################################################
+#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
+#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:postgresql/14.4:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
+#########################################################################################################
+
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
 api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/databases/postgresql/instances" -H "Content-Type: application/json" -d "${json_payload}")"
