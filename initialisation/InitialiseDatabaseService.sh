@@ -81,7 +81,7 @@ then
         exit 1
 fi
 
-orchestration_tool="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" ORCHESTRATION_TOOL || /usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" | /bin/tr -d ' ')"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
 # Guard statement preventing non-production DBaaS configuration errors
 if [ "${DEPLOYMENT_MODE}" = "DEVELOPMENT" ] && [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ]
