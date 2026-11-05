@@ -12,7 +12,7 @@
 #              vs. X-Auth credentials), provisions the zone, and blocks execution
 #              defensively until the zone is verified active.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
