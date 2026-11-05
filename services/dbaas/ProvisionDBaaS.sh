@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        InitialiseDatabaseService.sh
+# @file        ProvisionDBaaS.sh
 # @brief       Manages cloud DBaaS provisioning, credentials, and clustering architectures.
 # @author      Peter Winter
 # @date        05/11/2026
@@ -96,7 +96,7 @@ then
         database_type_lower="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}' | /bin/tr '[:upper:]' '[:lower:]')"
 
         set +e
-        "${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/VerifySelectedEngine.sh"
+        "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/VerifySelectedEngine.sh"
         exit_code="$?"
         set -e
         
@@ -107,16 +107,16 @@ then
         fi
 
         set +e
-        database_id="$("${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/ObtainDatabaseID.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseID.sh")"
         exit_code="$?"
         set -e
 
         if [ "${exit_code}" -ne 0 ]
         then
-                "${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/CreateDBaaSServer.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/CreateDBaaSServer.sh"
                 
                 set +e
-                "${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/CheckDBaaSServerStatus.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/CheckDBaaSServerStatus.sh"
                 exit_code="$?"
                 set -e
                 
@@ -129,7 +129,7 @@ then
                 status "A database with id ${database_id} is already active, not provisioning a new one"
                 
                 set +e
-                "${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/UpdateDBaaSFirewall.sh" "${database_id}" "0.0.0.0/0"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/UpdateDBaaSFirewall.sh" "${database_id}" "0.0.0.0/0"
                 exit_code="$?"
                 set -e
                 
@@ -141,14 +141,14 @@ then
         fi
 
         set +e
-        database_id="$("${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/ObtainDatabaseID.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseID.sh")"
         exit_code="$?"
         set -e
 
         if [ "${exit_code}" -eq 0 ] && [ -n "${database_id}" ]
         then
                 set +e
-                db_payload="$("${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/ObtainDatabaseDetails.sh" "${database_id}")"
+                db_payload="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseDetails.sh" "${database_id}")"
                 exit_code="$?"
                 set -e
 
@@ -161,7 +161,7 @@ then
                 fi
 
                 set +e
-                "${BUILD_HOME}/initialisation/linode/${database_type_lower}/${orchestration_tool}/ObtainDBaaSCert.sh" "${database_id}"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDBaaSCert.sh" "${database_id}"
                 exit_code="$?"
                 set -e
                 
