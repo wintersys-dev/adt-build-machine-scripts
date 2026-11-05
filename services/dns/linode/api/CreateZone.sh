@@ -121,10 +121,10 @@ EOF
         set -e
 
         if [ "${create_exit_code}" -ne 0 ]
-        {
+        then
                 status "Failed to create zone in the DNS system (Network/Curl infrastructure execution error)."
                 exit 1
-        }
+        fi
 
         # Verify final transaction state explicitly to catch structural validation drops
         if /bin/echo "${api_create_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
