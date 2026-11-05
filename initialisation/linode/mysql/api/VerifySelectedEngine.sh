@@ -66,7 +66,7 @@ engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '
 
 # Fetch active cloud database engine listings with manual intercept hooks to catch runtime exceptions
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/engines")"
 exit_code="$?"
 set -e
 
@@ -105,5 +105,5 @@ then
         exit 1
 fi
 
-status "Database engine '${engine}' successfully verified against cloud catalog matrix... OK to proceed."
+status "Database engine '${engine}' successfully verified against cloud catalog... OK to proceed."
 exit 0
