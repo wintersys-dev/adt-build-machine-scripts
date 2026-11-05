@@ -1,4 +1,43 @@
-#set -x
+#!/bin/sh
+###################################################################################
+# @file        CheckBuildMachineVPC.sh
+# @brief       Orchestrates VPC topological validation checks across active cloud hosts.
+# @author      Peter Winter
+# @date        05/11/2026
+# @version     1.0
+#
+# @details     This script parses environment software configurations to identify 
+#              the target cloud architecture landscape, dynamically maps execution 
+#              paths to provider-specific validation suites, handles exit states 
+#              manually, and monitors underlying subnet boundaries safely.
+#
+# @param       $1  [Required] The management or public IP address of the target buildmachine.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active framework layout.
+#              - LogStatusMessages.sh utility logging system messages.
+#              - ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST state tracking descriptor file.
+#              - ${BUILD_HOME}/configuration/software.dat toolkit software configuration registry.
+#              - external dependencies: cat, echo, awk, tr
+#
+# @security    
+#              - Hardens system-owned paths (/bin, /usr/bin) to eliminate executable hijack vectors.
+#              - Quotes variable interpolations thoroughly to trap space-injection hazards.
+#              - Isolates runtime subprocess transaction state codes manually within safe bounds.
+#
+# @exit        0  Success: Target host VPC interface definitions validated cleanly.
+# @exit        *  Failure: Runtime path verification error, broken configurations, or bubbling
+#                 exit code failures generated directly by the underlying execution script.
+###################################################################################
+# License Agreement:
+# This file is part of The Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+####################################################################################
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -9,19 +48,19 @@ else
         exit 1
 fi
 
-status () {
-        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# 1. Check for the required argument safely
-if [ -z "$1" ]
+if [ -z "${1}" ]
 then
         status "Error: Build Machine IP address argument is required."
         status "Usage: $0 <buildmachine_ip>" 
         exit 1
 fi
 
-buildmachine_ip="$1"
+buildmachine_ip="${1}"
 
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
@@ -45,7 +84,7 @@ then
         exit 1
 fi
 
-orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
+orchestration_tool="$((/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null || /bin/echo "") | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
@@ -69,13 +108,14 @@ fi
 
 set +e
 "${script_path}" "${buildmachine_ip}"
-exit_code=$?
+exit_code="$?"
 set -e
 
-if [ ${exit_code} -ne 0 ]
+if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: GetServerName.sh failed with exit code $exit_code"
-        exit $exit_code
+        status "Error: CheckBuildMachineVPC.sh failed with exit code ${exit_code}." >&2
+        exit "${exit_code}"
 fi
 
 exit 0
+
