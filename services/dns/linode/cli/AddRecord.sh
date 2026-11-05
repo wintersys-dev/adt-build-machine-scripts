@@ -11,7 +11,7 @@
 #              using the Linode CLI under bounded token scopes, and maps transaction
 #              payload parameters dynamically to create a new host tracking entry.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 # @param       $2  [Required] The target IPv4 address destination tracking node.
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
