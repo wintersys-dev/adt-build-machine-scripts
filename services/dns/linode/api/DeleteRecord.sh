@@ -12,7 +12,7 @@
 #              to expunge the specified DNS record ID.
 #
 # @param       $1  [Required] The unique platform identifier ID of the target DNS record.
-# @param       $2  [Required] The Fully Qualified Domain Name context (e.g., "://domain.com").
+# @param       $2  [Required] The Fully Qualified Domain Name context (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
