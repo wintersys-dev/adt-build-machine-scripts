@@ -1,10 +1,10 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateDNSZone.sh
+# @file        CreateZone.sh
 # @brief       Provisions a new authoritative master DNS zone with the cloud provider.
 # @author      Peter Winter
 # @date        05/11/2026
-# @version     2.0
+# @version     1.0
 #
 # @details     This script parses a target Fully Qualified Domain Name (FQDN) to extract
 #              its zone apex domain root, checks the provider catalog defensively to
