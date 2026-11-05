@@ -86,7 +86,7 @@ fi
 
 # Execute network validation endpoint updates while manual trackers trap faults
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://linode.com{database_id}" -H "Content-Type: application/json" -d "${json_payload}")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://api.linode.com/v4/databases/mysql/instances/${database_id}" -H "Content-Type: application/json" -d "${json_payload}")"
 exit_code="$?"
 set -e
 
