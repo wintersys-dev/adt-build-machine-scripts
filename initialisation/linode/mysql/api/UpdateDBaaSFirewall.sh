@@ -1,14 +1,18 @@
 #!/bin/sh
 ###################################################################################
-# @file        ObtainDatabaseID.sh
-# @brief       Resolves the platform instance ID for a given DBaaS cluster label.
+# @file        UpdateDBaaSFirewall.sh
+# @brief       Updates the network firewall access control list for a managed DBaaS instance.
 # @author      Peter Winter
 # @date        05/11/2026
 # @version     1.0
 #
-# @details     This script queries the cloud provider managed database instances catalog,
-#              filters matching nodes securely using localized argument matching parameters,
-#              validates the API payload defensively, and outputs the isolated cluster ID.
+# @details     This script validates a target database instance ID and its corresponding
+#              network configuration array parameters, formats a secure payload update,
+#              interfaces with centralized provider APIs via masked streams, and checks
+#              errors to confirm access update states.
+#
+# @param       $1  [Required] The unique platform identifier ID of the active database instance.
+# @param       $2  [Required] Comma-separated or properly formatted IP/CIDR string array definition.
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
@@ -16,16 +20,16 @@
 #              - /home/buildhome.dat configuration file tracking active framework layout.
 #              - LogStatusMessages.sh utility logging centralized system events.
 #              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, curl, jq
+#              - external dependencies: cat, echo, curl, jq
 #
 # @security    
 #              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
 #              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
 #              - Masks API interactions securely via stream piping using the @- syntax.
-#              - Protects against JSON payload tracking injection vulnerabilities.
+#              - Protects structural parameter variables securely in strict text boundaries.
 #
-# @exit        0  Success: Target cluster unique platform ID successfully resolved and printed.
-# @exit        1  Failure: Missing configuration contexts, API errors, or label mismatch.
+# @exit        0  Success: Target database network access control rules modified cleanly.
+# @exit        1  Failure: Missing context paths, input parameters validation error, or API failures.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -56,34 +60,50 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
+# Input validation
+if [ -z "${1}" ] || [ -z "${2}" ]
+then
+        status "Error: Database ID and allow_list parameters are required."
+        status "Usage: $0 <database_id> <allow_list>"
+        exit 1
+fi
+
+database_id="${1}"
+allow_list_raw="${2}"
+
 # Framework deployment variables extraction using secure subshells
-DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract specific cluster identifier string cleanly
-label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
+# Sanitize and convert comma-separated values or raw text blocks safely into an array via jq
+# This prevents dangerous raw string injections inside the JSON payload parameters
+json_payload="$(/bin/echo "${allow_list_raw}" | /usr/bin/jq -R 'split(",") | map(gsub("^[ \t\n\r]+|[ \t\n\r]+$"; "")) | {allow_list: .}' 2>/dev/null)"
 
-# Execute catalog resolution securely with manual intercept hooks to catch runtime exceptions
+if [ -z "${json_payload}" ]
+then
+        status "Error: Failed to generate a valid network configuration payload array from: ${allow_list_raw}"
+        exit 1
+fi
+
+# Execute network validation endpoint updates while manual trackers trap faults
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances/${database_id}")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://linode.com{database_id}" -H "Content-Type: application/json" -d "${json_payload}")"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
+if [ "${exit_code}" -ne 0 ] 
 then
-        status "Failed to query cluster management catalog or network timeout occurred."
+        status "Database ${database_id} firewall allow list failed to update (Network/Curl infrastructure execution error)."
         exit 1
 fi
 
-# Parse matching entity profiles defensively using parameters isolation tracking
-database_id="$(/bin/echo "${api_response}" | /usr/bin/jq -r --arg lbl "${label}" '.data[] | select(.label == $lbl) | .id // empty')"
-
-if [ -z "${database_id}" ]
+# Verify payload returns to protect against masked HTTP authentication errors
+if /bin/echo "${api_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        status "Database ID not available for label '${label}' (Instance not found or structural API fault)."
+        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason // .errors.reason // "Unknown API error parameters."')"
+        status "Database ${database_id} firewall allow list update rejected. Cloud Provider Reason: ${api_err_msg}"
         exit 1
-else
-        /bin/echo "${database_id}"
 fi
 
+status "Database ${database_id} firewall access network settings successfully modified."
 exit 0
+
