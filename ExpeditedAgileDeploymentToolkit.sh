@@ -393,7 +393,7 @@ ${BUILD_HOME}/initialisation/PreFlightChecks.sh
 if ( [ "${BUILD_MACHINE_VPC}" = "1" ] )
 then
 	status "Checking for your build machine VPC network"
-	${BUILD_HOME}/services/server/CheckBuildMachineVPC.sh ${CLOUDHOST} ${BUILD_MACHINE_IP}
+	${BUILD_HOME}/services/server/CheckBuildMachineVPC.sh ${BUILD_MACHINE_IP}
 	if [ $? = 1 ]
 	then
 		status "It looks like the build machine (${server_name}) is not attached to a VPC when BUILD_MACHINE_VPC=1"
