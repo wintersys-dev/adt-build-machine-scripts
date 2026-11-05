@@ -84,7 +84,7 @@ then
         exit 1
 fi
 
-orchestration_tool="$((/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null || /bin/echo "") | /bin/tr -d ' ')"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
