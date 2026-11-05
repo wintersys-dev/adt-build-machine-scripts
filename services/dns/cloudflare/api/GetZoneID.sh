@@ -10,7 +10,7 @@
 #              the active zone ID corresponding to a provided apex zone name. It handles
 #              both modern Bearer token formats and legacy X-Auth credential mappings.
 #
-# @param       $1  [Required] The target apex domain name (e.g., "domain.com").
+# @param       $1  [Required] The target apex domain name (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
