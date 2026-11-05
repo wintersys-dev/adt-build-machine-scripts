@@ -65,7 +65,7 @@ label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{
 
 # Execute catalog resolution securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances/${database_id}")"
 exit_code="$?"
 set -e
 
