@@ -87,7 +87,7 @@ fi
 
 # Fetch payload parameters safely while using manual intercept hooks to catch runtime exceptions
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com{database_id}/ssl" | /usr/bin/jq -r '.ca_certificate' | /bin/base64 --decode > "${cert_target}.tmp" 2>/dev/null
+/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances/${database_id}/ssl" | /usr/bin/jq -r '.ca_certificate' | /bin/base64 --decode > "${cert_target}.tmp" 2>/dev/null
 exit_code="$?"
 set -e
 
