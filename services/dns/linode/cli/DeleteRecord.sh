@@ -1,9 +1,34 @@
 #!/bin/sh
-##################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will delete a DNS record from your DNS provider
-##################################################################################
+###################################################################################
+# @file        DeleteRecord.sh
+# @brief       Deletes an existing DNS record from a specific domain zone via CLI.
+# @author      Peter Winter
+# @date        13/07/2016
+# @version     1.0
+#
+# @details     This script parses a target URL to identify its core domain zone,
+#              queries provider catalogs via the Linode CLI to find the matching
+#              zone tracking ID, and uses the provided record ID to remove the 
+#              entry under securely scoped token environments.
+#
+# @param       $1  [Required] The unique Linode identifier of the target record to delete.
+# @param       $2  [Required] The Fully Qualified Domain Name (e.g., "://domain.com").
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - external dependencies: cat, echo, cut, linode-cli, jq
+#
+# @security    
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Scopes and purges sensitive tokens (LINODE_CLI_TOKEN) tightly inside execution tracks.
+#
+# @exit        0  Success: Target DNS record successfully deleted via CLI.
+# @exit        1  Failure: Missing parameters or provider API transaction error.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -15,8 +40,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 #set -x
 set -e
