@@ -126,10 +126,11 @@ EOF
                 exit 1
         fi
 
-        # Verify final transaction state explicitly to catch structural validation drops
-        if /bin/echo "${api_create_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
-        then
-                create_err_msg="$(/bin/echo "${api_create_response}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS master zone initialization payload error."')"
+        # Extract the error reason, defaulting to empty if it doesn't exist
+        create_err_msg=$(echo "${api_create_response}" | /usr/bin/jq -e -r '.errors | if type == "array" then .[0].reason else .reason end // empty' 2>/dev/null)
+
+        # If an error reason was found, log it and exit
+        if [ -n "${create_err_msg}" ]; then
                 status "Failed to create zone in the DNS system. Cloud Provider Reason: ${create_err_msg}"
                 exit 1
         fi
