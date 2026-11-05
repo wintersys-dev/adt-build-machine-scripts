@@ -11,7 +11,7 @@
 #              the authentication layout to determine API parsing protocols (Bearer token
 #              vs. X-Auth credentials), and issues an authenticated POST transaction payload.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 # @param       $2  [Required] The target IPv4 address destination tracking node.
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
