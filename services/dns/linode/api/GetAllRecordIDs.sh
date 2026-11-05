@@ -11,7 +11,7 @@
 #              securely to capture the parent zone ID, and searches the zone record entries
 #              to output matching record IDs.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
