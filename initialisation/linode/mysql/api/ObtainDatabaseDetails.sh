@@ -91,7 +91,7 @@ fi
 # Query active cluster endpoint details securely with manual intercept hooks to catch runtime exceptions
 set +e
 api_instance_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}")"
-api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://linode.com{database_id}/credentials")"
+api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/mysql/instances/${database_id}/credentials")"
 set -e
 
 # Parse API returns defensively using secure subshells
