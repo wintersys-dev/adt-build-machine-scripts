@@ -95,7 +95,7 @@ then
                 exit 1
         fi
 
-        script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ConfigureNativeFirewall.sh"
+        script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/ConfigureNativeFirewall.sh"
 
         if [ ! -f "${script_path}" ]
         then
