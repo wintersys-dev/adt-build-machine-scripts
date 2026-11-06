@@ -33,6 +33,7 @@ status () {
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
 CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
+VPC_IP_RANGE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE)"
 MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
 PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
 DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
@@ -59,7 +60,7 @@ then
         if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
         then
 			database_id="$(${BUILD_HOME}/services/dbaas/linode/api/mysql/ObtainDatabaseID.sh)"
-			${BUILD_HOME}/services/dbaas/linode/api/mysql/UpdateDBaaSFirewall.sh "${database_id}" 
+			${BUILD_HOME}/services/dbaas/linode/api/mysql/UpdateDBaaSFirewall.sh "${database_id}" "${VPC_IP_RANGE}"
         fi
 fi
 
