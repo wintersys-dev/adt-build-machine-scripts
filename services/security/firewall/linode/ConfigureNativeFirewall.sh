@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        OrchestrateFirewall.sh
+# @file        ConfigureNativeFirewall.sh
 # @brief       Orchestrates platform-specific native firewall generation and configuration.
 # @author      Peter Winter
 # @date        06/11/2026
