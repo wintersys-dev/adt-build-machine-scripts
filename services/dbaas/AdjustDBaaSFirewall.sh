@@ -1,15 +1,31 @@
-#!/bin/sh
-########################################################################################
-# Author: Peter Winter
-# Date  : 12/07/2016
-# Description: If you are deploying a DBaaS system, this will tighten the firewalling system
-# so that the databases are only accessible by ip addresses that we are using. 
-# This is applied towards the end of the build process
-# It depends on whether the DBaaS service is run in the same VPC as our server machines.
-# If it is then access is available through the VPC if it isn't then individual IP addresses
-# have to be granted access. That is why you see some providers with processing needed here
-# when the DBaaS isn't running in the same VPC as the servers are. 
-########################################################################################
+###################################################################################
+# @file        TightenFirewall.sh
+# @brief       Hardens cloud DBaaS instances by restricting firewall access matrices.
+# @author      Peter Winter
+# @date        12/07/2016
+# @version     1.0
+#
+# @details     Evaluates regional environments and installation states to apply localized
+#              security boundaries. If a managed cluster operates outside a shared VPC 
+#              infrastructure, individual IP routes are dynamically evaluated and injected.
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - ObtainDatabaseID.sh utility to resolve active managed cluster tracking tokens.
+#              - UpdateDBaaSFirewall.sh operational runtime execution engine.
+#              - external dependencies: awk
+#
+# @security    
+#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
+#              - Implements pure POSIX shell pattern evaluations to prevent execution injection.
+#
+# @exit        0  Success: Security parameters updated or skipped safely under rules.
+# @exit        1  Failure: Missing configuration items or failed parameter evaluation.
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -21,9 +37,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#########################################################################################
-#########################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
 #set -x
 set -e
 
@@ -32,7 +47,8 @@ status () {
 }
 
 # Read build home path securely without spawning cat
-if [ -r /home/buildhome.dat ]; then
+if [ -r /home/buildhome.dat ]
+then
     read -r BUILD_HOME < /home/buildhome.dat
 else
     echo "Error: Cannot read /home/buildhome.dat" >&2
@@ -49,7 +65,8 @@ DATABASE_DBaaS_INSTALLATION_TYPE=$("${BUILD_HOME}/helpers/services/GetVariableVa
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 
-if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]; then
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
     status "Error: Cannot read software configuration file at ${software_file}"
     exit 1
 fi
@@ -57,7 +74,8 @@ fi
 # Parse orchestration tool securely
 orchestration_tool=$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")
 
-if [ -z "${orchestration_tool}" ]; then
+if [ -z "${orchestration_tool}" ]
+then
     status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
     exit 1
 fi
