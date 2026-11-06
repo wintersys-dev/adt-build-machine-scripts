@@ -58,7 +58,10 @@ if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMAR
 then
         if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
         then
-                ${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/AdjustDBaaSFirewall.sh
+
+			database_id="$(${BUILD_HOME}/services/dbaas/linode/api/mysql/ObtainDatabaseID.sh)"
+			
+            ${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/AdjustDBaaSFirewall.sh
 
         fi
 fi
