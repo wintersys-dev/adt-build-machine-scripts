@@ -87,7 +87,7 @@ payload="$(/usr/bin/jq -n --argjson rules "${ruleset}" '{inbound: $rules}')"
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT -H 'Content-Type: application/json' -d "${payload}" "https://linode.com{firewall_id}/rules")"
+response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT -H 'Content-Type: application/json' -d "${payload}" "https://api.linode.com/v4/networking/firewalls/${firewall_id}/rules")"
 curl_status="$?"
 set -e
 
