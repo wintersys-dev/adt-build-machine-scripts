@@ -21,8 +21,6 @@
 #
 # @security    
 #              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Eliminates redundant subshell grouping fork performance bottlenecks.
 #              - Masks API interactions securely via stream piping using the @- syntax.
 #
 # @exit        0  Success: Target database server provision request transmitted safely.
