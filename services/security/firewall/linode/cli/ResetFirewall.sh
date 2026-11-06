@@ -1,4 +1,6 @@
-firewall_id"${1}"
+set -x
+
+firewall_id="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
@@ -14,7 +16,7 @@ export LINODE_CLI_TOKEN="${TOKEN}"
 /usr/local/bin/linode-cli firewalls rules-update --inbound '[]' --outbound '[]' --inbound_policy DROP --outbound_policy ACCEPT ${firewall_id}
 if ( [ "$?" != "0" ] )
 then
-	unset LINODE_CLI_TOKEN
-	status "Unable to update firewall rules"
-	exit 1
-fi   
+        unset LINODE_CLI_TOKEN
+        status "Unable to update firewall rules"
+        exit 1
+fi  
