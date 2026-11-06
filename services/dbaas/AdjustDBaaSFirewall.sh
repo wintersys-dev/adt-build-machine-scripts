@@ -25,44 +25,59 @@
 #########################################################################################
 #########################################################################################
 #set -x
+set -e
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+    "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+# Read build home path securely without spawning cat
+if [ -r /home/buildhome.dat ]; then
+    read -r BUILD_HOME < /home/buildhome.dat
+else
+    echo "Error: Cannot read /home/buildhome.dat" >&2
+    exit 1
+fi
 
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-VPC_IP_RANGE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh VPC_IP_RANGE)"
-MULTI_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh MULTI_REGION`"
-PRIMARY_REGION="`${BUILD_HOME}/helpers/services/GetVariableValue.sh PRIMARY_REGION`"
-DATABASE_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_INSTALLATION_TYPE`"
-DATABASE_DBaaS_INSTALLATION_TYPE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DATABASE_DBaaS_INSTALLATION_TYPE`"
+# Fetch configuration values using modern command substitution
+CLOUDHOST=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST)
+VPC_IP_RANGE=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)
+MULTI_REGION=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGION)
+PRIMARY_REGION=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)
+DATABASE_INSTALLATION_TYPE=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_INSTALLATION_TYPE)
+DATABASE_DBaaS_INSTALLATION_TYPE=$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 
-if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
-then
-        status "Error: Cannot read software configuration file at ${software_file}"
-        exit 1
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]; then
+    status "Error: Cannot read software configuration file at ${software_file}"
+    exit 1
 fi
 
-orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+# Parse orchestration tool securely
+orchestration_tool=$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")
 
-if ( [ "${orchestration_tool}" = "" ] )
-then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
-        exit 1
+if [ -z "${orchestration_tool}" ]; then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+    exit 1
 fi
 
-if ( [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] ) )
+# Evaluate firewall updates under regional constraints
+if [ "${MULTI_REGION}" = "0" ] || { [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
-        if ( [ "${DATABASE_INSTALLATION_TYPE}"="DBaaS" ] && [ "`/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep DBAAS`" != "" ] )
-        then
-			database_id="$(${BUILD_HOME}/services/dbaas/linode/api/mysql/ObtainDatabaseID.sh)"
-			${BUILD_HOME}/services/dbaas/linode/api/mysql/UpdateDBaaSFirewall.sh "${database_id}" "${VPC_IP_RANGE}"
-        fi
+    # Fixed the missing spacing syntax error in the string comparison
+    if [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ]
+	then
+        # Pure POSIX shell pattern matching replacing echo | grep pipeline
+        case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
+            *DBAAS*)
+                database_id=$("${BUILD_HOME}/services/dbaas/linode/api/mysql/ObtainDatabaseID.sh")
+                "${BUILD_HOME}/services/dbaas/linode/api/mysql/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                ;;
+        esac
+    fi
 fi
+
 
 
 
