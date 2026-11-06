@@ -23,8 +23,6 @@
 #
 # @security    
 #              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Exterminates subshell grouping fork performance bottlenecks.
 #              - Sanitizes and captures exit execution codes manually using strict checking bounds.
 #
 # @exit        0  Success: Target database engine and context configured and exported.
