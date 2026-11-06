@@ -87,7 +87,7 @@ payload="$(/usr/bin/jq -n --arg lbl "${firewall_name}-${BUILD_IDENTIFIER}" '{lab
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H 'Content-Type: application/json' -d "${payload}" 'https://linode.com')"
+response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H 'Content-Type: application/json' -d "${payload}" 'https://api.linode.com/v4/networking/firewalls')"
 curl_status="$?"
 set -e
 
