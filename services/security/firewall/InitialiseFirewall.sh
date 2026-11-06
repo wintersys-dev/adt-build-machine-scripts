@@ -74,10 +74,10 @@ then
 
 	/usr/sbin/iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 	/usr/sbin/iptables -A INPUT -p tcp --dport ${buildmachine_ssh_port} -j ACCEPT
-	/usr/sbin/iptables -A INPUT -s ${laptop_ip} -p ICMP --icmp-type 8 -j ACCEPT
+#	/usr/sbin/iptables -A INPUT -s ${laptop_ip} -p ICMP --icmp-type 8 -j ACCEPT
 	/usr/sbin/iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j DROP
-	/usr/sbin/iptables -I INPUT \! -s ${laptop_ip} -m state --state NEW,INVALID -p tcp --dport ${buildmachine_ssh_port} -j DROP
-	/usr/sbin/iptables -A INPUT ! -s ${laptop_ip} -p icmp -m state --state INVALID,NEW -m icmp --icmp-type 8  -j DROP
+#	/usr/sbin/iptables -I INPUT \! -s ${laptop_ip} -m state --state NEW,INVALID -p tcp --dport ${buildmachine_ssh_port} -j DROP
+#	/usr/sbin/iptables -A INPUT ! -s ${laptop_ip} -p icmp -m state --state INVALID,NEW -m icmp --icmp-type 8  -j DROP
 	/usr/sbin/iptables -A INPUT -i lo -j ACCEPT
 	/usr/sbin/iptables -A OUTPUT -o lo -j ACCEPT
 	/usr/sbin/iptables -P INPUT DROP
