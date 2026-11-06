@@ -21,7 +21,6 @@
 #
 # @security    
 #              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
 #              - Masks API interactions securely via stream piping using the @- syntax.
 #              - Avoids blind loop execution failures by splitting validation pipelines.
 #
