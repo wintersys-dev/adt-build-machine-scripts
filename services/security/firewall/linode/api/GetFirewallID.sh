@@ -84,7 +84,7 @@ fi
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://linode.com")"
+response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/networking/firewalls")"
 curl_status="$?"
 set -e
 
