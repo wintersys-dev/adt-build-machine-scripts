@@ -8,14 +8,7 @@ firewall_id="$(${BUILD_HOME}/services/security/firewall/linode/api/GetFirewallID
 
 if [ "${firewall_id}" = "" ] 
 then
-        payload=$(jq -n --arg lbl "${firewall_name}-${BUILD_IDENTIFIER}" '{label: $lbl, rules: {inbound_policy: "DROP", outbound_policy: "ACCEPT"}}')
-        firewall_id="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- curl -s -X POST 'https://api.linode.com/v4/networking/firewalls' --json "${payload}" | jq -r '.id')"
-
-        if [ "$?" != "0" ] 
-        then
-                status "Unable to create firewall"
-                exit 1        
-        fi
+        ${BUILD_HOME}/services/security/firewall/linode/api/CreateFirewall.sh
 else
         /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  -X PUT -H 'Content-Type: application/json' -d '{"inbound": [], "outbound": [], "inbound_policy": "DROP", "outbound_policy": "ACCEPT"}' 'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
         if [ "$?" != "0" ] 
