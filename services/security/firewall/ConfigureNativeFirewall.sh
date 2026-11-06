@@ -275,27 +275,11 @@ then
         exit 1
 fi
 
-#script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ConfigureNativeFirewall.sh"
-
-#if ( [ ! -f "${script_path}" ] )
-#then
- #       status "Error: Script not found at ${script_path}"
-  #      exit 1
-#fi
-
-#if ( [ ! -x "${script_path}" ] )
-#then
- #       status "Error: Script at ${script_path} is not executable."
- #       exit 1
-#fi
-
-#/bin/echo "$("${script_path}" "${firewall_name}" "${ruleset}")"  
-
-firewall_id="$(${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/GetFirewallID.sh)"
+firewall_id="$(${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/GetFirewallID.sh ${firewall_name})"
 
 if [ "${firewall_id}" = "" ] 
 then
-        firewall_id="$(${BUILD_HOME}/services/security/${CLOUDHOST}/${orchestration_tool}/CreateFirewall.sh ${firewall_name})"
+        firewall_id="$(${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/CreateFirewall.sh ${firewall_name})"
         if [ $? -eq 1 ] 
         then
                 status "Failed to create firewall"
@@ -310,7 +294,7 @@ else
         fi
 fi      
 
-${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/UpdateFirewall.sh ${firewall_id} ${ruleset}
+${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/UpdateFirewall.sh "${firewall_id}" "${ruleset}"
 
 if [ $? -eq 1 ] 
 then
@@ -322,11 +306,3 @@ if ( [ "${firewall_id}" != "" ] )
 then
         /bin/echo "ADT_FIREWALL_ID:${firewall_id}"
 fi
-
-#exit_code=$?
-
-#if ( [ ${exit_code} -ne 0 ] )
-#then
- #       status "Error: ConfigureNativeFirewall.sh failed with exit code $exit_code"
- #       exit $exit_code
-#fi
