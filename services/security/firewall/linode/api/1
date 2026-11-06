@@ -11,5 +11,5 @@ else
         ${BUILD_HOME}/services/security/firewall/linode/api/ResetFirewall.sh ${firewall_id}
 fi      
 
- ${BUILD_HOME}/services/security/firewall/linode/api/UpdateFirewall.sh
+ ${BUILD_HOME}/services/security/firewall/linode/api/UpdateFirewall.sh ${firewall_id} ${ruleset}
 
