@@ -1,6 +1,4 @@
 
-TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
-BUILD_IDENTIFIER="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER)"
 
 
 firewall_id="$(${BUILD_HOME}/services/security/firewall/linode/api/GetFirewallID.sh)"
@@ -10,12 +8,7 @@ if [ "${firewall_id}" = "" ]
 then
         ${BUILD_HOME}/services/security/firewall/linode/api/CreateFirewall.sh ${firewall_name}
 else
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s  -X PUT -H 'Content-Type: application/json' -d '{"inbound": [], "outbound": [], "inbound_policy": "DROP", "outbound_policy": "ACCEPT"}' 'https://api.linode.com/v4/networking/firewalls/'${firewall_id}'/rules'
-        if [ "$?" != "0" ] 
-        then
-                status "Unable to update firewall rules"
-                exit 1        
-        fi
+        ${BUILD_HOME}/services/security/firewall/linode/api/ResetFirewall.sh ${firewall_id}
 fi              
 
 /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT "https://api.linode.com/v4/networking/firewalls/${firewall_id}/rules" --json "$(jq -n --argjson rules "${ruleset}" '{inbound: $rules}')"
