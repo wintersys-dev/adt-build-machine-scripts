@@ -13,21 +13,35 @@
 #              synchronizes clustered configurations across cross-region data stores, 
 #              and exports variables securely.
 #
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+# @env         BUILD_HOME                       Path to the toolkit core framework layout directory.
+# @env         DATABASE_DBaaS_INSTALLATION_TYPE Configuration profile string containing target engine attributes.
+# @env         CLOUDHOST                        Targeted public cloud infrastructure provider identifier.
+# @env         DATABASE_INSTALLATION_TYPE       Deployment strategy designation ('DBaaS' or locally host-managed).
+# @env         DB_PORT                          Configured structural connection port.
+# @env         BUILD_IDENTIFIER                 Unique infrastructure installation sequence signature.
+# @env         BUILD_FROM_SNAPSHOT              Boolean toggle regulating historical state restoration rules.
+# @env         MULTI_REGION                     Architectural flag detailing horizontal region scaling.
+# @env         PRIMARY_REGION                   Deployment tier indicator isolating seed topologies from edges.
+# @env         DBaaS_PUBLIC_ENDPOINT            Publicly addressable multi-region database fallback hostname.
+# @env         DEPLOYMENT_MODE                  Runtime validation context boundary selector ('PRODUCTION', etc).
+# @env         WEBSITE_URL                      Primary application entry point tracking snapshot storage keys.
 #
 # @dependencies
 #              - /home/buildhome.dat configuration file tracking active framework layout.
 #              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh/SetVariableValue.sh global parameter state tools.
-#              - external dependencies: cat, echo, awk, tr, openssl, cut, grep, mkdir
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - SetVariableValue.sh centralized configuration variable state mutation tool.
+#              - external dependencies: awk, cat, echo, grep, mkdir, openssl
 #
 # @security    
 #              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Sanitizes and captures exit execution codes manually using strict checking bounds.
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Manually intercepts execution paths via explicit exit status validations.
+#              - Leverages OpenSSL cryptographic pseudorandom sources for password entropy generation.
 #
 # @exit        0  Success: Target database engine and context configured and exported.
 # @exit        1  Failure: Mismatched environment profiles, failed validation, or execution error.
-##################################################################################
+###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -39,9 +53,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-####################################################################################
+
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
