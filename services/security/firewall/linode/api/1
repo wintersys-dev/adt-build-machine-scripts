@@ -3,13 +3,27 @@
 
 firewall_id="$(${BUILD_HOME}/services/security/firewall/linode/api/GetFirewallID.sh)"
 
-
 if [ "${firewall_id}" = "" ] 
 then
-        ${BUILD_HOME}/services/security/firewall/linode/api/CreateFirewall.sh ${firewall_name}
+        firewall_id="$(${BUILD_HOME}/services/security/firewall/linode/api/CreateFirewall.sh ${firewall_name})"
+        if [ $? -eq 1 ] 
+        then
+                status "Failed to create firewall"
+                exit 1
+        fi
 else
         ${BUILD_HOME}/services/security/firewall/linode/api/ResetFirewall.sh ${firewall_id}
+        if [ $? -eq 1 ] 
+        then
+                status "Failed to reset firewall"
+                exit 1
+        fi
 fi      
 
- ${BUILD_HOME}/services/security/firewall/linode/api/UpdateFirewall.sh ${firewall_id} ${ruleset}
+${BUILD_HOME}/services/security/firewall/linode/api/UpdateFirewall.sh ${firewall_id} ${ruleset}
+if [ $? -eq 1 ] 
+then
+        status "Failed to reset firewall"
+        exit 1
+fi
 
