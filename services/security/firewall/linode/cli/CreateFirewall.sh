@@ -26,7 +26,6 @@
 # @security    
 #              - Hardens system-owned paths (/bin, /usr/bin, /usr/local/bin) to eliminate hijack vectors.
 #              - Safely unsets exposed token variables from the localized shell environment upon completion.
-#              - Eliminates unsafe nested subshell brackets and backtick command wrappers.
 #
 # @exit        0  Success: The firewall instance was registered and its ID returned on stdout.
 # @exit        1  Failure: Missing arguments, missing configurations, or CLI transmission error.
