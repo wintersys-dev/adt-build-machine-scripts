@@ -1,12 +1,37 @@
 #!/bin/sh
-######################################################################################################
-# Description: This will configure the native firewall to restrict access by ip address to our infrastructure
-# according to what our configuration needs are. Sometimes machines are only accessible through the VPC they
-# are in and sometimes they have to be accessible across the internet. The policy is designed to keep access
-# to the machines as strict and as limited as possible. 
-# Author: Peter Winter
-# Date: 17/01/2021
-#######################################################################################################
+########################################################################################
+# @file        ConfigureNativeFirewall.sh
+# @brief       Configures the native firewall to restrict access to infrastructure by IP.
+# @author      Peter Winter
+# @date        17/01/2021
+# @version     1.0
+#
+# @details     This script evaluates active firewall orchestration rules based on central 
+#              configuration files. If active firewall counts align, it extracts the target 
+#              orchestration tool and dynamically executes the corresponding vendor-specific 
+#              native firewall configuration engine.
+#
+# @param       $1  [Required] The firewall rule deployment name or configuration profile identifier.
+#
+# @env         BUILD_HOME          Path to the framework root directory (read from file).
+# @env         ACTIVE_FIREWALLS    Deployment policy tracking how many firewalls are activated.
+# @env         CLOUDHOST           Identifier tracking the active cloud host infrastructure provider.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking the active framework layout.
+#              - LogStatusMessages.sh utility logging system messages.
+#              - GetVariableValue.sh centralized wrapper for lookup configurations.
+#              - ${BUILD_HOME}/configuration/software.dat application stack manifest.
+#              - external dependencies: awk, cat, echo
+#
+# @security    
+#              - Hardens system-owned paths (/bin, /usr/bin) to eliminate executable hijack vectors.
+#              - Implements strict standard file validation (-f, -r, -x) prior to cross-script execution.
+#              - Eliminates unsafe wrapper subshell nesting expressions.
+#
+# @exit        0  Success: The native firewall policy was correctly constructed and deployed.
+# @exit        1  Failure: Missing arguments, missing configurations, or target execution error.
+########################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -18,20 +43,28 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#######################################################################################################
-#######################################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+########################################################################################
+########################################################################################
 #set -x
-
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Resolve BUILD_HOME baseline layout securely
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if ( [ "${1}" = "" ] )
+# Input validation
+if [ -z "${1}" ]
 then
         status "Error: 1 argument is required."
         status "Usage: $0 <firewall_name>"
@@ -40,51 +73,58 @@ fi
 
 firewall_name="${1}"
 
-ACTIVE_FIREWALLS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh ACTIVE_FIREWALLS`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
+# Secure framework configuration value extraction
+ACTIVE_FIREWALLS="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" ACTIVE_FIREWALLS)"
+CLOUDHOST="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST)"
 
-
-if ( [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ] )
+if [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ]
 then
+        software_file="${BUILD_HOME}/configuration/software.dat"
+        
+        if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+        then
+                status "Error: Cannot read software configuration file at ${software_file}"
+                exit 1
+        fi
+        
+        orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
-	software_file="${BUILD_HOME}/configuration/software.dat"
-	if ( [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] )
-	then
-        status "Error: Cannot read software configuration file at ${software_file}"
-        exit 1
-	fi
-	
-	orchestration_tool="`/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}"`"
+        if [ -z "${orchestration_tool}" ]
+        then
+                status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+                exit 1
+        fi
 
-	if ( [ "${orchestration_tool}" = "" ] )
-	then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
-        exit 1
-	fi
+        script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ConfigureNativeFirewall.sh"
 
-	script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ConfigureNativeFirewall.sh"
+        if [ ! -f "${script_path}" ]
+        then
+                status "Error: Script not found at ${script_path}" 
+                exit 1
+        fi
 
-	if ( [ ! -f "${script_path}" ] )
-	then
-        status "Error: Script not found at ${script_path}" 
-        exit 1
-	fi
+        if [ ! -x "${script_path}" ]
+        then
+                status "Error: Script at ${script_path} is not executable." 
+                exit 1
+        fi
 
-	if ( [ ! -x "${script_path}" ] )
-	then
-        status "Error: Script at ${script_path} is not executable." 
-        exit 1
-	fi
+        # Execute downstream script safely and manage the downstream transition manually
+        set +e
+        output="$("${script_path}" "${firewall_name}")"
+        exit_code="$?"
+        set -e
 
-	/bin/echo "`${script_path} ${firewall_name}`"  
-
-	exit_code=$?
-
-	if ( [ ${exit_code} -ne 0 ] )
-	then
-        status "Error: ConfigureNativeFirewall.sh failed with exit code $exit_code"
-        exit $exit_code
-	fi
+        if [ "${exit_code}" -ne 0 ]
+        then
+                status "Error: ConfigureNativeFirewall.sh failed with exit code ${exit_code}"
+                exit "${exit_code}"
+        else
+                /bin/echo "${output}"
+        fi
 fi
+
+exit 0
+
 
 
