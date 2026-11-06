@@ -318,6 +318,11 @@ then
         exit 1
 fi
 
+if ( [ "${firewall_id}" != "" ] )
+then
+        /bin/echo "ADT_FIREWALL_ID:${firewall_id}"
+fi
+
 #exit_code=$?
 
 #if ( [ ${exit_code} -ne 0 ] )
