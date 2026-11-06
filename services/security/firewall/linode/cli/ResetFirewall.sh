@@ -25,7 +25,6 @@
 # @security    
 #              - Hardens system-owned paths (/bin, /usr/local/bin) to eliminate hijack vectors.
 #              - Safely unsets exposed token variables from the localized shell environment upon completion.
-#              - Eliminates unsafe nested subshell brackets and backtick command wrappers.
 #
 # @exit        0  Success: The firewall rules matrix was flushed to defaults.
 # @exit        1  Failure: Missing arguments, configuration absence, or CLI transmission errors.
