@@ -86,14 +86,6 @@ then
                 status "Error: Cannot read software configuration file at ${software_file}"
                 exit 1
         fi
-        
-        orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
-
-        if [ -z "${orchestration_tool}" ]
-        then
-                status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
-                exit 1
-        fi
 
         script_path="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/ConfigureNativeFirewall.sh"
 
