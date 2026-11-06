@@ -1,4 +1,5 @@
 
+firewall_name="${1}"
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 
