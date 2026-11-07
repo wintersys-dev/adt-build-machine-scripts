@@ -111,7 +111,7 @@ if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/VPC-ACTIVE ] )
 then
         ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh ${token_to_match}`"
 else
-        ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh ${token_to_match}`"
+        ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh ${token_to_match}`"
 fi
 
 if ( [ "${ips}" = "" ] )
