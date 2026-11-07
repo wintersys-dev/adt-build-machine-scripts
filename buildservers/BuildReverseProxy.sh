@@ -242,7 +242,7 @@ do
 						${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "reverseproxypublicips" "local"
 						${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "reverseproxyips" "local"
 
-                        ${BUILD_HOME}/services/server/DestroyServer.sh ${ip}
+                        ${BUILD_HOME}/services/server/TerminateServer.sh ${ip}
 
 						status "Probing for the termination of the failed reverse proxy machine so that a new one can be built"
 						status "If this goes on forever, please investigate"
