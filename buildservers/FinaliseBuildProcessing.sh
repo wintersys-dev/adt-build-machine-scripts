@@ -105,7 +105,7 @@ then
 			then
 				as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			else
-				as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
+				as_active_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			fi
 		elif ( [ "${no_autoscalers}" != "0" ] )
 		then
@@ -113,7 +113,7 @@ then
 			then
 				as_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			else
-				as_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
+				as_active_ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 			fi
 		fi
 	fi
@@ -126,7 +126,7 @@ then
 		fi
 	elif ( [ "${as_active_ip}" = "" ] )
 	then
-		as_active_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
+		as_active_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	fi
 
 	if ( [ "${no_autoscalers}" = "1" ] )
