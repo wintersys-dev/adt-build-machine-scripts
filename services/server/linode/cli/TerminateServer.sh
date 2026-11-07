@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        DestroyServer.sh
+# @file        TerminateServer.sh
 # @brief       Decommissions and destroys a specific Linode instance by IP address.
 # @author      Peter Winter
 # @date        13/07/2021
