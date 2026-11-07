@@ -1,6 +1,6 @@
 #!/bin/sh 
 ###################################################################################
-# @file        DestroyServerMain.sh
+# @file        TerminateServer.sh
 # @brief       Resolves runtime configurations and triggers provider-specific instance termination.
 # @author      Peter Winter
 # @date        13/07/2021
