@@ -94,11 +94,17 @@ then
         exit 1
 fi
 
-# Attempt resolution via secondary cross-reference engine if first lookup fails
-if [ -z "${server_id}" ]
+server_name="$("${BUILD_HOME}/services/server/linode/api/GetServerName.sh" "${server_ip}")"
+
+if [ -n "${server_name}" ] 
 then
-        server_ip="$("${BUILD_HOME}/services/server/GetServerPublicIPAddressByPrivateIPAddress.sh" "${server_ip}")"
-        server_id="$(/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r --arg ip "${server_ip}" '.[] | select(.ipv4[] == $ip).id')"
+        server_id="$("${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh" "${server_name}")"
+
+# Attempt resolution via secondary cross-reference engine if first lookup fails
+#if [ -z "${server_id}" ]
+#then
+#        server_ip="$("${BUILD_HOME}/services/server/GetServerPublicIPAddressByPrivateIPAddress.sh" "${server_ip}")"
+#        server_id="$(/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r --arg ip "${server_ip}" '.[] | select(.ipv4[] == $ip).id')"
         cli_exit_code="$?"
         
         if [ "${cli_exit_code}" -ne 0 ]
