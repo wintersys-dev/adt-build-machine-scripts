@@ -85,7 +85,7 @@ fi
 		status "Database name: ${DB_NAME}" 
 		status "Database username: ${DB_USERNAME}" 
 		status "Database password: ${DB_PASSWORD}" 
-		status "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
+		status "The database public IP address is: `${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
         status "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"` (try this one first from your application if it timesout, try the public one)"
         status "The database port is ${DB_PORT}"
 	fi
