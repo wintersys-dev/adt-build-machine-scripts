@@ -1,6 +1,6 @@
 #!/bin/sh 
 ###################################################################################
-# @file        GetServerIPAddresses.sh
+# @file        GetServerPublicIPAddresses.sh
 # @brief       Resolves infrastructure paths and triggers provider-specific IP lookup.
 # @author      Peter Winter
 # @date        13/07/2021
@@ -96,7 +96,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerIPAddresses.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddresses.sh"
 
 if [ ! -f "${script_path}" ]
 then
