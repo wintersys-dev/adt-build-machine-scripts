@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetServerIPsByType.sh
+# @file        GetServerPublicIPAddresses.sh
 # @brief       Retrieves all IP addresses for compute instances matching a type pattern.
 # @author      Peter Winter
 # @date        13/07/2021
