@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        DestroyServer.sh
+# @file        TerminateServer.sh
 # @brief       Gracefully shuts down and permanently deletes a Linode server by IP.
 # @author      Peter Winter
 # @date        13/07/2021
