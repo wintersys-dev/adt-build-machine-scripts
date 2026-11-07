@@ -80,7 +80,7 @@ do
 		do
 			count="0"
 			#Actually spin up the machine we are going to build on
-			${BUILD_HOME}/services/server/CreateServer.sh "${DB_SERVER_TYPE}" "${database_name}" "adt-database"
+			${BUILD_HOME}/services/server/ProvisionServer.sh "${DB_SERVER_TYPE}" "${database_name}" "adt-database"
 
 			if ( [ "$?" != "0" ] )
 			then
