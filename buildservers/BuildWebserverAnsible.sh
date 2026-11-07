@@ -227,7 +227,7 @@ WSIP_PRIVATE="`/bin/grep PRIVATE_IP ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_I
                         ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "webserverpublicips" "local"
                         ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "webserverips" "local"
 
-                        ${BUILD_HOME}/services/server/DestroyServer.sh ${WSIP_PUBLIC} ${CLOUDHOST}
+                        ${BUILD_HOME}/services/server/TerminateServer.sh ${WSIP_PUBLIC} ${CLOUDHOST}
 
                         status "Probing for the termination of the failed webserver machine so that a new one can be built"
                         status "If this goes on forever, please investigate"
