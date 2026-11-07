@@ -180,7 +180,7 @@ then
 	fi
 elif ( [ "${rp_active_ips}" = "" ] )
 then
-	rp_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}"`"
+	rp_active_ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 #If the build machine is connect to the VPC then we need the private IP address if it is not then we need the public IP address
@@ -189,7 +189,7 @@ then
 	ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 	rp_ws_active_ips="${ws_active_ips}"
 else
-	ws_active_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+	ws_active_ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 	rp_ws_active_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
@@ -430,7 +430,7 @@ then
 		then
 			if ( [ "${LOAD_BALANCER}" = "1" ] && [ "${AUTHENTICATOR_TYPE}" = "basic-auth" ] )
             then
-            	ips_to_check="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
+            	ips_to_check="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "rp-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`"
             else
             	ips_to_check="${rp_active_ips}"
             fi
