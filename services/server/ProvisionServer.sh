@@ -171,7 +171,7 @@ then
         exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/CreateServer.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/ProvisionServer.sh"
 
 if [ ! -f "${script_path}" ]
 then
