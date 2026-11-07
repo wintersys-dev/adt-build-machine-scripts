@@ -1,6 +1,6 @@
 #!/bin/sh
 ############################################################################
-# @file        GetServerPublicIPAddressByIP.sh
+# @file        GetServerPublicIPAddressByPrivateIPAddress.sh
 # @brief       Resolves a machine's public NAT IP based on its private VPC IP.
 # @author      Peter Winter
 # @date        13/06/2021
