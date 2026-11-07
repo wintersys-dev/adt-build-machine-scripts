@@ -231,18 +231,24 @@ then
                 status "SSL Certificates successfully validated"
                 status "Putting SSL Certificates into the datastore"
 
-                ${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "fullchain.pem" "fullchain.pem.$$.old" "local"
-                ${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "privkey.pem" "privkey.pem.$$.old" "local"
-                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "${datastore_identifier}" "fullchain.pem" "local"
-                ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "${datastore_identifier}" "privkey.pem" "local"
+                if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`"!= "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] )
+                then
+                	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "fullchain.pem" "fullchain.pem.$$.old" "local"
+                	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "privkey.pem" "privkey.pem.$$.old" "local"
+              	fi
+			  #  ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "${datastore_identifier}" "fullchain.pem" "local"
+              #  ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "${datastore_identifier}" "privkey.pem" "local"
                 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/fullchain.pem" "root" "local" "no"
                 ${BUILD_HOME}/services/datastore/operations/PutToDatastore.sh "${datastore_identifier}" "${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${service_token}/${WEBSITE_URL}/privkey.pem" "root" "local" "no"
 
                 if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" = "" ] || [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" = "" ] )
                 then
-                        ${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "fullchain.pem.$$.old" "fullchain.pem"
-                        ${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "privkey.pem.$$.old" "privkey.pem"
-                else
+				        if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem.$$.old"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem.$$.old"`" != "" ] )
+						then
+                        	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "fullchain.pem.$$.old" "fullchain.pem"
+                        	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "privkey.pem.$$.old" "privkey.pem"
+                		fi
+				else
                         ${BUILD_HOME}/services/email/SendEmail.sh "NEW SSL CERTIFICATE PUT IN DATASTORE" "SSL Certificate successfully provisioned/generated" "INFO"
                 fi
         else
