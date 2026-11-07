@@ -1,6 +1,6 @@
 #!/bin/sh
 ##############################################################################################
-# @file        GetServerIPAddresses.sh
+# @file        GetServerPublicIPAddresses.sh
 # @brief       Retrieves all IPv4 addresses for Linode servers matching a specified type.
 # @author      Peter Winter
 # @date        13/07/2021
