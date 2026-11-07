@@ -1,6 +1,6 @@
 #!/bin/sh 
 ###################################################################################
-# @file        CreateServer.sh
+# @file       ProvisionServer.sh
 # @brief       Orchestrates the metadata preparation and triggers provider-specific instance deployment.
 # @author      Peter Winter
 # @date        13/07/2021
