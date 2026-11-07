@@ -114,7 +114,7 @@ do
 
 			while ( ( [ "${ip}" = "" ] || [ "${private_ip}" = "" ] ) && [ "${count}" -lt "10" ] )
 			do
-				ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "${database_name}"  | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
+				ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "${database_name}"  | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
 				private_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "${database_name}"  | /bin/grep -P "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"`"
 				/bin/sleep 5
 				count="`/usr/bin/expr ${count} + 1`"
