@@ -21,7 +21,6 @@
 #              - /home/buildhome.dat configuration file tracking the active framework layout.
 #              - LogStatusMessages.sh utility logging system messages.
 #              - GetVariableValue.sh centralized wrapper for lookup configurations.
-#              - GetServerPublicIPAddressByIP.sh internal cross-reference IP lookup tool.
 #              - external dependencies: linode-cli, jq, sleep, expr, cat, mkdir, dirname, date
 #
 # @security    
