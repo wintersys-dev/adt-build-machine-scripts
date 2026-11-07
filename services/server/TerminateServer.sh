@@ -96,7 +96,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/DestroyServer.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/TerminateServer.sh"
 
 if [ ! -f "${script_path}" ]
 then
@@ -117,7 +117,7 @@ set -e
 
 if [ ${exit_code} -ne 0 ]
 then
-    status "Error: DestroyServer.sh failed with exit code $exit_code"
+    status "Error: TerminateServer.sh failed with exit code $exit_code"
     exit $exit_code
 fi
 
