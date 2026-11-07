@@ -115,7 +115,7 @@ do
 		do
 			count="0"
 			#Actually start the server machine. Following this, there will be an active machine instance running on your cloud provider
-			${BUILD_HOME}/services/server/CreateServer.sh "${WS_SERVER_TYPE}" "${webserver_name}" "adt-webserver"
+			${BUILD_HOME}/services/server/ProvisionServer.sh "${WS_SERVER_TYPE}" "${webserver_name}" "adt-webserver"
 
 			if ( [ "$?" != "0" ] )
 			then
