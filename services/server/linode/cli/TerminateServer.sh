@@ -97,7 +97,7 @@ fi
 # Attempt resolution via secondary cross-reference engine if first lookup fails
 if [ -z "${server_id}" ]
 then
-        server_ip="$("${BUILD_HOME}/services/server/GetServerPublicIPAddressByIP.sh" "${server_ip}")"
+        server_ip="$("${BUILD_HOME}/services/server/GetServerPublicIPAddressByPrivateIPAddress.sh" "${server_ip}")"
         server_id="$(/usr/local/bin/linode-cli --no-defaults --json linodes list | /usr/bin/jq -r --arg ip "${server_ip}" '.[] | select(.ipv4[] == $ip).id')"
         cli_exit_code="$?"
         
