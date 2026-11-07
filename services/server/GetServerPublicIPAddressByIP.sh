@@ -1,6 +1,6 @@
 #!/bin/sh 
 ###################################################################################
-# @file        GetServerPublicIPAddressByIP.sh
+# @file        GetServerPublicIPAddressByPrivateIPAddress.sh
 # @brief       Resolves active runtime paths and routes lookups to get public IPs from private IPs.
 # @author      Peter Winter
 # @date        13/06/2021
@@ -95,7 +95,7 @@ then
     exit 1
 fi
 
-script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddressByIP.sh"
+script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/${orchestration_tool}/GetServerPublicIPAddressByPrivateIPAddress.sh"
 
 if [ ! -f "${script_path}" ]
 then
