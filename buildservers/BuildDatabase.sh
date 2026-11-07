@@ -241,7 +241,7 @@ do
 			#We failed so we don't want the IP addresses in our datastore
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "databasepublicip" "local"
 			${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "config" "databaseip" "local"
-			${BUILD_HOME}/services/server/DestroyServer.sh ${DBIP_PUBLIC}
+			${BUILD_HOME}/services/server/TerminateServer.sh ${DBIP_PUBLIC}
 
 			#Wait until we are sure that the database server(s) are destroyed because of a faulty build
 			status "Probing for the termination of the failed database machine so that a new one can be built"
