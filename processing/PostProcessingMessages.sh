@@ -22,7 +22,7 @@
 #set -x
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "${2}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" "${2}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -56,8 +56,8 @@ then
         ws_ips="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
         db_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 else
-        ws_ips="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
-        db_ip="`${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
+        ws_ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
+        db_ip="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 status "IMPORTANT" "figlet"
@@ -67,41 +67,41 @@ if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
 then
         if ( [ "`/bin/grep "^BUILDCHAINTYPE:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "standard" ] || [ "`/bin/grep "^BUILDCHAINTYPE:*" ${BUILD_HOME}/configuration/software.dat | /usr/bin/awk -F':' '{print $NF}'`" = "database" ] )
         then
-              #  if ( [ "${HARDCORE}" = "1" ] )
-              #  then
-              #          if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
-              #          then
-              #                  /bin/echo "Database name: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_NAME'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "Database username: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_USERNAME'`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "Database password: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_PASSWORD'`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"` (try this one first from your application if it timesout, try the public one)" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "The database port is ${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  /bin/echo "You can make up your own database prefix but make sure to include the '_' character at the end of your prefix (for example 'dbprefix_')" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
-              #                  status "A copy of the credentials for this application deployment can be found by running ${BUILD_HOME}/ApplicationCredentials.sh"
-              #          fi
-              #  else
-              #          if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
-              #          then
-              #                  /bin/echo "Database name: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_NAME'`" >&3
-              #                  /bin/echo "Database username: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_USERNAME'`" >&3
-              #                  /bin/echo "Database password: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_PASSWORD'`" >&3
-              #          fi
-              #  fi
+                #  if ( [ "${HARDCORE}" = "1" ] )
+                #  then
+                #          if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
+                #          then
+                #                  /bin/echo "Database name: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_NAME'`" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "Database username: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_USERNAME'`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "Database password: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_PASSWORD'`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "The database public IP address is: `${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"`" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}" "${CLOUDHOST}"` (try this one first from your application if it timesout, try the public one)" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "The database port is ${DB_PORT}" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  /bin/echo "You can make up your own database prefix but make sure to include the '_' character at the end of your prefix (for example 'dbprefix_')" >> ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/credentials/application_credentials.dat
+                #                  status "A copy of the credentials for this application deployment can be found by running ${BUILD_HOME}/ApplicationCredentials.sh"
+                #          fi
+                #  else
+                #          if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] )
+                #          then
+                #                  /bin/echo "Database name: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_NAME'`" >&3
+                #                  /bin/echo "Database username: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_USERNAME'`" >&3
+                #                  /bin/echo "Database password: `${BUILD_HOME}/helpers/services/GetVariableValue.sh 'DB_PASSWORD'`" >&3
+                #          fi
+                #  fi
 
                 if ( [ "${BUILD_ARCHIVE_CHOICE}" = "virgin" ] && [ "`/bin/grep "INTERACTIVE_APPLICATION_INSTALL:yes" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}'`" != "" ] )
                 then
-					status "###############################################################################################################################"
-                	status "OK, your are installing interactively I'll be kind and show you one time your ${APPLICATION} database credentials."
-                	status "Please make a note of them but remember to keep them safe and secret"
-                	status "You can enter them in the GUI system when you install the application"
-                	status "###############################################################################################################################"
+                        status "###############################################################################################################################"
+                        status "OK, your are installing interactively I'll be kind and show you one time your ${APPLICATION} database credentials."
+                        status "Please make a note of them but remember to keep them safe and secret"
+                        status "You can enter them in the GUI system when you install the application"
+                        status "###############################################################################################################################"
 
-	                status "`/bin/grep "MANDATORY_INDIVIDUAL_SETTING:" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}' | /bin/sed 's/^MANDATORY_INDIVIDUAL_SETTING://g'`"
+                        status "`/bin/grep "MANDATORY_INDIVIDUAL_SETTING:" ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/application/${APPLICATION}.dat | /usr/bin/awk -F':' '{print $NF}' | /bin/sed 's/^MANDATORY_INDIVIDUAL_SETTING://g'`"
                 fi
 
                 status "########################################################################################################################"
-                status "The database public IP address is: `${BUILD_HOME}/services/server/GetServerIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""`"
+                status "The database public IP address is: `${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""`"
                 status "The database private IP address is: `${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""` (try this one first from your application if it timesout, try the public one)"
                 status "The database port is ${DB_PORT}"
                 status "You can make up your own database prefix but make sure to include the '_' character at the end of your prefix (for example 'dbprefix_')"
