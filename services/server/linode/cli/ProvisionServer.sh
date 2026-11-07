@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateServer.sh
+# @file        ProvisionServer.sh
 # @brief       Provisions a Linode compute instance securely within a managed VPC.
 # @author      Peter Winter
 # @date        13/07/2021
