@@ -117,7 +117,7 @@ set -e
 
 if [ ${exit_code} -ne 0 ]
 then
-    status "Error: GetServerIPAddresses.sh failed with exit code $exit_code"
+    status "Error: GetServerPublicIPAddresses.sh failed with exit code $exit_code"
     exit $exit_code
 fi
 
