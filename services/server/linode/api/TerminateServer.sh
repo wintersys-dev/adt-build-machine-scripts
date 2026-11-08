@@ -87,8 +87,8 @@ then
         status "Initiating graceful shutdown for instance '${server_name}' (ID: ${server_id}, IP: ${server_ip})..."
         
         # Dispatch shutdown request securely
-        /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-
+    #    /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
+        ${BUILD_HOME}/services/server/linode/api/shutdown_instance.sh
         count="0"
         while true
         do
