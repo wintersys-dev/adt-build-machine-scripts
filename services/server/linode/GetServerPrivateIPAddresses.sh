@@ -117,7 +117,7 @@ then
                 # Temporary disable set -e for sub-calls inside the iteration loop
                 set +e
               #  response1="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${id}/ips")"
-                response1="$(${BUILD_HOME}/services/server/linode/api/get_instance_ips.sh "${TOKEN}" "${id}")"
+                response1="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh "${TOKEN}" "${id}")"
                 curl_sub_status="$?"
                 set -e
 
