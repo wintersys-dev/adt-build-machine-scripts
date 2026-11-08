@@ -77,7 +77,20 @@ server_ip="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+    status "Error: Cannot read software configuration file at ${software_file}" 
+    exit 1
+fi
 
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
+
+if [ -z "${orchestration_tool}" ]
+then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+    exit 1
+fi
 
 if [ -z "${TOKEN}" ]
 # Target routing token evaluation
