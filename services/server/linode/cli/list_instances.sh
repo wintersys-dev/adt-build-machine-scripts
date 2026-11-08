@@ -4,6 +4,6 @@ region="${2}"
 # Inject context variable securely for the local runtime tracking layer
 export LINODE_CLI_TOKEN="${token}"
 
-/usr/local/bin/linode-cli --json linodes list --region ${region}
+/usr/local/bin/linode-cli --no-defaults --json linodes list --region ${region}
 
 unset LINODE_CLI_TOKEN
