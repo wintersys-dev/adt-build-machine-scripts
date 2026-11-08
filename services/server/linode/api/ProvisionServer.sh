@@ -108,11 +108,27 @@ VPC_NAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_NAME)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+    status "Error: Cannot read software configuration file at ${software_file}" 
+    exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
+
+if [ -z "${orchestration_tool}" ]
+then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+    exit 1
+fi
+
 # Evaluate the active platform VPC landscape topology via safe headers
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
-response_vpc="$(${BUILD_HOME}/services/server/linode/api/list_vpcs.sh "${TOKEN}" "${REGION}")"
+response_vpc="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_vpcs.sh "${TOKEN}" "${REGION}")"
 curl_status="$?"
 set -e
 
@@ -132,7 +148,7 @@ then
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
        # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
-        response_create_vpc="$(${BUILD_HOME}/services/server/linode/api/create_vpc.sh "${TOKEN}" "${vpc_payload}")"
+        response_create_vpc="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_vpc.sh "${TOKEN}" "${vpc_payload}")"
         curl_status="$?"
         set -e
 
@@ -146,7 +162,7 @@ then
                 then
                         set +e
                         #response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
-                        response_vpc_refresh="$(${BUILD_HOME}/services/server/linode/api/list_vpcs.sh "${TOKEN}" "${REGION}")"
+                        response_vpc_refresh="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_vpcs.sh "${TOKEN}" "${REGION}")"
                         curl_status="$?"
                         set -e
 
@@ -168,7 +184,7 @@ fi
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets")"
-response_subnet="$(${BUILD_HOME}/services/server/linode/api/list_subnets.sh "${TOKEN}" "${vpc_id}")"
+response_subnet="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_subnets.sh "${TOKEN}" "${vpc_id}")"
 curl_status="$?"
 set -e
 
@@ -194,7 +210,7 @@ instance_payload="$(/usr/bin/jq -n --arg pass "${EMERGENCY_PASSWORD}" --arg reg 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response_instance="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}")"
-response_instance="$(${BUILD_HOME}/services/server/linode/api/create_instance.sh "${TOKEN}" "${instance_payload}")"
+response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${TOKEN}" "${instance_payload}")"
 
 curl_status="$?"
 set -e
