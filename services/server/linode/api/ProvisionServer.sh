@@ -130,7 +130,7 @@ then
         
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
-        response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://linode.com" -H "Content-Type: application/json" -d "${vpc_payload}")"
+        response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
         curl_status="$?"
         set -e
 
