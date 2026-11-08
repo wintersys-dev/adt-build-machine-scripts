@@ -108,7 +108,7 @@ set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response}" ]
 then
-        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg ip "${server_ip}" '.data[] | select(.address == $ip).nat_1_1')"
+        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg ip "${server_ip}" '.[] | select(.address == $ip).nat_1_1')"
 
         if [ -z "${output}" ] || [ "${output}" = "null" ]
         # Ensure a valid NAT string was found
