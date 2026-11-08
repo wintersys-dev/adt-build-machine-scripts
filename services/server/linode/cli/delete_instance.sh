@@ -7,4 +7,4 @@ export LINODE_CLI_TOKEN="${token}"
 
 /usr/local/bin/linode-cli --no-defaults --json linodes delete "${server_id}"
 
-unser LINODE_CLI_TOKEN
+unset LINODE_CLI_TOKEN
