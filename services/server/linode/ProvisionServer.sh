@@ -143,8 +143,13 @@ fi
 if [ -z "${vpc_id}" ] 
 then
         status "VPC network not found. Initiating dynamic deployment schema..."
-        vpc_payload="$(/usr/bin/jq -n --arg lbl "${VPC_NAME}" --arg reg "${REGION}" --arg ip "${VPC_IP_RANGE}" '{label: $lbl, region: $reg, subnets: [{label: "adt-subnet", ipv4: $ip}]}')"
-        
+        if [ "${orchestration_tool}" = "api" ]
+        then
+                vpc_payload="$(/usr/bin/jq -n --arg lbl "${VPC_NAME}" --arg reg "${REGION}" --arg ip "${VPC_IP_RANGE}" '{label: $lbl, region: $reg, subnets: [{label: "adt-subnet", ipv4: $ip}]}')"
+        elif [ "${orchestration_tool}" = "cli" ]
+        then
+                vpc_payload='--label "'${VPC_NAME}'" --region "'${REGION}'" --subnets.label "'adt-subnet'" --subnets.ipv4 "'${VPC_IP_RANGE}'"'
+        fi
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
        # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
