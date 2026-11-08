@@ -159,7 +159,7 @@ fi
 # Fetch subnets for the established VPC
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://linode.com/${vpc_id}/subnets")"
+response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets")"
 curl_status="$?"
 set -e
 
