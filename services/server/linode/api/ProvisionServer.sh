@@ -193,7 +193,9 @@ instance_payload="$(/usr/bin/jq -n --arg pass "${EMERGENCY_PASSWORD}" --arg reg 
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response_instance="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}")"
+#response_instance="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}")"
+response_instance="$(${BUILD_HOME}/services/server/linode/api/create_instance.sh "${TOKEN}" "${instance_payload}")"
+
 curl_status="$?"
 set -e
 
