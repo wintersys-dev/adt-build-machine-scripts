@@ -93,8 +93,8 @@ then
         while true
         do
                 # Fetch target runtime instance environment state tracking flags safely
-                current_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status')"
-                
+             #   current_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status')"
+                current_status="$(${BUILD_HOME}/services/server/linode/api/get_instance_status.sh)"  
                 if [ "${current_status}" = "offline" ] || [ "${count}" -ge 21 ]
                 then
                         break
