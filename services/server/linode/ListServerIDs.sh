@@ -108,7 +108,7 @@ set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response}" ]
 then
-        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg search "${server_type}" '.data[] | select(.label | contains($search)).id')"
+        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg search "${server_type}" '.[] | select(.label | contains($search)).id')"
 
         if [ -z "${output}" ]
         then
