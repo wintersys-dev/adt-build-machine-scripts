@@ -88,13 +88,13 @@ then
         
         # Dispatch shutdown request securely
     #    /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-        ${BUILD_HOME}/services/server/linode/api/shutdown_instance.sh
+        ${BUILD_HOME}/services/server/linode/api/shutdown_instance.sh "${TOKEN}" "${server_id}"
         count="0"
         while true
         do
                 # Fetch target runtime instance environment state tracking flags safely
              #   current_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status')"
-                current_status="$(${BUILD_HOME}/services/server/linode/api/get_instance_status.sh)"  
+                current_status="$(${BUILD_HOME}/services/server/linode/api/get_instance_status.sh "${TOKEN}" "${server_id}")"  
                 if [ "${current_status}" = "offline" ] || [ "${count}" -ge 21 ]
                 then
                         break
@@ -109,7 +109,7 @@ then
         
         # Dispatch final removal payload transaction securely
         #/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
-        ${BUILD_HOME}/services/server/linode/api/delete_instance.sh
+        ${BUILD_HOME}/services/server/linode/api/delete_instance.sh "${TOKEN}" "${server_id}"
         status "Machine with id: ${server_id} and ip address ${server_ip} has been deleted"
 else
         status "Error: No active server instance records matched IP tracking descriptor '${server_ip}'."
