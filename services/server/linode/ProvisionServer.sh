@@ -134,7 +134,7 @@ set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response_vpc}" ]
 then
-        vpc_id="$(/bin/echo "${response_vpc}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
+        vpc_id="$(/bin/echo "${response_vpc}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.[] | select(.label == $lbl).id')"
 else
         status "Network request failed. Check your API token or URL." 
         exit 1
@@ -173,7 +173,7 @@ then
 
                         if [ "${curl_status}" -eq 0 ] && [ -n "${response_vpc_refresh}" ]
                         then
-                                vpc_id="$(/bin/echo "${response_vpc_refresh}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
+                                vpc_id="$(/bin/echo "${response_vpc_refresh}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.[] | select(.label == $lbl).id')"
                         else
                                 status "Network request failed during VPC landscape refresh." 
                                 exit 1
@@ -195,7 +195,7 @@ set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response_subnet}" ]
 then
-        subnet_id="$(/bin/echo "${response_subnet}" | /usr/bin/jq -r --arg lbl "adt-subnet" '.data[] | select(.label == $lbl).id')"
+        subnet_id="$(/bin/echo "${response_subnet}" | /usr/bin/jq -r --arg lbl "adt-subnet" '.[] | select(.label == $lbl).id')"
 else
         status "Network request failed. Check your API token or URL." 
         exit 1
