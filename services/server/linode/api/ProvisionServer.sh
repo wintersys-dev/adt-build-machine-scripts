@@ -136,22 +136,27 @@ then
 
         if [ "${curl_status}" -eq 0 ] && [ -n "${response_create_vpc}" ]
         then
-                # Refresh identifiers tracking the target workspace
-                # Temporary disable set -e to evaluate curl transaction pipeline failures manually
-                set +e
-                response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
-                curl_status="$?"
-                set -e
-
-                if [ "${curl_status}" -eq 0 ] && [ -n "${response_vpc_refresh}" ]
+                # Extract the newly created ID directly from the creation response payload
+                vpc_id="$(/bin/echo "${response_create_vpc}" | /usr/bin/jq -r '.id')"
+                
+                # Double-check fallback: If ID wasn't in response, refresh manually
+                if [ -z "${vpc_id}" ] || [ "${vpc_id}" = "null" ]
                 then
-                        vpc_id="$(/bin/echo "${response_vpc_refresh}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
-                else
-                        status "Network request failed. Check your API token or URL." 
-                        exit 1
+                        set +e
+                        response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
+                        curl_status="$?"
+                        set -e
+
+                        if [ "${curl_status}" -eq 0 ] && [ -n "${response_vpc_refresh}" ]
+                        then
+                                vpc_id="$(/bin/echo "${response_vpc_refresh}" | /usr/bin/jq -r --arg lbl "${VPC_NAME}" '.data[] | select(.label == $lbl).id')"
+                        else
+                                status "Network request failed during VPC landscape refresh." 
+                                exit 1
+                        fi
                 fi
         else
-                status "Network request failed. Check your API token or URL." 
+                status "Network request failed. Dynamic VPC creation failed." 
                 exit 1
         fi
 fi
