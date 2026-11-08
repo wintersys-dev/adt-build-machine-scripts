@@ -108,7 +108,7 @@ set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response}" ]
 then
-        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg ip "${server_ip}" '.data[] | select(.ipv4[] == $ip).label')"
+        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg ip "${server_ip}" '.[] | select(.ipv4[] == $ip).label')"
 
         if [ -z "${output}" ]
         then
