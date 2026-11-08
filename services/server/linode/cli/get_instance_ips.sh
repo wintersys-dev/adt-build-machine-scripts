@@ -8,4 +8,4 @@ export LINODE_CLI_TOKEN="${token}"
 
 /usr/local/bin/linode-cli linodes ips-list ${server_id}
 
-unser LINODE_CLI_TOKEN
+unset LINODE_CLI_TOKEN
