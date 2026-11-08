@@ -111,7 +111,8 @@ REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 # Evaluate the active platform VPC landscape topology via safe headers
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
+#response_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
+response_vpc="$(${HOME}/services/server/linode/api/list_vpcs.sh)"
 curl_status="$?"
 set -e
 
