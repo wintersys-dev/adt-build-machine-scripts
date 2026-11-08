@@ -57,7 +57,7 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 ####################################################################################
-#set -x
+set -x
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -112,16 +112,16 @@ REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-    status "Error: Cannot read software configuration file at ${software_file}" 
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}" 
+        exit 1
 fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
-    exit 1
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+        exit 1
 fi
 
 # Evaluate the active platform VPC landscape topology via safe headers
@@ -152,7 +152,7 @@ then
         fi
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
-       # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
+        # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
         response_create_vpc="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_vpc.sh "${TOKEN}" "${vpc_payload}")"
         curl_status="$?"
         set -e
@@ -161,7 +161,7 @@ then
         then
                 # Extract the newly created ID directly from the creation response payload
                 vpc_id="$(/bin/echo "${response_create_vpc}" | /usr/bin/jq -r '.id')"
-                
+
                 # Double-check fallback: If ID wasn't in response, refresh manually
                 if [ -z "${vpc_id}" ] || [ "${vpc_id}" = "null" ]
                 then
@@ -215,13 +215,14 @@ then
         instance_payload="$(/usr/bin/jq -n --arg pass "${EMERGENCY_PASSWORD}" --arg reg "${region}" --arg img "${image}" --arg size "${server_size}" --arg name "${server_name}" --arg fw "${firewall_id}" --arg sub "${subnet_id}" --arg ud "${user_data_encoded}" '{ root_pass: $pass, region: $reg, image: $img, type: $size, label: $name, interface_generation: "linode", interfaces: [ { firewall_id: ($fw | tonumber), vpc: { subnet_id: ($sub | tonumber), ipv4: { addresses: [ { address: "auto", nat_1_1_address: "auto" } ] } } } ], metadata: { user_data: $ud }, disk_encryption: "enabled" }')"
 elif [ "${orchestration_tool}" = "cli" ]
 then
-        instance_payload=' --root_pass "'${EMERGENCY_PASSWORD}'" --region "'${region}'" --image "'${image}'" --type "'${server_size}'" --label "'${server_name}'" --no-defaults --interface_generation linode --interfaces "'${interfaces}'" --metadata.user_data "'${user_data_encoded}'" --disk_encryption enabled'
+        instance_payload="${EMERGENCY_PASSWORD} ${region} ${image} ${server_size} ${server_name} ${firewall_id} ${subnet_id} ${user_data_encoded}"
 fi
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
+
 #response_instance="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}")"
-response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${TOKEN}" "${instance_payload}")"
+response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${instance_payload}")"
 
 curl_status="$?"
 set -e
