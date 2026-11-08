@@ -112,7 +112,7 @@ REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
-response_vpc="$(${HOME}/services/server/linode/api/list_vpcs.sh)"
+response_vpc="$(${BUILD_HOME}/services/server/linode/api/list_vpcs.sh "${TOKEN}" "${REGION}")"
 curl_status="$?"
 set -e
 
@@ -132,7 +132,7 @@ then
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
        # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
-        response_create_vpc="$(${HOME}/services/server/linode/api/create_vpc.sh "${TOKEN}" "${vpc_payload}")"
+        response_create_vpc="$(${BUILD_HOME}/services/server/linode/api/create_vpc.sh "${TOKEN}" "${vpc_payload}")"
         curl_status="$?"
         set -e
 
@@ -166,7 +166,8 @@ fi
 # Fetch subnets for the established VPC
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets")"
+#response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets")"
+response_subnet="$(${BUILD_HOME}/services/server/linode/api/list_subnets.sh "${TOKEN}" ${vpc_id}")"
 curl_status="$?"
 set -e
 
