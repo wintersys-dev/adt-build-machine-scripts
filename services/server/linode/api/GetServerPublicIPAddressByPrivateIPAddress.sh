@@ -77,6 +77,8 @@ server_ip="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
+
+
 if [ -z "${TOKEN}" ]
 # Target routing token evaluation
 then
@@ -87,7 +89,7 @@ fi
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs/ips")"
-response="$(${BUILD_HOME}/services/server/linode/api/get_vpc_ips.sh "${TOKEN}" "${REGION}")"
+response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_vpc_ips.sh "${TOKEN}" "${REGION}")"
 curl_status="$?"
 set -e
 
