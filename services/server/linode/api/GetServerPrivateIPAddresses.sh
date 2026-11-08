@@ -78,6 +78,21 @@ server_type="${1}"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+    status "Error: Cannot read software configuration file at ${software_file}" 
+    exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
+
+if [ -z "${orchestration_tool}" ]
+then
+    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+    exit 1
+fi
+
 if [ -z "${TOKEN}" ]
 # Target routing token evaluation
 then
@@ -86,11 +101,11 @@ then
 fi
 
 # Map out structural infrastructure identifiers
-server_ids="$("${BUILD_HOME}/services/server/linode/api/ListServerIDs.sh" "${server_type}")"
+server_ids="$("${BUILD_HOME}/services/server/linode/ListServerIDs.sh" "${server_type}")"
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response="$(${BUILD_HOME}/services/server/linode/api/list_instances.sh "${TOKEN}" "${REGION}")"
+response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${TOKEN}" "${REGION}")"
 #response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/linode/instances")"
 curl_status="$?"
 set -e
