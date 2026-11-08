@@ -145,7 +145,8 @@ then
                 if [ -z "${vpc_id}" ] || [ "${vpc_id}" = "null" ]
                 then
                         set +e
-                        response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
+                        #response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
+                        response_vpc_refresh="$(${BUILD_HOME}/services/server/linode/api/list_vpcs.sh "${TOKEN}" "${REGION}")"
                         curl_status="$?"
                         set -e
 
