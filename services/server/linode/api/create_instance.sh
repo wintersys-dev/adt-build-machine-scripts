@@ -1,6 +1,10 @@
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+parameter_payload="${1}"
 
-token="${1}"
-instance_payload="${2}"
+read -r emergency_password region image server_size server_name firewall_id subnet_id user_data_encoded<<EOF
+$parameter_payload
+EOF
 
 
 
