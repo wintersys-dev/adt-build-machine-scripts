@@ -1,5 +1,5 @@
 token="${1}"
-sever_id="${2}"
+server_id="${2}"
 
 # Inject context variable securely for the local runtime tracking layer
 export LINODE_CLI_TOKEN="${token}"
