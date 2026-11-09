@@ -68,6 +68,8 @@ fi
 
 region="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely construct the X-Filter JSON payload using jq to mitigate string/quote injection hazards
 x_filter_header="$(/usr/bin/jq -n -c --arg reg "${region}" '{"region": $reg}' 2>/dev/null)"
 
