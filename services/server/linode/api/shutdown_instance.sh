@@ -75,9 +75,10 @@ then
         exit 1
 fi
 
+set +e
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" -w "\nHTTP_STATUS:%{http_code}")
-
+set -e
 # Extract the HTTP status code (e.g., 200, 404, 401) using strict POSIX filtering
 HTTP_CODE=$(/bin/echo "$RESPONSE" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
 
