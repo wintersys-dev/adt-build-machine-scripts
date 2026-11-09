@@ -57,10 +57,10 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: Both API token and Server ID arguments are required."
-        status "Usage: $0 <linode_api_token> <server_id>"
+        status "Error: Server ID argument is required."
+        status "Usage: $0 <server_id>"
         exit 1
 fi
 
