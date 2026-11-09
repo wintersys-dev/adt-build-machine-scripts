@@ -68,6 +68,12 @@ server_id="${1}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if  [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
 /bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status'
