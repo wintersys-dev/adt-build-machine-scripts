@@ -66,9 +66,11 @@ fi
 
 vpc_payload="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}"
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}"
 exit_code="$?"
 set -e
 
