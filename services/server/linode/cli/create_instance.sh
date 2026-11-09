@@ -26,24 +26,25 @@ interfaces=$(/usr/bin/jq -n -c --arg fw_id "${firewall_id}" --arg sub_id "${subn
 
 
 #We don't want  to pass the userdata on the command line as it will be visible in the process tree
-ENCODED_USER_DATA=$(/usr/bin/base64 < "${user_data_path}" | tr -d '\n')
+#ENCODED_USER_DATA=$(/usr/bin/base64 < "${user_data_path}" | tr -d '\n')
 
-if [ ! -d "$HOME/.config" ]
-then
-        /bin/mkdir -p "$HOME/.config"
-fi
+#if [ ! -d "$HOME/.config" ]
+#then
+#        /bin/mkdir -p "$HOME/.config"
+#fi
 
-TMP_CONFIG="$HOME/.config/linode-cli"
+#TMP_CONFIG="$HOME/.config/linode-cli"
 
-touch "${TMP_CONFIG}"
-chmod 600 "${TMP_CONFIG}"
+#touch "${TMP_CONFIG}"
+#chmod 600 "${TMP_CONFIG}"
 
-cat <<EOF > "${TMP_CONFIG}"
-[linode-cli]
-metadata.user_data = ${ENCODED_USER_DATA}
-EOF
+#cat <<EOF > "${TMP_CONFIG}"
+#[linode-cli]
+#metadata.user_data = ${ENCODED_USER_DATA}
+#EOF
+
 
 # Execute linode-cli using the configuration file
-/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --as-user "linode-cli" --root_pass "$(cat  ${password_file})" --disk_encryption "enabled"
+/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --as-user "linode-cli" --root_pass "$(cat  ${password_file})" --metadata.user_data "$(/usr/bin/base64 < "${user_data_path}" | tr -d '\n')" --disk_encryption "enabled"
 
 rm -f "${TMP_CONFIG}"
