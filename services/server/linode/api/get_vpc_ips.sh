@@ -86,8 +86,10 @@ then
         exit 1
 fi
 
+set +e
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -H "X-Filter: ${x_filter_header}" "https://api.linode.com/v4/vpcs/ips" -w "\nHTTP_STATUS:%{http_code}")
+set -e
 
 # Extract the HTTP status code (e.g., 200, 400, 401) using strict POSIX filtering
 HTTP_CODE=$(/bin/echo "$RESPONSE" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
