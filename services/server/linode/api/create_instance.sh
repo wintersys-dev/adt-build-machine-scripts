@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -86,9 +87,9 @@ user_data_path="${7}"
 
 #if [ -z "${1}" ]
 #then
- #       status "Error: Deployment parameters payload argument is required."
-  #      status "Usage: $0 '<parameter_payload>'"
-  #      exit 1
+#       status "Error: Deployment parameters payload argument is required."
+#      status "Usage: $0 '<parameter_payload>'"
+#      exit 1
 #fi
 
 #parameter_payload="${1}"
@@ -170,17 +171,48 @@ then
         exit 1
 fi
 
-# Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
-set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}"
-exit_code="$?"
-set -e
+# Send request. We capture both body and HTTP status code into a single variable.
+# We add a trailing marker to easily split the status code from the body.
+RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}" -w "\nHTTP_STATUS:%{http_code}")
 
-if [ "${exit_code}" -ne 0 ]
-then
-        status "Error: Linode API server creation call failed with exit code ${exit_code}." >&2
-        exit "${exit_code}"
-fi
+# Extract the HTTP status code (last 3 digits after the marker)
+HTTP_CODE=$(/bin/echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
 
-status "Success: API provisioning payload transmitted cleanly to endpoints."
+# Strip the marker and code from the response body
+BODY=$(/bin/echo "$RESPONSE" | sed '/HTTP_STATUS:/d')
+
+# Evaluate the response using a POSIX-compliant case statement
+case "$HTTP_CODE" in
+        200|201)
+                /bin/echo "Success! Linode instance created."
+                #               /bin/echo "$BODY"
+                ;;
+        400)
+                /bin/echo "Error 400: Bad Request. Check your payload syntax."
+                /bin/echo "API Response: $BODY"
+                exit 1
+                ;;
+        401)
+                /bin/echo "Error 401: Unauthorized. Check your TOKEN."
+                exit 1
+                ;;
+        403)
+                /bin/echo "Error 403: Forbidden. Missing permissions."
+                exit 1
+                ;;
+        429)
+                /bin/echo "Error 429: Rate Limit Exceeded."
+                exit 1
+                ;;
+        5*)
+                /bin/echo "Error $HTTP_CODE: Linode Server Error."
+                exit 1
+                ;;
+        *)
+                /bin/echo "Error $HTTP_CODE: Unexpected response."
+                /bin/echo "API Response: $BODY"
+                exit 1
+                ;;
+esac
+
 exit 0
