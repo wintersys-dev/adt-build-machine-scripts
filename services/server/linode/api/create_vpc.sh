@@ -74,51 +74,53 @@ then
         exit 1
 fi
 
+# Force status helper messages strictly onto stderr to preserve clean data streaming on stdout
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
+}
+
 set +e
-# Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
+# Saferoad authorized POST actions via standard stream piping to prevent exposure in process trees
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}" -w "\nHTTP_STATUS:%{http_code}")
 set -e
 
-# Extract the HTTP status code (e.g., 200, 400, 401)
 HTTP_CODE=$(/bin/echo "$RESPONSE" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-
-# Extract the raw JSON response body by dropping the status line
 RESPONSE_BODY=$(/bin/echo "$RESPONSE" | /usr/bin/sed '/HTTP_STATUS:/d')
 
-# Evaluate the API response code using strict POSIX structural matching
 case "${HTTP_CODE}" in
-        200|201)
-                status "Success: VPC network configuration payload transmitted cleanly to endpoints."
-                # If your status function accepts multi-line body payloads, you can pass it here:
-                # status "API Response: ${RESPONSE_BODY}"
-                exit 0
-                ;;
-        400)
-                status "Error 400: Bad Request. Check your VPC JSON payload formatting."
-                status "API Detail: ${RESPONSE_BODY}"
-                exit 400
-                ;;
-        401)
-                status "Error 401: Unauthorized. Your authentication TOKEN is invalid or has expired."
-                exit 401
-                ;;
-        403)
-                status "Error 403: Forbidden. Token lacks permissions to create VPC resources."
-                exit 403
-                ;;
-        429)
-                status "Error 429: Rate Limit Exceeded. Back off request frequency."
-                exit 429
-                ;;
-        5*)
-                status "Error ${HTTP_CODE}: Linode Gateway or Remote Server Exception."
-                exit 500
-                ;;
-        *)
-                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
-                status "API Detail: ${RESPONSE_BODY}"
-                exit 1
-                ;;
+    200|201)
+        status "Success: VPC network configuration payload transmitted cleanly to endpoints."
+        # This streams the pure JSON directly back to the caller script's stdout stream
+        /bin/echo "${RESPONSE_BODY}"
+        exit 0
+        ;;
+    400)
+        status "Error 400: Bad Request. Check your VPC JSON payload formatting."
+        status "API Detail: ${RESPONSE_BODY}"
+        exit 400
+        ;;
+    401)
+        status "Error 401: Unauthorized. Your authentication TOKEN is invalid or has expired."
+        exit 401
+        ;;
+    403)
+        status "Error 403: Forbidden. Token lacks permissions to create VPC resources."
+        exit 403
+        ;;
+    429)
+        status "Error 429: Rate Limit Exceeded. Back off request frequency."
+        exit 429
+        ;;
+    5*)
+        status "Error ${HTTP_CODE}: Linode Gateway or Remote Server Exception."
+        exit 500
+        ;;
+    *)
+        status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
+        status "API Detail: ${RESPONSE_BODY}"
+        exit 1
+        ;;
 esac
 
 exit 0
