@@ -80,7 +80,7 @@ fi
 
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -H "X-Filter: ${x_filter_header}" "https://linode.com" | /usr/bin/jq '.data'
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -H "X-Filter: ${x_filter_header}" "https://api.linode.com/v4/vpcs" | /usr/bin/jq '.data'
 exit_code="$?"
 set -e
 
