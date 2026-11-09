@@ -68,7 +68,7 @@ server_id="${1}"
 
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s "https://linode.com{server_id}" | /usr/bin/jq -r '.status'
+/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status'
 exit_code="$?"
 set -e
 
