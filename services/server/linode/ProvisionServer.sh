@@ -24,8 +24,6 @@
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 # @env         VPC_IP_RANGE        The network block CIDR configured for VPC initialization.
 # @env         VPC_NAME            The matching environment tag pattern for infrastructure filtering.
-# @env         TOKEN               The active Linode API Bearer security credentials string.
-# @env         EMERGENCY_PASSWORD  Needs to be exported from above as its security sensitive.
 # @env         REGION              The region that the servers are running in.
 #
 # @dependencies
@@ -90,12 +88,6 @@ user_data_path="${5}"
 firewall_id="${6}"
 snapshot_id="${7}"
 
-# Defensive check for structural credentials exposure
-#if [ -z "${EMERGENCY_PASSWORD}" ]
-#then
-#        status "Error: EMERGENCY_PASSWORD environment variable not set"
-#        exit 1
-#fi
 
 if [ -n "${snapshot_id}" ]
 then
@@ -126,7 +118,6 @@ fi
 # Evaluate the active platform VPC landscape topology via safe headers
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-#response_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
 response_vpc="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_vpcs.sh "${REGION}")"
 curl_status="$?"
 set -e
@@ -151,7 +142,6 @@ then
         fi
         # Temporary disable set -e to evaluate curl transaction pipeline failures manually
         set +e
-        # response_create_vpc="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}")"
         response_create_vpc="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_vpc.sh "${vpc_payload}")"
         curl_status="$?"
         set -e
@@ -165,7 +155,6 @@ then
                 if [ -z "${vpc_id}" ] || [ "${vpc_id}" = "null" ]
                 then
                         set +e
-                        #response_vpc_refresh="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/vpcs")"
                         response_vpc_refresh="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_vpcs.sh "${REGION}")"
                         curl_status="$?"
                         set -e
@@ -187,7 +176,6 @@ fi
 # Fetch subnets for the established VPC
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-#response_subnet="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets")"
 response_subnet="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_subnets.sh "${vpc_id}")"
 curl_status="$?"
 set -e
@@ -206,21 +194,10 @@ then
         exit 1
 fi
 
-# Base64 package processing safely isolated
-#user_data_encoded="$(/bin/cat "${user_data_path}" | /usr/bin/base64 -w 0)"
+parameter_payload="${EMERGENCY_PASSWORD} ${region} ${image} ${server_size} ${server_name} ${firewall_id} ${subnet_id} ${user_data_path}"
 
-#if [ "${orchestration_tool}" = "api" ]
-#then
-#        instance_payload="$(/usr/bin/jq -n --arg pass "${EMERGENCY_PASSWORD}" --arg reg "${region}" --arg img "${image}" --arg size "${server_size}" --arg name "${server_name}" --arg fw "${firewall_id}" --arg sub "${subnet_id}" --arg ud "${user_data_encoded}" '{ root_pass: $pass, region: $reg, image: $img, type: $size, label: $name, interface_generation: "linode", interfaces: [ { firewall_id: ($fw | tonumber), vpc: { subnet_id: ($sub | tonumber), ipv4: { addresses: [ { address: "auto", nat_1_1_address: "auto" } ] } } } ], metadata: { user_data: $ud }, disk_encryption: "enabled" }')"
-#elif [ "${orchestration_tool}" = "cli" ]
-#then
-        parameter_payload="${EMERGENCY_PASSWORD} ${region} ${image} ${server_size} ${server_name} ${firewall_id} ${subnet_id} ${user_data_path}"
-#fi
-
-# Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 
-#response_instance="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}")"
 response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${parameter_payload}")"
 
 curl_status="$?"
