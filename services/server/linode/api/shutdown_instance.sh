@@ -66,6 +66,8 @@ fi
 
 server_id="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
 /bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown"
