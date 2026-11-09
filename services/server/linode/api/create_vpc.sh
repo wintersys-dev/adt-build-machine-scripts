@@ -68,7 +68,7 @@ vpc_payload="${1}"
 
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s -X POST "https://linode.com" -H "Content-Type: application/json" -d "${vpc_payload}"
+/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}"
 exit_code="$?"
 set -e
 
