@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateLinodeVpcApi.sh
+# @file        create_vpc.sh
 # @brief       Provisions a Linode Virtual Private Cloud (VPC) directly via the REST API v4.
 # @author      Peter Winter
 # @date        09/11/2026
