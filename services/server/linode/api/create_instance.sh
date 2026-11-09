@@ -182,38 +182,38 @@ set -e
 HTTP_CODE=$(/bin/echo "${RESPONSE}" | /bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
 
 # Strip the marker and code from the response body
-BODY=$(/bin/echo "$RESPONSE" | /bin/sed '/HTTP_STATUS:/d')
+RESPONSE_BODY=$(/bin/echo "$RESPONSE" | /bin/sed '/HTTP_STATUS:/d')
 
 # Evaluate the response using a POSIX-compliant case statement
 case "$HTTP_CODE" in
         200|201)
-                /bin/echo "Success! Linode instance created."
-                #               /bin/echo "$BODY"
+                status "Success! Linode instance created."
+                /bin/echo "$RESPONSE_BODY"
                 ;;
         400)
-                /bin/echo "Error 400: Bad Request. Check your payload syntax."
-                /bin/echo "API Response: $BODY"
+                status "Error 400: Bad Request. Check your payload syntax."
+                status "API Response: $RESPONSE_BODY"
                 exit 1
                 ;;
         401)
-                /bin/echo "Error 401: Unauthorized. Check your TOKEN."
+                status "Error 401: Unauthorized. Check your TOKEN."
                 exit 1
                 ;;
         403)
-                /bin/echo "Error 403: Forbidden. Missing permissions."
+                status "Error 403: Forbidden. Missing permissions."
                 exit 1
                 ;;
         429)
-                /bin/echo "Error 429: Rate Limit Exceeded."
+                status "Error 429: Rate Limit Exceeded."
                 exit 1
                 ;;
         5*)
-                /bin/echo "Error $HTTP_CODE: Linode Server Error."
+                status "Error $HTTP_CODE: Linode Server Error."
                 exit 1
                 ;;
         *)
-                /bin/echo "Error $HTTP_CODE: Unexpected response."
-                /bin/echo "API Response: $BODY"
+                status "Error $HTTP_CODE: Unexpected response."
+                status "API Response: $RESPONSE_BODY"
                 exit 1
                 ;;
 esac
