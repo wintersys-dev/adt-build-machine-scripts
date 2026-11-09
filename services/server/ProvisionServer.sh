@@ -141,14 +141,14 @@ then
         firewall_id="-1"
 fi
 
-pass_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD"
-if [ -f "${pass_file}" ]
-then    
-        emergency_password="$(/bin/cat "${pass_file}")"
-else
-        emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16)"
-        /bin/echo "${emergency_password}" > "${pass_file}"
-fi
+#pass_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/EMERGENCY_PASSWORD"
+#if [ -f "${pass_file}" ]
+#then    
+#        emergency_password="$(/bin/cat "${pass_file}")"
+#else
+#        emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /usr/bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -b 1-16)"
+#        /bin/echo "${emergency_password}" > "${pass_file}"
+#fi
 
 image="${OS_CHOICE}" 
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -n "${snapshot_id}" ]
