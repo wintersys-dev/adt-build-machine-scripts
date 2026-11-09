@@ -64,7 +64,10 @@ then
         exit 1
 fi
 
-server_id="${2}"
+server_id="${1}"
+
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 
 # Safely route authorized DELETE actions via standard stream piping to prevent exposure in process trees
 set +e
