@@ -21,8 +21,10 @@ fi
 
 interfaces="$(/usr/bin/jq -n --arg fw_id "${firewall_id}" --arg sub_id "${subnet_id}" '[ { "firewall_id": ($fw_id | tonumber), "vpc": { "subnet_id": ($sub_id | tonumber), "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]')"
 
-#/usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${emergency_password}" --region "${region}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data_encoded}" --disk_encryption enabled
-ENCODED_USER_DATA=$(/usr/bin/base64 -w0 ${user_data_path})  EMERGENCY_PASSWORD=$(/bin/cat "${password_file}") /usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${EMERGENCY_PASSWORD}" --region "${region}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${ENCODED_USER_DATA}" --disk_encryption enabled
+ENCODED_USER_DATA=$(/usr/bin/base64 -w0 ${user_data_path})  
+EMERGENCY_PASSWORD=$(/bin/cat "${password_file}")
 
-unset LINODE_CLI_ARGS ENCODED_USER_DATA ENV_ARGS
+#/usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${emergency_password}" --region "${region}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${user_data_encoded}" --disk_encryption enabled
+_PASS="${EMERGENCY_PASSWORD}" _DATA="${ENCODED_USER_DATA}" /usr/local/bin/linode-cli --no-defaults --json linodes create --root_pass "${_PASS}" --region "${region}" --image "${image}" --type "${server_size}" --label "${server_name}" --no-defaults --interface_generation linode --interfaces "${interfaces}" --metadata.user_data "${_DATA}" --disk_encryption enabled
+
 unset LINODE_CLI_TOKEN
