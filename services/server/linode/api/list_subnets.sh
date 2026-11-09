@@ -57,7 +57,7 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
         status "Error:  VPC ID argument is required."
         status "Usage: $0 <vpc_id>"
