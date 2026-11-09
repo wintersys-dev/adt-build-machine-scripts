@@ -58,10 +58,10 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: Both API token and VPC configuration payload arguments are required."
-        status "Usage: $0 <linode_cli_token> <vpc_json_payload>"
+        status "Error: VPC configuration payload argument is required."
+        status "Usage: $0 <vpc_json_payload>"
         exit 1
 fi
 
