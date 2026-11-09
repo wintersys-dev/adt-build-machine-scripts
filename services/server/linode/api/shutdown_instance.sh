@@ -68,7 +68,7 @@ server_id="${1}"
 
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -f -X POST "https://linode.com{server_id}/shutdown"
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown"
 exit_code="$?"
 set -e
 
