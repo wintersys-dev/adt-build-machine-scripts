@@ -89,14 +89,6 @@ then
         exit 1
 fi
 
-# Resolve framework settings utilizing the internal variable helper service
-get_var_tool="${BUILD_HOME}/helpers/services/GetVariableValue.sh"
-if [ ! -x "${get_var_tool}" ]
-then
-        status "Error: Helper service script not executable at ${get_var_tool}"
-        exit 1
-fi
-
 CLOUDHOST="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST)"
 BUILD_IDENTIFIER="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILD_IDENTIFIER)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
