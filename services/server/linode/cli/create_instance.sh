@@ -8,6 +8,12 @@ EOF
 
 export LINODE_CLI_TOKEN="${TOKEN}"
 
+read -s -p "Enter Linode Root Password: " LINODE_ROOT_PASS
+echo ""
+
+# 2. Safely read, encode, and export your userdata script to memory
+export LINODE_METADATA__USER_DATA=$(base64 -w0 /path/to/your/cloud-config.yaml)
+
 #see if interfaces can be made a parameter also
 
 interfaces="$(/usr/bin/jq -n --arg fw_id "${firewall_id}" --arg sub_id "${subnet_id}" '[ { "firewall_id": ($fw_id | tonumber), "vpc": { "subnet_id": ($sub_id | tonumber), "ipv4": { "addresses": [ { "address": "auto", "nat_1_1_address": "auto" } ] } } } ]')"
