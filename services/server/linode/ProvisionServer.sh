@@ -91,11 +91,11 @@ firewall_id="${6}"
 snapshot_id="${7}"
 
 # Defensive check for structural credentials exposure
-if [ -z "${EMERGENCY_PASSWORD}" ]
-then
-        status "Error: EMERGENCY_PASSWORD environment variable not set"
-        exit 1
-fi
+#if [ -z "${EMERGENCY_PASSWORD}" ]
+#then
+#        status "Error: EMERGENCY_PASSWORD environment variable not set"
+#        exit 1
+#fi
 
 if [ -n "${snapshot_id}" ]
 then
