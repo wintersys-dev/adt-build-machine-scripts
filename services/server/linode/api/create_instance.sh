@@ -172,10 +172,7 @@ then
 fi
 
 set +e
-# Send request. We capture both body and HTTP status code into a single variable.
-# We add a trailing marker to easily split the status code from the body.
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}" -w "\nHTTP_STATUS:%{http_code}")
-
 set -e
 
 # Extract the HTTP status code (last 3 digits after the marker)
