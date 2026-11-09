@@ -109,15 +109,8 @@ then
 fi
 
 password_file="${runtime_dir}/EMERGENCY_PASSWORD"
-if [ -f "${password_file}" ]
-then    
-        if [ ! -r "${password_file}" ]
-        then
-                status "Error: Password file exists but is unreadable at ${password_file}"
-                exit 1
-        fi
-        emergency_password="$(/bin/cat "${password_file}")"
-else
+if [ ! -f "${password_file}" ]
+then
         # Safely generate an alphanumeric random password sequence
         emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /bin/tr -d '\n' | /bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -c 1-16)"
         /bin/echo "${emergency_password}" > "${password_file}"
@@ -140,17 +133,17 @@ then
 fi
 
 # Base64 encode the user data profile string securely
-encoded_user_data="$(/usr/bin/base64 < "${user_data_path}" | /bin/tr -d '\n')"
+#encoded_user_data="$(/usr/bin/base64 < "${user_data_path}" | /bin/tr -d '\n')"
 
-if [ -z "${encoded_user_data}" ]
-then
-        status "Error: Failed to process or encode user data at ${user_data_path}"
-        exit 1
-fi
+#if [ -z "${encoded_user_data}" ]
+#then
+#        status "Error: Failed to process or encode user data at ${user_data_path}"
+#        exit 1
+#fi
 
 # Dispatch orchestration provisioning statement to the remote infrastructure client provider
 set +e
-/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --root_pass "${emergency_password}" --metadata.user_data "${encoded_user_data}" --disk_encryption "enabled"
+/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --root_pass "$(/bin/cat "${password_file}")" --metadata.user_data "$(/usr/bin/base64 < "${user_data_path}" | /bin/tr -d '\n')" --disk_encryption "enabled"
 exit_code="$?"
 set -e
 
