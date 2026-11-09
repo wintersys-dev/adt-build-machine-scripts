@@ -68,7 +68,7 @@ vpc_id="${1}"
 
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://linode.com{vpc_id}/subnets" | /usr/bin/jq '.data'
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq '.data'
 exit_code="$?"
 set -e
 
