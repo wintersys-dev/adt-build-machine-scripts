@@ -60,7 +60,7 @@ status()
 
 if [ -z "${1}" ] 
 then
-        status "Error: Regionargument is required."
+        status "Error: Region argument is required."
         status "Usage: $0  <region>"
         exit 1
 fi
@@ -71,7 +71,7 @@ TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if  [ -z "${TOKEN}" ]
 then
-        status "Error: Failed to fetch required context variables (CLOUDHOST, BUILD_IDENTIFIER, or TOKEN)."
+        status "Error: Failed to fetch required context variables (TOKEN)."
         exit 1
 fi
 
