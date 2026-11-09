@@ -66,6 +66,8 @@ fi
 
 vpc_id="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
 /bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/vpcs/${vpc_id}/subnets" | /usr/bin/jq '.data'
