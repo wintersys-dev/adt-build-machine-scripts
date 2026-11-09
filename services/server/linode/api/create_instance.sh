@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateLinodeInstanceApi.sh
+# @file        create_instance.sh
 # @brief       Provisions a Linode server instance directly via the Linode REST API v4.
 # @author      Peter Winter
 # @date        09/11/2026
@@ -150,9 +150,7 @@ fi
 
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -X POST "https://linode.com" \
-    -H "Content-Type: application/json" \
-    -d "${instance_payload}"
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/linode/instances" -H "Content-Type: application/json" -d "${instance_payload}"
 exit_code="$?"
 set -e
 
