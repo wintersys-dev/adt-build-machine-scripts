@@ -66,6 +66,8 @@ fi
 
 server_id="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
 /bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status'
