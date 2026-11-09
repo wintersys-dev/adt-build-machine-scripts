@@ -25,7 +25,6 @@
 #
 # @security    
 #              - Hardens system-owned paths (/bin, /usr/bin) to negate hijacking.
-#              - Passes authentication token via standard input pipe to curl to protect credentials.
 #              - Quotes variable interpolations thoroughly to trap space-injection hazards.
 #
 # @exit        0  Success: Cloud instance creation payload accepted by API server.
@@ -75,9 +74,7 @@ ${parameter_payload}
 EOF
 
 # Ensure all expected payload arguments extracted successfully and are not empty
-if [ -z "${region}" ] || [ -z "${image}" ] || [ -z "${server_size}" ] || \
-   [ -z "${server_name}" ] || [ -z "${firewall_id}" ] || [ -z "${subnet_id}" ] || \
-   [ -z "${user_data_path}" ]
+if [ -z "${region}" ] || [ -z "${image}" ] || [ -z "${server_size}" ] || [ -z "${server_name}" ] || [ -z "${firewall_id}" ] || [ -z "${subnet_id}" ] || [ -z "${user_data_path}" ]
 then
         status "Error: Missing required fields in deployment parameter payload."
         exit 1
