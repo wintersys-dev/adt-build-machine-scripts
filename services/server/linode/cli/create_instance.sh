@@ -86,20 +86,6 @@ subnet_id="${6}"
 user_data_path="${7}"
 
 
-#if [ -z "${1}" ]
-#then
-#        status "Error: Deployment parameters payload argument is required."
-#        status "Usage: $0 \"<region> <image> <server_size> <server_name> <firewall_id> <subnet_id> <user_data_path>\""
-#        exit 1
-#fi
-
-#parameter_payload="${1}"
-
-# Extract space-separated fields carefully from the payload string
-#read -r region image server_size server_name firewall_id subnet_id user_data_path <<EOF
-#${parameter_payload}
-#EOF
-
 # Ensure all expected payload arguments extracted successfully and are not empty
 if [ -z "${region}" ] || [ -z "${image}" ] || [ -z "${server_size}" ] || [ -z "${server_name}" ] || [ -z "${firewall_id}" ] || [ -z "${subnet_id}" ] || [ -z "${user_data_path}" ]
 then
@@ -140,12 +126,6 @@ then
         emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /bin/tr -d '\n' | /bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -c 1-16)"
         /bin/echo "${emergency_password}" > "${password_file}"
         /bin/chmod 600 "${password_file}"
-fi
-
-if [ -z "${emergency_password}" ]
-then
-        status "Error: Emergency password variable isolation failed or resolved empty."
-        exit 1
 fi
 
 # Build secure JSON structures safely decoupling parameter strings via jq arguments
