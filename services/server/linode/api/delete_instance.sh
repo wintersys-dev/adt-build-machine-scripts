@@ -68,6 +68,11 @@ server_id="${1}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if  [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
 
 # Safely route authorized DELETE actions via standard stream piping to prevent exposure in process trees
 set +e
