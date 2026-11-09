@@ -68,6 +68,11 @@ vpc_payload="${1}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if  [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 set +e
 /bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -X POST "https://api.linode.com/v4/vpcs" -H "Content-Type: application/json" -d "${vpc_payload}"
