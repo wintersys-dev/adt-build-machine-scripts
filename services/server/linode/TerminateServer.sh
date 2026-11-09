@@ -74,8 +74,6 @@ fi
 
 server_ip="${1}"
 
-# Secure framework configuration value extraction
-TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
@@ -102,14 +100,12 @@ then
         status "Initiating graceful shutdown for instance '${server_name}' (ID: ${server_id}, IP: ${server_ip})..."
         
         # Dispatch shutdown request securely
-    #    /bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X POST "https://api.linode.com/v4/linode/instances/${server_id}/shutdown" > /dev/null
-        ${BUILD_HOME}/services/server/linode/${orchestration_tool}/shutdown_instance.sh "${TOKEN}" "${server_id}"
+        ${BUILD_HOME}/services/server/linode/${orchestration_tool}/shutdown_instance.sh "${server_id}"
         count="0"
         while true
         do
                 # Fetch target runtime instance environment state tracking flags safely
-             #   current_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/linode/instances/${server_id}" | /usr/bin/jq -r '.status')"
-                current_status="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_status.sh "${TOKEN}" "${server_id}")"  
+                current_status="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_status.sh  "${server_id}")"  
                 if [ "${current_status}" = "offline" ] || [ "${count}" -ge 21 ]
                 then
                         break
@@ -123,8 +119,7 @@ then
         status "Executing permanent deletion routine for instance ID: ${server_id}..."
         
         # Dispatch final removal payload transaction securely
-        #/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -f -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
-        ${BUILD_HOME}/services/server/linode/${orchestration_tool}/delete_instance.sh "${TOKEN}" "${server_id}"
+        ${BUILD_HOME}/services/server/linode/${orchestration_tool}/delete_instance.sh "${server_id}"
         status "Machine with id: ${server_id} and ip address ${server_ip} has been deleted"
 else
         status "Error: No active server instance records matched IP tracking descriptor '${server_ip}'."
