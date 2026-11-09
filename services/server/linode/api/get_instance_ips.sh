@@ -68,7 +68,7 @@ server_id="${1}"
 
 # Safely route authorized GET actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://linode.com{server_id}/ips"
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${server_id}/ips"
 exit_code="$?"
 set -e
 
