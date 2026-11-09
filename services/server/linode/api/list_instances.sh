@@ -68,6 +68,8 @@ fi
 
 region="${1}"
 
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
 # Safely construct the X-Filter JSON payload using jq to mitigate string/quote injection hazards
 x_filter_header="$(/usr/bin/jq -n -c --arg reg "${region}" '{"region": $reg}' 2>/dev/null)"
 
@@ -79,7 +81,7 @@ fi
 
 # Safely route authorized actions via stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${token}" | /usr/bin/curl -H @- -f -s -H "X-Filter: ${x_filter_header}" "https://api.linode.com/v4/linode/instances" | /usr/bin/jq '.data'
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -f -s -H "X-Filter: ${x_filter_header}" "https://api.linode.com/v4/linode/instances" | /usr/bin/jq '.data'
 exit_code="$?"
 set -e
 
