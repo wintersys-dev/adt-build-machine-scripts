@@ -45,6 +45,6 @@ interfaces=$(/usr/bin/jq -n -c --arg fw_id "${firewall_id}" --arg sub_id "${subn
 
 
 # Execute linode-cli using the configuration file
-/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --as-user "linode-cli" --root_pass "$(cat  ${password_file})" --metadata.user_data "$(/usr/bin/base64 < "${user_data_path}" | tr -d '\n')" --disk_encryption "enabled"
+/usr/local/bin/linode-cli --json linodes create --region "${region}" --type "${server_size}" --label "${server_name}" --image "${image}" --interface_generation linode --interfaces "${interfaces}" --root_pass "$(cat  ${password_file})" --metadata.user_data "$(/usr/bin/base64 < "${user_data_path}" | tr -d '\n')" --disk_encryption "enabled"
 
 rm -f "${TMP_CONFIG}"
