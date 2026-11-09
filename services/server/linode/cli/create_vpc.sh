@@ -65,11 +65,17 @@ then
         exit 1
 fi
 
-token="${1}"
-vpc_payload="${2}"
+vpc_payload="${1}"
 
-# Inject context variable securely for the local runtime tracking layer
-export LINODE_CLI_TOKEN="${token}"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
+if  [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (CLOUDHOST, BUILD_IDENTIFIER, or TOKEN)."
+        exit 1
+fi
+
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
 /usr/local/bin/linode-cli --no-defaults --json vpcs create "${vpc_payload}"
