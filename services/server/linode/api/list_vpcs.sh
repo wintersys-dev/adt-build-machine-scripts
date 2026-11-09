@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        ListLinodeVpcsApi.sh
+# @file        list_vpcs.sh
 # @brief       Lists all active Linode Virtual Private Clouds (VPCs) in a region via API.
 # @author      Peter Winter
 # @date        09/11/2026
