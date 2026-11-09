@@ -68,7 +68,7 @@ server_id="${2}"
 
 # Safely route authorized DELETE actions via standard stream piping to prevent exposure in process trees
 set +e
-/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -f -X DELETE "https://linode.com{server_id}" > /dev/null
+/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -f -X DELETE "https://api.linode.com/v4/linode/instances/${server_id}" > /dev/null
 exit_code="$?"
 set -e
 
