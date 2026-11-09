@@ -198,7 +198,9 @@ parameter_payload="${EMERGENCY_PASSWORD} ${region} ${image} ${server_size} ${ser
 
 set +e
 
-response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${parameter_payload}")"
+/bin/echo "${parameter_payload}" | ${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh
+
+#response_instance="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/create_instance.sh "${parameter_payload}")"
 
 curl_status="$?"
 set -e
