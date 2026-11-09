@@ -59,19 +59,44 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-if [ -z "${1}" ]
+# Verify stdin is a pipe or a redirected file, not a terminal
+if [ -t 0 ]
 then
-        status "Error: Deployment parameters payload argument is required."
-        status "Usage: $0 '<parameter_payload>'"
+        status "Error: Deployment parameters must be piped via stdin to protect process trees."
         exit 1
 fi
 
-parameter_payload="${1}"
+# Read the single-line payload from standard input safely
+if ! read -r parameter_payload
+then
+        status "Error: Failed to read deployment payload from stdin."
+        exit 1
+fi
+
+set -- $parameter_payload
+
+region="${1}"
+image="${2}"
+server_size="${3}"
+server_name="${4}"
+firewall_id="${5}"
+subnet_id="${6}"
+user_data_path="${7}"
+
+
+#if [ -z "${1}" ]
+#then
+ #       status "Error: Deployment parameters payload argument is required."
+  #      status "Usage: $0 '<parameter_payload>'"
+  #      exit 1
+#fi
+
+#parameter_payload="${1}"
 
 # Extract space-separated fields carefully from the payload string
-read -r region image server_size server_name firewall_id subnet_id user_data_path <<EOF
-${parameter_payload}
-EOF
+#read -r region image server_size server_name firewall_id subnet_id user_data_path <<EOF
+#${parameter_payload}
+#EOF
 
 # Ensure all expected payload arguments extracted successfully and are not empty
 if [ -z "${region}" ] || [ -z "${image}" ] || [ -z "${server_size}" ] || [ -z "${server_name}" ] || [ -z "${firewall_id}" ] || [ -z "${subnet_id}" ] || [ -z "${user_data_path}" ]
