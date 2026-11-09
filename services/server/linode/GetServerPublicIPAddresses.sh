@@ -92,17 +92,10 @@ then
     exit 1
 fi
 
-if [ -z "${TOKEN}" ]
-# Target routing token evaluation
-then
-        status "Error: API authorization TOKEN is empty or missing configuration."
-        exit 1
-fi
-
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
 #response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/linode/instances")"
-response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${TOKEN}" "${REGION}")"
+response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${REGION}")"
 curl_status="$?"
 set -e
 
