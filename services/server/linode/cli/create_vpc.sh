@@ -71,7 +71,7 @@ TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if  [ -z "${TOKEN}" ]
 then
-        status "Error: Failed to fetch required context variables (CLOUDHOST, BUILD_IDENTIFIER, or TOKEN)."
+        status "Error: Failed to fetch required context variables (TOKEN)."
         exit 1
 fi
 
