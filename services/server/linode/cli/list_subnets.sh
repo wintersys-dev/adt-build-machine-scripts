@@ -58,18 +58,24 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: Both API token and VPC ID arguments are required."
-        status "Usage: $0 <linode_cli_token> <vpc_id>"
+        status "Error: VPC ID argument is required."
+        status "Usage: $0  <vpc_id>"
         exit 1
 fi
 
-token="${1}"
-vpc_id="${2}"
+vpc_id="${1}"
 
-# Inject context variable securely for the local runtime tracking layer
-export LINODE_CLI_TOKEN="${token}"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
+if  [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
 /usr/local/bin/linode-cli --no-defaults --json vpcs subnets-list "${vpc_id}"
