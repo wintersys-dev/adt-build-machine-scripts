@@ -93,13 +93,6 @@ then
     exit 1
 fi
 
-if [ -z "${TOKEN}" ]
-# Target routing token evaluation
-then
-        status "Error: API authorization TOKEN is empty or missing configuration."
-        exit 1
-fi
-
 # Map out structural infrastructure identifiers
 server_ids="$("${BUILD_HOME}/services/server/linode/ListServerIDs.sh" "${server_type}")"
 
@@ -117,7 +110,7 @@ then
                 # Temporary disable set -e for sub-calls inside the iteration loop
                 set +e
               #  response1="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${id}/ips")"
-                response1="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh "${TOKEN}" "${id}")"
+                response1="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh "${id}")"
                 curl_sub_status="$?"
                 set -e
 
