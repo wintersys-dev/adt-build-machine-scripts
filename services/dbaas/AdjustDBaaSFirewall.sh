@@ -95,8 +95,8 @@ then
         # Pure POSIX shell pattern matching replacing echo | grep pipeline
         case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
             *DBAAS*)
-                database_id=$("${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/${database_type}/ObtainDatabaseID.sh")
-                "${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/${database_type}/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                database_id=$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/ObtainDatabaseID.sh")
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                 ;;
         esac
     fi
