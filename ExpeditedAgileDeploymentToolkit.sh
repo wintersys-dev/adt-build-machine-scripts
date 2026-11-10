@@ -446,6 +446,11 @@ fi
 ${BUILD_HOME}/initialisation/InitialiseScalingProfile.sh
 #Provision any DBaaS database service that the build requires 
 ${BUILD_HOME}/services/dbaas/ProvisionDBaaS.sh
+if ( [ "?" != "0" ] )
+then
+	status "Error, DBaaS instance did not provision correctly, please investigate"
+	exit 1
+fi
 # If there is a DBaaS instance running then we can adjust its firewall by only allowing connections from machines in the same VPC
 # where and if this is possible
 ${BUILD_HOME}/services/dbaas/AdjustDBaaSFirewall.sh
