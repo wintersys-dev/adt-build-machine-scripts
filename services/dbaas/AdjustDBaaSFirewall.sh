@@ -87,7 +87,7 @@ then
 fi
 
 # Evaluate firewall updates under regional constraints
-if [ "${MULTI_REGION}" = "0" ] || [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
+if [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
 then
     # Fixed the missing spacing syntax error in the string comparison
     if [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ]
