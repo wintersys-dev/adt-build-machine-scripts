@@ -80,6 +80,12 @@ then
     exit 1
 fi
 
+database_type="mysql"
+if [ "$(/bin/echo ${DATABASE_DBaaS_INSTALLATION_TYPE} | /bin/grep '^Postgres')" != "" ]
+then
+	database_type="postgres"
+fi
+
 # Evaluate firewall updates under regional constraints
 if [ "${MULTI_REGION}" = "0" ] || [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
@@ -89,8 +95,8 @@ then
         # Pure POSIX shell pattern matching replacing echo | grep pipeline
         case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
             *DBAAS*)
-                database_id=$("${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/mysql/ObtainDatabaseID.sh")
-                "${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/mysql/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                database_id=$("${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/${database_type}/ObtainDatabaseID.sh")
+                "${BUILD_HOME}/services/dbaas/linode/${orchestration_tool}/${database_type}/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                 ;;
         esac
     fi
