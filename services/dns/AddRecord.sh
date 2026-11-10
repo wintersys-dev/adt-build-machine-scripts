@@ -1,10 +1,10 @@
 #!/bin/sh
 ###################################################################################
-# @file        AddRecordRouter.sh
+# @file        AddRecord.sh
 # @brief       Routes DNS record creation requests to specialized backend scripts.
 # @author      Peter Winter
 # @date        10/11/2026
-# @version     2.0
+# @version     1.0
 #
 # @details     This script evaluates dynamic parameters including website URLs, targets,
 #              and authority constraints to determine the designated provider context.
