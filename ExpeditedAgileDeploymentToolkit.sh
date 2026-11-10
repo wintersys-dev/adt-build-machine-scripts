@@ -446,7 +446,7 @@ fi
 ${BUILD_HOME}/initialisation/InitialiseScalingProfile.sh
 #Provision any DBaaS database service that the build requires 
 ${BUILD_HOME}/services/dbaas/ProvisionDBaaS.sh
-if ( [ "?" != "0" ] )
+if [ $? != 0 ]
 then
 	status "Error, DBaaS instance did not provision correctly, please investigate"
 	exit 1
