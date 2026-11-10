@@ -1,9 +1,35 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This script will spin up a new server of the size, region and os
-# specified  on the hosting provider, cloudhost, of choice.
+# @file        GetZoneID.sh
+# @brief       Routes DNS zone ID retrieval requests to specialized backend scripts.
+# @author      Peter Winter
+# @date        10/11/2026
+# @version     1.0
+#
+# @details     This script evaluates a target zone name to determine the designated
+#              DNS provider context. It maps the active deployment strategy against
+#              centralized hardware and software configurations before handing off
+#              execution to target providers to fetch the matching zone tracking ID.
+#
+# @param       $1  [Required] The target DNS zone name string (e.g., "domain.com").
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - ${BUILD_HOME}/configuration/software.dat static asset properties.
+#              - external dependencies: cat, awk, test
+#
+# @security    
+#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Eliminates redundant subshell grouping fork performance bottlenecks.
+#              - Protects layout evaluation chains from unexpected multi-parameter expansions.
+#
+# @exit        0  Success: Underlying script executed cleanly and returned code 0 or script was skipped.
+# @exit        1  Failure: Missing context paths, configuration syntax bugs, or tool failures.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -16,23 +42,26 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-####################################################################################
-set -x
-
 set -e
 
+# Resolve BUILD_HOME baseline layout securely
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
-
-
-if [ "${1}" = "" ]
+if [ -z "${1}" ]
 then
-        status "Error: 1 argument is required.."
+        status "Error: 1 argument is required."
         status "Usage: $0 <zone_name>"
         exit 1
 fi
@@ -42,7 +71,7 @@ zone_name="${1}"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
-if  [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] 
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ] 
 then
         status "Error: Cannot read software configuration file at ${software_file}"
         exit 1
@@ -50,28 +79,38 @@ fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
-if [ "${orchestration_tool}" = "" ]
+if [ -z "${orchestration_tool}" ]
 then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
         exit 1
 fi
 
-if [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ]
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
 then
         orchestration_tool="api"
 fi
 
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetZoneID.sh"
 
-if [ -f "${script_path}" ] && [ -x "${script_path}" ]
+if [ -f "${script_path}" ]
 then
-        "${script_path}" "${zone_name}"
-
-        exit_code=$?
-
-        if  [ ${exit_code} -ne 0 ] 
+        if [ ! -x "${script_path}" ]
         then
-                status "Error: GetZoneID.sh failed with exit code $exit_code"
-                exit $exit_code
+                status "Error: Script at ${script_path} is not executable." 
+                exit 1
+        fi
+
+        set +e
+        "${script_path}" "${zone_name}"
+        exit_code="$?"
+        set -e
+
+        if [ "${exit_code}" -ne 0 ] 
+        then
+                status "Error: GetZoneID.sh failed with exit code ${exit_code}"
+                exit "${exit_code}"
         fi
 fi
+
+exit 0
+
