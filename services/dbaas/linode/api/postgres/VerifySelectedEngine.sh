@@ -40,9 +40,9 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -56,14 +56,11 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Framework deployment variables extraction using secure subshells
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract specific engine identifier string cleanly from parsing matrix strings
 engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $3}')"
 
-# Fetch active cloud database engine listings with manual intercept hooks to catch runtime exceptions
 set +e
 api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/engines")"
 exit_code="$?"
@@ -75,7 +72,6 @@ then
         exit 1
 fi
 
-# Verify payload returns to protect against masked HTTP authentication errors
 if /bin/echo "${api_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason // "Unknown API error parameters."')"
@@ -83,7 +79,6 @@ then
         exit 1
 fi
 
-# Parse available running profiles defensively using parameters isolation tracking
 available_engines="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.data[].id // empty')"
 
 if [ -z "${available_engines}" ]
@@ -92,7 +87,6 @@ then
         exit 1
 fi
 
-# Confirm targeted deployment option exists within the extracted platform layout
 set +e
 /bin/echo "${available_engines}" | /bin/grep -q -w "${engine}"
 match_code="$?"
