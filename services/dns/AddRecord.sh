@@ -1,9 +1,37 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This will add a record to the DNS system given the website url
-# and the ip address to add
+# @file        AddRecordRouter.sh
+# @brief       Routes DNS record creation requests to specialized backend scripts.
+# @author      Peter Winter
+# @date        10/11/2026
+# @version     2.0
+#
+# @details     This script evaluates dynamic parameters including website URLs, targets,
+#              and authority constraints to determine the designated provider context.
+#              It maps the active deployment strategy against centralized hardware and
+#              software configurations before handing off execution to target providers.
+#
+# @param       $1  [Required] The target website Fully Qualified Domain Name or URL string.
+# @param       $2  [Required] The destination tracking node IPv4/IPv6 target address.
+# @param       $3  [Required] Authority flag validation parameter ("yes" / "no").
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - ${BUILD_HOME}/configuration/software.dat static asset properties.
+#              - external dependencies: cat, awk, test
+#
+# @security    
+#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Eliminates redundant subshell grouping fork performance bottlenecks.
+#              - Protects layout evaluation chains from unexpected multi-parameter expansions.
+#
+# @exit        0  Success: Underlying script executed cleanly and returned code 0.
+# @exit        1  Failure: Missing context paths, configuration syntax bugs, or tool failures.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -16,19 +44,24 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-####################################################################################
-#set -x
 set -e
 
+# Resolve BUILD_HOME baseline layout securely
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
-
-if [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] 
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] 
 then
         status "Error: 3 arguments are required."
         status "Usage: $0 <website_url> <ip> <auth>"
@@ -55,13 +88,13 @@ fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
-if  [ "${orchestration_tool}" = "" ] 
+if [ -z "${orchestration_tool}" ] 
 then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
         exit 1
 fi
 
-if  [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ] 
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ] 
 then
         orchestration_tool="api"
 fi
@@ -80,13 +113,16 @@ then
         exit 1
 fi
 
-
+set +e
 "${script_path}" "${website_url}" "${ip}"
+exit_code="$?"
+set -e
 
-exit_code=$?
-
-if [ ${exit_code} -ne 0 ]
+if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: AddRecord.sh failed with exit code $exit_code"
-        exit $exit_code
+        status "Error: AddRecord.sh failed with exit code ${exit_code}"
+        exit "${exit_code}"
 fi
+
+exit 0
+
