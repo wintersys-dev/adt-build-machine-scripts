@@ -68,4 +68,5 @@ then
 fi
 
 unset LINODE_CLI_TOKEN
+status "Successfully deleted record with id ${record_id} for domain ${domain_url}"
 
