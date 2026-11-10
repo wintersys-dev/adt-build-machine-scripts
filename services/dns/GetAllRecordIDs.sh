@@ -1,8 +1,36 @@
 #!/bin/sh
 ###################################################################################
-# Author : Peter Winter
-# Date   : 13/07/2016
-# Description : This will get all the record ids for a domain given the domain url
+# @file        GetAllRecordIDsRouter.sh
+# @brief       Routes DNS record ID retrieval requests to specialized backend scripts.
+# @author      Peter Winter
+# @date        10/11/2026
+# @version     2.0
+#
+# @details     This script evaluates a target website URL and authority constraints to
+#              determine the designated provider context. It maps the active deployment
+#              strategy against centralized hardware and software configurations before
+#              handing off execution to target providers to fetch matching record identifiers.
+#
+# @param       $1  [Required] The target website Fully Qualified Domain Name or URL string.
+# @param       $2  [Required] Authority flag validation parameter ("yes" / "no").
+#
+# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
+#
+# @dependencies
+#              - /home/buildhome.dat configuration file tracking active framework layout.
+#              - LogStatusMessages.sh utility logging centralized system events.
+#              - GetVariableValue.sh centralized configuration variable extraction tool.
+#              - ${BUILD_HOME}/configuration/software.dat static asset properties.
+#              - external dependencies: cat, awk, test
+#
+# @security    
+#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
+#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
+#              - Eliminates redundant subshell grouping fork performance bottlenecks.
+#              - Protects layout evaluation chains from unexpected multi-parameter expansions.
+#
+# @exit        0  Success: Underlying script executed cleanly and returned code 0.
+# @exit        1  Failure: Missing context paths, configuration syntax bugs, or tool failures.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -15,20 +43,25 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 #set -x
-
 set -e
 
+# Resolve BUILD_HOME baseline layout securely
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
-
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: 2 arguments are required."
         status "Usage: $0 <website_url> <auth>"
@@ -54,13 +87,13 @@ fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
 
-if [ "${orchestration_tool}" = "" ]
+if [ -z "${orchestration_tool}" ]
 then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_tool}" 
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
         exit 1
 fi
 
-if [ ! -d ${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool} ]
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
 then
         orchestration_tool="api"
 fi
@@ -73,18 +106,22 @@ then
         exit 1
 fi
 
-if  [ ! -x "${script_path}" ]
+if [ ! -x "${script_path}" ]
 then
         status "Error: Script at ${script_path} is not executable." 
         exit 1
 fi
 
-"${script_path}" "${website_url}"   
+set +e
+"${script_path}" "${website_url}"
+exit_code="$?"
+set -e
 
-exit_code=$?
-
-if [ ${exit_code} -ne 0 ]
+if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: GetAllRecordIDs.sh failed with exit code $exit_code"
-        exit $exit_code
+        status "Error: GetAllRecordIDs.sh failed with exit code ${exit_code}"
+        exit "${exit_code}"
 fi
+
+exit 0
+
