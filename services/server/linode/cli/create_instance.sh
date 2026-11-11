@@ -120,12 +120,25 @@ then
 fi
 
 password_file="${runtime_dir}/EMERGENCY_PASSWORD"
-if [ ! -f "${password_file}" ]
-then
+if [ -f "${password_file}" ]
+then    
+        if [ ! -r "${password_file}" ]
+        then
+                status "Error: Password file exists but is unreadable at ${password_file}"
+                exit 1
+        fi
+        emergency_password="$(/bin/cat "${password_file}")"
+else
         # Safely generate an alphanumeric random password sequence
         emergency_password="$(/usr/bin/openssl rand -base64 32 2>/dev/null | /bin/tr -d '\n' | /bin/tr -cd 'a-zA-Z0-9' | /usr/bin/cut -c 1-16)"
         /bin/echo "${emergency_password}" > "${password_file}"
         /bin/chmod 600 "${password_file}"
+fi
+
+if [ -z "${emergency_password}" ]
+then
+        status "Error: Emergency password variable isolation failed or resolved empty."
+        exit 1
 fi
 
 # Build secure JSON structures safely decoupling parameter strings via jq arguments
