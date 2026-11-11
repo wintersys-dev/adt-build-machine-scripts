@@ -105,12 +105,14 @@ then
 
         if [ -z "${output}" ]
         then
+                /bin/echo "not running"
                 status "Error: No matching server instance found for server type ${server_type}."
                 exit 1
         else
                 /bin/echo "${output}"
         fi
 else
+        /bin/echo "not running"
         status "Network request failed. Check your API token or URL."
         exit 1
 fi
