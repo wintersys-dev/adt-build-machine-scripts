@@ -76,7 +76,7 @@ status()
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ] || [ -z "${6}" ] 
 then
         status "Error: 6 arguments are required and 1 optional argument"
-        status "Usage: $0 <region> <image> <server_size> <server_name> <user_data> <firewall_id> [snapshot_id]" 
+        status "Usage: $0 <region> <image> <server_size> <server_name> <user_data_path> <firewall_id> [snapshot_id]" 
         exit 1
 fi
 
