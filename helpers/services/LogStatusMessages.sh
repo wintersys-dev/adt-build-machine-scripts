@@ -45,7 +45,7 @@ if ( [ "${message}" != "" ] )
 then
         if ( [ "${figlet}" = "0" ] )
         then
-                /bin/echo "${colour}${message}${reset}" 
+                /bin/echo "${colour}${message}${reset}" >&2
                 /bin/echo "${message}" >> ${status_file}
         else
                 /usr/bin/figlet "${message}" | /usr/bin/tee -a "${status_file}"
