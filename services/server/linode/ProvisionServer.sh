@@ -194,7 +194,7 @@ then
         exit 1
 fi
 
-parameter_payload="${EMERGENCY_PASSWORD} ${region} ${image} ${server_size} ${server_name} ${firewall_id} ${subnet_id} ${user_data_path}"
+parameter_payload="${region} ${image} ${server_size} ${server_name} ${firewall_id} ${subnet_id} ${user_data_path}"
 
 set +e
 
