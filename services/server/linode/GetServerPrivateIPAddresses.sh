@@ -14,7 +14,6 @@
 # @param       $1  [Required] The server type/name substring used to resolve server IDs.
 #
 # @env         BUILD_HOME          Path to the framework root directory (read from file).
-# @env         TOKEN               Linode API bearer authorization token.
 # @env         REGION              The region that the servers are running in.
 #
 # @dependencies
@@ -75,8 +74,10 @@ fi
 server_type="${1}"
 
 # Secure framework configuration value extraction
-TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+#TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+set +e
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
+set -e
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
@@ -98,8 +99,7 @@ server_ids="$("${BUILD_HOME}/services/server/linode/ListServerIDs.sh" "${server_
 
 # Temporary disable set -e to evaluate curl transaction pipeline failures manually
 set +e
-response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${TOKEN}" "${REGION}")"
-#response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/linode/instances")"
+response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${REGION}")"
 curl_status="$?"
 set -e
 
@@ -109,7 +109,6 @@ then
         do
                 # Temporary disable set -e for sub-calls inside the iteration loop
                 set +e
-              #  response1="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s "https://api.linode.com/v4/linode/instances/${id}/ips")"
                 response1="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh "${id}")"
                 curl_sub_status="$?"
                 set -e
