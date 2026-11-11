@@ -27,8 +27,6 @@
 #              - ${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh framework security orchestrator.
 #
 # @security    
-#              - Unsets the critical `EMERGENCY_PASSWORD` register immediately after execution context terminates.
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
 #              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
 #
 # @exit        0  Success: Runtime options consolidated and server provisioner launched successfully.
@@ -162,7 +160,7 @@ then
         exit 1
 fi
 
-export EMERGENCY_PASSWORD="${emergency_password}"
+#export EMERGENCY_PASSWORD="${emergency_password}"
 
 set +e
 "${script_path}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${user_data}" "${firewall_id}" "${snapshot_id}"
