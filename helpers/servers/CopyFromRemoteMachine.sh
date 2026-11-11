@@ -131,7 +131,7 @@ else
         ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh ${token_to_match}`"
 fi
 
-if ( [ "${ips}" = "" ] )
+if ( [ "`/bin/echo ${ips} | /bin/grep 'Error'" != "" ] )
 then
         /bin/echo "There doesn't seem to be any ${machine_type}s running"
         exit
