@@ -84,21 +84,6 @@ firewall_id="${5}"
 subnet_id="${6}"
 user_data_path="${7}"
 
-
-#if [ -z "${1}" ]
-#then
-#       status "Error: Deployment parameters payload argument is required."
-#      status "Usage: $0 '<parameter_payload>'"
-#      exit 1
-#fi
-
-#parameter_payload="${1}"
-
-# Extract space-separated fields carefully from the payload string
-#read -r region image server_size server_name firewall_id subnet_id user_data_path <<EOF
-#${parameter_payload}
-#EOF
-
 # Ensure all expected payload arguments extracted successfully and are not empty
 if [ -z "${region}" ] || [ -z "${image}" ] || [ -z "${server_size}" ] || [ -z "${server_name}" ] || [ -z "${firewall_id}" ] || [ -z "${subnet_id}" ] || [ -z "${user_data_path}" ]
 then
