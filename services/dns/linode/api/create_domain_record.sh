@@ -11,8 +11,7 @@
 #              input piping, and executes an authenticated curl POST request under a
 #              strict status monitoring block to create a DNS domain record.
 #
-# @param       $1  [Required] The unique numerical identifier of the target DNS domain.
-# @param       $2  [Required] The JSON payload defining the DNS record attributes.
+# @param       $1  [Required] The JSON payload defining the DNS record attributes.
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
@@ -44,6 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -60,15 +60,14 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: Domain ID and JSON payload arguments are required."
-        status "Usage: $0 <domain_id> <json_payload>"
+        status "Error: JSON payload argument is required."
+        status "Usage: $0 <json_payload>"
         exit 1
 fi
 
-domain_id="${1}"
-json_payload="${2}"
+json_payload="${1}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
@@ -80,7 +79,8 @@ fi
 
 set +e
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
-RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains/${domain_id}/records" -w "\nHTTP_STATUS:%{http_code}")
+RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains" -w "\nHTTP_STATUS:%{http_code}")
+
 set -e
 
 # Extract the HTTP status code (e.g., 200, 400, 404) using strict POSIX filtering
@@ -91,42 +91,42 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 
 # Evaluate the API response code using strict POSIX structural matching
 case "${HTTP_CODE}" in
-    200|201)
-        status "Success: DNS record created cleanly under domain ${domain_id}."
-        # Streams the newly created DNS record JSON back to the parent variable assignment
-        /bin/echo "${RESPONSE_BODY}"
-        exit 0
-        ;;
-    400)
-        status "Error 400: Bad Request. Check JSON payload syntax or DNS record schema."
-        status "API Detail: ${RESPONSE_BODY}"
-        exit 400
-        ;;
-    401)
-        status "Error 401: Unauthorized. Your authentication TOKEN is invalid or has expired."
-        exit 401
-        ;;
-    403)
-        status "Error 403: Forbidden. Token lacks permissions to modify DNS domain ${domain_id}."
-        exit 403
-        ;;
-    404)
-        status "Error 404: Not Found. Linode domain ${domain_id} does not exist."
-        exit 404
-        ;;
-    429)
-        status "Error 429: Rate Limit Exceeded. Back off request frequency."
-        exit 429
-        ;;
-    5*)
-        status "Error ${HTTP_CODE}: Linode Gateway or Remote Server Exception."
-        exit 500
-        ;;
-    *)
-        status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
-        status "API Detail: ${RESPONSE_BODY}"
-        exit 1
-        ;;
+        200|201)
+                status "Success: DNS record created cleanly."
+                # Streams the newly created DNS record JSON back to the parent variable assignment
+                /bin/echo "${RESPONSE_BODY}" 
+                exit 0
+                ;;
+        400)
+                status "Error 400: Bad Request. Check JSON payload syntax or DNS record schema."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 400
+                ;;
+        401)
+                status "Error 401: Unauthorized. Your authentication TOKEN is invalid or has expired."
+                exit 401
+                ;;
+        403)
+                status "Error 403: Forbidden. Token lacks permissions to modify DNS domain."
+                exit 403
+                ;;
+        404)
+                status "Error 404: Not Found. Linode domain does not exist."
+                exit 404
+                ;;
+        429)
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
+                exit 429
+                ;;
+        5*)
+                status "Error ${HTTP_CODE}: Linode Gateway or Remote Server Exception."
+                exit 500
+                ;;
+        *)
+                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
 esac
 
 exit 0
