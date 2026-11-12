@@ -313,11 +313,11 @@ fi
 
 # Execute target actions safely, tracking exits manually
 set +e
-firewall_id="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/GetFirewallID.sh" "${firewall_name}")"
+firewall_id="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/get_firewall_id.sh" "${firewall_name}")"
 
 if [ -z "${firewall_id}" ] 
 then
-        firewall_id="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/CreateFirewall.sh" "${firewall_name}")"
+        firewall_id="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/create_firewall.sh" "${firewall_name}")"
         if [ "$?" -ne 0 ] 
         then
                 status "Failed to create firewall"
