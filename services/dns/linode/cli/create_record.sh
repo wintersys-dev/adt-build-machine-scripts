@@ -90,7 +90,12 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
-/usr/local/bin/linode-cli --no-defaults --json domains records-create "${domain_id}" "$@"
+if [ -z "${domain_id}" ]
+then
+        /usr/local/bin/linode-cli --no-defaults --json domains create "$@"
+else
+        /usr/local/bin/linode-cli --no-defaults --json domains records-create "${domain_id}" "$@"
+fi
 exit_code="$?"
 set -e
 
