@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CheckDBaaSServerStatus.sh
+# @file        check_dbaas_service_status.sh
 # @brief       Monitors cloud DBaaS instance orchestration status using the Linode CLI.
 # @author      Peter Winter
 # @date        05/11/2026
