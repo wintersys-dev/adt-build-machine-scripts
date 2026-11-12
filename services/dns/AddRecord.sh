@@ -99,7 +99,7 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/AddRecord.sh
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/AddRecord.sh"
 
 if [ ! -f "${script_path}" ] 
 then
