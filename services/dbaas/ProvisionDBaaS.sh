@@ -108,7 +108,7 @@ then
         database_type_lower="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}' | /bin/tr '[:upper:]' '[:lower:]')"
 
         set +e
-        "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/VerifySelectedEngine.sh"
+        "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/verify_selected_engine.sh"
         exit_code="$?"
         set -e
         
