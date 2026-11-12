@@ -91,5 +91,4 @@ then
         exit "${exit_code}"
 fi
 
-status "Success: Target domain DNS records payload retrieved cleanly."
 exit 0
