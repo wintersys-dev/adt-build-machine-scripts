@@ -140,7 +140,7 @@ EOF
 
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
-record_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_domain_record.sh "${domain_id}" "${json_payload}")"
+record_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_record.sh "${domain_id}" "${json_payload}")"
 record_exit_code="$?"
 set -e
 
