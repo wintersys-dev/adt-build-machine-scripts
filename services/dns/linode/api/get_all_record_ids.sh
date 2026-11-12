@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetRecordID.sh
+# @file        get_all_record_ids.sh
 # @brief       Resolves unique platform record identifiers for a targeted sub-domain node.
 # @author      Peter Winter
 # @date        05/11/2026
