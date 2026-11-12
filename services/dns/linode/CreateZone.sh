@@ -116,7 +116,8 @@ EOF
 
         # Execute creation endpoint communication safely while manual intercept hooks track faults
         set +e
-        api_create_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains")"
+        api_create_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${domain_id}" "${json_payload}")"
+      #  api_create_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains")"
         create_exit_code="$?"
         set -e
 
