@@ -61,15 +61,15 @@ status()
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: Domain JSON payload and target domain URL arguments are required."
-        status "Usage: $0 <api_domain_json> <domain_url>"
+        status "Usage: $0 <domain_json> <domain_url>"
         exit 1
 fi
 
-api_domain_json="${1}"
+domain_json="${1}"
 domain_url="${2}"
 
 set +e
-DOMAIN_ID=$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
+DOMAIN_ID=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
 JQ_EXIT_CODE=$?
 set -e
 
