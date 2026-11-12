@@ -81,26 +81,26 @@ DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)
 
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains")"
+domain_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains")"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_domain_json}" ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query domain management catalog or network timeout occurred."
         exit 1
 fi
 
 # Verify domain listing catalog returns to protect against masked HTTP authentication errors
-if /bin/echo "${api_domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
-        status "Failed to retrieve domains list. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve domains list. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id // empty')"
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id // empty')"
 
 # If the zone does not exist, assemble parameters and execute creation step
 if [ -z "${domain_id}" ]
@@ -119,7 +119,7 @@ EOF
 
         # Execute creation endpoint communication safely while manual intercept hooks track faults
         set +e
-        api_create_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains")"
+        create_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains")"
         create_exit_code="$?"
         set -e
 
@@ -130,7 +130,7 @@ EOF
         fi
 
         # Extract the error reason, defaulting to empty if it doesn't exist
-        create_err_msg=$(echo "${api_create_response}" | /usr/bin/jq -r '.errors | if type == "array" then .[0].reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end // empty')
+        create_err_msg=$(echo "${create_response}" | /usr/bin/jq -r '.errors | if type == "array" then .[0].reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end // empty')
 
         # If an error reason was found, log it and exit
         if [ -n "${create_err_msg}" ]
