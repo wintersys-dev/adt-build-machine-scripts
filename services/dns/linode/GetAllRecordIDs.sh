@@ -61,7 +61,6 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
 if [ -z "${1}" ]
 then
         status "Error: Fully Qualified Domain Name parameter is required."
@@ -149,13 +148,13 @@ then
 fi
 
 # Parse matching entity profiles defensively using parameters isolation tracking
-record_id="$(/bin/echo "${records_json}" | /usr/bin/jq -r --arg sub "${sub_domain}" '.data[] | select(.name == $sub) | .id // empty')"
+record_ids="$(/bin/echo "${records_json}" | /usr/bin/jq -r --arg sub "${sub_domain}" '.[] | select(.name == $sub) | .id // empty')"
 
-if [ -z "${record_id}" ]
+if [ -z "${record_ids}" ]
 then
         status "DNS Record ID not found matching sub-domain pattern '${sub_domain}' within zone '${domain_url}'."
         exit 1
 fi
 
-/bin/echo "${record_id}"
+/bin/echo "${record_ids}"
 exit 0
