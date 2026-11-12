@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetAllRecordIDs.sh
+# @file        get_all_record_ids.sh
 # @brief       Resolves unique platform record identifiers for a targeted sub-domain via CLI.
 # @author      Peter Winter
 # @date        05/11/2026
