@@ -4,7 +4,7 @@
 # @brief       Retrieves all DNS record metadata for a specific Linode domain via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
-# @version     1.1
+# @version     1.0
 #
 # @details     This script exports the required infrastructure authentication tokens,
 #              validates the target domain identifier parameter, and executes the provider
@@ -43,6 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -82,7 +83,6 @@ set +e
 exit_code="$?"
 set -e
 
-# Unset token instantly to maintain high security-isolation states
 unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
