@@ -173,7 +173,7 @@ then
                 fi
 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDBaaSCert.sh" "${database_id}"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_cert.sh" "${database_id}"
                 exit_code="$?"
                 set -e
                 
