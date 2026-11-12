@@ -79,7 +79,7 @@ TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains")"
+api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
 exit_code="$?"
 set -e
 
@@ -119,7 +119,7 @@ EOF
 
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
-api_record_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains/${domain_id}/records")"
+api_record_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${json_payload}")"
 record_exit_code="$?"
 set -e
 
