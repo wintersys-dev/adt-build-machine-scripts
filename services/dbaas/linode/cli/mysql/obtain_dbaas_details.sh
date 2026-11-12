@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        ObtainDatabaseDetails.sh
+# @file        obtain_dbaas_details.sh
 # @brief       Extracts configuration payloads for a managed DBaaS instance via CLI.
 # @author      Peter Winter
 # @date        05/11/2026
