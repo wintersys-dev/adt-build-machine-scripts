@@ -47,7 +47,6 @@
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -61,7 +60,6 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
 if [ -z "${1}" ]
 then
         status "Error: Fully Qualified Domain Name parameter is required."
@@ -69,10 +67,8 @@ then
         exit 1
 fi
 
-# Parse apex zone identifier safely using modern subshells
 domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
 
-# Extract authorized structural access configurations
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
@@ -97,7 +93,6 @@ then
         orchestration_tool="api"
 fi
 
-# Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
 domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
@@ -109,7 +104,6 @@ then
         exit 1
 fi
 
-# Verify domain listing catalog returns to protect against masked HTTP authentication errors
 if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
@@ -117,15 +111,12 @@ then
         exit 1
 fi
 
-# Extract the matching unique domain layout tracking zone ID cleanly
 domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id // empty')"
 
-# If the zone does not exist, assemble parameters and execute creation step
 if [ -z "${domain_id}" ]
 then
         status "Domain zone '${domain_url}' not found in catalog. Provisioning master zone layout..."
 
-        # Assemble raw JSON transaction parameters block defensively to resist injection threats
         json_payload="$(/bin/cat <<EOF
 {
   "type": "master",
@@ -135,7 +126,6 @@ then
 EOF
 )"
 
-        # Execute creation endpoint communication safely while manual intercept hooks track faults
         set +e
         create_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_zone.sh  "${domain_url}"  "${json_payload}")"
         create_exit_code="$?"
@@ -147,10 +137,8 @@ EOF
                 exit 1
         fi
 
-        # Extract the error reason, defaulting to empty if it doesn't exist
         create_err_msg=$(echo "${create_response}" | /usr/bin/jq -e -r '.errors | if type == "array" then .[0].reason else .reason end // empty' 2>/dev/null)
 
-        # If an error reason was found, log it and exit
         if [ -n "${create_err_msg}" ]; then
                 status "Failed to create zone in the DNS system. Cloud Provider Reason: ${create_err_msg}"
                 exit 1
