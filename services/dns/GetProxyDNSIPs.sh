@@ -96,7 +96,7 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetProxyDNSIPs.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/get_proxy_dns_ips.sh"
 
 if [ -f "${script_path}" ]
 then
