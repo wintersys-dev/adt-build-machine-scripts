@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        UpdateFirewall.sh
+# @file        update_firewall.sh
 # @brief       Applies a dynamic network ruleset payload to a specified Linode firewall.
 # @author      Peter Winter
 # @date        06/11/2026
