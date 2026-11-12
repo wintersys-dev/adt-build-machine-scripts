@@ -4,7 +4,7 @@
 # @brief       Provisions a new authoritative master DNS zone with the cloud provider via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
-# @version     1.1
+# @version     1.0
 #
 # @details     This script validates the target domain parameter, exports the required
 #              infrastructure authentication tokens, checks the provider catalog via
@@ -80,7 +80,7 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
-api_domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
+domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
 exit_code="$?"
 set -e
 
@@ -92,7 +92,7 @@ then
 fi
 
 # linode-cli --json returns a top-level array of domain objects
-domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain == $dom) | .id // empty')"
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain == $dom) | .id // empty')"
 
 if [ -z "${domain_id}" ]
 then
@@ -107,10 +107,10 @@ then
 EOF
 )"
 
-        set +e
-        /usr/local/bin/linode-cli --no-defaults --json domains create "${json_payload}"
-        create_exit_code="$?"
-        set -e
+set +e
+/usr/local/bin/linode-cli --no-defaults --json domains create "${json_payload}"
+create_exit_code="$?"
+set -e
 
         # Unset token instantly to maintain high security-isolation states
         unset LINODE_CLI_TOKEN
