@@ -48,7 +48,6 @@
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -62,7 +61,6 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: Record ID and Fully Qualified Domain Name parameters are required."
@@ -73,7 +71,6 @@ fi
 record_id="${1}"
 domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 
-# Extract authorized structural access configurations
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
@@ -99,7 +96,6 @@ then
         exit 1
 fi
 
-# Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
 domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
@@ -111,7 +107,6 @@ then
         exit 1
 fi
 
-# Verify domain listing catalog returns to protect against masked HTTP authentication errors
 if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
@@ -119,7 +114,6 @@ then
         exit 1
 fi
 
-# Extract the matching unique domain layout tracking zone ID cleanly
 domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
@@ -128,7 +122,6 @@ then
         exit 1
 fi
 
-# Execute deletion endpoint communication safely while manual intercept hooks track faults
 set +e
 delete_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/delete_record.sh "${domain_id}" "${record_id}")"
 delete_exit_code="$?"
@@ -140,8 +133,6 @@ then
         exit 1
 fi
 
-# Verify final transaction state explicitly to catch structural or authorization errors
-# Note: Linode API returns a blank JSON object '{}' on successful deletion.
 if [ -n "${delete_response}" ] && /bin/echo "${delete_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         delete_err_msg="$(/bin/echo "${delete_response}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS payload entry validation error."')"
