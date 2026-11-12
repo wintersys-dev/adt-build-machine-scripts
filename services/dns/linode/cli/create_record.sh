@@ -4,7 +4,7 @@
 # @brief       Creates a new DNS record under a specific Linode domain via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
-# @version     1.1
+# @version     1.0
 #
 # @details     This script exports the required infrastructure authentication tokens,
 #              validates the presence of target domain identifiers and record creation
@@ -69,7 +69,6 @@ fi
 domain_id="${1}"
 json_payload="${2}"
 
-# Reset positional parameters ($@) to build the dynamic flag list
 set --
 
 # Convert {"type":"A","name":"www","target":"1.2.3.4"} into --type A --name www --target 1.2.3.4
@@ -95,7 +94,6 @@ set +e
 exit_code="$?"
 set -e
 
-# Unset token instantly to maintain high security-isolation states
 unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
