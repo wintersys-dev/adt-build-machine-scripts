@@ -1,17 +1,17 @@
 #!/bin/sh
 ###################################################################################
 # @file        create_zone.sh
-# @brief       Provisions a new authoritative master DNS zone via the Linode CLI.
+# @brief       Provisions a new authoritative master DNS zone with the cloud provider via CLI.
 # @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
+# @date        12/11/2026
+# @version     1.1
 #
-# @details     This script parses a target Fully Qualified Domain Name (FQDN) to extract
-#              its zone apex domain root, checks the provider catalog defensively via the
-#              CLI to prevent duplicate allocation states, and issues a secure authorized 
-#              command to instantiate the master zone schema if missing.
+# @details     This script validates the target domain parameter, exports the required
+#              infrastructure authentication tokens, checks the provider catalog via
+#              linode-cli to prevent duplicate allocation states, and issues a JSON
+#              creation payload to instantiate the master zone schema if missing.
 #
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "www.domain.com").
+# @param       $1  [Required] The target domain URL (e.g., "domain.com" or "://domain.com").
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
@@ -19,17 +19,17 @@
 #              - /home/buildhome.dat configuration file tracking active framework layout.
 #              - LogStatusMessages.sh utility logging centralized system events.
 #              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, cut, linode-cli, jq
+#              - external dependencies: cat, echo, jq, linode-cli
 #
 # @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Eliminates redundant subshell grouping fork performance bottlenecks.
-#              - Scopes and purges sensitive tokens (LINODE_CLI_TOKEN) tightly inside execution tracks.
-#              - Safely validates variable constraints under explicit character boundaries.
+#              - Hardens system-owned paths (/bin, /usr/bin, /usr/local/bin) to eliminate
+#                executable hijack vectors.
+#              - Quotes variable interpolations thoroughly to trap space-injection hazards.
+#              - Ensures the CLI authorization token environment variable is cleared immediately post-run.
 #
-# @exit        0  Success: Master DNS zone verified active or created successfully via CLI.
-# @exit        1  Failure: Missing context paths, input parameter errors, or binary failures.
+# @exit        0  Success: Master DNS zone verified active or created successfully.
+# @exit        *  Failure: Missing arguments, missing framework layouts, or bubbling
+#                 exit codes generated directly by the underlying cloud execution client.
 ###################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
@@ -44,87 +44,90 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# Input validation
 if [ -z "${1}" ]
 then
-        status "Error: Fully Qualified Domain Name parameter is required."
-        status "Usage: $0 <fqdn>"
+        status "Error: Domain URL parameter is required."
+        status "Usage: $0 <domain_url>"
         exit 1
 fi
 
-# Parse apex zone identifier safely using modern subshells
-domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
+domain_url="${1}"
 
-# Extract authorized structural access configurations
-DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"     
-TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 
-# Export authentication credentials safely within bounded local environment execution tracks
+if [ -z "${TOKEN}" ] || [ -z "${DNS_USERNAME}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN or DNS_USERNAME)."
+        exit 1
+fi
+
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Validate CLI execution dependencies before invoking structural deployment steps
-if [ ! -x /usr/local/bin/linode-cli ]
-then
-        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
-        exit 1
-fi
-
-# Fetch active domain zone layout securely with manual intercept hooks to catch runtime exceptions
 set +e
-cli_domain_json="$("/usr/local/bin/linode-cli" domains list --domain "${domain_url}" --json 2>/dev/null)"
-domain_exit_code="$?"
+api_domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
+exit_code="$?"
 set -e
 
-if [ "${domain_exit_code}" -ne 0 ] || [ -z "${cli_domain_json}" ]
+if [ "${exit_code}" -ne 0 ]
 then
-        status "Failed to query CLI domain management catalog or tool runtime error occurred."
         unset LINODE_CLI_TOKEN
-        exit 1
+        status "Error: linode-cli domains list failed with exit code ${exit_code}." >&2
+        exit "${exit_code}"
 fi
 
-# Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(/bin/echo "${cli_domain_json}" | /usr/bin/jq -r '.[].id // empty')"
+# linode-cli --json returns a top-level array of domain objects
+domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain == $dom) | .id // empty')"
 
-# If the zone does not exist, execute creation step via CLI
 if [ -z "${domain_id}" ]
 then
-        status "Domain zone '${domain_url}' not found in catalog. Provisioning master zone layout via CLI..."
+        status "Domain zone '${domain_url}' not found in catalog. Provisioning master zone layout..."
+
+        json_payload="$(/bin/cat <<EOF
+{
+  "type": "master",
+  "domain": "${domain_url}",
+  "soa_email": "${DNS_USERNAME}"
+}
+EOF
+)"
 
         set +e
-        "/usr/local/bin/linode-cli" domains create --type master --domain "${domain_url}" --soa_email "${DNS_USERNAME}" --no-defaults
+        /usr/local/bin/linode-cli --no-defaults --json domains create "${json_payload}"
         create_exit_code="$?"
         set -e
 
+        # Unset token instantly to maintain high security-isolation states
+        unset LINODE_CLI_TOKEN
+
         if [ "${create_exit_code}" -ne 0 ]
         then
-                status "Failed to create zone for domain ${domain_url} via Linode CLI."
-                unset LINODE_CLI_TOKEN
-                exit 1
+                status "Error: linode-cli domains create failed with exit code ${create_exit_code}." >&2
+                exit "${create_exit_code}"
         fi
 
-        status "DNS master zone successfully initialized via CLI for domain: ${domain_url}"
+        status "Success: DNS master zone initialized cleanly for domain ${domain_url}."
 else
-        status "DNS master zone already active for domain: ${domain_url} (ID: ${domain_id})"
+        # Unset token instantly to maintain high security-isolation states
+        unset LINODE_CLI_TOKEN
+        status "Success: DNS master zone already active for domain ${domain_url} (ID: ${domain_id})."
 fi
 
-unset LINODE_CLI_TOKEN
 exit 0
+
 
