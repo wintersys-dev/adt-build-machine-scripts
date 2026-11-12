@@ -70,7 +70,7 @@ then
 	then 
 		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${website_url}" "${auth}"`"
 
-		if ( [ "$?" != "0" ] )
+		if ( [ "$?" = "0" ] )
 		then
 			if ( [ "${record}" = "primary" ] )
 			then
