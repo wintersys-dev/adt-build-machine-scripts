@@ -70,14 +70,17 @@ then
 	then 
 		recordids="`${BUILD_HOME}/services/dns/GetAllRecordIDs.sh  "${website_url}" "${auth}"`"
 
-		if ( [ "${record}" = "primary" ] )
+		if ( [ "$?" != "0" ] )
 		then
-			if ( [ "${recordids}" != "" ] )
+			if ( [ "${record}" = "primary" ] )
 			then
-				for recordid in ${recordids}
-				do
-					${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${website_url}" "${auth}"
-				done
+				if ( [ "${recordids}" != "" ] )
+				then
+					for recordid in ${recordids}
+					do
+						${BUILD_HOME}/services/dns/DeleteRecord.sh "${recordid}" "${website_url}" "${auth}"
+					done
+				fi
 			fi
 		fi
 	fi
