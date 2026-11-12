@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        ResetFirewall.sh
+# @file        reset_firewall.sh
 # @brief       Resets a Linode native firewall's rule matrix using the Linode CLI engine.
 # @author      Peter Winter
 # @date        06/11/2026
