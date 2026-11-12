@@ -136,7 +136,7 @@ EOF
 
         # Execute creation endpoint communication safely while manual intercept hooks track faults
         set +e
-        create_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_domain_record.sh  "${json_payload}")"
+        create_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_zone.sh  "${domain_url}"  "${json_payload}")"
         create_exit_code="$?"
         set -e
 
