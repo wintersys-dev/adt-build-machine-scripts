@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        AddRecord.sh
+# @file        add_record.sh
 # @brief       Provisions a new authoritative A-record within the Cloudflare DNS architecture.
 # @author      Peter Winter
 # @date        05/11/2026
