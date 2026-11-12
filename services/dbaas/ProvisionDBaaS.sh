@@ -141,7 +141,7 @@ then
                 status "A database with id ${database_id} is already active, not provisioning a new one"
                 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/UpdateDBaaSFirewall.sh" "${database_id}" "0.0.0.0/0"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "0.0.0.0/0"
                 exit_code="$?"
                 set -e
                 
