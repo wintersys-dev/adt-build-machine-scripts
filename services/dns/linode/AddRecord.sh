@@ -119,7 +119,7 @@ EOF
 
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
-api_record_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${json_payload}")"
+api_record_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${domain_id}" "${json_payload}")"
 record_exit_code="$?"
 set -e
 
