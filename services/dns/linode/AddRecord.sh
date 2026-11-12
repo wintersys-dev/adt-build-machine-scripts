@@ -120,7 +120,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
