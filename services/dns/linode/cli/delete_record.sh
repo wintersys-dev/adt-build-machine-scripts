@@ -1,34 +1,36 @@
 #!/bin/sh
 ###################################################################################
 # @file        delete_record.sh
-# @brief       Deletes an existing DNS record from a specific domain zone via CLI.
+# @brief       Deletes a specific DNS record from a Linode domain via CLI.
 # @author      Peter Winter
-# @date        13/07/2016
-# @version     1.0
+# @date        12/11/2026
+# @version     1.1
 #
-# @details     This script parses a target URL to identify its core domain zone,
-#              queries provider catalogs via the Linode CLI to find the matching
-#              zone tracking ID, and uses the provided record ID to remove the 
-#              entry under securely scoped token environments.
+# @details     This script exports the required infrastructure authentication tokens,
+#              validates the presence of target domain and record identifiers, and
+#              executes the provider CLI tool with strict status capture routines to
+#              delete the specified DNS record.
 #
-# @param       $1  [Required] The unique Linode identifier of the target record to delete.
-# @param       $2  [Required] The Fully Qualified Domain Name (e.g., "://domain.com").
+# @param       $1  [Required] The unique numerical identifier of the target DNS domain.
+# @param       $2  [Required] The unique numerical identifier of the target DNS record.
 #
 # @env         BUILD_HOME          Path to the toolkit core framework layout directory.
 #
 # @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, cut, linode-cli, jq
+#              - /home/buildhome.dat configuration file tracking the active framework layout.
+#              - LogStatusMessages.sh utility logging system messages.
+#              - GetVariableValue.sh utility retrieving deployment context values.
+#              - external dependencies: cat, echo, linode-cli
 #
 # @security    
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Scopes and purges sensitive tokens (LINODE_CLI_TOKEN) tightly inside execution tracks.
+#              - Hardens system-owned paths (/bin, /usr/local/bin) to eliminate executable hijack vectors.
+#              - Quotes variable interpolations thoroughly to trap space-injection hazards.
+#              - Ensures the CLI authorization token environment variable is cleared immediately post-run.
 #
-# @exit        0  Success: Target DNS record successfully deleted via CLI.
-# @exit        1  Failure: Missing parameters or provider API transaction error.
-###################################################################################
+# @exit        0  Success: Target DNS domain record deleted cleanly.
+# @exit        *  Failure: Missing arguments, missing framework layouts, or bubbling
+#                 exit codes generated directly by the underlying cloud execution client.
+##################################################################################
 # License Agreement:
 # This file is part of The Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
@@ -42,31 +44,56 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
-}
-
-BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
-
-record_id="${1}"
-domain_url="$(/bin/echo ${2} | /usr/bin/cut -d'.' -f2-)"
-
-TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY)"
-export LINODE_CLI_TOKEN="${TOKEN}"
-
-domain_id="$(/usr/local/bin/linode-cli domains list --no-defaults --json | /usr/bin/jq -r '.[] | select (.domain | contains("'${domain_url}'")).id')"
-/usr/local/bin/linode-cli domains records-delete ${domain_id} ${record_id} --no-defaults
-
-if  [ $? != "0" ] 
+if [ -r /home/buildhome.dat ]
 then
-        status "Failed to delete record with id ${record_id} for domain ${domain_url}"
-        unset LINODE_CLI_TOKEN
-        exit  1
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
 fi
 
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
+
+if [ -z "${1}" ] || [ -z "${2}" ]
+then
+        status "Error: Domain ID and Record ID arguments are required."
+        status "Usage: $0 <domain_id> <record_id>"
+        exit 1
+fi
+
+domain_id="${1}"
+record_id="${2}"
+
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
+if [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
+export LINODE_CLI_TOKEN="${TOKEN}"
+
+set +e
+/usr/local/bin/linode-cli --no-defaults --json domains records-delete "${domain_id}" "${record_id}"
+exit_code="$?"
+set -e
+
+# Unset token instantly to maintain high security-isolation states
 unset LINODE_CLI_TOKEN
-status "Successfully deleted record with id ${record_id} for domain ${domain_url}"
+
+if [ "${exit_code}" -ne 0 ]
+then
+        status "Error: linode-cli domains records-delete failed with exit code ${exit_code}." >&2
+        exit "${exit_code}"
+fi
+
+status "Success: Linode DNS record ${record_id} deleted cleanly from domain ${domain_id}."
+exit 0
+
 
