@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        ResetFirewall.sh
+# @file        reset_firewall.sh
 # @brief       Resets a Linode native firewall's operational rule configurations to blank arrays.
 # @author      Peter Winter
 # @date        06/11/2026
