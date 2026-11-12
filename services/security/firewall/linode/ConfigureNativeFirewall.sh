@@ -332,7 +332,7 @@ else
         fi
 fi      
 
-"${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/UpdateFirewall.sh" "${firewall_id}" "${ruleset}"
+"${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/update_firewall.sh" "${firewall_id}" "${ruleset}"
 update_status="$?"
 set -e
 
