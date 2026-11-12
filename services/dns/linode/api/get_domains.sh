@@ -79,7 +79,6 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 # Evaluate the API response code using strict POSIX structural matching
 case "${HTTP_CODE}" in
     200)
-        status "Success: Account DNS domain payload retrieved cleanly."
         # Streams the verified domain JSON list back to the parent variable assignment
         /bin/echo "${RESPONSE_BODY}"
         exit 0
