@@ -93,7 +93,6 @@ then
         exit "${exit_code}"
 fi
 
-status "Success: Linode DNS record ${record_id} deleted cleanly from domain ${domain_id}."
 exit 0
 
 
