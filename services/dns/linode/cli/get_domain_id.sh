@@ -4,7 +4,7 @@
 # @brief       Retrieves the Linode domain identifier matching a target domain URL via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
-# @version     1.1
+# @version     1.0
 #
 # @details     This script validates the target domain URL argument, exports the required
 #              infrastructure authentication tokens, queries the Linode domains catalog via
@@ -80,7 +80,7 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
-api_domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
+domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
 exit_code="$?"
 set -e
 
@@ -95,7 +95,7 @@ fi
 
 # linode-cli --json returns a top-level array rather than wrapping results in .data[]
 set +e
-DOMAIN_ID=$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
+DOMAIN_ID=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
 jq_exit_code="$?"
 set -e
 
