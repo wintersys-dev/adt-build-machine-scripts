@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        UpdateFirewall.sh
+# @file        update_firewall.sh
 # @brief       Applies a custom network ruleset payload to a specified Linode firewall via the CLI.
 # @author      Peter Winter
 # @date        06/11/2026
