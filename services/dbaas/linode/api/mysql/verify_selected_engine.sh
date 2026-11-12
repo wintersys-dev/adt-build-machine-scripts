@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        VerifiySelectedEngine.sh
+# @file        verify_selected_engine.sh
 # @brief       Validates chosen database engine compatibility against active cloud regions.
 # @author      Peter Winter
 # @date        05/11/2026
