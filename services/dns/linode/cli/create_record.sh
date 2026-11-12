@@ -104,5 +104,4 @@ then
         exit "${exit_code}"
 fi
 
-status "Success: Linode DNS record created cleanly."
 exit 0
