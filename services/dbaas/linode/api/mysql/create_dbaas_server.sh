@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateDBaaSServer.sh
+# @file        create_dbaas_server.sh
 # @brief       Provisions a managed Linode MySQL DBaaS server within a specified VPC.
 # @author      Peter Winter
 # @date        05/11/2026
