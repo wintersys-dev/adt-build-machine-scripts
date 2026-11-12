@@ -4,7 +4,7 @@
 # @brief       Retrieves all configured DNS domains from the Linode account via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
-# @version     1.1
+# @version     1.0
 #
 # @details     This script exports infrastructure authentication tokens and executes the
 #              provider CLI tool with strict status capture routines to retrieve all
@@ -40,6 +40,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -70,7 +71,6 @@ set +e
 exit_code="$?"
 set -e
 
-# Unset token instantly to maintain high security-isolation states
 unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
