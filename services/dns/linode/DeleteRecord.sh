@@ -77,7 +77,7 @@ domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains")"
+api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
 exit_code="$?"
 set -e
 
