@@ -106,7 +106,7 @@ fi
 
 # Fetch active records for the resolved domain zone safely while manual intercept hooks track faults
 set +e
-api_records_json="$(${BUILD_HOME}/services/dns/linode/api/get_record_ids.sh)"
+api_records_json="$(${BUILD_HOME}/services/dns/linode/api/get_record_ids.sh "${domain_id}")"
 records_exit_code="$?"
 set -e
 
