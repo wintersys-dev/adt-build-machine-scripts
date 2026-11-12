@@ -75,28 +75,51 @@ domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 
 # Extract authorized structural access configurations
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${BUILD_HOME}/services/dns/linode/api/get_domains.sh)"
+domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_domain_json}" ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query domain management catalog or network timeout occurred."
         exit 1
 fi
 
 # Verify domain listing catalog returns to protect against masked HTTP authentication errors
-if /bin/echo "${api_domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
-        status "Failed to retrieve domains list. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve domains list. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -106,7 +129,7 @@ fi
 
 # Execute deletion endpoint communication safely while manual intercept hooks track faults
 set +e
-api_delete_response="$(${BUILD_HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
+delete_response="$(${BUILD_HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
 delete_exit_code="$?"
 set -e
 
@@ -118,9 +141,9 @@ fi
 
 # Verify final transaction state explicitly to catch structural or authorization errors
 # Note: Linode API returns a blank JSON object '{}' on successful deletion.
-if [ -n "${api_delete_response}" ] && /bin/echo "${api_delete_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if [ -n "${delete_response}" ] && /bin/echo "${delete_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        delete_err_msg="$(/bin/echo "${api_delete_response}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS payload entry validation error."')"
+        delete_err_msg="$(/bin/echo "${delete_response}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS payload entry validation error."')"
         status "Failed to delete record from DNS system. Cloud Provider Reason: ${delete_err_msg}"
         exit 1
 fi
