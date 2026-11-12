@@ -67,7 +67,7 @@ then
         exit 1
 fi
 
-domain_url="${1}"
+domain_url="${2}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
