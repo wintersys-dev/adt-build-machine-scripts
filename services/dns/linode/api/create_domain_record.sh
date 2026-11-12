@@ -43,7 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -60,14 +60,15 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] 
+if [ -z "${1}" ] || [ -z "${2}" ]  
 then
-        status "Error: JSON payload argument is required."
-        status "Usage: $0 <json_payload>"
+        status "Error: Domain ID and JSON payload arguments are required."
+        status "Usage: $0 <domain id> <json_payload>"
         exit 1
 fi
 
-json_payload="${1}"
+domain_id="${1}"
+json_payload="${2}"
 
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
@@ -79,7 +80,7 @@ fi
 
 set +e
 # Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
-RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains" -w "\nHTTP_STATUS:%{http_code}")
+RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains/${domain_id}/records" -w "\nHTTP_STATUS:%{http_code}")
 
 set -e
 
