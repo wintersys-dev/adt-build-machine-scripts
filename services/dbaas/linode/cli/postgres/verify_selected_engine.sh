@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        VerifySelectedEngine.sh
+# @file        verify_selected_engine.sh
 # @brief       Validates chosen database engine compatibility using the Linode CLI.
 # @author      Peter Winter
 # @date        05/11/2026
