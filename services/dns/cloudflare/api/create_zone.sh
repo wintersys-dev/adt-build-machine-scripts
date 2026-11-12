@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CreateZone.sh
+# @file        create_zone.sh
 # @brief       Provisions a new authoritative DNS zone within the Cloudflare architecture.
 # @author      Peter Winter
 # @date        05/11/2026
