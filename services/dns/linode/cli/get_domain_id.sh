@@ -111,6 +111,5 @@ then
         exit 2
 fi
 
-status "Success: Extracted domain ID ${DOMAIN_ID} for domain '${domain_url}'."
 /bin/echo "${DOMAIN_ID}"
 exit 0
