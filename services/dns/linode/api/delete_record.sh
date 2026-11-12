@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        DeleteRecord.sh
+# @file        delete_record.sh
 # @brief       Deletes an active record entry from a specified domain zone matrix.
 # @author      Peter Winter
 # @date        05/11/2026
