@@ -76,28 +76,48 @@ domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_USERNAME="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME)"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
+then
+        orchestration_tool="api"
+fi
+
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
+domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_domain_json}" ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query domain management catalog or network timeout occurred."
         exit 1
 fi
 
 # Verify domain listing catalog returns to protect against masked HTTP authentication errors
-if /bin/echo "${api_domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
-        status "Failed to retrieve domains list. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve domains list. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id // empty')"
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain == $dom) | .id // empty')"
 
 # If the zone does not exist, assemble parameters and execute creation step
 if [ -z "${domain_id}" ]
@@ -116,8 +136,7 @@ EOF
 
         # Execute creation endpoint communication safely while manual intercept hooks track faults
         set +e
-        api_create_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${domain_id}" "${json_payload}")"
-      #  api_create_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains")"
+        create_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_domain_record.sh  "${json_payload}")"
         create_exit_code="$?"
         set -e
 
@@ -128,7 +147,7 @@ EOF
         fi
 
         # Extract the error reason, defaulting to empty if it doesn't exist
-        create_err_msg=$(echo "${api_create_response}" | /usr/bin/jq -e -r '.errors | if type == "array" then .[0].reason else .reason end // empty' 2>/dev/null)
+        create_err_msg=$(echo "${create_response}" | /usr/bin/jq -e -r '.errors | if type == "array" then .[0].reason else .reason end // empty' 2>/dev/null)
 
         # If an error reason was found, log it and exit
         if [ -n "${create_err_msg}" ]; then
@@ -138,7 +157,7 @@ EOF
 
         status "DNS master zone successfully initialized for domain: ${domain_url}"
 else
-        status "DNS master zone already active for domain: ${domain_url} (ID: ${domain_id})"
+        status "DNS master zone already active for domain: ${domain_url} for domain (ID:${domain_id})"
 fi
 
 exit 0
