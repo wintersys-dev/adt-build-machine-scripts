@@ -150,8 +150,6 @@ then
         exit 1
 fi
 
-exit
-
 # Verify final transaction state explicitly to protect downstream resolving hooks
 if /bin/echo "${record_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
