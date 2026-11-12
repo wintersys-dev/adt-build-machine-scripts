@@ -125,7 +125,7 @@ then
 
         if [ "${exit_code}" -ne 0 ]
         then
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/CreateDBaaSServer.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/create_dbaas_server.sh"
                 
                 set +e
                 "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/check_dbaas_service_status.sh"
