@@ -82,5 +82,20 @@ then
 		fi
 	fi
 
-	${BUILD_HOME}/services/dns/AddRecord.sh "${website_url}" "${ip}" "${auth}"
+    exit_code="1"
+    count="0"
+
+    while [ ${exit_code} != 0 ] && [ "${count}" -lt "5" ] 
+    do
+    	${BUILD_HOME}/services/dns/AddRecord.sh "${website_url}" "${ip}" "${auth}"
+        exit_code="$?"
+        /bin/sleep 5
+        count="`/usr/bin/expr ${count} + 1`"
+    done
+        
+    if ( [ "${count}" -eq "5" ] )
+    then
+		status "Couldn't add ${website_url} record to the DNS system with ip address ${ip}"
+		exit 1
+    fi
 fi
