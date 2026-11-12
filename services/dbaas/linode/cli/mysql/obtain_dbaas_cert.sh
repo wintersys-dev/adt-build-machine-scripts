@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        ObtainDBaaSCertCli.sh
+# @file        obtain_dbaas_cert.sh
 # @brief       Retrieves and validates the SSL CA Certificate for a Linode Managed Database via CLI.
 # @author      Peter Winter
 # @date        05/11/2026
