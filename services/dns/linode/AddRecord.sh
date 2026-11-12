@@ -45,7 +45,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
+set -x
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -119,7 +119,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
