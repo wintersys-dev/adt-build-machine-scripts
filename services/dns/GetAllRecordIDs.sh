@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetAllRecordIDsRouter.sh
+# @file        GetAllRecordIDs.sh
 # @brief       Routes DNS record ID retrieval requests to specialized backend scripts.
 # @author      Peter Winter
 # @date        10/11/2026
@@ -98,7 +98,7 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/get_all_record_ids.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetAllRecordIDs.sh"
 
 if [ ! -f "${script_path}" ]
 then
