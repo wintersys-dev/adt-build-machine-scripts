@@ -119,7 +119,7 @@ then
         fi
 
         set +e
-        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseID.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
         exit_code="$?"
         set -e
 
@@ -153,7 +153,7 @@ then
         fi
 
         set +e
-        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseID.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
         exit_code="$?"
         set -e
 
