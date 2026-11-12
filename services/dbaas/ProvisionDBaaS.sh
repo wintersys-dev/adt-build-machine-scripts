@@ -128,7 +128,7 @@ then
                 "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/CreateDBaaSServer.sh"
                 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/CheckDBaaSServerStatus.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/check_dbaas_service_status.sh"
                 exit_code="$?"
                 set -e
                 
