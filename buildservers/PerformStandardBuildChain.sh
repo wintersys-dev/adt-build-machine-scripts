@@ -287,7 +287,7 @@ then
 		as_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "as-${REGION}-${BUILD_IDENTIFIER}"`"
 	fi
 	ws_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "ws-${REGION}-${BUILD_IDENTIFIER}"`"
-	db_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}""`"
+	db_active_ip="`${BUILD_HOME}/services/server/GetServerPrivateIPAddresses.sh "db-${REGION}-${BUILD_IDENTIFIER}"`"
 fi
 
 # Simply report that so far, so good
