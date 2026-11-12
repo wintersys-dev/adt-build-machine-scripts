@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        GetFirewallID.sh
+# @file        get_firewall_id.sh
 # @brief       Retrieves the unique Linode API ID of an active firewall via the Linode CLI.
 # @author      Peter Winter
 # @date        06/11/2026
