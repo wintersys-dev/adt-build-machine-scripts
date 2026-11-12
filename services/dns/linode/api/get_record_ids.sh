@@ -43,6 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -53,7 +54,6 @@ else
         exit 1
 fi
 
-# Force status helper messages strictly onto stderr to preserve clean data streaming on stdout
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
@@ -77,20 +77,15 @@ then
 fi
 
 set +e
-# Safely route authorized GET actions via standard stream piping to prevent exposure in process trees
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s "https://api.linode.com/v4/domains/${domain_id}/records" -w "\nHTTP_STATUS:%{http_code}")
 set -e
 
-# Extract the HTTP status code (e.g., 200, 404, 401) using strict POSIX filtering
 HTTP_CODE=$(/bin/echo "${RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
 
-# Extract the raw JSON response body by dropping the status delimiter line
 RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 
-# Evaluate the API response code using strict POSIX structural matching
 case "${HTTP_CODE}" in
     200)
-        # Streams the verified DNS records JSON list back to the parent variable assignment
         /bin/echo "${RESPONSE_BODY}" | /usr/bin/jq '.data'
         exit 0
         ;;
