@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        create_zone.sh
+# @file        CreateZone.sh
 # @brief       Provisions a new authoritative master DNS zone with the cloud provider.
 # @author      Peter Winter
 # @date        05/11/2026
