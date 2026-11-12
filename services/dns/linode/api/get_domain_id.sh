@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        extract_domain_id.sh
+# @file        get_domain_id.sh
 # @brief       Extracts the Linode domain identifier matching a target domain URL from JSON.
 # @author      Peter Winter
 # @date        12/11/2026
