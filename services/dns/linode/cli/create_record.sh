@@ -71,6 +71,17 @@ fi
 domain_id="${1}"
 json_payload="${2}"
 
+# Reset positional parameters ($@) to build the dynamic flag list
+set --
+
+# Convert {"type":"A","name":"www","target":"1.2.3.4"} into --type A --name www --target 1.2.3.4
+while IFS= read -r line
+do
+        [ -n "${line}" ] && set -- "$@" "${line}"
+done <<EOF
+$(/bin/echo "${json_payload}" | /usr/bin/jq -r 'to_entries[] | select(.value != null and .value != "") | "--\(.key)", (.value | tostring)')
+EOF
+
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if [ -z "${TOKEN}" ]
@@ -82,7 +93,7 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
-/usr/local/bin/linode-cli --no-defaults --json domains records-create "${domain_id}" "${json_payload}"
+/usr/local/bin/linode-cli --no-defaults --json domains records-create "${domain_id}" "$@"
 exit_code="$?"
 set -e
 
