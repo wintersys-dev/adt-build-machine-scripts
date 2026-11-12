@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        create_domain_record.sh
+# @file        create_record.sh
 # @brief       Creates a new DNS record under a specific Linode domain via REST API.
 # @author      Peter Winter
 # @date        12/11/2026
@@ -54,7 +54,6 @@ else
         exit 1
 fi
 
-# Force status helper messages strictly onto stderr to preserve clean data streaming on stdout
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
@@ -79,22 +78,17 @@ then
 fi
 
 set +e
-# Safely route authorized POST actions via standard stream piping to prevent exposure in process trees
 RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST -H "Content-Type: application/json" -d "${json_payload}" "https://api.linode.com/v4/domains/${domain_id}/records" -w "\nHTTP_STATUS:%{http_code}")
 
 set -e
 
-# Extract the HTTP status code (e.g., 200, 400, 404) using strict POSIX filtering
 HTTP_CODE=$(/bin/echo "${RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
 
-# Extract the raw JSON response body by dropping the status delimiter line
 RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 
-# Evaluate the API response code using strict POSIX structural matching
 case "${HTTP_CODE}" in
         200|201)
                 status "Success: DNS record created cleanly."
-                # Streams the newly created DNS record JSON back to the parent variable assignment
                 /bin/echo "${RESPONSE_BODY}" 
                 exit 0
                 ;;
