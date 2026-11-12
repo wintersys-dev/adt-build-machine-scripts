@@ -76,28 +76,50 @@ sub_domain="$(/bin/echo "${1}" | /usr/bin/awk -F'.' '{print $1}')"
 # Extract authorized structural access keys safely
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${BUILD_HOME}/services/dns/linode/api/get_domains.sh)"
+domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_domain_json}" ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query domain management catalog or network timeout occurred."
         exit 1
 fi
 
 # Verify domain listing catalog returns to protect against masked HTTP authentication errors
-if /bin/echo "${api_domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
-        status "Failed to retrieve domains list. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve domains list. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -107,26 +129,26 @@ fi
 
 # Fetch active records for the resolved domain zone safely while manual intercept hooks track faults
 set +e
-api_records_json="$(${BUILD_HOME}/services/dns/linode/api/get_record_ids.sh ${domain_id})"
+records_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_record_ids.sh ${domain_id})"
 records_exit_code="$?"
 set -e
 
-if [ "${records_exit_code}" -ne 0 ] || [ -z "${api_records_json}" ]
+if [ "${records_exit_code}" -ne 0 ] || [ -z "${records_json}" ]
 then
         status "Failed to get all record IDs from the DNS system for root domain ${domain_url} and sub domain ${sub_domain} (Network/Curl framework failure)."
         exit 1
 fi
 
 # Verify final transaction state explicitly to catch payload validation or authentication drops
-if /bin/echo "${api_records_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${records_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        records_err_msg="$(/bin/echo "${api_records_json}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS records lookup validation error."')"
+        records_err_msg="$(/bin/echo "${records_json}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS records lookup validation error."')"
         status "Failed to look up records in the DNS system. Cloud Provider Reason: ${records_err_msg}"
         exit 1
 fi
 
 # Parse matching entity profiles defensively using parameters isolation tracking
-record_id="$(/bin/echo "${api_records_json}" | /usr/bin/jq -r --arg sub "${sub_domain}" '.data[] | select(.name == $sub) | .id // empty')"
+record_id="$(/bin/echo "${records_json}" | /usr/bin/jq -r --arg sub "${sub_domain}" '.data[] | select(.name == $sub) | .id // empty')"
 
 if [ -z "${record_id}" ]
 then
