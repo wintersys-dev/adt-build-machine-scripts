@@ -47,7 +47,6 @@
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
