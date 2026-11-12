@@ -45,6 +45,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -77,28 +78,48 @@ ip="${2}"
 # Extract authorized structural access keys safely
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ] 
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ] 
+then
+        orchestration_tool="api"
+fi
+
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
+domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_domain_json}" ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query cluster domain management catalog or network timeout occurred."
         exit 1
 fi
 
 # Verify domain listing catalog returns to protect against masked HTTP authentication errors
-if /bin/echo "${api_domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r '.errors[0].reason // "Unknown API error parameters."')"
-        status "Failed to retrieve domains list. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors[0].reason // "Unknown API error parameters."')"
+        status "Failed to retrieve domains list. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty')"
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty')"
 
 if [ -z "${domain_id}" ]
 then
@@ -119,7 +140,7 @@ EOF
 
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
-api_record_response="$(${HOME}/services/dns/linode/api/create_domain_record.sh "${domain_id}" "${json_payload}")"
+record_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_domain_record.sh "${domain_id}" "${json_payload}")"
 record_exit_code="$?"
 set -e
 
@@ -130,9 +151,9 @@ then
 fi
 
 # Verify final transaction state explicitly to protect downstream resolving hooks
-if /bin/echo "${api_record_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+if /bin/echo "${record_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        record_err_msg="$(/bin/echo "${api_record_response}" | /usr/bin/jq -r '.errors[0].reason // "Unknown DNS payload entry validation error."')"
+        record_err_msg="$(/bin/echo "${record_response}" | /usr/bin/jq -r '.errors[0].reason // "Unknown DNS payload entry validation error."')"
         status "Failed to add record to DNS system. Cloud Provider Reason: ${record_err_msg}"
         exit 1
 fi
