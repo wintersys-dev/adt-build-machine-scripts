@@ -90,7 +90,7 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/GetZoneID.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/get_zone_id.sh"
 
 if [ -f "${script_path}" ]
 then
