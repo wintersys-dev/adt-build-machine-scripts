@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -91,7 +92,6 @@ then
         exit "${exit_code}"
 fi
 
-# linode-cli --json returns a top-level array of domain objects
 domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain == $dom) | .id // empty')"
 
 if [ -z "${domain_id}" ]
@@ -112,7 +112,6 @@ set +e
 create_exit_code="$?"
 set -e
 
-        # Unset token instantly to maintain high security-isolation states
         unset LINODE_CLI_TOKEN
 
         if [ "${create_exit_code}" -ne 0 ]
