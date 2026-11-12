@@ -47,7 +47,6 @@
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -68,11 +67,9 @@ then
         exit 1
 fi
 
-# Parse localized networking components safely using modern subshells
 domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
 sub_domain="$(/bin/echo "${1}" | /usr/bin/awk -F'.' '{print $1}')"
 
-# Extract authorized structural access keys safely
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
@@ -98,7 +95,6 @@ then
         exit 1
 fi
 
-# Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
 domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
@@ -110,7 +106,6 @@ then
         exit 1
 fi
 
-# Verify domain listing catalog returns to protect against masked HTTP authentication errors
 if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors.reason // "Unknown API error parameters."')"
@@ -118,7 +113,6 @@ then
         exit 1
 fi
 
-# Extract the matching unique domain layout tracking zone ID cleanly
 domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
@@ -127,7 +121,6 @@ then
         exit 1
 fi
 
-# Fetch active records for the resolved domain zone safely while manual intercept hooks track faults
 set +e
 records_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_record_ids.sh ${domain_id})"
 records_exit_code="$?"
@@ -139,7 +132,6 @@ then
         exit 1
 fi
 
-# Verify final transaction state explicitly to catch payload validation or authentication drops
 if /bin/echo "${records_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         records_err_msg="$(/bin/echo "${records_json}" | /usr/bin/jq -r '.errors.reason // "Unknown DNS records lookup validation error."')"
@@ -147,7 +139,6 @@ then
         exit 1
 fi
 
-# Parse matching entity profiles defensively using parameters isolation tracking
 record_ids="$(/bin/echo "${records_json}" | /usr/bin/jq -r --arg sub "${sub_domain}" '.[] | select(.name == $sub) | .id // empty')"
 
 if [ -z "${record_ids}" ]
