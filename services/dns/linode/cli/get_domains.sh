@@ -79,5 +79,4 @@ then
         exit "${exit_code}"
 fi
 
-status "Success: Account DNS domain payload retrieved cleanly."
 exit 0
