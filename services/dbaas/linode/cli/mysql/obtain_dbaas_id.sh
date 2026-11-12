@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        ObtainDatabaseID.sh
+# @file        obtain_dbaas_id.sh
 # @brief       Resolves the platform instance ID for a given DBaaS cluster label via CLI.
 # @author      Peter Winter
 # @date        05/11/2026
