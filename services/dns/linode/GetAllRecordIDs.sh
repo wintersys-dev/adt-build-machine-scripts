@@ -77,7 +77,7 @@ TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
+api_domain_json="$(${BUILD_HOME}/services/dns/linode/api/get_domains.sh)"
 exit_code="$?"
 set -e
 
@@ -96,7 +96,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -106,7 +106,7 @@ fi
 
 # Fetch active records for the resolved domain zone safely while manual intercept hooks track faults
 set +e
-api_records_json="$(${HOME}/services/dns/linode/api/get_record_ids.sh)"
+api_records_json="$(${BUILD_HOME}/services/dns/linode/api/get_record_ids.sh)"
 records_exit_code="$?"
 set -e
 
