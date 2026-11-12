@@ -42,6 +42,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -52,7 +53,6 @@ else
         exit 1
 fi
 
-# Force status helper messages strictly onto stderr to preserve clean data streaming on stdout
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
