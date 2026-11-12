@@ -77,7 +77,7 @@ domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 # Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
-api_domain_json="$(${HOME}/services/dns/linode/api/get_domains.sh)"
+api_domain_json="$(${BUILD_HOME}/services/dns/linode/api/get_domains.sh)"
 exit_code="$?"
 set -e
 
@@ -96,7 +96,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -106,7 +106,7 @@ fi
 
 # Execute deletion endpoint communication safely while manual intercept hooks track faults
 set +e
-api_delete_response="$(${HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
+api_delete_response="$(${BUILD_HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
 delete_exit_code="$?"
 set -e
 
