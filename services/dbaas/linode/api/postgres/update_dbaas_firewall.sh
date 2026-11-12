@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        UpdateDBaaSFirewall.sh
+# @file        update_dbaas_firewall.sh
 # @brief       Updates the network firewall access control list for a managed DBaaS instance.
 # @author      Peter Winter
 # @date        05/11/2026
