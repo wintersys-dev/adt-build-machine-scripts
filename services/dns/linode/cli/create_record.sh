@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        create_domain_record.sh
+# @file        create_record.sh
 # @brief       Creates a new DNS record under a specific Linode domain via CLI.
 # @author      Peter Winter
 # @date        12/11/2026
@@ -43,10 +43,8 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
+#set -x
 set -e
-
-read x
 
 if [ -r /home/buildhome.dat ]
 then
