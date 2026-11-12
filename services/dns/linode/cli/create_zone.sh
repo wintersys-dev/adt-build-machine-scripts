@@ -122,11 +122,9 @@ set -e
         fi
 
         status "Success: DNS master zone initialized cleanly for domain ${domain_url}."
-else
-        # Unset token instantly to maintain high security-isolation states
-        unset LINODE_CLI_TOKEN
-        status "Success: DNS master zone already active for domain ${domain_url} (ID: ${domain_id})."
 fi
+
+unset LINODE_CLI_TOKEN
 
 exit 0
 
