@@ -120,7 +120,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(${BUILD_HOME}/services/dns/linode/api/get_domain_id.sh "${domain_json}" "${domain_url}" )"
+domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -130,7 +130,7 @@ fi
 
 # Execute deletion endpoint communication safely while manual intercept hooks track faults
 set +e
-delete_response="$(${BUILD_HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
+delete_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/delete_record.sh "${domain_id}" "${record_id}")"
 delete_exit_code="$?"
 set -e
 
