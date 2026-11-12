@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetProxyDNSIPs.sh
+# @file        get_proxy_dns_ips.sh
 # @brief       Retrieves the active IPv4 proxy edge networks list from Cloudflare.
 # @author      Peter Winter
 # @date        05/11/2026
