@@ -91,7 +91,7 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 case "${HTTP_CODE}" in
     200)
         # Streams the verified DNS records JSON list back to the parent variable assignment
-        /bin/echo "${RESPONSE_BODY}"
+        /bin/echo "${RESPONSE_BODY}" | /usr/bin/jq '.data'
         exit 0
         ;;
     400)
