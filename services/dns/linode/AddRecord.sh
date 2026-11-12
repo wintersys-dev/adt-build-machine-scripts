@@ -45,10 +45,9 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
+#set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -62,7 +61,6 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: Fully Qualified Domain Name and target IP parameters are required."
@@ -70,12 +68,10 @@ then
         exit 1
 fi
 
-# Parse localized networking components safely using modern subshells
 sub_domain="$(/bin/echo "${1}" | /usr/bin/awk -F'.' '{print $1}')"
 domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
 ip="${2}"
 
-# Extract authorized structural access keys safely
 TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
@@ -99,7 +95,6 @@ then
         orchestration_tool="api"
 fi
 
-# Fetch active domain zone layouts securely with manual intercept hooks to catch runtime exceptions
 set +e
 domain_json="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domains.sh)"
 exit_code="$?"
@@ -111,7 +106,6 @@ then
         exit 1
 fi
 
-# Verify domain listing catalog returns to protect against masked HTTP authentication errors
 if /bin/echo "${domain_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r '.errors[0].reason // "Unknown API error parameters."')"
@@ -119,7 +113,6 @@ then
         exit 1
 fi
 
-# Extract the matching unique domain layout tracking zone ID cleanly
 domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
@@ -128,7 +121,6 @@ then
         exit 1
 fi
 
-# Assemble raw JSON transaction parameters block defensively to resist injection threats
 json_payload="$(/bin/cat <<EOF
 {
   "type": "A",
@@ -139,7 +131,6 @@ json_payload="$(/bin/cat <<EOF
 EOF
 )"
 
-# Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
 record_response="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/create_record.sh "${domain_id}" "${json_payload}")"
 record_exit_code="$?"
@@ -151,7 +142,6 @@ then
         exit 1
 fi
 
-# Verify final transaction state explicitly to protect downstream resolving hooks
 if /bin/echo "${record_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
         record_err_msg="$(/bin/echo "${record_response}" | /usr/bin/jq -r '.errors[0].reason // "Unknown DNS payload entry validation error."')"
