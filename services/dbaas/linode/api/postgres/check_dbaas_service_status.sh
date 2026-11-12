@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        CheckDBaaSServerStatus.sh
+# @file        check_dbaas_service_status.sh
 # @brief       Monitors cloud DBaaS instance orchestration status until active.
 # @author      Peter Winter
 # @date        05/11/2026
