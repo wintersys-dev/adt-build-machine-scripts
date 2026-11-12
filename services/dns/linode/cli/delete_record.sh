@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        DeleteRecord.sh
+# @file        delete_record.sh
 # @brief       Deletes an existing DNS record from a specific domain zone via CLI.
 # @author      Peter Winter
 # @date        13/07/2016
