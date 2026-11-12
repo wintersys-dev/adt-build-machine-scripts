@@ -1,6 +1,6 @@
 #!/bin/sh
 ########################################################################################
-# @file        CreateFirewall.sh
+# @file        create_firewall.sh
 # @brief       Creates a new Linode native firewall instance with secure base policies.
 # @author      Peter Winter
 # @date        06/11/2026
