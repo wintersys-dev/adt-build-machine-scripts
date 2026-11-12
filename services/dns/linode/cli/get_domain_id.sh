@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+#set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -54,7 +55,6 @@ else
         exit 1
 fi
 
-# Force status helper messages strictly onto stderr to preserve clean data streaming on stdout
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
@@ -84,7 +84,6 @@ domain_json="$(/usr/local/bin/linode-cli --no-defaults --json domains list)"
 exit_code="$?"
 set -e
 
-# Unset token instantly to maintain high security-isolation states
 unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
@@ -93,7 +92,6 @@ then
         exit "${exit_code}"
 fi
 
-# linode-cli --json returns a top-level array rather than wrapping results in .data[]
 set +e
 DOMAIN_ID=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
 jq_exit_code="$?"
