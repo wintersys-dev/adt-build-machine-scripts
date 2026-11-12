@@ -160,7 +160,7 @@ then
         if [ "${exit_code}" -eq 0 ] && [ -n "${database_id}" ]
         then
                 set +e
-                db_payload="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/ObtainDatabaseDetails.sh" "${database_id}")"
+                db_payload="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_details.sh" "${database_id}")"
                 exit_code="$?"
                 set -e
 
