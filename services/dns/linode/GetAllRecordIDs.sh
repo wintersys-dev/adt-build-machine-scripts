@@ -106,7 +106,7 @@ fi
 
 # Fetch active records for the resolved domain zone safely while manual intercept hooks track faults
 set +e
-api_records_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/domains/${domain_id}/records")"
+api_records_json="$(${HOME}/services/dns/linode/api/get_record_ids.sh)"
 records_exit_code="$?"
 set -e
 
