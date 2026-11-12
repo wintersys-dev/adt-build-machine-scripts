@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        AddRecord.sh
+# @file        add_record.sh
 # @brief       Provisions a new dynamic A-record entry within the DNS matrix via CLI.
 # @author      Peter Winter
 # @date        05/11/2026
