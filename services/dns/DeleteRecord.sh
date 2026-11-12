@@ -99,7 +99,7 @@ then
         orchestration_tool="api"
 fi
 
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/DeleteRecord.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/delete_record.sh"
 
 if [ ! -f "${script_path}" ]
 then
