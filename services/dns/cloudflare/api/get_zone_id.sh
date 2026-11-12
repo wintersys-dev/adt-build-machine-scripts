@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################################################
-# @file        GetZoneID.sh
+# @file        get_zone_id.sh
 # @brief       Resolves the unique zone identifier ID for a given domain via Cloudflare API.
 # @author      Peter Winter
 # @date        05/11/2026
