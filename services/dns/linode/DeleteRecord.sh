@@ -96,7 +96,7 @@ then
 fi
 
 # Extract the matching unique domain layout tracking zone ID cleanly
-domain_id="$(/bin/echo "${api_domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty')"
+domain_id="$(${HOME}/services/dns/linode/api/get_domain_id.sh "${api_domain_json}" "${domain_url}" )"
 
 if [ -z "${domain_id}" ]
 then
@@ -106,7 +106,7 @@ fi
 
 # Execute deletion endpoint communication safely while manual intercept hooks track faults
 set +e
-api_delete_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X DELETE "https://api.linode.com/v4/domains/${domain_id}/records/${record_id}")"
+api_delete_response="$(${HOME}/services/dns/linode/api/delete_record.sh "${domain_id}" "${record_id}")"
 delete_exit_code="$?"
 set -e
 
