@@ -324,7 +324,7 @@ then
                 exit 1
         fi
 else
-        "${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/ResetFirewall.sh" "${firewall_id}"
+        "${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/reset_firewall.sh" "${firewall_id}"
         if [ "$?" -ne 0 ] 
         then
                 status "Failed to reset firewall"
