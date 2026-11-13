@@ -71,7 +71,6 @@ fi
 record_id="${1}"
 domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 
-TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
 DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
