@@ -71,7 +71,16 @@ fi
 record_id="${1}"
 domain_url="$(/bin/echo "${2}" | /usr/bin/cut -d'.' -f2-)"
 
-DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
+
+set +e
+DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+set -e
+
+if [ -z "${DNS_CHOICE}" ] 
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
