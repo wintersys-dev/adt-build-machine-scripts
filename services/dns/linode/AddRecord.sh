@@ -72,8 +72,15 @@ sub_domain="$(/bin/echo "${1}" | /usr/bin/awk -F'.' '{print $1}')"
 domain_url="$(/bin/echo "${1}" | /usr/bin/cut -d'.' -f2-)"
 ip="${2}"
 
-TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh TOKEN)"
-DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE)"
+set +e
+DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+set -e
+
+if [ -z "${DNS_CHOICE}" ] 
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
