@@ -111,8 +111,6 @@ domain_json="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/g
 exit_code="$?"
 set -e
 
-read z
-
 if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query cluster domain management catalog or network timeout occurred."
