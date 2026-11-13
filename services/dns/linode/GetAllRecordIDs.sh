@@ -120,11 +120,11 @@ then
         exit 1
 fi
 
-domain_id="$(${BUILD_HOME}/services/dns/linode/${orchestration_tool}/get_domain_id.sh "${domain_json}" "${domain_url}" )"
+domain_id=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
 
 if [ -z "${domain_id}" ]
 then
-        status "Domain ID not found matching zone track string pattern: ${domain_url}"
+        /bin/echo "Domain ID not found matching zone track string pattern: ${domain_url}" >&2
         exit 1
 fi
 
