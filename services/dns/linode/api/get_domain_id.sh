@@ -69,7 +69,7 @@ domain_json="${1}"
 domain_url="${2}"
 
 set +e
-DOMAIN_ID=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.data[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
+DOMAIN_ID=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
 JQ_EXIT_CODE=$?
 set -e
 
