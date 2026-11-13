@@ -45,8 +45,8 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
-#set -e
+#set -x
+set -e
 
 if [ -r /home/buildhome.dat ]
 then
@@ -76,7 +76,9 @@ else
         domain_url="${1}"
 fi
 
+set +e
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+set -e
 
 if [ -z "${DNS_CHOICE}" ] 
 then
