@@ -78,6 +78,7 @@ fi
 
 set +e
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 set -e
 
 if [ -z "${DNS_CHOICE}" ] 
@@ -131,10 +132,12 @@ domain_id=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}
 if [ -z "${domain_id}" ]
 then
         /bin/echo "Domain ID not found matching zone track string pattern: ${domain_url}" >&2
-        exit 1
+        status "Domain zone '${domain_url}' not found in catalog. Provisioning master zone layout..."
+else
+        status "Domain zone '${domain_url}' found in catalog. Not provisioning master zone layout..."
+        exit 0
 fi
 
-status "Domain zone '${domain_url}' not found in catalog. Provisioning master zone layout..."
 
 json_payload="$(/bin/cat <<EOF
 {
