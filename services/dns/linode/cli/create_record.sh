@@ -90,7 +90,7 @@ fi
 export LINODE_CLI_TOKEN="${TOKEN}"
 
 set +e
-if [ -z "${domain_id}" ]
+if [ "${domain_id}" = "zone" ]
 then
         /usr/local/bin/linode-cli --no-defaults --json domains create "$@"
 else
