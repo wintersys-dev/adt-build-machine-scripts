@@ -1,0 +1,30 @@
+To speed up provisioning without relying on custom cloud snapshots or golden images, you need to eliminate the biggest bottlenecks in a fresh boot: package manager downloads, sequential polling, and redundant OS tasks.
+Here are the most effective ways to cut provisioning time down from several minutes to under 60–90 seconds on stock Linux images:
+
+1. Parallelise Node Provisioning & Decouple Dependencies
+
+• Boot all nodes simultaneously: Instead of waiting for the database VPS to finish booting before triggering the API calls to create the autoscaler and webservers, fire all VM creation requests in parallel (& + wait). Cloud providers take 20–40 seconds just to allocate virtual hardware; overlapping those allocations saves nearly a minute immediately.
+• Let nodes install OS packages while waiting: Even if a webserver needs database credentials before configuring WordPress/Tomcat, let it run apt-get update && apt-get install concurrently while the database boots, then pause only at the exact step where DB_HOST is required.
+
+2. Strip Down apt / Package Installation Overhead
+
+On Debian/Ubuntu VPS instances, apt-get often accounts for 60% of cloud-init runtime due to man-page generation, recommended packages, and interactive prompts.
+• Skip recommended packages and docs: Pass --no-install-recommends to every apt-get install command and set DEBIAN_FRONTEND=noninteractive. This frequently cuts download and extraction sizes by 40–50%.
+• Batch all package installs into a single command: Running apt-get install -y pkg1 pkg2 pkg3 once avoids acquiring dpkg locks, updating initramfs, and rebuilding man-db/triggers multiple times across separate scripts.
+• Disable man-db and apt translations during bootstrap: Dropping a small config snippet in /etc/dpkg/dpkg.cfg.d/01_nodoc (excluding /usr/share/doc/* and /usr/share/man/*) and /etc/apt/apt.conf.d/99nocache (Acquire::Languages "none";) drastically reduces disk I/O on small VPS disks.
+
+3. Pre-Bundle Compiled Artifacts & Dependencies
+
+Rather than compiling tools or downloading dozens of small files over the internet on every boot:
+• Build-machine artifact caching: Have the build machine download or pre-package vendor dependencies (such as Composer vendor/ directories, PHP extensions, or linode-cli wheels) once, and push a single compressed archive (zstd or tar.gz) to new nodes over the fast private VPC network right after their SSH callback fires.
+• Shallow Git clones: Ensure every git clone inside cloud-init uses --depth 1 --single-branch so nodes only download the latest commit rather than the full repository history.
+
+4. Replace Sleep-Polling with Event Callbacks & Tighter Loops
+
+• Eliminate fixed sleep delays: Replace arbitrary sleep 30 or sleep 60 pauses in build scripts with tight 1–2 second readiness loops (while [ ! -f ... ]; do sleep 1; done) driven by your new ReceiveCallback.sh SSH callbacks.
+• Local readiness checks: Have services poll localhost sockets (mysqladmin ping, curl -sf http://127.0.0.1:8080, or ss -tlpn) every second rather than waiting on external DNS or object-store propagation.
+
+5. Skip Unnecessary Post-Boot Tasks on Ephemeral Nodes
+
+• Defer apt-get upgrade: On short-lived autoscaled webservers, running a full apt-get dist-upgrade on every boot can add 60–120 seconds (especially if it triggers a kernel or grub update). Apply security updates selectively (unattended-upgrades in the background after the webserver is already serving traffic) rather than blocking initial boot.
+Once your current test finishes, if you'd like to shave off the biggest chunk of boot time first, let me know how long your current cloud-init run takes and whether apt-get or sequential server waiting is taking up most of the clock.
