@@ -45,8 +45,8 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
-set -e
+set -x
+#set -e
 
 if [ -r /home/buildhome.dat ]
 then
@@ -111,13 +111,16 @@ domain_json="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/g
 exit_code="$?"
 set -e
 
+read z
+
 if [ "${exit_code}" -ne 0 ] || [ -z "${domain_json}" ]
 then
         status "Failed to query cluster domain management catalog or network timeout occurred."
         exit 1
 fi
 
-err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r 'if type == "object" and .errors then (.errors | if type == "array" then ..reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
+err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r 'if type == "object" and .errors then (.errors | if type == "array" then .[0].reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
+
 
 if [ -n "${err_msg}" ]
 then
@@ -157,7 +160,7 @@ then
         exit 1
 fi
 
-zone_err_msg="$(/bin/echo "${zone_response}" | /usr/bin/jq -r 'if type == "array" then . else . end | if type == "object" and .errors then (.errors | if type == "array" then ..reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
+zone_err_msg="$(/bin/echo "${zone_response}" | /usr/bin/jq -r '(if type == "array" then first else . end) | if type == "object" and .errors then (.errors | if type == "array" then first.reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
 
 if [ -n "${zone_err_msg}" ]
 then
