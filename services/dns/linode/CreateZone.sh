@@ -150,7 +150,7 @@ EOF
 )"
 
 set +e
-zone_response="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/create_record.sh" "" "${json_payload}")"
+zone_response="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/create_record.sh" "zone" "${json_payload}")"
 zone_exit_code="$?"
 set -e
 
