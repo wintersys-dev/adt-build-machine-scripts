@@ -96,7 +96,7 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 
 case "${HTTP_CODE}" in
         200|201)
-                /bin/echo "${RESPONSE_BODY}"
+                /bin/echo "${RESPONSE_BODY}" | /usr/bin/jq '.data'
                 exit 0
                 ;;
         400)
