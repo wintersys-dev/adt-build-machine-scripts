@@ -76,13 +76,11 @@ else
         domain_url="${1}"
 fi
 
-TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
-DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 
-if [ -z "${TOKEN}" ] || [ -z "${DNS_CHOICE}" ] || [ -z "${DNS_USERNAME}" ]
+if [ -z "${DNS_CHOICE}" ] 
 then
-        status "Error: Failed to fetch required context variables (TOKEN, DNS_CHOICE, or DNS_USERNAME)."
+        status "Error: Failed to fetch required context variables (TOKEN)."
         exit 1
 fi
 
