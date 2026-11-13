@@ -72,7 +72,7 @@ json_payload="${2}"
 api_host="https://api.linode.com"
 api_path="v4/domains"
 
-if [ -z "${domain_id}" ]
+if [ "${domain_id}" = "zone" ]
 then
         endpoint="${api_host}/${api_path}"
 else
