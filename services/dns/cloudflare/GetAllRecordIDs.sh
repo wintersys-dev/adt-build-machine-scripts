@@ -2,7 +2,7 @@ set -e
 
 if [ -r /home/buildhome.dat ]
 then
-        HOME="$(/bin/cat /home/buildhome.dat)"
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
         /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
