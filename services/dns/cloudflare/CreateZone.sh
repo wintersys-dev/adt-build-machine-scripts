@@ -65,7 +65,7 @@ set -e
 
 if [ "${exit_code}" -ne 0 ]
 then
-        status "Failed to add record to DNS system (Network/Curl infrastructure execution error)."
+        status "Failed to create zone in DNS system (Network/Curl infrastructure execution error)."
         exit 1
 fi
 
@@ -74,9 +74,9 @@ fi
 if /bin/echo "${response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${response}" | /usr/bin/jq -r '.errors[0].message // "Unknown Cloudflare validation error details."')"
-        status "Failed to Add record for url ${website_url} to the DNS system. Cloud Provider Reason: ${err_msg}"
+        status "Failed to Add create zone assoiated with  url ${website_url} to the DNS system. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
-status "Cloudflare DNS A-record successfully provisioned: ${website_url} -> ${ip} [Proxied: True, TTL: 120s]"
+status "Cloudflare DNS zone successfully provisioned: ${zone_name}"
 exit 0
