@@ -34,11 +34,11 @@ if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
         # Parse out isolated API token authorization strings cleanly
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-
-        api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "Content-Type: application/json" -d "${json_payload}")"
+        
+        api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X DELETE "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" -H "Content-Type: application/json")"
 else
         # Fall back to traditional legacy X-Auth credential parameter signatures
-        api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}")"
+        api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X DELETE "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json")"
 fi
 exit_code="$?"
 set -e
