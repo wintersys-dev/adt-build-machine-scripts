@@ -23,29 +23,26 @@ then
         exit 1
 fi
 
-zone_id="${1}"
+zone_name="${1}"
 json_payload="${2}"
 
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 
 set +e
-if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
+if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
 then
-        # Parse out isolated API token authorization strings cleanly
-        api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-
-        api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "Content-Type: application/json" -d "${json_payload}")"
+        api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
+        /bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones"  -H "Content-Type: application/json" --data '{"name":"'${zone_name}'"}' 
 else
-        # Fall back to traditional legacy X-Auth credential parameter signatures
-        api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}")"
+        /bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" --data '{"name":"'${zone_name}'"}'
 fi
 exit_code="$?"
 set -e
 
 if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
 then
-        status "Failed to Add record to for url ${website_url} with ip address ${ip} to the DNS system (Network/Curl connection error)."
+        status "Failed to Create Zone to for for zone id ${zone_name} (Network/Curl connection error)."
         exit 1
 fi
 
