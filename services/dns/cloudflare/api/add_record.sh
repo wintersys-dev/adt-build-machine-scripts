@@ -44,9 +44,9 @@ set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-        RESPONSE="$(/bin/echo'Authorization: Bearer %s\n' "${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" -H "Content-Type: application/json" -d "${json_payload}" 2>&1)"
+        RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" --header "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 else
-        RESPONSE="$(/bin/echo 'X-Auth-Key: %s\n' "${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}" 2>&1)"
+        RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" --header "X-Auth-Email: ${DNS_USERNAME}" --header "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 fi
 CURL_EXIT=$?
 set -e
