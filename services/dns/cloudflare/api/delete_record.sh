@@ -1,3 +1,4 @@
+#!/bin/sh
 #set -x
 set -e
 
@@ -19,35 +20,85 @@ status()
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: zone_id and record_id parameters are required."
-        status "Usage: $0 <zone_id> <rcord_id>"
+        status "Usage: $0 <zone_id> <record_id>"
         exit 1
 fi
 
-zone_id="${1}"
-record_id="${2}"
+# Strip any accidental whitespace/newlines from parameters to prevent curl exit code 3
+zone_id="$(/bin/echo "${1}" | /usr/bin/tr -d '[:space:]')"
+record_id="$(/bin/echo "${2}" | /usr/bin/tr -d '[:space:]')"
+
+if [ -z "${zone_id}" ] || [ -z "${record_id}" ]
+then
+        status "Error: zone_id or record_id is empty after whitespace removal."
+        exit 1
+fi
 
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 
+API_URL="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}"
+
+# Build authentication headers and execute request
 set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
-        # Parse out isolated API token authorization strings cleanly
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-
-        api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X DELETE "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" -H "Content-Type: application/json")"
+        RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X DELETE "${API_URL}" -H "Content-Type: application/json" 2>&1)"
 else
-        # Fall back to traditional legacy X-Auth credential parameter signatures
-        api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X DELETE "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json")"
+        RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X DELETE "${API_URL}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" 2>&1)"
 fi
-exit_code="$?"
+CURL_EXIT=$?
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
+if [ "${CURL_EXIT}" -ne 0 ]
 then
-        status "Failed to Add record to for url ${website_url} with ip address ${ip} to the DNS system (Network/Curl connection error)."
+        status "Error: curl failed with exit code ${CURL_EXIT} while deleting record ${record_id}."
+        status "Detail: ${RESPONSE}"
         exit 1
 fi
 
-status "Cloudflare DNS A-record successfully provisioned: ${website_url} -> ${ip} [Proxied: True, TTL: 120s]"
-exit 0
+# Extract HTTP status code and response body using strict POSIX filtering
+HTTP_CODE="$(/bin/echo "${RESPONSE}" | /usr/bin/grep '^HTTP_STATUS:' | /usr/bin/cut -d':' -f2)"
+RESPONSE_BODY="$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/^HTTP_STATUS:/d')"
+
+# Evaluate the API response code
+case "${HTTP_CODE}" in
+        200|201)
+                /bin/echo "${RESPONSE_BODY}"
+                exit 0
+                ;;
+        400)
+                status "Error 400: Bad Request. Check zone_id (${zone_id}) or record_id (${record_id}) format."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        401)
+                status "Error 401: Unauthorized. Your Cloudflare API token or credentials are invalid."
+                exit 1
+                ;;
+        403)
+                status "Error 403: Forbidden. Credentials lack permission to delete DNS records for this zone."
+                exit 1
+                ;;
+        404)
+                status "Error 404: Not Found. Verify that zone_id (${zone_id}) and record_id (${record_id}) exist."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        429)
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
+                exit 1
+                ;;
+        5*)
+                status "Error ${HTTP_CODE}: Cloudflare API or Upstream Server Exception."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        *)
+                status "Error ${HTTP_CODE:-UNKNOWN}: Unexpected response from Cloudflare API."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+esac
+
