@@ -83,20 +83,12 @@ record_ids="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/get_al
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${record_ids}" ]
 then
         status "Failed get record ids for domain ${website_url} (Network/Curl infrastructure execution error)."
         exit 1
 fi
 
-
-if [ "${exit_code}" -ne 0 ] || [ -z "${record_ids}" ]
-then
-        status "Failed to ${website_url} (Network/Curl connection error)."
-        exit 1
-fi
-
 /bin/echo "${record_ids}"
-
 
 exit 0
