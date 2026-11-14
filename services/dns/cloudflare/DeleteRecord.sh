@@ -27,9 +27,12 @@ record_id="${1}"
 website_url="${2}"
 
 # Extract structural configuration contexts securely via modern subshells
-DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
-DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+if [ -z "${DNS_CHOICE}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
 
 # Parse apex zone identifier safely using modern subshells
 zone_name="$(/bin/echo "${website_url}" | /usr/bin/cut -d'.' -f2-)"
@@ -42,12 +45,37 @@ then
         status "Zone ID empty for '${zone_name}'. Spawning authoritative zone layout..."
         "${BUILD_HOME}/services/dns/CreateZone.sh" "${website_url}"
         zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
-        
+
         if [ -z "${zone_id}" ]
         then
                 status "Error: Failed to verify zone ID allocation for '${zone_name}' after provisioning step."
                 exit 1
         fi
+fi
+if [ -z "${DNS_CHOICE}" ] 
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
+then
+        orchestration_tool="api"
 fi
 
 
