@@ -59,8 +59,16 @@ fi
 
 set +e
 zone_id="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/get_zone_id.sh "${zone_name}")"
+exit_code="$?"
 set -e
 
+if [ "${exit_code}" -ne 0 ] || [ -z "${zone_id}" ]
+then
+        status "Failed to get zone id for zone ${zone_name} (Network/Curl connection error)."
+        exit 1
+fi
 
 /bin/echo "${zone_id}"
+
+
 exit 0
