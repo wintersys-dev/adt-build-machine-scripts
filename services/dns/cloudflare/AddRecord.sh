@@ -46,7 +46,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
+set -x
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -75,8 +75,6 @@ website_url="${1}"
 ip="${2}"
 
 # Extract structural configuration contexts securely via modern subshells
-DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
-DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
 
 # Parse apex zone identifier safely
@@ -90,13 +88,42 @@ then
         status "Zone ID empty for '${zone_name}'. Spawning authoritative zone layout..."
         "${BUILD_HOME}/services/dns/CreateZone.sh" "${website_url}"
         zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
-        
+
         if [ -z "${zone_id}" ]
         then
                 status "Error: Failed to verify zone ID allocation for '${zone_name}' after provisioning step."
                 exit 1
         fi
 fi
+
+if [ -z "${DNS_CHOICE}" ] 
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
+software_file="${BUILD_HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
+fi
+
+if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
+then
+        orchestration_tool="api"
+fi
+
+
+
 # Assemble raw JSON transaction parameters block defensively to resist string injection threats
 json_payload="$(/bin/cat <<EOF
 {
@@ -109,29 +136,20 @@ json_payload="$(/bin/cat <<EOF
 EOF
 )"
 
-# Determine authentication layout structure and execute API endpoint communication safely
-#set +e
-#if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
-#then
-        # Parse out isolated API token authorization strings cleanly
-#        api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
- #       
-  #      api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "Content-Type: application/json" -d "${json_payload}")"
-#else
- #       # Fall back to traditional legacy X-Auth credential parameter signatures
-  #      api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}")"
-#fi
-#exit_code="$?"
-#set -e
+set +e
+record_response="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/add_record.sh "${zone_id}" "${json_payload}")"
+record_exit_code="$?"
+set -e
 
-#if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
-#then
-#        status "Failed to Add record to for url ${website_url} with ip address ${ip} to the DNS system (Network/Curl connection error)."
- #       exit 1
-#fi
+if [ "${record_exit_code}" -ne 0 ]
+then
+        status "Failed to add record to DNS system (Network/Curl infrastructure execution error)."
+        exit 1
+fi
+
 
 # Verify final transaction payload state explicitly to catch schema rejections or token faults
-if /bin/echo "${api_response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
+if /bin/echo "${record_response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
 then
         api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].message // "Unknown Cloudflare validation error details."')"
         status "Failed to Add record for url ${website_url} to the DNS system. Cloud Provider Reason: ${api_err_msg}"
