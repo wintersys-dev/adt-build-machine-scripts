@@ -8,10 +8,15 @@ else
         exit 1
 fi
 
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+}
+
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        /bin/echo "Error: Record ID and website_url parameters are required." >&2
-        /bin/echo "Usage: $0 <record_id> <website_url>" >&2
+        status "Error: Record ID and website_url parameters are required."
+        status "Usage: $0 <record_id> <website_url>" 
         exit 1
 fi
 
@@ -25,7 +30,7 @@ set -e
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-        /bin/echo "Error: Cannot read software configuration file at ${software_file}"
+        status "Error: Cannot read software configuration file at ${software_file}"
         exit 1
 fi
 
@@ -33,7 +38,7 @@ orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "$
 
 if [ -z "${orchestration_tool}" ] 
 then
-        /bin/echo "Error: ORCHESTRATION_TOOL not found in ${software_file}" >&2
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
         exit 1
 fi
 
@@ -49,7 +54,7 @@ set -e
 
 if [ "${exit_code}" -ne 0 ] 
 then
-        /bin/echo "Failed to delete record ${record_id} domain ${website_url}" >&2
+        status "Failed to delete record ${record_id} domain ${website_url}"
         exit 1
 fi
 
