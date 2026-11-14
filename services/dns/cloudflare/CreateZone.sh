@@ -17,15 +17,14 @@ status()
 }
 
 # Input validation
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: Website URL and target IP address parameters are required."
-        status "Usage: $0 <website_url> <target_ip>"
+        status "Error: Website URL address parameters are required."
+        status "Usage: $0 <website_url>"
         exit 1
 fi
 
 website_url="${1}"
-ip="${2}"
 
 # Extract structural configuration contexts securely via modern subshells
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
