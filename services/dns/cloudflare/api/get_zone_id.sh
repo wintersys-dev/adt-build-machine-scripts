@@ -47,7 +47,15 @@ then
         exit 1
 fi
 
-/bin/echo "${result}"
+zone_id="$(/bin/echo "${result}" | /usr/bin/jq -r '.result[].id // empty')"
+
+if [ -z "${zone_id}" ]
+then
+        status "No active zones found matching name '${zone_name}' in the DNS system."
+        exit 1
+fi
+
+/bin/echo "${zone_id}"
 
 exit 0
 
