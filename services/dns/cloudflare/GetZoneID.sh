@@ -8,10 +8,15 @@ else
         exit 1
 fi
 
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+}
+
 if [ -z "${1}" ] 
 then
-        /bin/echo "Error: Zone Name is required" >&2
-        /bin/echo "Usage: $0 <zone_name>" >&2
+        status "Error: Zone Name is required" 
+        status "Usage: $0 <zone_name>" 
         exit 1
 fi
 
@@ -24,7 +29,7 @@ set -e
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-        /bin/echo "Error: Cannot read software configuration file at ${software_file}"
+        status "Error: Cannot read software configuration file at ${software_file}"
         exit 1
 fi
 
@@ -32,7 +37,7 @@ orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "$
 
 if [ -z "${orchestration_tool}" ] 
 then
-        /bin/echo "Error: ORCHESTRATION_TOOL not found in ${software_file}" >&2
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
         exit 1
 fi
 
@@ -48,7 +53,7 @@ set -e
 
 if [ "${exit_code}" -ne 0 ] 
 then
-        /bin/echo "Failed to get zone id is for zone name ${zone_name}" >&2
+        status "Failed to get zone id is for zone name ${zone_name}"
         exit 1
 fi
 
