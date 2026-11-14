@@ -1,3 +1,4 @@
+#!/bin/sh
 #set -x
 set -e
 
@@ -23,43 +24,89 @@ then
         exit 1
 fi
 
-website_url="${1}"
-zone_id="${2}"
+# Strip any accidental whitespace/newlines from parameters to prevent curl exit code 3
+website_url="$(/bin/echo "${1}" | /usr/bin/tr -d '[:space:]')"
+zone_id="$(/bin/echo "${2}" | /usr/bin/tr -d '[:space:]')"
+
+if [ -z "${website_url}" ] || [ -z "${zone_id}" ]
+then
+        status "Error: website_url or zone_id is empty after whitespace removal."
+        exit 1
+fi
 
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 
-set +e
+API_URL="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}"
 
+# Build authentication headers and execute request
+set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
-        # Parse out isolated API token authorization strings cleanly
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-
-        api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}" -H "Content-Type: application/json")"
+        RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X GET "${API_URL}" -H "Content-Type: application/json" 2>&1)"
 else
-        # Fall back to traditional legacy X-Auth credential parameter signatures
-        api_response="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X GET "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=A&name=${website_url}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json")"
+        RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X GET "${API_URL}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" 2>&1)"
 fi
-exit_code="$?"
+CURL_EXIT=$?
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
+if [ "${CURL_EXIT}" -ne 0 ]
 then
-        status "Failed to get record ids for record id ${record_id} (Network/Curl connection error)."
-        exit 1
-fi
-# Extract the matching unique domain layout record IDs cleanly
-record_ids="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.result[].id // empty')"
-
-if [ -z "${record_ids}" ]
-then
-        status "No active A-records found matching name '${website_url}' inside zone '${zone_name}'."
+        status "Error: curl failed with exit code ${CURL_EXIT} while fetching record IDs for ${website_url}."
+        status "Detail: ${RESPONSE}"
         exit 1
 fi
 
-/bin/echo "${record_ids}"
+# Extract HTTP status code and response body using strict POSIX filtering
+HTTP_CODE="$(/bin/echo "${RESPONSE}" | /usr/bin/grep '^HTTP_STATUS:' | /usr/bin/cut -d':' -f2)"
+RESPONSE_BODY="$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/^HTTP_STATUS:/d')"
 
-exit 0
+# Evaluate the API response code
+case "${HTTP_CODE}" in
+        200|201)
+                record_ids="$(/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r '.result[].id // empty')"
+                if [ -z "${record_ids}" ]
+                then
+                        status "No active A-records found matching name '${website_url}' inside zone '${zone_id}'."
+                        exit 1
+                fi
+                /bin/echo "${record_ids}"
+                exit 0
+                ;;
+        400)
+                status "Error 400: Bad Request. Check website_url (${website_url}) or zone_id (${zone_id}) parameters."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        401)
+                status "Error 401: Unauthorized. Your Cloudflare API token or credentials are invalid."
+                exit 1
+                ;;
+        403)
+                status "Error 403: Forbidden. Credentials lack permission to list DNS records for this zone."
+                exit 1
+                ;;
+        404)
+                status "Error 404: Not Found. Verify that zone_id (${zone_id}) exists."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        429)
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
+                exit 1
+                ;;
+        5*)
+                status "Error ${HTTP_CODE}: Cloudflare API or Upstream Server Exception."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        *)
+                status "Error ${HTTP_CODE:-UNKNOWN}: Unexpected response from Cloudflare API."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+esac
+
 
 
