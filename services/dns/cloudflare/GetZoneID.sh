@@ -58,26 +58,9 @@ then
 fi
 
 set +e
-response="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/get_zone_id.sh "${zone_name}")"
+zone_id="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/get_zone_id.sh "${zone_name}")"
 set -e
 
-
-# Verify final transaction payload state explicitly to catch schema rejections or token faults
-if /bin/echo "${response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
-then
-        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[].message // "Unknown Cloudflare zone lookup validation error."')"
-        status "Failed to look up zone ID for domain ${zone_name}. Cloud Provider Reason: ${api_err_msg}"
-        exit 1
-fi
-
-# Extract the matching unique domain layout zone ID cleanly
-zone_id="$(/bin/echo "${response}" | /usr/bin/jq -r '.result[].id // empty')"
-
-if [ -z "${zone_id}" ]
-then
-        status "No active zones found matching name '${zone_name}' in the DNS system."
-        exit 1
-fi
 
 /bin/echo "${zone_id}"
 exit 0
