@@ -78,7 +78,7 @@ else
 	ips="`${BUILD_HOME}/services/server/GetServerPublicIPAddresses.sh ${token_to_match}`"
 fi
 
-if ( [ "`/bin/echo ${ips} | /bin/grep 'Error'`" = "" ] )
+if ( [ "`/bin/echo ${ips} | /bin/grep 'Error'`" != "" ] )
 then
 	/bin/echo "There doesn't seem to be any webservers running"
 	exit
