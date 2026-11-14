@@ -1,3 +1,4 @@
+#!/bin/sh
 #set -x
 set -e
 
@@ -23,72 +24,83 @@ then
         exit 1
 fi
 
-zone_id="${1}"
+# Strip any accidental whitespace/newlines from zone_id to prevent curl exit code 3
+zone_id="$(printf '%s' "${1}" | /usr/bin/tr -d '[:space:]')"
 json_payload="${2}"
+
+if [ -z "${zone_id}" ]
+then
+        status "Error: zone_id is empty after whitespace removal."
+        exit 1
+fi
 
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
 
+API_URL="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records"
+
+# Build authentication headers and execute request
 set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
-        # Parse out isolated API token authorization strings cleanly
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-
-        RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "Content-Type: application/json" -d "${json_payload}")"
+        RESPONSE="$(/bin/echo'Authorization: Bearer %s\n' "${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" -H "Content-Type: application/json" -d "${json_payload}" 2>&1)"
 else
-        # Fall back to traditional legacy X-Auth credential parameter signatures
-        RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | curl -H @- -s -X POST "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}")"
+        RESPONSE="$(/bin/echo 'X-Auth-Key: %s\n' "${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${API_URL}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" -d "${json_payload}" 2>&1)"
 fi
+CURL_EXIT=$?
 set -e
 
-# Extract the HTTP status code (e.g., 200, 400, 401) using strict POSIX filtering
-HTTP_CODE=$(/bin/echo "$RESPONSE" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-
-# Extract the raw response body by dropping the status delimiter line
-RESPONSE_BODY=$(/bin/echo "$RESPONSE" | /usr/bin/sed '/HTTP_STATUS:/d')
-
-# Evaluate the API response code using strict POSIX structural matching
-case "${HTTP_CODE}" in
-    200)
-        # Safely parse out the raw data array from the verified response block and output to stdout
-        /bin/echo "${RESPONSE_BODY}"
-        exit 0
-        ;;
-    400)
-        status "Error 400: Bad Request. Check syntax or filter parameter mapping."
-        status "API Detail: ${RESPONSE_BODY}"
-        exit 400
-        ;;
-    401)
-        status "Error 401: Unauthorized. Your authentication TOKEN is invalid or has expired."
-        exit 401
-        ;;
-    403)
-        status "Error 403: Forbidden. Token lacks permissions to list regional compute units."
-        exit 403
-        ;;
-    404)
-        status "Error 404: Not Found. The requested API endpoint could not be found."
-        status "API Detail: ${RESPONSE_BODY}"
-        exit 404
-        ;;
-    429)
-        status "Error 429: Rate Limit Exceeded. Back off request frequency."
-        exit 429
-        ;;
-    5*)
-        status "Error ${HTTP_CODE}: Linode Gateway or Remote Server Exception."
-        exit 500
-        ;;
-    *)
-        status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
-        status "API Detail: ${RESPONSE_BODY}"
+if [ "${CURL_EXIT}" -ne 0 ]
+then
+        status "Error: curl failed with exit code ${CURL_EXIT}."
+        status "Detail: ${RESPONSE}"
         exit 1
-        ;;
-esac
+fi
 
-exit 0
+# Extract HTTP status code and response body using strict POSIX filtering
+HTTP_CODE="$(/bin/echo "${RESPONSE}" | /usr/bin/grep '^HTTP_STATUS:' | /usr/bin/cut -d':' -f2)"
+RESPONSE_BODY="$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/^HTTP_STATUS:/d')"
+
+# Evaluate the API response code
+case "${HTTP_CODE}" in
+        200|201)
+                /bin/echo '%s\n' "${RESPONSE_BODY}"
+                exit 0
+                ;;
+        400)
+                status "Error 400: Bad Request. Check JSON payload syntax or DNS record parameters."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        401)
+                status "Error 401: Unauthorized. Your Cloudflare API token or credentials are invalid."
+                exit 1
+                ;;
+        403)
+                status "Error 403: Forbidden. Credentials lack permission to modify DNS records for this zone."
+                exit 1
+                ;;
+        404)
+                status "Error 404: Not Found. Verify that zone_id (${zone_id}) exists."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        429)
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
+                exit 1
+                ;;
+        5*)
+                status "Error ${HTTP_CODE}: Cloudflare API or Upstream Server Exception."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        *)
+                status "Error ${HTTP_CODE:-UNKNOWN}: Unexpected response from Cloudflare API."
+                status "API Detail: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+esac
 
 
 
