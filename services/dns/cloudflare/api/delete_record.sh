@@ -18,13 +18,13 @@ status()
 # Input validation
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        status "Error: zone_id and json_payload parameters are required."
-        status "Usage: $0 <zone_id> <json_payload>"
+        status "Error: zone_id and record_id parameters are required."
+        status "Usage: $0 <zone_id> <rcord_id>"
         exit 1
 fi
 
 zone_id="${1}"
-json_payload="${2}"
+record_id="${2}"
 
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 DNS_SECURITY_KEY="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_SECURITY_KEY)"
@@ -34,7 +34,7 @@ if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
         # Parse out isolated API token authorization strings cleanly
         api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
-        
+
         api_response="$(/bin/echo "Authorization: Bearer ${api_token}" | curl -H @- -s -X DELETE "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" -H "Content-Type: application/json")"
 else
         # Fall back to traditional legacy X-Auth credential parameter signatures
