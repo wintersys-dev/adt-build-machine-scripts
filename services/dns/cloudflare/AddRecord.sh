@@ -137,22 +137,21 @@ EOF
 )"
 
 set +e
-record_response="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/add_record.sh "${zone_id}" "${json_payload}")"
-record_exit_code="$?"
+response="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/add_record.sh "${zone_id}" "${json_payload}")"
+exit_code="$?"
 set -e
 
-if [ "${record_exit_code}" -ne 0 ]
+if [ "${exit_code}" -ne 0 ]
 then
         status "Failed to add record to DNS system (Network/Curl infrastructure execution error)."
         exit 1
 fi
 
-
 # Verify final transaction payload state explicitly to catch schema rejections or token faults
-if /bin/echo "${record_response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
+if /bin/echo "${response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].message // "Unknown Cloudflare validation error details."')"
-        status "Failed to Add record for url ${website_url} to the DNS system. Cloud Provider Reason: ${api_err_msg}"
+        err_msg="$(/bin/echo "${response}" | /usr/bin/jq -r '.errors[0].message // "Unknown Cloudflare validation error details."')"
+        status "Failed to Add record for url ${website_url} to the DNS system. Cloud Provider Reason: ${err_msg}"
         exit 1
 fi
 
