@@ -44,7 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-#set -x
+set -x
 set -e
 
 if [ -r /home/buildhome.dat ]
@@ -75,27 +75,7 @@ then
         DNS_CHOICE="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE)"
 fi
 
-software_file="${BUILD_HOME}/configuration/software.dat"
-if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
-then
-        status "Error: Cannot read software configuration file at ${software_file}"
-        exit 1
-fi
-
-orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
-
-if [ -z "${orchestration_tool}" ]
-then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
-        exit 1
-fi
-
-if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
-then
-        orchestration_tool="api"
-fi
-
-script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/get_proxy_dns_ips.sh"
+script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/GetProxyDNSIPs.sh"
 
 if [ -f "${script_path}" ]
 then
