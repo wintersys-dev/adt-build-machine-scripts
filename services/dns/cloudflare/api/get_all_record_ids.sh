@@ -62,6 +62,4 @@ fi
 
 exit 0
 
-/bin/echo "${record_ids}"
-exit 0
 
