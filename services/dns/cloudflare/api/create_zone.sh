@@ -16,10 +16,10 @@ status()
 }
 
 # Input validation
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ] 
 then
-        status "Error: zone_id and json_payload parameters are required."
-        status "Usage: $0 <zone_id> <json_payload>"
+        status "Error: zone_name parameter is required."
+        status "Usage: $0 <zone_name>"
         exit 1
 fi
 
@@ -40,7 +40,7 @@ fi
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
+if [ "${exit_code}" -ne 0 ]
 then
         status "Failed to Create Zone to for for zone id ${zone_name} (Network/Curl connection error)."
         exit 1
