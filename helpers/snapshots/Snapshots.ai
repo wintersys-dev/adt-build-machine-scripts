@@ -67,3 +67,135 @@ Store your archives in S3 keyed by architecture and stack—for example:
 s3://adt-golden-images/x86_64/ubuntu-24.04-tomcat10.tar.zst
 That gives you a single, cloud-agnostic image library that works identically across Linode, Hetzner, DigitalOcean, Vultr, and AWS with zero snapshot replication or region lock-in.
 Would you like to test the full root tarball (/ + reboot) approach or the stack + .deb cache overlay (no reboot) approach first? I can write the exact cloud-init hydration snippet for whichever you prefer.
+
+The Stack + .deb Cache Overlay approach is the safest, cleanest way to get near-snapshot boot speeds across any cloud provider or region with zero reboots and zero kernel/network conflicts.
+Because every .deb package is already downloaded inside the archive, dpkg / apt-get installs your entire stack offline from local disk in seconds rather than hitting remote Ubuntu/Debian mirrors.
+
+1. Capture Script (capture_stack_bundle.sh)
+
+Run this once at the end of a clean build (or whenever you update your base PHP/Tomcat stack) to package /var/cache/apt/archives/*.deb, /usr/local, /opt, and your service configs into a single compressed zstd archive in S3:
+sh
+#!/bin/sh
+###################################################################################
+# @file        capture_stack_bundle.sh
+# @brief       Packages installed .deb archives, binaries, and stack configs to S3.
+# @author      Peter Winter
+# @date        15/11/2026
+# @version     1.0
+###################################################################################
+set -e
+
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+STACK_TYPE="${1:-php}"
+ARCH="$(/usr/bin/uname -m)"
+OS_CODENAME="$(. /etc/os-release && /bin/echo "${VERSION_CODENAME}")"
+BUNDLE_NAME="adt-stack-${OS_CODENAME}-${ARCH}-${STACK_TYPE}.tar.zst"
+TMP_STAGE="/tmp/adt_bundle_stage"
+TMP_ARCHIVE="/tmp/${BUNDLE_NAME}"
+
+/bin/rm -rf "${TMP_STAGE}" "${TMP_ARCHIVE}"
+/bin/mkdir -p "${TMP_STAGE}/debs" "${TMP_STAGE}/overlay"
+
+# 1. Record exact list of manually installed packages
+/usr/bin/apt-mark showmanual > "${TMP_STAGE}/manual_packages.list"
+
+# 2. Copy cached .deb files (enable APT::Keep-Downloaded-Packages="true" during initial build)
+if [ -d /var/cache/apt/archives ]
+then
+        /bin/cp -a /var/cache/apt/archives/*.deb "${TMP_STAGE}/debs/" 2>/dev/null || true
+fi
+
+# 3. Capture custom binaries (/usr/local, /opt) and base service configs (excluding node-specific secrets)
+/bin/tar --numeric-owner \
+        --exclude='*.log' \
+        --exclude='/etc/nginx/sites-enabled/*' \
+        --exclude='/etc/letsencrypt/*' \
+        --exclude='/usr/local/bin/s3cmd*' \
+        -cpf - /usr/local /opt /etc/nginx /etc/php /etc/systemd/system 2>/dev/null | /bin/tar -xpf - -C "${TMP_STAGE}/overlay" || true
+
+# 4. Compress the complete bundle using multi-threaded zstd
+/bin/tar -C "${TMP_STAGE}" -cpf - . | /usr/bin/zstd -T0 -6 -o "${TMP_ARCHIVE}"
+
+# 5. Upload to S3 image registry bucket
+/usr/local/bin/s3cmd put "${TMP_ARCHIVE}" "s3://adt-golden-images/${OS_CODENAME}/${ARCH}/${BUNDLE_NAME}"
+
+# 6. Clean up temporary staging files
+/bin/rm -rf "${TMP_STAGE}" "${TMP_ARCHIVE}"
+/bin/echo "Success: Stack bundle uploaded to s3://adt-golden-images/${OS_CODENAME}/${ARCH}/${BUNDLE_NAME}"
+exit 0
+Use code with caution.
+(Note: Before running your initial build that populates /var/cache/apt/archives/, drop Binary::apt::APT::Keep-Downloaded-Packages "true"; into /etc/apt/apt.conf.d/99keep-debs so apt-get retains the .deb files after installation).
+
+2. Hydration Script (hydrate_from_bundle.sh)
+
+Run this inside cloud-init on any newly booted node (Linode, Hetzner, DigitalOcean, Vultr, or AWS). If the bundle exists in S3, it installs the entire stack offline in seconds; if not, it falls back cleanly to your standard apt-get build scripts:
+sh
+#!/bin/sh
+###################################################################################
+# @file        hydrate_from_bundle.sh
+# @brief       Downloads and applies a pre-packaged ADT stack + .deb bundle from S3.
+# @author      Peter Winter
+# @date        15/11/2026
+# @version     1.0
+###################################################################################
+set -e
+
+STACK_TYPE="${1:-php}"
+ARCH="$(/usr/bin/uname -m)"
+OS_CODENAME="$(. /etc/os-release && /bin/echo "${VERSION_CODENAME}")"
+BUNDLE_NAME="adt-stack-${OS_CODENAME}-${ARCH}-${STACK_TYPE}.tar.zst"
+S3_URI="s3://adt-golden-images/${OS_CODENAME}/${ARCH}/${BUNDLE_NAME}"
+TMP_STAGE="/tmp/adt_hydrate"
+TMP_ARCHIVE="/tmp/${BUNDLE_NAME}"
+
+# Check if a matching golden bundle exists in S3; exit 2 to trigger standard apt fallback if absent
+if ! /usr/local/bin/s3cmd info "${S3_URI}" >/dev/null 2>&1
+then
+        /bin/echo "No pre-built stack bundle found at ${S3_URI}. Falling back to standard build." >&2
+        exit 2
+fi
+
+/bin/rm -rf "${TMP_STAGE}" "${TMP_ARCHIVE}"
+/bin/mkdir -p "${TMP_STAGE}"
+
+# 1. Pull and unpack the zstd bundle
+/usr/local/bin/s3cmd get "${S3_URI}" "${TMP_ARCHIVE}"
+/usr/bin/zstd -d -c "${TMP_ARCHIVE}" | /bin/tar -xpf - -C "${TMP_STAGE}"
+
+# 2. Populate local apt cache and install all packages offline without hitting network mirrors
+if [ -d "${TMP_STAGE}/debs" ] && [ -n "$(/bin/ls -A "${TMP_STAGE}/debs" 2>/dev/null)" ]
+then
+        /bin/mkdir -p /var/cache/apt/archives
+        /bin/cp -a "${TMP_STAGE}/debs/"*.deb /var/cache/apt/archives/
+        export DEBIAN_FRONTEND=noninteractive
+        /usr/bin/dpkg -i --force-confold /var/cache/apt/archives/*.deb || /usr/bin/apt-get -f install -y --no-download
+fi
+
+# 3. Overlay pre-configured /usr/local, /opt (e.g. Tomcat/Java), and base service templates
+if [ -d "${TMP_STAGE}/overlay" ]
+then
+        /bin/tar -C "${TMP_STAGE}/overlay" -cpf - . | /bin/tar -xpf - -C /
+        /bin/systemctl daemon-reload
+fi
+
+# 4. Clean up staging artefacts
+/bin/rm -rf "${TMP_STAGE}" "${TMP_ARCHIVE}"
+/bin/echo "Success: Node hydrated cleanly from ${BUNDLE_NAME}."
+exit 0
+Use code with caution.
+
+Why This Fits ADT's Architecture
+
+• Zero Provider or Region Lock-In: The exact same adt-stack-noble-x86_64-tomcat.tar.zst archive in S3 hydrates a fresh VM on Linode London, Hetzner Falkenstein, or Vultr Amsterdam identically.
+• Automatic Graceful Fallback: If hydrate_from_bundle.sh returns exit code 2 (for example, on a brand-new OS release or CPU architecture where you haven't captured a bundle yet), your bootstrap script simply runs its normal apt-get path and captures a new bundle at the end.
+• Multi-Stack Ready: Adding Tomcat/Java, Node.js, or PostgreSQL is just a matter of capturing adt-stack-noble-x86_64-tomcat.tar.zst once into your S3 bucket.
+If you want to integrate this into your build flow, let me know whether you want hydrate_from_bundle.sh to use s3cmd or aws s3 (matching your existing ADT datastore driver), and I can adapt the S3 commands accordingly.
+
+
