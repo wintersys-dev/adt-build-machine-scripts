@@ -73,7 +73,9 @@ then
 fi
 
 # Strip any accidental whitespace/newlines from zone_id to prevent curl URL syntax errors
+set +e
 zone_id="$(printf '%s' "${1}" | /usr/bin/tr -d '[:space:]')"
+set -e
 json_payload="${2}"
 
 if [ -z "${zone_id}" ]
