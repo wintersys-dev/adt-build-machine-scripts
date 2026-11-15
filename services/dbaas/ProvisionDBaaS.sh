@@ -1,3 +1,45 @@
+#!/bin/sh
+#: Name:        ProvisionDBaaS.sh
+#: Purpose:     Resolves active runtime paths and routes DBaaS provisioning to the active provider.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ProvisionDBaaS.sh <server_type>
+#:              ProvisionDBaaS.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The target server type or database role identifier.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST
+#:   - ${BUILD_HOME}/services/dbaas/<cloudhost>/ProvisionDBaaS.sh
+#:   - External binaries: cat, echo, grep, cut
+#:
+#: Exit Codes:
+#:   0          Target handoff complete and DBaaS provisioned successfully
+#:   1          Missing arguments, unreadable configurations, or missing provider script
+#:   *          Bubbled exit code from provider-specific ProvisionDBaaS.sh
+###################################################################################
+# License Agreement:
+# This file is part of The Wintersys Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
 # Exit immediately if any command exits with a non-zero status
 set -e
 
@@ -49,7 +91,7 @@ then
         exit 1
 fi
 
-# Locate and verify execution permissions on the provider-specific DBaaS firewall adjuster
+# Locate and verify execution permissions on the provider-specific DBaaS provisioner
 script_path="${BUILD_HOME}/services/dbaas/${CLOUDHOST}/ProvisionDBaaS.sh"
 
 if [ ! -f "${script_path}" ]
@@ -64,7 +106,7 @@ then
         exit 1
 fi
 
-# Execute the provider-specific DBaaS firewall adjuster with errexit paused to capture its exit code
+# Execute the provider-specific DBaaS provisioner with errexit paused to capture its exit code
 set +e
 "${script_path}" "${server_type}"
 exit_code="$?"
@@ -73,8 +115,9 @@ set -e
 # Bubble up any non-zero exit code returned by the provider script
 if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: AdjustDBaaSFirewall.sh failed with exit code ${exit_code}." >&2
+        status "Error: ProvisionDBaaS.sh failed with exit code ${exit_code}." >&2
         exit "${exit_code}"
 fi
 
 exit 0
+
