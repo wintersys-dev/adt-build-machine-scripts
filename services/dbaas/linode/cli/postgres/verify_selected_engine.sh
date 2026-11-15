@@ -1,35 +1,31 @@
 #!/bin/sh
-###################################################################################
-# @file        verify_selected_engine.sh
-# @brief       Validates chosen database engine compatibility using the Linode CLI.
-# @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
-#
-# @details     This script queries the cloud provider managed database engines catalog
-#              utilizing the native provider CLI binary tool, extracts valid engine 
-#              identifiers, and checks the targeted deployment engine option defensively
-#              before allowing downstream infrastructure build operations to proceed.
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, linode-cli, jq, grep
-#
-# @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Scopes and purges sensitive tokens (LINODE_CLI_TOKEN) tightly inside execution tracks.
-#              - Avoids blind loop execution failures by splitting validation pipelines.
-#
-# @exit        0  Success: Target database engine successfully verified against cloud catalog.
-# @exit        1  Failure: Missing configuration contexts, CLI runtime errors, or unsupported engine.
+#: Name:        verify_selected_engine.sh
+#: Purpose:     Validates chosen database engine compatibility using the Linode CLI.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       verify_selected_engine.sh
+#:              verify_selected_engine.sh [-h|--help]
+#:
+#: Parameters:
+#:   None       Reads DATABASE_DBaaS_INSTALLATION_TYPE and TOKEN via GetVariableValue.sh.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, awk, linode-cli, jq
+#:
+#: Exit Codes:
+#:   0          Target database engine successfully verified against cloud catalog
+#:   1          Missing configuration contexts, CLI runtime errors, or unsupported engine
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -41,10 +37,19 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -53,22 +58,23 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Framework deployment variables extraction using secure subshells
+# Retrieve DBaaS installation profile and authentication token from active context
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract specific engine identifier string cleanly from parsing matrix strings
+# Extract the target engine identifier string from the 3rd colon-delimited field
 engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $3}')"
 
-# Export authentication credentials safely within bounded local environment execution tracks
+# Export authentication token temporarily for linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Validate CLI execution dependencies before invoking structural deployment steps
+# Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
@@ -76,22 +82,22 @@ then
         exit 1
 fi
 
-# Fetch active cloud database engine listings with manual intercept hooks to catch runtime exceptions
+# Query available managed database engines via linode-cli with errexit paused
 set +e
-cli_output="$("/usr/local/bin/linode-cli" databases engines --json 2>/dev/null)"
+cli_output="$(/usr/local/bin/linode-cli databases engines --json 2>/dev/null)"
 exit_code="$?"
 set -e
+
+# Clear the sensitive token variable immediately after the CLI call finishes
+unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ] || [ -z "${cli_output}" ]
 then
         status "Failed to obtain list of available engines via Linode CLI."
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
 
-unset LINODE_CLI_TOKEN
-
-# Parse available running profiles defensively using parameters isolation tracking
+# Extract all supported engine IDs from the returned catalog payload
 available_engines="$(/bin/echo "${cli_output}" | /usr/bin/jq -r '.[].id // empty')"
 
 if [ -z "${available_engines}" ]
@@ -100,7 +106,7 @@ then
         exit 1
 fi
 
-# Confirm targeted deployment option exists within the extracted platform layout
+# Verify that the configured engine exists as an exact word match in the available list
 set +e
 /bin/echo "${available_engines}" | /bin/grep -q -w "${engine}"
 match_code="$?"
@@ -114,3 +120,4 @@ fi
 
 status "Database engine '${engine}' successfully verified via CLI against cloud catalog matrix... OK to proceed."
 exit 0
+
