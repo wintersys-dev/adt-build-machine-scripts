@@ -65,16 +65,6 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# Validate that the required target server type argument was provided
-if [ -z "${1}" ]
-then
-        status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>"
-        exit 1
-fi
-
-server_type="${1}"
-
 # Read and validate the active cloud provider identifier
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
@@ -108,7 +98,7 @@ fi
 
 # Execute the provider-specific DBaaS firewall adjuster with errexit paused to capture its exit code
 set +e
-"${script_path}" "${server_type}"
+"${script_path}"
 exit_code="$?"
 set -e
 
