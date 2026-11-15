@@ -1,35 +1,31 @@
 #!/bin/sh
+#: Name:        GetOperatingSystemVersion.sh
+#: Purpose:     Translates raw OS distributions into Linode-specific image slugs.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       GetOperatingSystemVersion.sh <buildos> <buildos_version>
+#:              GetOperatingSystemVersion.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The OS distribution identifier (e.g., "ubuntu", "debian").
+#:   $2         [Required] The targeted OS major/minor version number string.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut
+#:
+#: Exit Codes:
+#:   0          Target image slug was successfully resolved and printed
+#:   1          Missing positional arguments, layout faults, or unsupported OS type
 ###################################################################################
-# @file        GetOperatingSystemVersion.sh
-# @brief       Translates raw OS distributions into provider-specific image slugs.
-# @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
-#
-# @details     This script takes a target OS distribution type and its associated 
-#              version version string, validates them against platform rules, and 
-#              outputs the matching formatted Linode API compatibility identifier slug.
-#
-# @param       $1  [Required] The OS distribution identifier (e.g., "ubuntu", "debian").
-# @param       $2  [Required] The targeted OS major/minor version number string.
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active framework layout.
-#              - LogStatusMessages.sh utility logging system messages.
-#              - external dependencies: cat, echo
-#
-# @security    
-#              - Hardens system-owned paths (/bin) to eliminate executable hijack vectors.
-#              - Eliminates redundant subshell fork operations inside conditional tracks.
-#              - Wraps structural parameter variables securely in strict text boundaries.
-#
-# @exit        0  Success: Target image slug was successfully resolved and printed.
-# @exit        1  Failure: Missing positional arguments or unsupported OS type match.
-##################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -39,12 +35,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -53,11 +57,13 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
+# Validate that both OS distribution and version arguments were provided
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: buildos and buildos_version arguments are required."
@@ -68,6 +74,7 @@ fi
 buildos="${1}"
 buildos_version="${2}"
 
+# Map supported distribution identifiers to their corresponding Linode image slugs
 if [ "${buildos}" = "ubuntu" ]
 then
         /bin/echo "linode/ubuntu${buildos_version}"
@@ -80,4 +87,5 @@ else
 fi
 
 exit 0
+
 
