@@ -1,39 +1,33 @@
 #!/bin/sh
-########################################################################################
-# @file        IsInstanceRunning.sh
-# @brief       Checks the current operational status of a Linode server by its name type.
-# @author      Peter Winter
-# @date        13/07/2021
-# @version     1.0
-#
-# @details     This script connects to the Linode v4 API, retrieves the instances
-#              payload, and filters the list based on the provided server type keyword.
-#              It returns the raw string status (e.g., "running", "stopped") of any
-#              instance containing that substring within its label.
-#
-# @param       $1  [Required] The server type/name substring to search for in instance labels.
-#
-# @env         BUILD_HOME          Path to the framework root directory (read from file).
-# @env         TOKEN               Linode API bearer authorization token.
-# @env         REGION              The region that the servers are running in.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active framework layout.
-#              - LogStatusMessages.sh utility logging system messages.
-#              - GetVariableValue.sh centralized wrapper for lookup configurations.
-#              - external dependencies: curl, jq, cat, mkdir, dirname, date, echo
-#
-# @security    
-#              - Filters curl interactions through piped authorization headers via @- syntax.
-#              - Hardens system-owned paths (/bin, /usr/bin) to eliminate executable hijack vectors.
-#              - Wraps API data extractions safely in localized variables.
-#
-# @exit        0  Success: The machine status was found and printed to stdout.
-# @exit        1  Failure: Missing arguments, missing configuration, invalid token,
-#                 network failure, or no server matched the specified criteria.
-########################################################################################
+#: Name:        IsInstanceRunning.sh
+#: Purpose:     Checks the current operational status of a Linode server by its name type.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       IsInstanceRunning.sh <server_type>
+#:              IsInstanceRunning.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The server type/name substring to search for in instance labels.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/server/linode/<orchestration_tool>/list_instances.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, jq
+#:
+#: Exit Codes:
+#:   0          Machine status was found and printed to stdout
+#:   1          Missing arguments, invalid config, network failure, or no matching server
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -44,12 +38,19 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-########################################################################################
-########################################################################################
-#set -x
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -58,12 +59,13 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
+# Validate that the required server type argument was provided
 if [ -z "${1}" ]
 then
         status "Error: Server type argument is required."
@@ -73,35 +75,40 @@ fi
 
 server_type="${1}"
 
+# Read software.dat and resolve the active orchestration tool (cli or api)
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-    status "Error: Cannot read software configuration file at ${software_file}" 
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
 fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
-    exit 1
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
 fi
 
-# Secure framework configuration value extraction
+if [ ! -d "${BUILD_HOME}/services/server/linode/${orchestration_tool}" ]
+then
+        orchestration_tool="api"
+fi
+
+# Retrieve the target cloud region from active deployment context
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 
-
-# Temporary disable set -e to evaluate curl transaction pipeline failures manually
+# Query active Linode instances in the target region via the orchestration wrapper
 set +e
-#response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -f -s -H 'X-Filter: {"region": "'${REGION}'"}' "https://api.linode.com/v4/linode/instances")"
-response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh  "${REGION}")"
+response="$("${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh" "${REGION}")"
 curl_status="$?"
 set -e
 
+# Extract the operational status (supporting both API .data[] and CLI .[] shapes) for matching labels
 if [ "${curl_status}" -eq 0 ] && [ -n "${response}" ]
 then
-        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg search "${server_type}" '.[] | select(.label | contains($search)).status')"
+        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg search "${server_type}" '(if type == "object" and has("data") then .data else . end)[] | select(.label | contains($search)).status // empty')"
 
         if [ -z "${output}" ]
         then
@@ -118,3 +125,4 @@ else
 fi
 
 exit 0
+
