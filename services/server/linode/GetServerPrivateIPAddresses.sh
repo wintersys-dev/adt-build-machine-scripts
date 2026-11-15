@@ -1,39 +1,35 @@
 #!/bin/sh
-#########################################################################################
-# @file        GetServerPrivateIPAddresses.sh
-# @brief       Retrieves the private VPC IPv4 addresses for a given server type.
-# @author      Peter Winter
-# @date        13/07/2021
-# @version     1.0
-#
-# @details     This script queries the local toolkit environment to identify target 
-#              server IDs matching a specific type string. It then loops through each 
-#              ID, hits the Linode v4 IPs endpoint, and extracts the associated 
-#              private VPC address fields using jq filtering.
-#
-# @param       $1  [Required] The server type/name substring used to resolve server IDs.
-#
-# @env         BUILD_HOME          Path to the framework root directory (read from file).
-# @env         REGION              The region that the servers are running in.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active framework layout.
-#              - LogStatusMessages.sh utility logging system messages.
-#              - GetVariableValue.sh centralized wrapper for lookup configurations.
-#              - ListServerIDs.sh helper resolution tool translating instance labels into IDs.
-#              - external dependencies: curl, jq, cat, mkdir, dirname, date, echo
-#
-# @security    
-#              - Filters curl interactions through piped authorization headers via @- syntax.
-#              - Hardens system-owned paths (/bin, /usr/bin) to eliminate executable hijack vectors.
-#              - Wraps API data extractions safely in localized variables.
-#
-# @exit        0  Success: One or more private IP addresses were resolved and printed.
-# @exit        1  Failure: Missing arguments, invalid token, network timeouts, or 
-#                 no valid VPC IP assignments were found for the matching servers.
-########################################################################################
+#: Name:        GetServerPrivateIPAddresses.sh
+#: Purpose:     Retrieves the private VPC IPv4 addresses for a given server type.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       GetServerPrivateIPAddresses.sh <server_type>
+#:              GetServerPrivateIPAddresses.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The server type/name substring used to resolve server IDs.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - ListServerIDs.sh
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/server/linode/<orchestration_tool>/list_instances.sh
+#:   - ${BUILD_HOME}/services/server/linode/<orchestration_tool>/get_instance_ips.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, jq
+#:
+#: Exit Codes:
+#:   0          One or more private VPC IP addresses were resolved and printed
+#:   1          Missing arguments, invalid config, network failure, or no VPC IPs found
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -44,12 +40,19 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-########################################################################################
-########################################################################################
-#set -x
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -58,64 +61,71 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
+# Validate that the required server type argument was provided
 if [ -z "${1}" ]
 then
         status "Error: Server type argument is required."
-        status "Usage: $0 <server_type>" 
+        status "Usage: $0 <server_type>"
         exit 1
 fi
 
 server_type="${1}"
 
-# Secure framework configuration value extraction
-#TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+# Retrieve target cloud region from active deployment context
 set +e
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION)"
 set -e
 
+# Read software.dat and resolve the active orchestration tool (cli or api)
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-    status "Error: Cannot read software configuration file at ${software_file}" 
-    exit 1
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
 fi
 
 orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
 if [ -z "${orchestration_tool}" ]
 then
-    status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
-    exit 1
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
+        exit 1
 fi
 
-# Map out structural infrastructure identifiers
+if [ ! -d "${BUILD_HOME}/services/server/linode/${orchestration_tool}" ]
+then
+        orchestration_tool="api"
+fi
+
+# Resolve all matching Linode server IDs for the requested server type
 server_ids="$("${BUILD_HOME}/services/server/linode/ListServerIDs.sh" "${server_type}")"
 
-# Temporary disable set -e to evaluate curl transaction pipeline failures manually
+# Verify that the regional instance catalog is reachable before querying per-ID IPs
 set +e
-response="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh "${REGION}")"
+response="$("${BUILD_HOME}/services/server/linode/${orchestration_tool}/list_instances.sh" "${REGION}")"
 curl_status="$?"
 set -e
 
 if [ "${curl_status}" -eq 0 ] && [ -n "${response}" ]
 then
+        # Iterate through each matching server ID and extract its private VPC IPv4 addresses
         for id in ${server_ids}
         do
-                # Temporary disable set -e for sub-calls inside the iteration loop
                 set +e
-                response1="$(${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh "${id}")"
+                response1="$("${BUILD_HOME}/services/server/linode/${orchestration_tool}/get_instance_ips.sh" "${id}")"
                 curl_sub_status="$?"
                 set -e
 
                 if [ "${curl_sub_status}" -eq 0 ] && [ -n "${response1}" ]
                 then
-                        output="$(/bin/echo "${response1}" | /usr/bin/jq -r '.ipv4.vpc[] | .address')"
+                        # Support both API object ({...}) and CLI array ([{...}]) JSON shapes
+                        output="$(/bin/echo "${response1}" | /usr/bin/jq -r '(if type == "array" then first else . end) | .ipv4.vpc[]?.address // empty')"
 
                         if [ -z "${output}" ]
                         then
@@ -135,3 +145,4 @@ else
 fi
 
 exit 0
+
