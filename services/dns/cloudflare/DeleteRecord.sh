@@ -90,7 +90,9 @@ fi
 # Isolate the apex root zone domain from the FQDN
 zone_name="$(/bin/echo "${website_url}" | /usr/bin/cut -d'.' -f2-)"
 # Look up the Cloudflare zone ID, creating the authoritative zone if it does not yet exist
+set +e
 zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
+set -e
 
 if [ -z "${zone_id}" ]
 then
