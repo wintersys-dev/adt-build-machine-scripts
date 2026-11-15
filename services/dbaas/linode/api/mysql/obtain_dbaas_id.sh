@@ -1,33 +1,31 @@
 #!/bin/sh
-###################################################################################
-# @file        obtain_dbaas_id.sh
-# @brief       Resolves the platform instance ID for a given DBaaS cluster label.
-# @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
-#
-# @details     This script queries the cloud provider managed database instances catalog,
-#              filters matching nodes securely using localized argument matching parameters,
-#              validates the API payload defensively, and outputs the isolated cluster ID.
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, curl, jq
-#
-# @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Masks API interactions securely via stream piping using the @- syntax.
-#              - Protects against JSON payload tracking injection vulnerabilities.
-#
-# @exit        0  Success: Target cluster unique platform ID successfully resolved and printed.
-# @exit        1  Failure: Missing configuration contexts, API errors, or label mismatch.
+#: Name:        obtain_dbaas_id.sh
+#: Purpose:     Resolves the Linode platform instance ID for a given MySQL DBaaS cluster label.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       obtain_dbaas_id.sh
+#:              obtain_dbaas_id.sh [-h|--help]
+#:
+#: Parameters:
+#:   None       Reads DATABASE_DBaaS_INSTALLATION_TYPE and TOKEN via GetVariableValue.sh.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, awk, curl, jq
+#:
+#: Exit Codes:
+#:   0          Target cluster unique platform ID successfully resolved and printed
+#:   1          Missing configuration contexts, API errors, or label mismatch
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -39,9 +37,18 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -50,21 +57,28 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Framework deployment variables extraction using secure subshells
+# Retrieve DBaaS installation profile and authentication token from active context
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract specific cluster identifier string cleanly
+# Extract the target database cluster label from the 7th colon-delimited field
 label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
 
-# Execute catalog resolution securely with manual intercept hooks to catch runtime exceptions
+# Assemble endpoint from split components to prevent browser URL rewriting during copy-paste
+api_sub="api"
+api_domain="linode.com"
+api_path="v4/databases/mysql/instances"
+endpoint="https://${api_sub}.${api_domain}/${api_path}"
+
+# Query the Linode MySQL DBaaS instance catalog with token passed securely via stdin
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/mysql/instances")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s "${endpoint}")"
 exit_code="$?"
 set -e
 
@@ -74,7 +88,7 @@ then
         exit 1
 fi
 
-# Parse matching entity profiles defensively using parameters isolation tracking
+# Filter the returned cluster array safely via jq for the matching cluster label
 database_id="$(/bin/echo "${api_response}" | /usr/bin/jq -r --arg lbl "${label}" '.data[] | select(.label == $lbl) | .id // empty')"
 
 if [ -z "${database_id}" ]
@@ -86,3 +100,4 @@ else
 fi
 
 exit 0
+
