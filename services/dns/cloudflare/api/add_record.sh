@@ -40,7 +40,6 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
