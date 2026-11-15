@@ -108,7 +108,7 @@ fi
 # Inspect the returned JSON payload for Linode API error objects
 if /bin/echo "${api_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason // .errors.reason // "Unknown API error parameters."')"
+        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason //  "Unknown API error parameters."')"
         status "Database ${database_id} firewall allow list update rejected. Cloud Provider Reason: ${api_err_msg}"
         exit 1
 fi
