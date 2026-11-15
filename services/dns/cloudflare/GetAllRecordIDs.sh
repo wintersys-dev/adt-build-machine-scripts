@@ -97,8 +97,10 @@ if [ -z "${zone_id}" ]
 then
         status "Zone ID empty for '${zone_name}'. Spawning authoritative zone layout..."
         "${BUILD_HOME}/services/dns/CreateZone.sh" "${website_url}"
+        set +e
         zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
-
+        set -e
+        
         if [ -z "${zone_id}" ]
         then
                 status "Error: Failed to verify zone ID allocation for '${zone_name}' after provisioning step."
