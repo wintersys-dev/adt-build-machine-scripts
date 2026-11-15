@@ -1,39 +1,34 @@
 #!/bin/sh
-###################################################################################
-# @file        CreateZone.sh
-# @brief       Provisions a new authoritative master DNS zone within the DNS provider matrix.
-# @author      Peter Winter
-# @date        12/11/2026
-# @version     1.0
-#
-# @details     This script extracts the baseline root zone from a target Fully Qualified
-#              Domain Name (FQDN), resolves the active orchestration tool (CLI or API),
-#              queries provider catalogs defensively to prevent duplicate allocations,
-#              and routes a master zone creation payload through create_record.sh.
-#
-# @param       $1  [Required] The target Fully Qualified Domain Name (e.g., "://domain.com")
-#                             or apex domain name (e.g., "domain.com").
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - software.dat configuration file defining the active ORCHESTRATION_TOOL.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, cut, jq
-#
-# @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Replaces legacy, fragile backtick subshells with secure shell evaluations.
-#              - Eliminates redundant subshell grouping fork performance bottlenecks.
-#              - Protects dynamic JSON queries from code parameter injection tracking bugs.
-#
-# @exit        0  Success: Authoritative master DNS zone verified active or created cleanly.
-# @exit        1  Failure: Missing context paths, input parameter errors, or provider failures.
+#: Name:        CreateZone.sh
+#: Purpose:     Provisions a new authoritative master DNS zone within the Linode DNS provider matrix.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       CreateZone.sh <fqdn>
+#:              CreateZone.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The target Fully Qualified Domain Name (e.g. "://example.com")
+#:                         or apex domain name (e.g. "example.com").
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/dns/<dns_choice>/<orchestration_tool>/{get_domains,create_record}.sh
+#:   - External binaries: cat, echo, grep, cut, awk, jq
+#:
+#: Exit Codes:
+#:   0          Authoritative master DNS zone verified active or created cleanly
+#:   1          Missing context paths, input parameter errors, or provider failures
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -45,9 +40,19 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -56,11 +61,13 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
+# Validate that the required FQDN or apex domain argument was provided
 if [ -z "${1}" ]
 then
         status "Error: Fully Qualified Domain Name or root domain parameter is required."
@@ -68,6 +75,7 @@ then
         exit 1
 fi
 
+# Strip any leading host subdomain to isolate the apex root domain zone
 dot_count="$(/bin/echo "${1}" | /usr/bin/awk -F'.' '{print NF-1}')"
 if [ "${dot_count}" -ge 2 ]
 then
@@ -76,17 +84,19 @@ else
         domain_url="${1}"
 fi
 
+# Retrieve the active DNS provider and SOA admin email from deployment context
 set +e
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
 DNS_USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_USERNAME)"
 set -e
 
-if [ -z "${DNS_CHOICE}" ] 
+if [ -z "${DNS_CHOICE}" ]
 then
-        status "Error: Failed to fetch required context variables (TOKEN)."
+        status "Error: Failed to fetch required context variables (DNS_CHOICE)."
         exit 1
 fi
 
+# Read software.dat and resolve the active orchestration tool (cli or api)
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
@@ -106,7 +116,7 @@ if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
 then
         orchestration_tool="api"
 fi
-
+# Query the Linode DNS domain catalog via the active orchestration wrapper
 set +e
 domain_json="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/get_domains.sh")"
 exit_code="$?"
@@ -118,8 +128,8 @@ then
         exit 1
 fi
 
+# Inspect the returned catalog payload for provider API error objects
 err_msg="$(/bin/echo "${domain_json}" | /usr/bin/jq -r 'if type == "object" and .errors then (.errors | if type == "array" then .[0].reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
-
 
 if [ -n "${err_msg}" ]
 then
@@ -127,7 +137,8 @@ then
         exit 1
 fi
 
-domain_id=$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '.[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)
+# Check whether the zone already exists (supporting both API .data[] and CLI .[] JSON shapes)
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '(if type == "object" and has("data") then .data else . end)[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)"
 
 if [ -z "${domain_id}" ]
 then
@@ -138,7 +149,7 @@ else
         exit 0
 fi
 
-
+# Build the JSON master DNS zone payload with the configured SOA email
 json_payload="$(/bin/cat <<EOF
 {
   "type": "master",
@@ -148,6 +159,7 @@ json_payload="$(/bin/cat <<EOF
 EOF
 )"
 
+# Dispatch master zone creation through create_record.sh using the 'zone' target sentinel
 set +e
 zone_response="$("${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}/create_record.sh" "zone" "${json_payload}")"
 zone_exit_code="$?"
@@ -159,6 +171,7 @@ then
         exit 1
 fi
 
+# Inspect the creation response for provider API error objects
 zone_err_msg="$(/bin/echo "${zone_response}" | /usr/bin/jq -r '(if type == "array" then first else . end) | if type == "object" and .errors then (.errors | if type == "array" then first.reason elif type == "object" then .reason elif type == "string" and length > 0 then . else empty end) else empty end // empty' 2>/dev/null)"
 
 if [ -n "${zone_err_msg}" ]
@@ -169,4 +182,5 @@ fi
 
 status "DNS master zone successfully created for domain: ${domain_url} [SOA: ${DNS_USERNAME}]"
 exit 0
+
 
