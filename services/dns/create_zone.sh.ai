@@ -1,0 +1,102 @@
+#!/bin/sh
+#: Name:        create_zone.sh
+#: Purpose:     Provisions a new authoritative master DNS zone on Linode via CLI.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       create_zone.sh <json_payload>
+#:              create_zone.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] JSON payload defining zone attributes (type, domain, soa_email).
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, jq, linode-cli
+#:
+#: Exit Codes:
+#:   0          Master DNS zone created cleanly
+#:   1          Missing arguments, layout faults, or context variable errors
+#:   *          Bubbled exit code from linode-cli
+
+# Exit immediately if any command exits with a non-zero status
+set -e
+
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries strictly to stderr so stdout remains clean JSON for callers
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
+}
+
+# Validate that the required JSON payload argument was provided
+if [ -z "${1}" ]
+then
+        status "Error: Zone JSON payload argument is required."
+        status "Usage: $0 <json_payload>"
+        exit 1
+fi
+
+json_payload="${1}"
+
+# Retrieve the cloud provider authentication token from the active deployment context
+TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
+
+if [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (TOKEN)."
+        exit 1
+fi
+
+# Reset positional parameters ($@) and unpack each non-empty JSON key/value pair
+# into discrete --key value CLI flags while preserving spaces inside values
+set --
+while IFS= read -r arg
+do
+        [ -n "${arg}" ] && set -- "$@" "${arg}"
+done <<EOF
+$(/bin/echo "${json_payload}" | /usr/bin/jq -r 'to_entries[] | select(.value != null and .value != "") | "--\(.key)", (.value | tostring)')
+EOF
+
+# Export the API token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
+
+# Execute the zone creation call with errexit paused so the CLI exit code can be captured
+set +e
+/usr/local/bin/linode-cli --no-defaults --json domains create "$@"
+exit_code="$?"
+set -e
+
+# Clear the sensitive token variable immediately after the CLI call finishes
+unset LINODE_CLI_TOKEN
+
+# Bubble up any non-zero exit code thrown by linode-cli
+if [ "${exit_code}" -ne 0 ]
+then
+        status "Error: linode-cli domains create failed with exit code ${exit_code}."
+        exit "${exit_code}"
+fi
+
+status "Success: Master DNS zone created cleanly."
+exit 0
