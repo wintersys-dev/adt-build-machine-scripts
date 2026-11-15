@@ -170,7 +170,7 @@ then
                 then
                         eval "${db_payload}"
                 else
-                        status "Error: Failed to retrieve database details." >&2
+                        status "Error: Failed to retrieve database details." 
                         exit 1
                 fi
 
