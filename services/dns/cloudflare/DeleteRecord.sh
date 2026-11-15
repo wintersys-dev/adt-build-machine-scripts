@@ -1,7 +1,59 @@
+#!/bin/sh
+#: Name:        DeleteRecord.sh
+#: Purpose:     Deletes an active DNS record entry from a Cloudflare zone matrix.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       DeleteRecord.sh <record_id> <website_url>
+#:              DeleteRecord.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The unique Cloudflare platform identifier of the target DNS record.
+#:   $2         [Required] The target Fully Qualified Domain Name (e.g. "://example.com").
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - GetZoneID.sh / CreateZone.sh
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/dns/cloudflare/<orchestration_tool>/delete_record.sh
+#:   - External binaries: cat, echo, cut, grep, awk, jq
+#:
+#: Exit Codes:
+#:   0          Cloudflare DNS record entry successfully deleted and verified
+#:   1          Missing context paths, input parameter errors, or API/CLI failures
+###################################################################################
+# License Agreement:
+# This file is part of The Wintersys Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -10,12 +62,13 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
+# Validate that both record ID and website URL arguments were provided
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: Record ID and Website URL parameters are required."
@@ -26,18 +79,18 @@ fi
 record_id="${1}"
 website_url="${2}"
 
-# Extract structural configuration contexts securely via modern subshells
+# Retrieve the active DNS provider choice from deployment context
 DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DNS_CHOICE)"
+
 if [ -z "${DNS_CHOICE}" ]
 then
-        status "Error: Failed to fetch required context variables (TOKEN)."
+        status "Error: Failed to fetch required context variables (DNS_CHOICE)."
         exit 1
 fi
 
-# Parse apex zone identifier safely using modern subshells
+# Isolate the apex root zone domain from the FQDN
 zone_name="$(/bin/echo "${website_url}" | /usr/bin/cut -d'.' -f2-)"
-
-# Intercept and capture zone ID configurations cleanly
+# Look up the Cloudflare zone ID, creating the authoritative zone if it does not yet exist
 zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
 
 if [ -z "${zone_id}" ]
@@ -52,12 +105,8 @@ then
                 exit 1
         fi
 fi
-if [ -z "${DNS_CHOICE}" ] 
-then
-        status "Error: Failed to fetch required context variables (TOKEN)."
-        exit 1
-fi
 
+# Read software.dat and resolve the active orchestration tool (cli or api)
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
@@ -78,18 +127,11 @@ then
         orchestration_tool="api"
 fi
 
-
+# Dispatch the record deletion request to the active Cloudflare orchestration wrapper
 set +e
-response="$(${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/delete_record.sh "${zone_id}" "${record_id}")"
+response="$("${BUILD_HOME}/services/dns/cloudflare/${orchestration_tool}/delete_record.sh" "${zone_id}" "${record_id}")"
 exit_code="$?"
 set -e
-
-if [ "${exit_code}" -ne 0 ]
-then
-        status "Failed to add record to DNS system (Network/Curl infrastructure execution error)."
-        exit 1
-fi
-
 
 if [ "${exit_code}" -ne 0 ] || [ -z "${response}" ]
 then
@@ -97,7 +139,7 @@ then
         exit 1
 fi
 
-# Verify final transaction payload state explicitly to catch schema rejections or token faults
+# Verify that Cloudflare reported success and did not return validation or token errors
 if /bin/echo "${response}" | /usr/bin/jq -e '.success == false or .errors and (.errors | length > 0)' >/dev/null 2>&1
 then
         err_msg="$(/bin/echo "${response}" | /usr/bin/jq -r '.errors[0].message // "Unknown Cloudflare entry deletion validation error."')"
@@ -107,3 +149,4 @@ fi
 
 status "Cloudflare DNS record entry successfully expunged: ID ${record_id} removed from zone ${zone_name}."
 exit 0
+
