@@ -109,8 +109,8 @@ then
                 case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
                         *DBAAS*)
                                 # Resolve the managed DBaaS cluster ID and update its VPC IP range allow-list
-                                database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/ObtainDatabaseID.sh")"
-                                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/UpdateDBaaSFirewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                                database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/obtain_dbaas_id.sh")"
+                                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                                 ;;
                 esac
         fi
