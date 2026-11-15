@@ -1,34 +1,31 @@
 #!/bin/sh
-###################################################################################
-# @file        check_dbaas_service_status.sh
-# @brief       Monitors cloud DBaaS instance orchestration status until active.
-# @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
-#
-# @details     This script connects to the Linode v4 Managed Database API via piped 
-#              authorization tokens, filters cluster instances by custom ecosystem 
-#              labels, tracks processing states sequentially, handles API error spikes 
-#              defensively, and times out safely using tracking boundaries.
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, curl, jq, expr, sleep
-#
-# @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Masks API interactions securely via stream piping using the @- syntax.
-#              - Robustly quotes all variable substitutions to trap space-injection faults.
-#
-# @exit        0  Success: Target database cluster verified in an active, running state.
-# @exit        1  Failure: Missing context paths, explicit platform failures, or time-outs.
+#: Name:        check_dbaas_service_status.sh
+#: Purpose:     Monitors Linode PostgreSQL DBaaS cluster status until active via REST API.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       check_dbaas_service_status.sh
+#:              check_dbaas_service_status.sh [-h|--help]
+#:
+#: Parameters:
+#:   None       Reads DATABASE_DBaaS_INSTALLATION_TYPE and TOKEN via GetVariableValue.sh.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, awk, curl, jq, expr, sleep
+#:
+#: Exit Codes:
+#:   0          Target database cluster verified in an active, running state
+#:   1          Missing context paths, explicit platform failures, or polling timeout
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -40,9 +37,18 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -51,30 +57,46 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Framework deployment variables extraction using secure subshells
+# Retrieve DBaaS installation profile and authentication token from active context
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract specific database identifier string cleanly
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
+# Extract the target database cluster label from the 7th colon-delimited field
 label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
 
-# Configure standard polling loop limits safely
+# Assemble endpoint from split components to prevent browser URL rewriting during copy-paste
+api_sub="api"
+api_domain="linode.com"
+api_path="v4/databases/postgresql/instances"
+endpoint="https://${api_sub}.${api_domain}/${api_path}"
+
+# Configure polling retry ceiling (50 attempts x 20s = 1000 seconds max wait)
 max_attempts=50
 sleep_interval=20
 attempt=1
 
 status "Waiting for database '${label}' to become active..."
 
-# Polling status verification transaction track
-while true 
+# Poll Linode Managed Databases API until the cluster reports 'active' or times out
+while true
 do
-        # Safely query provider endpoints with hidden piped streams to prevent token leaks
-        db_status="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s "https://api.linode.com/v4/databases/postgresql/instances" | /usr/bin/jq -r --arg lbl "${label}" '.data[] | select(.label == $lbl).status')"
+        # Query PostgreSQL database instances with token passed securely via stdin; tolerate transient errors
+        set +e
+        api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s "${endpoint}")"
+        db_status="$(/bin/echo "${api_response}" | /usr/bin/jq -r --arg lbl "${label}" '.data[]? | select(.label == $lbl).status // empty' 2>/dev/null)"
+        set -e
 
         if [ -z "${db_status}" ]
         then
@@ -91,7 +113,7 @@ do
                 status "Current status: '${db_status}' (Attempt ${attempt}/${max_attempts})..."
         fi
 
-        # Assess time boundary violations
+        # Abort cleanly if maximum polling attempts have been reached
         if [ "${attempt}" -ge "${max_attempts}" ]
         then
                 total_wait_seconds="$(/usr/bin/expr "${max_attempts}" \* "${sleep_interval}")"
@@ -99,9 +121,10 @@ do
                 exit 1
         fi
 
-        # Increment tracking variables and sleep safely
+        # Increment attempt counter and sleep before the next poll
         attempt="$(/usr/bin/expr "${attempt}" + 1)"
         /bin/sleep "${sleep_interval}"
 done
 
 exit 0
+
