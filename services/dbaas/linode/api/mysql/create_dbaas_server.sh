@@ -39,6 +39,12 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+#########################################################################################################
+#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
+#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql/8:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
+#########################################################################################################
+
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -99,11 +105,6 @@ json_payload="$(/bin/cat <<EOF
 EOF
 )"
 
-#########################################################################################################
-#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
-#DATABASE_DBaaS_INSTALLATION_TYPE="MySQL:DBAAS:mysql/8:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
-#########################################################################################################
-
 # Execute provision endpoint communication safely while manual intercept hooks track faults
 set +e
 api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X POST "https://api.linode.com/v4/databases/mysql/instances" -H "Content-Type: application/json" -d "${json_payload}")"
@@ -126,4 +127,61 @@ fi
 
 status "Database provision request successfully submitted for instance '${label}'."
 exit 0
+
+# Enable public VPC access only when acting as the primary hub in a multi-region topology
+if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
+then
+        public_access="true"
+else
+        public_access="false"
+fi
+
+# Build the JSON provisioning request body (preserving unquoted integers and booleans)
+json_payload="$(/bin/cat <<EOF
+{
+  "label": "${label}",
+  "region": "${db_region}",
+  "type": "${machine_type}",
+  "engine": "${engine}",
+  "cluster_size": ${cluster_size},
+  "ssl_connection": true,
+  "allow_list": ["0.0.0.0/0"],
+  "private_network": {
+    "vpc_id": ${vpc_id},
+    "subnet_id": ${subnet_id},
+    "public_access": ${public_access}
+  }
+}
+EOF
+)"
+
+# Assemble endpoint from split components to prevent browser URL rewriting during copy-paste
+api_sub="api"
+api_domain="linode.com"
+api_path="v4/databases/mysql/instances"
+endpoint="https://${api_sub}.${api_domain}/${api_path}"
+
+# Submit the DBaaS creation POST request with token passed securely via stdin
+set +e
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "${endpoint}" -H "Content-Type: application/json" -d "${json_payload}")"
+exit_code="$?"
+set -e
+
+if [ "${exit_code}" -ne 0 ]
+then
+        status "Failed to provision DBaaS server (Network/Curl infrastructure execution error)."
+        exit 1
+fi
+
+# Inspect the returned JSON payload for Linode API error objects
+if /bin/echo "${api_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+then
+        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason' 2>/dev/null || /bin/echo "Unknown API error pattern structure.")"
+        status "Failed to provision DBaaS server. Cloud Provider Reason: ${api_err_msg}"
+        exit 1
+fi
+
+status "Database provision request successfully submitted for instance '${label}'."
+exit 0
+
 
