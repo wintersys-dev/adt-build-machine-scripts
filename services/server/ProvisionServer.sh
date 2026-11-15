@@ -1,40 +1,39 @@
-#!/bin/sh 
-###################################################################################
-# @file        ProvisionServer.sh
-# @brief       Orchestrates the metadata preparation and triggers provider-specific instance deployment.
-# @author      Peter Winter
-# @date        13/07/2021
-# @version     1.0
-#
-# @details     This script gathers environment configuration data (cloudhost, region, 
-#              OS configurations, firewalls, and credentials), serializes the cloud-init 
-#              payload into base64 format, resolves potential snapshot restorations, 
-#              and passes the consolidated parameters down to the active provider's 
-#              underlying orchestration creation subsystem script.
-#
-# @param       $1  [Required] The targeted server hardware size plan / tier.
-# @param       $2  [Required] The human-readable label/hostname assigned to the server.
-# @param       $3  [Required] The structural type or architecture category of the machine.
-#
-# @env         None explicitly sourced from top-level environment registers.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh utility to capture build updates.
-#              - ${BUILD_HOME}/helpers/services/GetVariableValue.sh framework configuration mapping layer.
-#              - ${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh distribution matching software.
-#              - ${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh initialization driver.
-#              - ${BUILD_HOME}/services/security/firewall/ConfigureNativeFirewall.sh framework security orchestrator.
-#
-# @security    
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
-#
-# @exit        0  Success: Runtime options consolidated and server provisioner launched successfully.
-# @exit        1  Failure: Missing positional arguments, unreadable configurations, or failure 
-#                 encountered executing down-stack orchestration tooling.
+#!/bin/sh
+#: Name:        ProvisionServer.sh
+#: Purpose:     Orchestrates metadata preparation and triggers provider-specific instance deployment.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ProvisionServer.sh <server_size> <server_name> <machine_type>
+#:              ProvisionServer.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The targeted server hardware size plan / tier.
+#:   $2         [Required] The human-readable label/hostname assigned to the server.
+#:   $3         [Required] The structural type or architecture category of the machine.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - GetOperatingSystemVersion.sh
+#:   - InitialiseCloudConfig.sh
+#:   - ConfigureNativeFirewall.sh
+#:   - ${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST
+#:   - ${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER
+#:   - External binaries: cat, echo, grep, cut, sed, awk
+#:
+#: Exit Codes:
+#:   0          Runtime options consolidated and server provisioner launched successfully
+#:   1          Missing arguments, unreadable configurations, missing cloud-init YAML, or missing script
+#:   *          Bubbled exit code from provider-specific ProvisionServer.sh
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -45,10 +44,19 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-#########################################################################################
-#set -x
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -57,22 +65,25 @@ else
         exit 1
 fi
 
-status () {
-        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}" 2>/dev/null
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# 1. Check for all 3 arguments safely
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
+# Validate that all three required provisioning arguments were provided
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
 then
         status "Error: 3 Server arguments are required."
         status "Usage: $0 <server_size> <server_name> <machine_type>"
         exit 1
 fi
 
-server_size="$1"
-server_name="$2"
-machine_type="$3"
+server_size="${1}"
+server_name="${2}"
+machine_type="${3}"
 
+# Read and validate the active cloud provider identifier
 cloudhost_file="${BUILD_HOME}/runtime/ACTIVE_CLOUDHOST"
 if [ ! -f "${cloudhost_file}" ] || [ ! -r "${cloudhost_file}" ]
 then
@@ -80,6 +91,7 @@ then
         exit 1
 fi
 
+# Read and validate the active build run identifier
 build_id_file="${BUILD_HOME}/runtime/ACTIVE_BUILD_IDENTIFIER"
 if [ ! -f "${build_id_file}" ] || [ ! -r "${build_id_file}" ]
 then
@@ -90,6 +102,13 @@ fi
 CLOUDHOST="$(/bin/cat "${cloudhost_file}")"
 BUILD_IDENTIFIER="$(/bin/cat "${build_id_file}")"
 
+if [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ]
+then
+        status "Error: CLOUDHOST or BUILD_IDENTIFIER variable is empty."
+        exit 1
+fi
+
+# Retrieve deployment parameters and resolve the provider-specific OS image slug
 set +e
 REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" REGION 2>/dev/null)"
 WEBSITE_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL 2>/dev/null)"
@@ -100,8 +119,10 @@ BUILD_FROM_SNAPSHOT="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUIL
 OS_CHOICE="$("${BUILD_HOME}/services/server/GetOperatingSystemVersion.sh" 2>/dev/null | /bin/sed "s/'//g")"
 set -e
 
+# Strip the 'adt-' prefix to derive the bare machine role category (e.g. webserver, database)
 machine_category="$(/bin/echo "${machine_type}" | /bin/sed 's|adt-||')"
 
+# Generate the node-specific cloud-init userdata YAML configuration
 set +e
 "${BUILD_HOME}/initialisation/cloud-init/InitialiseCloudConfig.sh" "${machine_category}" "${server_name}" 2>/dev/null
 set -e
@@ -109,12 +130,13 @@ set -e
 yaml_path="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/cloud-init/${machine_category}.yaml"
 if [ -f "${yaml_path}" ]
 then
-        user_data="${yaml_path}" 
+        user_data="${yaml_path}"
 else
-        status "Cloud config file not found"
+        status "Cloud config file not found at ${yaml_path}"
         exit 1
 fi
 
+# Resolve a golden snapshot ID if snapshot-based deployment is enabled
 snapshot_id=""
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ]
 then
@@ -126,6 +148,7 @@ then
         fi
 fi
 
+# Configure the native cloud firewall and capture its ID when native firewalls are active
 firewall_id=""
 if [ "${ACTIVE_FIREWALLS}" = "2" ] || [ "${ACTIVE_FIREWALLS}" = "3" ]
 then
@@ -134,23 +157,25 @@ then
         set -e
 fi
 
+# Default to -1 when no native cloud firewall ID applies
 if [ -z "${firewall_id}" ]
 then
         firewall_id="-1"
 fi
 
-image="${OS_CHOICE}" 
+# Override the base OS image with the golden snapshot ID when available
+image="${OS_CHOICE}"
 if [ "${BUILD_FROM_SNAPSHOT}" = "1" ] && [ -n "${snapshot_id}" ]
 then
         image="${snapshot_id}"
 fi
 
-
+# Locate and verify execution permissions on the provider-specific server provisioner
 script_path="${BUILD_HOME}/services/server/${CLOUDHOST}/ProvisionServer.sh"
 
 if [ ! -f "${script_path}" ]
 then
-        status "Error: Script not found at ${script_path}" 
+        status "Error: Script not found at ${script_path}"
         exit 1
 fi
 
@@ -160,17 +185,18 @@ then
         exit 1
 fi
 
-#export EMERGENCY_PASSWORD="${emergency_password}"
-
+# Execute the provider-specific server provisioner with errexit paused to capture its exit code
 set +e
 "${script_path}" "${REGION}" "${image}" "${server_size}" "${server_name}" "${user_data}" "${firewall_id}" "${snapshot_id}"
-exit_code=$?
+exit_code="$?"
 set -e
 
-if [ ${exit_code} -ne 0 ]
+# Bubble up any non-zero exit code returned by the provider script
+if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: ProvisionServer.sh failed with exit code $exit_code"
-        exit $exit_code
+        status "Error: ProvisionServer.sh failed with exit code ${exit_code}." >&2
+        exit "${exit_code}"
 fi
 
 exit 0
+
