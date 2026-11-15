@@ -1,36 +1,31 @@
 #!/bin/sh
-###################################################################################
-# @file        obtain_dbaas_details.sh
-# @brief       Extracts configuration and connection payloads for a managed DBaaS instance.
-# @author      Peter Winter
-# @date        05/11/2026
-# @version     1.0
-#
-# @details     This script queries the cloud provider's instances and credentials 
-#              endpoints to dynamically capture cluster endpoints, authorization strings, 
-#              routing networks, and port identifiers. It validates runtime payloads 
-#              defensively and prints an exportable shell-compatible configurations block.
-#
-# @param       $1  [Required] The unique platform identifier ID of the active database instance.
-#
-# @env         BUILD_HOME          Path to the toolkit core framework layout directory.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking active framework layout.
-#              - LogStatusMessages.sh utility logging centralized system events.
-#              - GetVariableValue.sh centralized configuration variable extraction tool.
-#              - external dependencies: cat, echo, awk, curl, jq, sed
-#
-# @security    
-#              - Hardens executable locations (/bin, /usr/bin) to negate path hijacking.
-#              - Eliminates redundant subshell grouping fork performance bottlenecks.
-#              - Masks API interactions securely via stream piping using the @- syntax.
-#
-# @exit        0  Success: Runtime database engine parameter variables resolved and emitted.
-# @exit        1  Failure: Missing context parameters or target property extraction faults.
+#: Name:        obtain_dbaas_details.sh
+#: Purpose:     Extracts connection details and credentials for a Linode PostgreSQL DBaaS instance.
+#: Author:      Peter Winter
+#: Date:        15/11/2026
+#: Version:     1.0
+#:
+#: Usage:       obtain_dbaas_details.sh <database_id>
+#:              obtain_dbaas_details.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The unique Linode platform identifier ID of the active database instance.
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, awk, curl, jq, sed
+#:
+#: Exit Codes:
+#:   0          Runtime database engine parameter variables resolved and emitted cleanly
+#:   1          Missing context parameters or target property extraction faults
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -42,9 +37,18 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -53,12 +57,13 @@ else
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
-# Input validation
+# Validate that the required target database instance ID argument was provided
 if [ -z "${1}" ]
 then
         status "Error: Database ID parameter is required."
@@ -68,18 +73,17 @@ fi
 
 database_id="${1}"
 
-# Framework deployment variables extraction using secure subshells
+# Retrieve DBaaS specification string, multi-region flags, and API token from active context
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 MULTI_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGION)"
 PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Extract targeted database connection parameters from configuration strings
+# Extract application-level database name, username, and password from the configuration string
 db_name="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $8}')"
 db_username="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $9}')"
 db_password="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $10}')"
-
-# Determine private network accessibility logic boundaries cleanly
+# Switch endpoint host prefix to 'public-' when operating as the primary hub in multi-region mode
 if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
         db_scope_prefix="public-"
@@ -87,13 +91,21 @@ else
         db_scope_prefix=""
 fi
 
-# Query active cluster endpoint details securely with manual intercept hooks to catch runtime exceptions
+# Assemble endpoints from split components to prevent browser URL rewriting during copy-paste
+api_sub="api"
+api_domain="linode.com"
+instance_path="v4/databases/postgresql/instances/${database_id}"
+creds_path="v4/databases/postgresql/instances/${database_id}/credentials"
+instance_endpoint="https://${api_sub}.${api_domain}/${instance_path}"
+creds_endpoint="https://${api_sub}.${api_domain}/${creds_path}"
+
+# Query instance metadata and root credentials with token passed securely via stdin
 set +e
-api_instance_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}")"
-api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X GET "https://api.linode.com/v4/databases/postgresql/instances/${database_id}/credentials")"
+api_instance_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X GET "${instance_endpoint}")"
+api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X GET "${creds_endpoint}")"
 set -e
 
-# Parse API returns defensively using secure subshells
+# Parse cluster attributes and root credentials from the returned JSON payloads
 export database_id
 export CLUSTER_NAME="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.label // empty')"
 export DB_IDENTIFIER="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.hosts.primary // empty')"
@@ -102,7 +114,7 @@ export DB_PASSWORD="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.pas
 export DB_PORT="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.port // empty')"
 export DB_NAME="${db_name}"
 
-# Perform rigorous sanity checks over required parameters to ensure full alignment
+# Verify that every required connection attribute resolved to a non-empty value
 for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME
 do
         eval "var_val=\${$var_name}"
@@ -113,17 +125,17 @@ do
         fi
 done
 
-# Adapt the private endpoint routing matrix dynamically if cross-region public routing flags match
+# Rewrite the primary endpoint hostname prefix when cross-region public routing is active
 if [ -n "${db_scope_prefix}" ]
 then
         DB_IDENTIFIER="$(/bin/echo "${DB_IDENTIFIER}" | /bin/sed "s/^private-/${db_scope_prefix}/")"
 fi
 
-# Concat system admin configuration credentials with application access parameters
+# Combine admin credentials with application-level credentials using the ':::' delimiter
 export DB_USERNAME="${DB_USERNAME}:::${db_username}"
 export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
 
-# Emit compliant environment configuration layout block safely
+# Emit shell-eval-compatible variable assignments to stdout for parent orchestrators
 /bin/cat <<EOF
 CLUSTER_NAME='${CLUSTER_NAME}'
 DB_IDENTIFIER='${DB_IDENTIFIER}'
@@ -134,3 +146,4 @@ DB_NAME='${DB_NAME}'
 EOF
 
 exit 0
+
