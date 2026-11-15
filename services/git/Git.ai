@@ -1,0 +1,104 @@
+Yes, separating the logic into a shared core helper and thin provider-specific wrapper scripts keeps the original 3-argument interface completely intact while eliminating duplicate code.
+
+Architecture Overview
+
+• Core Engine (GitCloneCore.sh): Holds all the .netrc creation, trap cleanup, chmod, and git clone logic. It accepts the provider domain as its first argument.
+• Provider Wrappers (GitClone.sh): Lightweight, provider-specific entry points (e.g., stored in provider subdirectories or named per provider) that hardcode the domain and forward $1, $2, and $3 directly to the core script.
+
+1. Shared Core Script (GitCloneCore.sh)
+
+Save this in a shared helpers location (such as ${BUILD_HOME}/helpers/git/GitCloneCore.sh).
+sh
+#!/bin/sh
+##################################################################################
+# SCRIPT      : GitCloneCore.sh
+# AUTHOR      : Peter Winter (Refactored Core Engine)
+# DESCRIPTION : Shared execution engine for shallow Git clones across providers.
+# INTERFACE   : $0 <provider_domain> <owner_name> <repo_name> [auth_username]
+##################################################################################
+set -e
+
+status () {
+	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+}
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+
+if [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ]
+then
+        status "Error: Core helper requires <provider_domain> <owner_name> <repo_name> [auth_username]"
+        exit 1
+fi
+
+provider_domain="${1}"
+repository_ownername="${2}" 
+repository_name="${3}" 
+repository_username="${4}"
+
+# Set provider-specific default login if optional username was omitted
+if [ "${repository_username}" = "" ]
+then
+        case "${provider_domain}" in
+                *gitlab*)    repository_username="oauth2" ;;
+                *bitbucket*) repository_username="x-token-auth" ;;
+                *)           repository_username="git" ;;
+        esac
+fi
+
+cleanup() {
+        /bin/rm -f "${HOME}/.netrc"
+}
+trap cleanup EXIT
+
+cat << EOF > "${HOME}/.netrc"
+machine ${provider_domain}
+login ${repository_username}
+password ${REPOSITORY_TOKEN}
+EOF
+
+chmod 600 "${HOME}/.netrc"
+
+if ! /usr/bin/git clone --depth 1 "https://${provider_domain}/${repository_ownername}/${repository_name}.git"
+then
+        error_code="$?"
+        status "git clone exited with error code ${error_code}"
+        exit 1
+fi
+Use code with caution.
+
+2. Provider Wrapper Scripts (Original Interface Preserved)
+
+Each provider script keeps the exact <owner_name> <repo_name> [auth_username] interface so existing callers do not break.
+
+GitHub Wrapper (github/GitClone.sh)
+
+sh
+#!/bin/sh
+# INTERFACE : $0 <owner_name> <repo_name> [auth_username]
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+exec "${BUILD_HOME}/helpers/git/GitCloneCore.sh" "github.com" "$@"
+Use code with caution.
+
+GitLab Wrapper (gitlab/GitClone.sh)
+
+sh
+#!/bin/sh
+# INTERFACE : $0 <owner_name> <repo_name> [auth_username]
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+exec "${BUILD_HOME}/helpers/git/GitCloneCore.sh" "gitlab.com" "$@"
+Use code with caution.
+
+Bitbucket Wrapper (bitbucket/GitClone.sh)
+
+sh
+#!/bin/sh
+# INTERFACE : $0 <owner_name> <repo_name> [auth_username]
+BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+exec "${BUILD_HOME}/helpers/git/GitCloneCore.sh" "bitbucket.org" "$@"
+Use code with caution.
+
+Why exec ... "$@" Works Best Here
+
+• Preserves Arguments Safely: "$@" passes $1, $2, and optional $3 cleanly without word-splitting issues, even if an argument is empty or contains spaces.
+• Clean Process Replacement: exec replaces the wrapper shell process with GitCloneCore.sh, preserving exit codes and avoiding unnecessary subshell overhead.
+If you would like to apply this same core + wrapper pattern to your other Git scripts (such as GitPush.sh, GitPull.sh, or GitCheckout.sh), share one of them and I can help structure the shared helper.
