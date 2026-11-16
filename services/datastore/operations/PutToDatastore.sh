@@ -174,18 +174,18 @@ target_destination="${active_bucket}/${place_to_put}"
 # Execute datastore upload locally (node 1) or across all distributed S3 nodes
 if [ "${mode}" = "local" ]
 then
-        status "Uploading '${file_to_put_with_path}' to '${target_destination}' in local mode (node 1)..."
+        /bin/echo "Uploading '${file_to_put_with_path}' to '${target_destination}' in local mode (node 1)..."
         "${put_object_driver}" "${file_to_put_with_path}" "${target_destination}" "${delete}" "${count}"
 elif [ "${mode}" = "distributed" ]
 then
         while [ "${count}" -le "${no_tokens}" ]
         do
-                status "Uploading '${file_to_put_with_path}' to '${target_destination}' on node ${count} of ${no_tokens}..."
+                /bin/echo "Uploading '${file_to_put_with_path}' to '${target_destination}' on node ${count} of ${no_tokens}..."
                 "${put_object_driver}" "${file_to_put_with_path}" "${target_destination}" "${delete}" "${count}"
                 count=$((count + 1))
         done
 fi
 
-status "Success! Completed datastore upload for '${file_to_put_with_path}' to '${target_destination}'."
+/bin/echo "Success! Completed datastore upload for '${file_to_put_with_path}' to '${target_destination}'."
 exit 0
 
