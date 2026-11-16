@@ -140,13 +140,13 @@ count=1
 # Execute datastore mount locally (node 1) or across all distributed S3 nodes
 if [ "${mode}" = "local" ]
 then
-        status "Mounting datastore bucket '${active_bucket}' in local mode (node 1)..."
+        /bin/echo "Mounting datastore bucket '${active_bucket}' in local mode (node 1)..."
         "${mount_driver}" "${active_bucket}" "${count}"
 elif [ "${mode}" = "distributed" ]
 then
         while [ "${count}" -le "${no_tokens}" ]
         do
-                status "Mounting datastore bucket '${active_bucket}' on node ${count} of ${no_tokens}..."
+                /bin/echo "Mounting datastore bucket '${active_bucket}' on node ${count} of ${no_tokens}..."
                 "${mount_driver}" "${active_bucket}" "${count}"
                 count=$((count + 1))
         done
