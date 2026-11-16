@@ -57,7 +57,6 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ########################################################################################
 ########################################################################################
-#set -x
 set -e
 
 # Resolve BUILD_HOME baseline layout securely
@@ -173,7 +172,7 @@ then
         firewall_rules="$(linode_firewall_rules "${firewall_name}" "${autoscaler_firewall_ports}")"
         rule_vpc_ssh='{"addresses":{"ipv4":["'${VPC_IP_RANGE}'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
         rule_icmp='{"addresses":{"ipv4":["0.0.0.0/0"]},"action":"ACCEPT","protocol":"ICMP"}'
-        
+
         if [ "${BUILD_MACHINE_VPC}" = "0" ]
         then
                 rule_build_machine='{"addresses":{"ipv4":["'${build_machine_ip}/32'"]},"action":"ACCEPT","protocol":"TCP","ports":"'${SSH_PORT}'"}'
@@ -319,7 +318,8 @@ then
         status "Failed to get firewall_id"
         exit 1
 else
-        firewall_id="$/bin/echo "${response_body}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id' 2>/dev/null)"
+        firewall_id="$(/bin/echo "${response_body}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id' 2>/dev/null)"
+
         if [ -z "${firewall_id}" ] 
         then
                 response_body="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/create_firewall.sh" "${firewall_name}")"
@@ -337,20 +337,17 @@ else
                                 exit 1
                         fi
                 fi
-        fi        
+        else
+                status "Success! Linode firewall available and ready (ID: ${firewall_id})."
+        fi
 fi
 
-status "Success! Linode firewall created (ID: ${firewall_id})."
-#/bin/echo "${firewall_id}"
-        fi
-else
-        "${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/reset_firewall.sh" "${firewall_id}"
-        if [ "$?" -ne 0 ] 
-        then
-                status "Failed to reset firewall"
-                exit 1
-        fi
-fi      
+"${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/reset_firewall.sh" "${firewall_id}"
+if [ "$?" -ne 0 ] 
+then
+        status "Failed to reset firewall"
+        exit 1
+fi
 
 "${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/update_firewall.sh" "${firewall_id}" "${ruleset}"
 update_status="$?"
