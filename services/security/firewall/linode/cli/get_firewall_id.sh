@@ -1,38 +1,31 @@
 #!/bin/sh
-########################################################################################
-# @file        get_firewall_id.sh
-# @brief       Retrieves the unique Linode API ID of an active firewall via the Linode CLI.
-# @author      Peter Winter
-# @date        06/11/2026
-# @version     1.0
-#
-# @details     This script utilizes the external Linode CLI utility to list all configured
-#              network firewalls, and filters the JSON output dataset to isolate an item
-#              matching both the requested tier name and the active build identifier suffix.
-#
-# @param       $1  [Required] The firewall name/tier substring identifier to look up.
-#
-# @env         BUILD_HOME          Path to the framework root directory (read from file).
-# @env         TOKEN               Linode API bearer authorization token.
-# @env         BUILD_IDENTIFIER    A unique build execution identifier used for resource segregation.
-# @env         LINODE_CLI_TOKEN    Exported environment token required by the Linode CLI binary.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active framework layout.
-#              - LogStatusMessages.sh utility logging system messages.
-#              - GetVariableValue.sh centralized wrapper for lookup configurations.
-#              - external dependencies: linode-cli, jq, cat, echo
-#
-# @security    
-#              - Hardens system-owned paths (/bin, /usr/bin, /usr/local/bin) to eliminate hijack vectors.
-#              - Safely unsets exposed token variables from the localized shell environment upon completion.
-#              - Isolates string query tokens natively within jq arguments to prevent code injections.
-#
-# @exit        0  Success: The structural firewall identity was successfully fetched and returned.
-# @exit        1  Failure: Missing arguments, missing configuration variables, or CLI issues.
-########################################################################################
+#: Name:        get_firewall_id.sh
+#: Purpose:     Retrieves the unique Linode API ID of an active firewall via the Linode CLI utility.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       get_firewall_id.sh "<firewall_name>"
+#:              get_firewall_id.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The firewall name/tier substring identifier to look up
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, jq, linode-cli
+#:
+#: Exit Codes:
+#:   0          Firewall lookup completed (outputs matching ID if found, or empty if none matched)
+#:   1          Missing arguments, missing context variables, or Linode CLI execution failure
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -43,26 +36,35 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-########################################################################################
-########################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# Input validation
+# Validate required positional arguments
 if [ -z "${1}" ]
 then
         status "Error: Firewall configuration name argument is required."
@@ -72,48 +74,40 @@ fi
 
 firewall_name="${1}"
 
-# Secure framework configuration value extraction
+# Retrieve authentication token and active deployment identifier
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 BUILD_IDENTIFIER="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILD_IDENTIFIER)"
 
-if [ -z "${TOKEN}" ]
-# Target routing token evaluation
+if [ -z "${TOKEN}" ] || [ -z "${BUILD_IDENTIFIER}" ]
 then
-        status "Error: API authorization TOKEN is empty or missing configuration."
+        status "Error: Failed to fetch required context variables (TOKEN or BUILD_IDENTIFIER)."
         exit 1
 fi
 
-# Export CLI credential contexts securely into the active process boundary
+# Export CLI credential token scoped strictly to the linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Temporary disable set -e to evaluate the CLI pipeline transaction manually
 set +e
-response="$(/usr/local/bin/linode-cli --json firewalls list 2>/dev/null)"
+response="$(/usr/local/bin/linode-cli --json firewalls list 2>&1)"
 cli_status="$?"
-
-if [ "${cli_status}" -eq 0 ] && [ -n "${response}" ]
-then
-        output="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id')"
-else
-        output=""
-fi
 set -e
 
-# Instantly strip out credentials from the runtime context boundary
+# Immediately clear exported token from shell environment
 unset LINODE_CLI_TOKEN
 
-if [ "${cli_status}" -ne 0 ]
+if [ "${cli_status}" -ne 0 ] || [ -z "${response}" ]
 then
-        status "Unable to get firewall ID"
+        status "Error: Linode CLI failed to retrieve firewall list (exit code: ${cli_status})."
+        status "CLI Output: ${response}"
         exit 1
 fi
 
-if [ -z "${output}" ] || [ "${output}" = "null" ]
+firewall_id="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id // empty' 2>/dev/null)"
+
+if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
 then
-        # Return nothing to match standard configuration existence check protocols
-        :
-else
-        /bin/echo "${output}"
+        /bin/echo "${firewall_id}"
 fi
 
 exit 0
+
