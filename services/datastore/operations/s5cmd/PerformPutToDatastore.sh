@@ -102,7 +102,8 @@ place_to_put="${place_to_put%/}"
 #        file_to_put_with_path="${file_to_put}"
 #fi
 
-filename="${file_to_put_with_path##*/}"
+filename="${file_to_put##*/}"
+
 # Validate that s5cmd binary and target configuration profile exist
 if [ ! -x /usr/bin/s5cmd ]
 then
