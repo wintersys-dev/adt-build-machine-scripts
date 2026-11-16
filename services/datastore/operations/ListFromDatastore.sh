@@ -96,7 +96,7 @@ then
         exit 1
 fi
 
-resolver_script="${BUILD_HOME}/helpers/datastore/ResolveBucketName.sh"
+resolver_script="${BUILD_HOME}/services/datastore/operations/ResolveBucketName.sh"
 if [ ! -f "${resolver_script}" ] || [ ! -x "${resolver_script}" ]
 then
         status "Error: Bucket resolver script missing or not executable at ${resolver_script}"
