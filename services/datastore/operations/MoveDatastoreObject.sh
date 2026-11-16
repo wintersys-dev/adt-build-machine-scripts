@@ -144,19 +144,19 @@ dest_path="${active_bucket}/${new_object}"
 # Execute datastore object move locally (node 1) or across all distributed S3 nodes
 if [ "${mode}" = "local" ]
 then
-        status "Moving datastore object '${source_path}' to '${dest_path}' in local mode (node 1)..."
+        /bin/echo "Moving datastore object '${source_path}' to '${dest_path}' in local mode (node 1)..."
         "${move_object_driver}" "${source_path}" "${dest_path}" "${count}"
 elif [ "${mode}" = "distributed" ]
 then
         while [ "${count}" -le "${no_tokens}" ]
         do
-                status "Moving datastore object '${source_path}' to '${dest_path}' on node ${count} of ${no_tokens}..."
+                /bin/echo "Moving datastore object '${source_path}' to '${dest_path}' on node ${count} of ${no_tokens}..."
                 "${move_object_driver}" "${source_path}" "${dest_path}" "${count}"
                 count=$((count + 1))
         done
 fi
 
-status "Success! Completed datastore object move from '${source_path}' to '${dest_path}'."
+/bin/echo "Success! Completed datastore object move from '${source_path}' to '${dest_path}'."
 exit 0
 
 
