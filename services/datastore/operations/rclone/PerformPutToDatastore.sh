@@ -116,7 +116,7 @@ then
 fi
 
 # Upload the source payload to the target S3 path via rclone
-status "Uploading '${file_to_put}' to 's3:${place_to_put}' via profile ${count}..."
+status "Uploading '${file_to_put}' to 's3:${place_to_put}' via profile ${count}..." "no"
 set +e
 /usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" copy "${file_to_put}" "s3:${place_to_put}" >/dev/null 2>&1
 rclone_status=$?
@@ -138,6 +138,6 @@ then
         fi
 fi
 
-status "Success! Uploaded '${file_to_put}' to 's3:${place_to_put}' on profile ${count}."
+status "Success! Uploaded '${file_to_put}' to 's3:${place_to_put}' on profile ${count}." "no"
 exit 0
 
