@@ -1,11 +1,34 @@
 #!/bin/sh
-################################################################################
-# Description: Send emails using sendemail
-# Date: 16-11-2016
-# Author: Peter Winter
-##################################################################################
+#: Name:        SendEmail.sh
+#: Purpose:     Dispatches emails via the /usr/bin/sendemail CLI utility using configured SMTP providers.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       SendEmail.sh "<subject>" "<message>" "<to_address>" ["<content_type>"]
+#:              SendEmail.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] Email subject line (appended with current timestamp)
+#:   $2         [Required] Email body message
+#:   $3         [Required] Recipient email address or "system" alias
+#:   $4         [Optional] Content type ("default" or "HTML")
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, date, sendemail
+#:
+#: Exit Codes:
+#:   0          Email dispatched successfully via /usr/bin/sendemail
+#:   1          Missing parameters, invalid provider, missing variables, or sendemail failure
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,54 +38,107 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################################
-#####################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] || [ "${3}" = "" ] )
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
-        /bin/echo "Error: 3 arguments are required."
-        /bin/echo "Usage: $0 <subject> <message> <to_address>"
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-subject="$1"
-message="$2"
-to_address="$3"
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
+# Validate minimum required positional arguments
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
+then
+        status "Error: Minimum of 3 arguments required."
+        status "Usage: $0 <subject> <message> <to_address> [content_type]"
+        exit 1
+fi
 
-EMAIL_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PROVIDER`"
-FROM_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_FROM_EMAIL_ADDRESS`"
-TO_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_TO_EMAIL_ADDRESS`"
-USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_USERNAME`"
-PASSWORD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SYSTEM_EMAIL_PASSWORD`"
+subject="${1}"
+message="${2}"
+to_address="${3}"
+content_type="${4}"
 
-if ( [ "${to_address}" != "system" ] )
+# Retrieve SMTP provider settings and credentials
+EMAIL_PROVIDER="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" SYSTEM_EMAIL_PROVIDER)"
+FROM_ADDRESS="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" SYSTEM_FROM_EMAIL_ADDRESS)"
+TO_ADDRESS="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" SYSTEM_TO_EMAIL_ADDRESS)"
+USERNAME="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" SYSTEM_EMAIL_USERNAME)"
+PASSWORD="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" SYSTEM_EMAIL_PASSWORD)"
+
+if [ -z "${EMAIL_PROVIDER}" ] || [ -z "${FROM_ADDRESS}" ] || [ -z "${USERNAME}" ] || [ -z "${PASSWORD}" ]
+then
+        status "Error: Failed to fetch required email configuration variables."
+        exit 1
+fi
+
+# Override default system recipient if an explicit address was supplied
+if [ "${to_address}" != "system" ]
 then
         TO_ADDRESS="${to_address}"
 fi
 
-if ( [ "${EMAIL_PROVIDER}" = "1" ] )
+if [ -z "${TO_ADDRESS}" ]
 then
-        /usr/bin/sendemail -o tls=no -f ${FROM_ADDRESS} -t ${TO_ADDRESS} -s smtp-pulse.com:2525 -xu ${USERNAME} -xp ${PASSWORD} -u "${subject} `/bin/date`" -m "${message}"
-fi
-
-if ( [ "${EMAIL_PROVIDER}" = "2" ] )
-then
-        /usr/bin/sendemail -o tls=no -f ${FROM_ADDRESS} -t ${TO_ADDRESS} -s in.mailjet.com:2525 -xu ${USERNAME} -xp ${PASSWORD} -u "${subject} `/bin/date`" -m "${message}"            
-fi
-
-if ( [ "${EMAIL_PROVIDER}" = "3" ] )
-then
-        /usr/bin/sendemail -o tls=no -f ${FROM_ADDRESS} -t ${TO_ADDRESS} -s email-smtp.eu-west-1.amazonaws.com -xu ${USERNAME} -xp ${PASSWORD} -u "${subject} `/bin/date`" -m "${message}"
-fi
-
-if ( [ "$?" != "0" ] )
-then
-        /bin/echo "Failed to send email"
+        status "Error: Target recipient email address resolved empty."
         exit 1
 fi
+
+# Map configured provider ID to its SMTP relay endpoint
+case "${EMAIL_PROVIDER}" in
+        1)
+                mailhub="smtp-pulse.com:2525"
+                ;;
+        2)
+                mailhub="in-v3.mailjet.com:587"
+                ;;
+        3)
+                mailhub="email-smtp.eu-west-1.amazonaws.com"
+                ;;
+        *)
+                status "Error: Unsupported SYSTEM_EMAIL_PROVIDER value (${EMAIL_PROVIDER})."
+                exit 1
+                ;;
+esac
+
+# Set message content format option based on requested content type
+if [ "${content_type}" = "HTML" ]
+then
+        msg_format="html"
+else
+        msg_format="text"
+fi
+
+# Dispatch the email via /usr/bin/sendemail
+current_date="$(/bin/date)"
+
+if ! /usr/bin/sendemail -o tls=no -o "message-content-type=${msg_format}" -f "${FROM_ADDRESS}" -t "${TO_ADDRESS}" -s "${mailhub}" -xu "${USERNAME}" -xp "${PASSWORD}" -u "${subject} ${current_date}" -m "${message}"
+then
+        status "Error: Failed to send email via /usr/bin/sendemail."
+        exit 1
+fi
+
+exit 0
+
 	
