@@ -95,7 +95,7 @@ fi
 
 TOKEN="$(/bin/echo "${SERVER_USER}" | /usr/bin/fold -w 4 | /usr/bin/head -n 1 | /usr/bin/tr '[:upper:]' '[:lower:]')"
 
-resolver_script="${BUILD_HOME}/helpers/datastore/ResolveBucketName.sh"
+resolver_script="${BUILD_HOME}/services/datastore/operations/ResolveBucketName.sh"
 if [ ! -f "${resolver_script}" ] || [ ! -x "${resolver_script}" ]
 then
         status "Error: Bucket resolver script missing or not executable at ${resolver_script}"
