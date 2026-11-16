@@ -43,7 +43,7 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
+set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -85,22 +85,6 @@ count="${4}"
 # Strip trailing "root" suffix from target bucket path if present
 place_to_put="${place_to_put%root}"
 
-# Resolve local source payload or provision a placeholder marker file in the runtime workarea
-#work_area="${HOME}/runtime/datastore_workarea"
-#if [ ! -d "${work_area}" ]
-#then
-#        /bin/mkdir -p "${work_area}"
-#fi
-
-#if [ ! -f "${file_to_put}" ]
-#then
-#        marker_name="$(/usr/bin/basename "${file_to_put}")"
-#        file_to_put_with_path="${work_area}/${marker_name}"
-#        /bin/touch "${file_to_put_with_path}"
-#else
-#        file_to_put_with_path="${file_to_put}"
-#fi
-
 # Validate that s3cmd binary and target configuration profile exist
 if [ ! -x /usr/bin/s3cmd ]
 then
@@ -125,15 +109,15 @@ then
 fi
 
 # Upload the source payload to the target S3 path via s3cmd
-status "Uploading '${file_to_put_with_path}' to 's3://${place_to_put}' via profile ${count}..."
+status "Uploading '${file_to_put}' to 's3://${place_to_put}' via profile ${count}..."
 set +e
-/usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" put "${file_to_put_with_path}" "s3://${place_to_put}" >/dev/null 2>&1
+/usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" put "${file_to_put}" "s3://${place_to_put}" >/dev/null 2>&1
 s3cmd_status=$?
 set -e
 
 if [ "${s3cmd_status}" -ne 0 ]
 then
-        /bin/echo "Failed to put ${file_to_put_with_path} to s3://${place_to_put}" >&2
+        /bin/echo "Failed to put ${file_to_put} to s3://${place_to_put}" >&2
         status "Error: s3cmd failed to upload ${file_to_put_with_path} to s3://${place_to_put} (Exit code: ${s3cmd_status})"
         exit 1
 fi
@@ -141,13 +125,13 @@ fi
 # Optionally remove local source file after successful upload
 if [ "${delete}" = "yes" ]
 then
-        if [ -f "${file_to_put_with_path}" ]
+        if [ -f "${file_to_put}" ]
         then
-                /bin/rm -f "${file_to_put_with_path}"
+                /bin/rm -f "${file_to_put}"
         fi
 fi
 
-status "Success! Uploaded '${file_to_put_with_path}' to 's3://${place_to_put}' on profile ${count}."
+status "Success! Uploaded '${file_to_put}' to 's3://${place_to_put}' on profile ${count}."
 exit 0
 
 
