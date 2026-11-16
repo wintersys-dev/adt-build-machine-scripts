@@ -16,7 +16,7 @@ do
 done
 
 
-archives="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" ${periodicity} | /bin/grep "ARCHIVE" | /bin/sed 's/.*ARCHIVE/ARCHIVE/g'`"
+archives="`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-webroot" "root" ${periodicity} | /bin/grep "ARCHIVE" | /bin/sed 's/.*ARCHIVE/ARCHIVE/g'`"
 archives="`/bin/echo ${archives} | /usr/bin/tr '\n' ' '`"
 /bin/echo "${archives}"
 
@@ -45,6 +45,6 @@ fi
 
 for archive in ${archives}
 do
-        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup-web" "applicationsourcecode.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
+        ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
         ${BUILD_HOME}/services/datastore/operations/DeleteFromDatastore.sh "backup-db" "${website_identifier}-DB-backup.tar.gz.${archive}" "${mode}" "${periodicity}" "local"
 done
