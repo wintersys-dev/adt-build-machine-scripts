@@ -90,7 +90,7 @@ if ( [ "${BUILD_ARCHIVE_CHOICE}" != "baseline" ] && [ "${BUILD_ARCHIVE_CHOICE}" 
 then
         datastorebucket="0"
         datastoredbbucket="0"
-        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-web" "applicationsourcecode.tar.gz" "." "${BUILD_ARCHIVE_CHOICE}"
+        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz" "." "${BUILD_ARCHIVE_CHOICE}"
         ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "." "${BUILD_ARCHIVE_CHOICE}"
         archive="${interrogation_home}/applicationsourcecode.tar.gz"
         archivedb="${interrogation_home}/${WEBSITE_NAME}-DB-backup.tar.gz"
