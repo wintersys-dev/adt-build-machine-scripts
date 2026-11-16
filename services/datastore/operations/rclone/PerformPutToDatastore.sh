@@ -1,41 +1,34 @@
 #!/bin/sh
-###################################################################################
-# @file        PerformPutToDatastore.sh
-# @brief       Automated Local Payload Ingestion & S3 Datastore Storage Driver.
-# @author      Peter Winter
-# @date        09/04/2021
-# @version     1.0
-#
-# @details     This script automates low-level data ingress operations by transferring
-#              local files or virtual metadata payloads to targeted cloud datastores. 
-#              It resolves S3 endpoints from a dynamic configuration registry using a 
-#              numbered index system. The utility features automatic workspace creation 
-#              and placeholder marker file fallback routines, alongside an optional 
-#              post-upload source sanitation mechanism.
-#
-# @param       $1  [Required] Local file system path of the source payload file to ingest.
-# @param       $2  [Required] S3 bucket target location pathway to write the payload.
-# @param       $3  [Required] Post-upload local sanitation flag ("yes" to purge source, "no" to retain).
-# @param       $4  [Required] Integer configuration ID used to select the targeted rclone profile suffix.
-#
-# @env         None explicitly sourced from top-level environment registers.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /usr/bin/rclone storage integration engine software utility.
-#              - /root/.config/rclone/rclone.conf-${count} targeted cluster registration file.
-#
-# @security    
-#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
-#              - Safely caps directory tracking mutations by scrubbing trailing "root" overrides from the S3 namespace.
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
-#
-# @exit        0  Success: Local payload safely transmitted and synchronized with the S3 datastore destination.
-# @exit        1  Failure: Missing mandatory parameters or rclone execution driver failure.
+#: Name:        PerformPutToDatastore.sh
+#: Purpose:     Uploads a local file or directory to an S3 datastore via rclone using a targeted cluster profile, with optional post-upload local cleanup.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       PerformPutToDatastore.sh <file_to_put> <place_to_put> <delete> <count>
+#:              PerformPutToDatastore.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] Local file or directory path of the source payload to upload
+#:   $2         [Required] S3 bucket target location pathway (trailing "root" suffix is stripped)
+#:   $3         [Required] Post-upload local cleanup flag ("yes" to delete local source, "no" to retain)
+#:   $4         [Required] Integer configuration ID selecting the rclone profile suffix (/root/.config/rclone/rclone.conf-<count>)
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - /root/.config/rclone/rclone.conf-<count>
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, rm, rclone
+#:
+#: Exit Codes:
+#:   0          Local payload uploaded and synchronised successfully
+#:   1          Missing configuration, invalid arguments, missing source/profile, or upload failure
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -46,73 +39,105 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-#########################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]
+# Validate mandatory positional parameters
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-    /bin/echo "Error: 4 arguments are required."
-    /bin/echo "Usage: $0 <file_to_put> <place_to_put> <delete> <count>"
-    status "Script invoked with missing arguments."
-    exit 1
+        /bin/echo "Error: 4 arguments are required." >&2
+        /bin/echo "Usage: $0 <file_to_put> <place_to_put> <delete> <count>" >&2
+        status "Error: Script invoked with missing arguments."
+        exit 1
 fi
 
-file_to_put="$1"
-place_to_put="$2"
-delete="$3"
-count="$4"
+file_to_put="${1}"
+place_to_put="${2}"
+delete="${3}"
+count="${4}"
 
+# Strip trailing "root" suffix from target bucket path if present
 place_to_put="${place_to_put%root}"
 
-#WORK_AREA="${HOME}/runtime/datastore_workarea"
-#if [ ! -d "$WORK_AREA" ]
-#then
- #   /bin/mkdir -p "$WORK_AREA"
-#fi
-
-#if [ ! -f "$file_to_put" ]
-#then
-#    /bin/touch "$WORK_AREA/$file_to_put"
-#    file_to_put_with_path="$WORK_AREA/$file_to_put"
-#else
-#    file_to_put_with_path="$file_to_put"
-#fi
-
-cfg_file="/root/.config/rclone/rclone.conf-${count}"
-if [ ! -f "$cfg_file" ]
+# Validate that the local source payload exists
+if [ ! -e "${file_to_put}" ]
 then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+        /bin/echo "Error: Source payload ${file_to_put} does not exist." >&2
+        status "Error: Source payload missing at ${file_to_put}"
+        exit 1
 fi
 
-host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+# Validate that rclone binary and target configuration profile exist
+if [ ! -x /usr/bin/rclone ]
+then
+        status "Error: Required binary /usr/bin/rclone missing or not executable."
+        exit 1
+fi
 
+cfg_file="/root/.config/rclone/rclone.conf-${count}"
+if [ ! -r "${cfg_file}" ]
+then
+        /bin/echo "Error: Configuration profile ${cfg_file} not found." >&2
+        status "Error: Profile configuration file missing or unreadable at ${cfg_file}"
+        exit 1
+fi
+
+# Extract and validate the S3 endpoint URL from the rclone configuration profile
+host_base="$(/usr/bin/grep "^endpoint" "${cfg_file}" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ' || true)"
+if [ -z "${host_base}" ]
+then
+        status "Error: Failed to extract endpoint from ${cfg_file}"
+        exit 1
+fi
+
+# Upload the source payload to the target S3 path via rclone
+status "Uploading '${file_to_put}' to 's3:${place_to_put}' via profile ${count}..."
 set +e
-/usr/bin/rclone --config "$cfg_file" --s3-endpoint "$host_base" copy "$file_to_put_with_path" "s3:${place_to_put}" >/dev/null 2>&1
+/usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" copy "${file_to_put}" "s3:${place_to_put}" >/dev/null 2>&1
 rclone_status=$?
 set -e
 
-if [ $rclone_status -ne 0 ]
+if [ "${rclone_status}" -ne 0 ]
 then
-    /bin/echo "Failed to put ${file_to_put_with_path} to s3://${place_to_put}"
-    status "rclone failed to upload ${file_to_put_with_path} to s3:${place_to_put} (Exit code: $rclone_status)"
-    exit 1
+        /bin/echo "Failed to put ${file_to_put} to s3://${place_to_put}" >&2
+        status "Error: rclone failed to upload ${file_to_put} to s3:${place_to_put} (Exit code: ${rclone_status})"
+        exit 1
 fi
 
-if [ "$delete" = "yes" ]
+# Optionally remove local source file after successful upload
+if [ "${delete}" = "yes" ]
 then
-    if [ -f "$file_to_put_with_path" ]
-    then
-        /bin/rm "$file_to_put_with_path"
-    fi
+        if [ -f "${file_to_put}" ]
+        then
+                /bin/rm -f "${file_to_put}"
+        fi
 fi
 
+status "Success! Uploaded '${file_to_put}' to 's3:${place_to_put}' on profile ${count}."
 exit 0
+
