@@ -1,38 +1,31 @@
 #!/bin/sh
-###################################################################################
-# @file        PerformListFromDatastore.sh
-# @brief       Automated S3 Datastore Object Content Listing and Parsing Driver.
-# @author      Peter Winter
-# @date        09/04/2021
-# @version     1.0
-#
-# @details     This script automates low-level item inspection within targeted cloud
-#              datastores using s5cmd. It extracts the storage endpoint configuration 
-#              from the primary s5cmd credential file, queries the target S3 path, 
-#              and reads back object metadata. It passes the raw endpoint output 
-#              through text parsing streams to isolate and print individual target 
-#              file basenames cleanly to file descriptors.
-#
-# @param       $1  [Required] Target S3 bucket pathway or file pattern to inspect.
-#
-# @env         None explicitly sourced from top-level environment registers.
-#
-# @dependencies
-#              - /home/homedir.dat configuration file tracking the active application root path.
-#              - /usr/bin/s5cmd high-performance storage integration software utility.
-#              - /root/.s5cfg-1 base primary cluster registration credentials file.
-#              - Standard output/logging routes configured on File Descriptors 3 and 4.
-#
-# @security    
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
-#              - Filters pipeline output to restrict terminal visibility to targeted metadata records.
-#
-# @exit        0  Success: Target path successfully interrogated and structural objects listed.
-# @exit        1  Failure: Missing mandatory parameters or s5cmd execution driver failure.
+#: Name:        PerformListFromDatastore.sh
+#: Purpose:     Lists and parses individual object basenames from a target S3 bucket or sub-path via s5cmd using the primary cluster profile.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       PerformListFromDatastore.sh <file_to_list>
+#:              PerformListFromDatastore.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] Target S3 bucket pathway or file pattern to inspect
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - /root/.s5cfg-1
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, s5cmd
+#:
+#: Exit Codes:
+#:   0          Target datastore path queried and object basenames listed successfully
+#:   1          Missing configuration, invalid arguments, missing s5cmd profile, or s5cmd execution failure
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -43,47 +36,86 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-######################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-status () {
-        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if [ -z "$1" ]
+# Validate mandatory positional parameters
+if [ -z "${1}" ]
 then
-    status "Error: 1 argument is required."
-    status "Usage: $0 <file_to_list>"
-    status "Script invoked with missing arguments."
-    exit 1
+        /bin/echo "Error: 1 argument is required." >&2
+        /bin/echo "Usage: $0 <file_to_list>" >&2
+        status "Error: Script invoked with missing arguments."
+        exit 1
 fi
 
-file_to_list="$1"
+file_to_list="${1}"
+
+# Validate that s5cmd binary and primary configuration profile exist
+if [ ! -x /usr/bin/s5cmd ]
+then
+        status "Error: Required binary /usr/bin/s5cmd missing or not executable."
+        exit 1
+fi
 
 cfg_file="/root/.s5cfg-1"
-if [ ! -f "$cfg_file" ]
+if [ ! -r "${cfg_file}" ]
 then
-    status "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+        /bin/echo "Error: Configuration profile ${cfg_file} not found." >&2
+        status "Error: Profile configuration file missing or unreadable at ${cfg_file}"
+        exit 1
 fi
 
-host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+# Extract and validate the S3 host_base from the primary s5cmd configuration profile
+host_base="$(/usr/bin/grep "^host_base" "${cfg_file}" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ' || true)"
+if [ -z "${host_base}" ]
+then
+        status "Error: Failed to extract host_base from ${cfg_file}"
+        exit 1
+fi
 
+# Query S3 objects via s5cmd and isolate exit code separately from downstream formatting
 set +e
-/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" ls "s3://${file_to_list}" 2>/dev/null | /usr/bin/awk '{print $NF}'
+s5_raw_output="$(/usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" ls "s3://${file_to_list}" 2>/dev/null)"
 s5cmd_status=$?
 set -e
 
-if [ $s5cmd_status -ne 0 ]
+if [ "${s5cmd_status}" -ne 0 ]
 then
-    status "Failed to list file ${file_to_list} from datastore"
-    status "s5cmd failed to list objects at s3://${file_to_list} (Exit code: $s5cmd_status)"
-    exit 1
+        /bin/echo "Failed to list file ${file_to_list} from datastore" >&2
+        status "Error: s5cmd failed to list objects at s3://${file_to_list} (Exit code: ${s5cmd_status})"
+        exit 1
+fi
+
+if [ -n "${s5_raw_output}" ]
+then
+        /bin/echo "${s5_raw_output}" | /usr/bin/awk '{print $NF}'
 fi
 
 exit 0
+
 
