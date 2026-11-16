@@ -205,7 +205,7 @@ done
 
 /bin/echo "Your most up to date ${periodicity} webroot backup is:"
 
-${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-web" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
+${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "backup-webroot" "root" `/bin/echo ${periodicity} | /usr/bin/tr '[:upper:]' '[:lower:]'` | /usr/bin/head -1
 
 if ( [ "${period}" = "MANUAL" ] )
 then
