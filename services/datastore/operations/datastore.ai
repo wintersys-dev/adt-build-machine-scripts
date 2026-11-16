@@ -1,0 +1,62 @@
+The cleanest way to share services/datastore/operations across all Wintersys ADT repositories without duplicating code is to extract it into a dedicated Git repository and pull it in as a Git submodule.
+Because your toolkit uses #!/bin/sh, full binary paths, and dynamically resolves BUILD_HOME from /home/buildhome.dat, these scripts are already self-contained and portable across server roles (Build Machine, Web Server, Database, Reverse Proxy, Autoscaler, and Authenticator).
+
+Recommended Approach: Dedicated Shared Repository + Git Submodule
+
+Extract the shared datastore scripts into a standalone repository (for example, adt-datastore-services) and mount it at services/datastore/operations in each parent repository.
+
+Why Git Submodules Fit Your Architecture
+
+• Zero Runtime Overhead: Once cloned, files sit directly on disk at ${BUILD_HOME}/services/datastore/operations/ just like regular files—no symlinks, package managers, or extra build steps required.
+• Version Pinning & Safe Rollouts: Each repository (e.g., adt-build-machine, adt-webserver, adt-database) pins a specific commit hash of the shared repository, preventing a breaking change in one tier from unexpectedly breaking another.
+• Single Source of Truth: Bug fixes and new cloud provider support are committed once in adt-datastore-services and pulled into every repository on demand.
+
+Step-by-Step Setup
+
+
+1. Create the Shared Repository (adt-datastore-services)
+
+Move the common scripts into their own repository with clean, self-contained layout:
+text
+adt-datastore-services/
+├── README.md
+├── MountDatastore.sh
+├── ListDatastore.sh
+├── ListFromDatastore.sh
+├── GetFromDatastore.sh
+├── PutToDatastore.sh
+├── DeleteFromDatastore.sh
+└── DeleteDatastore.sh
+Use code with caution.
+
+2. Attach as a Submodule in Each Consumer Repository
+
+In adt-build-machine, adt-webserver, adt-database, etc.:
+sh
+git submodule add <git-repo-url>/adt-datastore-services.git services/datastore/operations
+git commit -m "Add shared datastore operations submodule"
+Use code with caution.
+
+3. Update Your Bootstrap / Clone Commands
+
+Ensure provisioning scripts that clone your repositories include --recurse-submodules:
+sh
+git clone --recurse-submodules <git-repo-url>/adt-build-machine.git
+Use code with caution.
+(Or run git submodule update --init --recursive immediately after cloning an existing checkout.)
+
+Alternative Options & Trade-Offs
+
+
+Approach	Best When	Key Trade-Offs
+Git Submodule (Recommended)	You want version-pinned, zero-dependency files directly at services/datastore/operations across GitHub/GitLab/Bitbucket.	Requires --recurse-submodules during git clone and an extra git submodule update --remote step when pulling updates.
+Git Subtree	You want git clone to work without --recurse-submodules while still syncing from an upstream shared repo.	Commit history becomes noisier when merging upstream updates back and forth.
+Central System Install (/opt/wintersys-adt/common)	All server tiers are provisioned by a single base image or bootstrap script that installs shared libraries system-wide.	Requires updating every script path or maintaining symlinks inside ${BUILD_HOME}/services/datastore/operations.
+
+
+One Architectural Detail to Check
+
+Before sharing the scripts across all repositories, verify that every helper script they call (LogStatusMessages.sh, GetVariableValue.sh) exists at the exact same relative path under ${BUILD_HOME}/helpers/services/ on both the Build Machine and target server tiers (Web Server, Database, etc.), or include those core helpers in the same shared submodule.
+If you'd like help setting this up, let me know:
+• Whether your target server repos (webserver, database, etc.) use the exact same ${BUILD_HOME}/helpers/services/ layout as the Build Machine
+• If you want the exact Git commands to split services/datastore/operations out of your existing repo while preserving its commit history
