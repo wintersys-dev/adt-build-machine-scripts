@@ -109,7 +109,7 @@ then
 fi
 
 # Delete the target S3 object via rclone
-status "Deleting S3 object 's3:${file_to_delete}' via profile ${count}..."
+status "Deleting S3 object 's3:${file_to_delete}' via profile ${count}..." "no"
 set +e
 if [ -n "${rmdirs}" ]
 then
@@ -122,7 +122,7 @@ set -e
 
 if [ "${rclone_status}" -ne 0 ]
 then
-        status "Failed to delete file ${file_to_delete} from datastore"
+        /bin/echo "Failed to delete file ${file_to_delete} from datastore" >&2
         status "Error: rclone failed to purge s3:${file_to_delete} (Prune empty dirs: ${rmdirs:-no}, Exit code: ${rclone_status})"
         exit 1
 fi
