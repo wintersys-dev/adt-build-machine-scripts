@@ -109,12 +109,12 @@ set -e
 
 if [ "${rclone_status}" -ne 0 ]
 then
-        /bin/echo "Failed to delete datastore: s3://${datastore_to_delete}" >&2
+        status "Failed to delete datastore: s3://${datastore_to_delete}"
         status "Error: Failed to delete datastore s3:${datastore_to_delete} (Exit code: ${rclone_status})"
         exit 1
 fi
 
-status "Success! Purged and deleted S3 bucket 's3:${datastore_to_delete}' on profile ${count}."
+status "Success! Purged and deleted S3 bucket 's3:${datastore_to_delete}' on profile ${count}." "no"
 exit 0
 
 
