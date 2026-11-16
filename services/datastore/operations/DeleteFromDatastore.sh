@@ -144,13 +144,13 @@ target_object="${active_bucket}/${file_to_delete}"
 # Execute datastore object deletion locally (node 1) or across all distributed S3 nodes
 if [ "${mode}" = "local" ]
 then
-        /bin/echo "Deleting datastore object '${target_object}' in local mode (node 1)..."
+        status "Deleting datastore object '${target_object}' in local mode (node 1)..." "no"
         "${delete_object_driver}" "${target_object}" "${count}"
 elif [ "${mode}" = "distributed" ]
 then
         while [ "${count}" -le "${no_tokens}" ]
         do
-                /bin/echo "Deleting datastore object '${target_object}' on node ${count} of ${no_tokens}..."
+                status "Deleting datastore object '${target_object}' on node ${count} of ${no_tokens}..." "no"
                 "${delete_object_driver}" "${target_object}" "${count}"
                 count=$((count + 1))
         done
