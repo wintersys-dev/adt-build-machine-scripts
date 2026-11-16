@@ -118,7 +118,7 @@ then
         fi
 fi
 
-status "Removing S3 bucket 's3://${datastore_to_delete}' via profile ${count}..."
+status "Removing S3 bucket 's3://${datastore_to_delete}' via profile ${count}..." "no"
 /usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" rb "s3://${datastore_to_delete}" >/dev/null 2>&1
 rb_status=$?
 set -e
@@ -130,7 +130,7 @@ then
         exit 1
 fi
 
-status "Success! Purged and removed S3 bucket 's3://${datastore_to_delete}' on profile ${count}."
+status "Success! Purged and removed S3 bucket 's3://${datastore_to_delete}' on profile ${count}." "no"
 exit 0
 
 
