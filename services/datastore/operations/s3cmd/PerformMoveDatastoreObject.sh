@@ -103,7 +103,7 @@ then
 fi
 
 # Move or rename the target S3 object server-side via s3cmd
-status "Moving S3 object 's3://${original_object}' to 's3://${new_object}' via profile ${count}..."
+status "Moving S3 object 's3://${original_object}' to 's3://${new_object}' via profile ${count}..." "no"
 set +e
 /usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" mv "s3://${original_object}" "s3://${new_object}" >/dev/null 2>&1
 s3cmd_status=$?
@@ -116,6 +116,6 @@ then
         exit 1
 fi
 
-status "Success! Moved S3 object 's3://${original_object}' to 's3://${new_object}' on profile ${count}."
+status "Success! Moved S3 object 's3://${original_object}' to 's3://${new_object}' on profile ${count}." "no"
 exit 0
 
