@@ -101,3 +101,53 @@ place_to_put="${place_to_put%root}"
 #        file_to_put_with_path="${file_to_put}"
 #fi
 
+# Validate that s3cmd binary and target configuration profile exist
+if [ ! -x /usr/bin/s3cmd ]
+then
+        status "Error: Required binary /usr/bin/s3cmd missing or not executable."
+        exit 1
+fi
+
+cfg_file="/root/.s3cfg-${count}"
+if [ ! -r "${cfg_file}" ]
+then
+        /bin/echo "Error: Configuration profile ${cfg_file} not found." >&2
+        status "Error: Profile configuration file missing or unreadable at ${cfg_file}"
+        exit 1
+fi
+
+# Extract and validate the S3 host_base from the s3cmd configuration profile
+host_base="$(/usr/bin/grep "^host_base" "${cfg_file}" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ' || true)"
+if [ -z "${host_base}" ]
+then
+        status "Error: Failed to extract host_base from ${cfg_file}"
+        exit 1
+fi
+
+# Upload the source payload to the target S3 path via s3cmd
+status "Uploading '${file_to_put_with_path}' to 's3://${place_to_put}' via profile ${count}..."
+set +e
+/usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" put "${file_to_put_with_path}" "s3://${place_to_put}" >/dev/null 2>&1
+s3cmd_status=$?
+set -e
+
+if [ "${s3cmd_status}" -ne 0 ]
+then
+        /bin/echo "Failed to put ${file_to_put_with_path} to s3://${place_to_put}" >&2
+        status "Error: s3cmd failed to upload ${file_to_put_with_path} to s3://${place_to_put} (Exit code: ${s3cmd_status})"
+        exit 1
+fi
+
+# Optionally remove local source file after successful upload
+if [ "${delete}" = "yes" ]
+then
+        if [ -f "${file_to_put_with_path}" ]
+        then
+                /bin/rm -f "${file_to_put_with_path}"
+        fi
+fi
+
+status "Success! Uploaded '${file_to_put_with_path}' to 's3://${place_to_put}' on profile ${count}."
+exit 0
+
+
