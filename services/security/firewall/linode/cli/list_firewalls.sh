@@ -5,8 +5,8 @@
 #: Date:        16/11/2026
 #: Version:     1.0
 #:
-#: Usage:       get_firewall_id.sh "<firewall_name>"
-#:              get_firewall_id.sh [-h|--help]
+#: Usage:       list_firewalls.sh "<firewall_name>"
+#:              list_firewalls.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The firewall name/tier substring identifier to look up
