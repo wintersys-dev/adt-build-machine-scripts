@@ -128,10 +128,10 @@ fi
 
 target_object="${active_bucket}/${file_to_get}"
 
-status "Retrieving datastore object '${target_object}' to '${destination}'..."
+/bin/echo "Retrieving datastore object '${target_object}' to '${destination}'..."
 "${get_object_driver}" "${target_object}" "${destination}"
 
-status "Success! Completed datastore object retrieval for '${target_object}'."
+/bin/echo "Success! Completed datastore object retrieval for '${target_object}'."
 exit 0
 
 
