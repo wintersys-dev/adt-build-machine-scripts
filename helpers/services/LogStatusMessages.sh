@@ -40,12 +40,16 @@ fi
 status_file="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/logs/build_status_stream.log"
 
 message="${1}"
+echo_to_output="${2}"
 
 if ( [ "${message}" != "" ] )
 then
         if ( [ "${figlet}" = "0" ] )
         then
-                /bin/echo "${colour}${message}${reset}"
+                if ( [ "${echo_to_output}" != "no" ] )
+                then
+                    /bin/echo "${colour}${message}${reset}"
+                fi
                 /bin/echo "${message}" >> ${status_file}
         else
                 /usr/bin/figlet "${message}" | /usr/bin/tee -a "${status_file}"
