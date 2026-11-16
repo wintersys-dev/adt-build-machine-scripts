@@ -111,17 +111,20 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 # Evaluate HTTP status code and handle API errors explicitly
 case "${HTTP_CODE}" in
         200|201)
-                firewall_id="$(/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r '.id' 2>/dev/null)"
 
-                if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
-                then
-                        status "Error: Firewall creation succeeded but returned no valid ID."
-                        status "API Response: ${RESPONSE_BODY}"
-                        exit 1
-                fi
+                /bin/echo "${RESPONSE_BODY}" 
 
-                status "Success! Linode firewall created (ID: ${firewall_id})."
-                /bin/echo "${firewall_id}"
+           #     firewall_id="$(/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r '.id' 2>/dev/null)"
+
+           #     if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
+            #    then
+            #            status "Error: Firewall creation succeeded but returned no valid ID."
+            #            status "API Response: ${RESPONSE_BODY}"
+            #            exit 1
+            #    fi#
+#
+ #               status "Success! Linode firewall created (ID: ${firewall_id})."
+  #              /bin/echo "${firewall_id}"
                 ;;
         400)
                 status "Error 400: Bad Request. Check your payload syntax."
