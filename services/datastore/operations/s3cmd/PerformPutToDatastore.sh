@@ -109,7 +109,7 @@ then
 fi
 
 # Upload the source payload to the target S3 path via s3cmd
-status "Uploading '${file_to_put}' to 's3://${place_to_put}' via profile ${count}..."
+status "Uploading '${file_to_put}' to 's3://${place_to_put}' via profile ${count}..." "no"
 set +e
 /usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" put "${file_to_put}" "s3://${place_to_put}" >/dev/null 2>&1
 s3cmd_status=$?
@@ -131,7 +131,7 @@ then
         fi
 fi
 
-status "Success! Uploaded '${file_to_put}' to 's3://${place_to_put}' on profile ${count}."
+status "Success! Uploaded '${file_to_put}' to 's3://${place_to_put}' on profile ${count}." "no"
 exit 0
 
 
