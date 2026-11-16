@@ -1,38 +1,33 @@
 #!/bin/sh
-###################################################################################
-# @file        PerformMoveDatastoreObject.sh
-# @brief       Automated S3 Datastore Object Relocation & Server-Side Renaming Driver.
-# @author      Peter Winter
-# @date        09/04/2021
-# @version     1.0
-#
-# @details     This script automates low-level file relocation and renaming tasks 
-#              natively inside managed cloud datastores using s5cmd. By resolving 
-#              storage endpoints dynamically from partitioned configuration files, it 
-#              handles object transformation directly on the remote cloud storage layer, 
-#              bypassing the need to download or buffer data locally.
-#
-# @param       $1  [Required] Source object path and key namespace within the S3 bucket.
-# @param       $2  [Required] Target destination path or new filename key within the S3 bucket.
-# @param       $3  [Required] Integer configuration ID used to select the targeted s5cmd profile suffix.
-#
-# @env         None explicitly sourced from top-level environment registers.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /usr/bin/s5cmd high-performance storage integration software utility.
-#              - /root/.s5cfg-${count} targeted credentials and cluster configuration file.
-#
-# @security    
-#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
-#
-# @exit        0  Success: Server-side object relocation or renaming completed successfully.
-# @exit        1  Failure: Missing mandatory parameters or s5cmd execution driver failure.
+#: Name:        PerformMoveDatastoreObject.sh
+#: Purpose:     Moves or renames an S3 object server-side via s5cmd using a targeted cluster profile.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       PerformMoveDatastoreObject.sh <original_object> <new_object> <count>
+#:              PerformMoveDatastoreObject.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] Source S3 bucket pathway and object key to relocate
+#:   $2         [Required] Destination S3 bucket pathway and target object key
+#:   $3         [Required] Integer configuration ID selecting the s5cmd profile suffix (/root/.s5cfg-<count>)
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - /root/.s5cfg-<count>
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, s5cmd
+#:
+#: Exit Codes:
+#:   0          Target S3 object moved or renamed successfully
+#:   1          Missing configuration, invalid arguments, missing s5cmd profile, or move failure
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -43,48 +38,84 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-#######################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
+# Validate mandatory positional parameters
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
 then
-    /bin/echo "Error: 3 arguments are required."
-    /bin/echo "Usage: $0 <original_object> <new_object> <count>"
-    status "Script invoked with missing arguments."
-    exit 1
+        /bin/echo "Error: 3 arguments are required." >&2
+        /bin/echo "Usage: $0 <original_object> <new_object> <count>" >&2
+        status "Error: Script invoked with missing arguments."
+        exit 1
 fi
 
-original_object="$1"
-new_object="$2"
-count="$3"
+original_object="${1}"
+new_object="${2}"
+count="${3}"
+
+# Validate that s5cmd binary and target configuration profile exist
+if [ ! -x /usr/bin/s5cmd ]
+then
+        status "Error: Required binary /usr/bin/s5cmd missing or not executable."
+        exit 1
+fi
 
 cfg_file="/root/.s5cfg-${count}"
-if [ ! -f "$cfg_file" ]
+if [ ! -r "${cfg_file}" ]
 then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+        /bin/echo "Error: Configuration profile ${cfg_file} not found." >&2
+        status "Error: Profile configuration file missing or unreadable at ${cfg_file}"
+        exit 1
 fi
 
-host_base=$(/usr/bin/grep ^host_base "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+# Extract and validate the S3 host_base from the s5cmd configuration profile
+host_base="$(/usr/bin/grep "^host_base" "${cfg_file}" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ' || true)"
+if [ -z "${host_base}" ]
+then
+        status "Error: Failed to extract host_base from ${cfg_file}"
+        exit 1
+fi
 
+# Move or rename the target S3 object server-side via s5cmd
+status "Moving S3 object 's3://${original_object}' to 's3://${new_object}' via profile ${count}..."
 set +e
-/usr/bin/s5cmd --credentials-file "$cfg_file" --endpoint-url "https://${host_base}" mv "s3://${original_object}" "s3://${new_object}" 2>/dev/null
+/usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" mv "s3://${original_object}" "s3://${new_object}" >/dev/null 2>&1
 s5cmd_status=$?
 set -e
 
-if [ $s5cmd_status -ne 0 ]
+if [ "${s5cmd_status}" -ne 0 ]
 then
-    /bin/echo "Failed to move object ${original_object} to object ${new_object}"
-    status "s5cmd failed to move object ${original_object} to s3://${new_object} (Exit code: $s5cmd_status)"
-    exit 1
+        /bin/echo "Failed to move object ${original_object} to object ${new_object}" >&2
+        status "Error: s5cmd failed to move object s3://${original_object} to s3://${new_object} (Exit code: ${s5cmd_status})"
+        exit 1
 fi
 
+status "Success! Moved S3 object 's3://${original_object}' to 's3://${new_object}' on profile ${count}."
 exit 0
+
