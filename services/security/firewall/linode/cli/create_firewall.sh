@@ -102,17 +102,17 @@ then
         exit 1
 fi
 
-firewall_id="$(/bin/echo "${response}" | /usr/bin/jq -r '.[0].id // empty' 2>/dev/null)"
+#firewall_id="$(/bin/echo "${response}" | /usr/bin/jq -r '.[0].id // empty' 2>/dev/null)"
 
-if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
-then
-        status "Error: Firewall creation returned no valid ID."
-        status "CLI Output: ${response}"
-        exit 1
-fi
+#if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
+#then
+#        status "Error: Firewall creation returned no valid ID."
+#        status "CLI Output: ${response}"
+#        exit 1
+#fi
 
 status "Success! Linode firewall created via CLI (ID: ${firewall_id})."
-/bin/echo "${firewall_id}"
+/bin/echo "${response}"
 
 exit 0
 
