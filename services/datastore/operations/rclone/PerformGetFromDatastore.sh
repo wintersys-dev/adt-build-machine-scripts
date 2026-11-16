@@ -114,6 +114,6 @@ then
         exit 1
 fi
 
-status "Success! Downloaded S3 object 's3:${file_to_get}' to '${destination}'."
+status "Success! Downloaded S3 object 's3:${file_to_get}' to '${destination}'." "no"
 exit 0
 
