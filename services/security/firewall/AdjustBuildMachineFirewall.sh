@@ -1,12 +1,12 @@
 #!/bin/sh
-#: Name:        ConfigureBuildMachineFirewall.sh
+#: Name:        AdjustBuildMachineFirewall.sh
 #: Purpose:     Synchronises authorised management IP addresses from S3 datastore to SSH and host firewalls.
 #: Author:      Peter Winter
 #: Date:        16/11/2026
 #: Version:     1.0
 #:
-#: Usage:       ConfigureBuildMachineFirewall.sh
-#:              ConfigureBuildMachineFirewall.sh [-h|--help]
+#: Usage:       AdjustBuildMachineFirewall.sh
+#:              AdjustBuildMachineFirewall.sh [-h|--help]
 #:
 #: Parameters:
 #:   None
