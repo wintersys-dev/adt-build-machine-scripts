@@ -102,12 +102,12 @@ then
         exit 1
 fi
 
-response="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id // empty' 2>/dev/null)"
+#response="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id // empty' 2>/dev/null)"
 
-if [ -n "${response}" ] && [ "${response}" != "null" ]
-then
-        /bin/echo "${response}"
-fi
+#if [ -n "${response}" ] && [ "${response}" != "null" ]
+#then
+#        /bin/echo "${response}"
+#fi
 
 exit 0
 
