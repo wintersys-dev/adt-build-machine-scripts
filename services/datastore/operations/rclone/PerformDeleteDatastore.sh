@@ -101,7 +101,7 @@ then
 fi
 
 # Forcefully purge and delete the target S3 bucket
-status "Purging S3 bucket 's3:${datastore_to_delete}' via profile ${count}..."
+status "Purging S3 bucket 's3:${datastore_to_delete}' via profile ${count}..." "no"
 set +e
 /usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" purge "s3:${datastore_to_delete}" >/dev/null 2>&1
 rclone_status=$?
@@ -109,7 +109,7 @@ set -e
 
 if [ "${rclone_status}" -ne 0 ]
 then
-        status "Failed to delete datastore: s3://${datastore_to_delete}"
+        /bin/echo "Failed to delete datastore: s3://${datastore_to_delete}" >&2
         status "Error: Failed to delete datastore s3:${datastore_to_delete} (Exit code: ${rclone_status})"
         exit 1
 fi
