@@ -199,3 +199,69 @@ Why This Fits ADT's Architecture
 If you want to integrate this into your build flow, let me know whether you want hydrate_from_bundle.sh to use s3cmd or aws s3 (matching your existing ADT datastore driver), and I can adapt the S3 commands accordingly.
 
 
+To replace VPS provider snapshots with full-machine tar backups in the Wintersys Agile Deployment Toolkit (ADT), you must fork the toolkit's infrastructure repositories and modify its POSIX shell scripts to archive the filesystem to your S3-compatible datastore instead of calling the VPS provider's snapshot API. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/IntialOverviewOfADT), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/ADT), [3] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/ForkingTheToolkit)
+Because ADT natively relies on cloud-provider snapshots for whole-machine images (via ${BUILD_HOME}/helpers/snapshots/ObtainWholeMachineSnapshot.sh) while reserving tar archives for application-level "temporal" backups (webroot and database), switching to full-machine tar backups requires changing both the capture and restore workflows. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/BuildMachineHelperScripts), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/ApplicationDevelopmentWorkflow)
+
+Snapshots vs. Whole-Machine Tar Backups
+
+
+Feature	Native Provider Snapshots	Custom Full-Machine Tar Backups
+Mechanism	Cloud provider block-storage API (DigitalOcean, Linode, Exoscale, Vultr).	POSIX tar archive pushed to S3-compatible object storage (e.g., Spaces, Object Store).
+Provisioning Speed	Fast boot directly from pre-built disk image.	Slower; requires booting a fresh OS image, downloading the tarball, and extracting over the root filesystem.
+Portability	Locked to the specific cloud provider and region.	Cloud-agnostic; can be restored across different supported VPS providers.
+Toolkit Support	Built-in (ObtainWholeMachineSnapshot.sh).	Requires custom shell modifications in a forked repository.
+
+
+Step 1: Fork the ADT Repositories
+
+The Wintersys Forking Guide specifies that customising infrastructure behaviour requires forking the core repositories (build-client, autoscaler, webserver, and database) from the wintersys-dev account. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/ForkingTheToolkit)
+1. Fork the repositories to your Git provider (GitHub, GitLab, or Bitbucket).
+2. Update your build environment variables so the build machine pulls from your modified scripts rather than upstream: [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/ADT)
+bash
+export INFRASTRUCTURE_REPOSITORY_PROVIDER="github"
+export INFRASTRUCTURE_REPOSITORY_OWNER="<your-username>"
+export INFRASTRUCTURE_REPOSITORY_USERNAME="<your-username>"
+export INFRASTRUCTURE_REPOSITORY_TOKEN="<your-token-if-private>"
+Use code with caution.
+
+Step 2: Replace Snapshot Creation with a Full-System Tar Script
+
+In your forked adt-build-client repository, locate ${BUILD_HOME}/helpers/snapshots/ObtainWholeMachineSnapshot.sh. Instead of invoking the cloud CLI/API to snapshot a running droplet or instance, modify this script (or create a parallel helper) to execute a remote tar backup over SSH and upload it to your S3 datastore: [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/IntialOverviewOfADT), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/BuildMachineHelperScripts), [3] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/ADT)
+• Connect to the target node. Use ADT's existing SSH wrapper patterns (similar to ${BUILD_HOME}/helpers/servers/ExecuteOnRemoteMachine.sh) to target the active webserver, database, or autoscaler IP. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/Backups)
+• Create the full-machine archive. Run tar with --one-file-system and strict exclusions so virtual filesystems, temporary directories, and mounted S3 buckets are not archived:bash
+tar -cpzf /tmp/full-machine-backup.tar.gz \
+  --one-file-system \
+  --exclude=/proc \
+  --exclude=/sys \
+  --exclude=/dev \
+  --exclude=/tmp \
+  --exclude=/run \
+  --exclude=/mnt \
+  --exclude=/media \
+  --exclude=/var/cache \
+  /
+Use code with caution.
+• Exclude S3 asset mounts. If PERSIST_ASSETS_TO_DATASTORE="1" is enabled, ensure any directory listed in DIRECTORIES_TO_MOUNT (mounted via s3fs) is explicitly added to --exclude so you do not re-archive remote object storage. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/Backups), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Operations/ExpeditedBuildProcessWalkthrough), [3] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Operations/WebrootConfigurationWorkflow)
+• Upload to S3. Use s3cmd (which ADT installs for datastore operations) to push /tmp/full-machine-backup.tar.gz into a dedicated bucket (e.g., s3://<your-machine-backups-bucket>/) and delete the local /tmp archive afterward.
+
+Step 3: Modify Machine Bootstrapping to Restore the Tarball
+
+When ADT scales up or deploys from a snapshot (BuildFromSnapshots workflow), it normally passes a snapshot ID to the cloud provider's server creation command. To use your tar backup instead: [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/BuildMachineHelperScripts), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Roleplaying)
+1. Provision a base OS image. Update the provisioning scripts in build-client and autoscaler so new VMs boot using a standard supported Ubuntu or Debian base image rather than a snapshot ID. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Feature%20Set)
+2. Inject restoration into Cloud-Init / UserData. Modify the UserData/bootstrap scripts (referenced in ${BUILD_HOME}/helpers/templates/GenerateHardcoreUserDataScript.sh and the standard expedited user-data templates) to pull the tarball from S3 on first boot. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/BuildMachineHelperScripts)
+3. Extract and reconcile host-specific configs. Have the bootstrap script download full-machine-backup.tar.gz via s3cmd and extract it (tar -xpzf full-machine-backup.tar.gz -C / --numeric-owner), excluding network and identity files that must remain unique to the new VM:
+	• --exclude=/etc/fstab (prevents UUID/disk mount mismatches on the new VPS)
+	• --exclude=/etc/netplan/* or /etc/network/interfaces (preserves the new instance's IP routing)
+	• --exclude=/etc/hostname and /etc/ssh/ssh_host_*
+4. Restart services and update IP metadata. Trigger a reboot or restart core services (nginx/apache2, mysql/mariadb, php-fpm) and allow ADT's build chain to register the new machine's IP address in its state files and firewall rules.
+
+Important Operational Caveats
+
+• Database consistency. Running tar on a live database server can capture corrupted InnoDB/MyISAM table states. Before archiving a database node, either stop the database service temporarily or rely on ADT's native PerformDatabaseBackup.sh / ExecuteOnRemoteMachine.sh "backup-db" SQL dumps on top of a clean OS tarball. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/Backups), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Tutorials/vultr/expedited-temporal-joomla)
+• Autoscaling latency. Extracting a multi-gigabyte tar.gz archive over the network during an autoscaling event takes significantly longer than booting a provider snapshot. Adjust your autoscaling thresholds in the Wintersys Autoscaling Configuration to trigger earlier so new webservers finish extracting before traffic spikes overwhelm existing nodes. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/BuildMachineHelperScripts), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Operations/ExpeditedBuildProcessWalkthrough), [3] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Roleplaying)
+To give you exact script edits and file paths, let me know:
+• Which cloud provider (DigitalOcean, Linode, Exoscale, or Vultr) you are deploying on
+• Which build method (Expedited or Hardcore) you use
+• Whether you want to back up webservers only or database servers as well
+
+
