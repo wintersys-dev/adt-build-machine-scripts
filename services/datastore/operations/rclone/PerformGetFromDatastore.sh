@@ -101,7 +101,7 @@ then
 fi
 
 # Download the target S3 object via rclone to the local destination
-status "Downloading S3 object 's3:${file_to_get}' to '${destination}'..."
+status "Downloading S3 object 's3:${file_to_get}' to '${destination}'..." "no"
 set +e
 /usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" copy "s3:${file_to_get}" "${destination}" >/dev/null 2>&1
 rclone_status=$?
