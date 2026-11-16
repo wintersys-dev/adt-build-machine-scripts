@@ -107,7 +107,7 @@ check_status=$?
 
 if [ "${check_status}" -ne 0 ]
 then
-        status "Creating S3 bucket 's3:${datastore_to_mount}' via profile ${count}..."
+        status "Creating S3 bucket 's3:${datastore_to_mount}' via profile ${count}..." "no"
         /usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" mkdir "s3:${datastore_to_mount}" >/dev/null 2>&1
         mkdir_status=$?
 
