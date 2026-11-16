@@ -101,7 +101,7 @@ then
 fi
 
 # Recursively delete all internal objects from the target S3 bucket
-status "Purging objects from S3 bucket 's3://${datastore_to_delete}' via profile ${count}..."
+status "Purging objects from S3 bucket 's3://${datastore_to_delete}' via profile ${count}..." "no"
 set +e
 /usr/bin/s3cmd --recursive --force --config="${cfg_file}" --host="https://${host_base}" del "s3://${datastore_to_delete}" >/dev/null 2>&1
 del_status=$?
@@ -114,7 +114,7 @@ then
 fi
 
 # Remove the now-empty S3 bucket structure
-status "Removing S3 bucket 's3://${datastore_to_delete}' via profile ${count}..."
+status "Removing S3 bucket 's3://${datastore_to_delete}' via profile ${count}..." "no"
 /usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" rb "s3://${datastore_to_delete}" >/dev/null 2>&1
 rb_status=$?
 set -e
@@ -126,7 +126,7 @@ then
         exit 1
 fi
 
-status "Success! Purged and removed S3 bucket 's3://${datastore_to_delete}' on profile ${count}."
+status "Success! Purged and removed S3 bucket 's3://${datastore_to_delete}' on profile ${count}." "no"
 exit 0
 
 
