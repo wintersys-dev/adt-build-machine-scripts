@@ -113,7 +113,7 @@ then
 
         if [ "${mkdir_status}" -ne 0 ]
         then
-                status "Failed to mount bucket s3://${datastore_to_mount}" 
+                /bin/echo "Failed to mount bucket s3://${datastore_to_mount}" >&2
                 status "Error: rclone failed to create bucket s3:${datastore_to_mount} (Exit code: ${mkdir_status})"
                 exit 1
         fi
