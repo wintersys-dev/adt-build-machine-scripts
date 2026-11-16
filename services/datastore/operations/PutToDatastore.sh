@@ -92,16 +92,16 @@ then
         exit 1
 fi
 
-WORK_AREA="${HOME}/runtime/datastore_workarea"
-if [ ! -d "$WORK_AREA" ]
+work_area="${HOME}/runtime/datastore_workarea"
+if [ ! -d "${work_area}" ]
 then
-    /bin/mkdir -p "$WORK_AREA"
+    /bin/mkdir -p "${work_area}"
 fi
 
 if [ ! -f "$file_to_put" ]
 then
-    /bin/touch "$WORK_AREA/$file_to_put"
-    file_to_put_with_path="$WORK_AREA/$file_to_put"
+    /bin/touch "${work_area}/$file_to_put"
+    file_to_put_with_path="${work_area}/$file_to_put"
 else
     file_to_put_with_path="$file_to_put"
 fi
