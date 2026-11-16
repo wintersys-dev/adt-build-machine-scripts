@@ -129,9 +129,9 @@ fi
 
 target_object="${active_bucket}/${file_to_list}"
 
-status "Listing datastore path '${target_object}'..."
+/bin/echo "Listing datastore path '${target_object}'..."
 "${list_object_driver}" "${target_object}"
 
-status "Success! Completed datastore path listing for '${target_object}'."
+/bin/echo "Success! Completed datastore path listing for '${target_object}'."
 exit 0
 
