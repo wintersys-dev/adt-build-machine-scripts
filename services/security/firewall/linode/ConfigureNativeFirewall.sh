@@ -44,7 +44,6 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -119,6 +118,7 @@ VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANG
 NO_REVERSE_PROXIES="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" NO_REVERSE_PROXIES)"
 AUTHENTICATOR_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTHENTICATOR_TYPE)"
 build_machine_ip="$("${BUILD_HOME}/helpers/services/GetBuildMachineIP.sh")"
+full_firewall_name="${firewall_name}-${BUILD_IDENTIFIER}"
 
 if [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ] || [ -z "${SSH_PORT}" ] || [ -z "${VPC_IP_RANGE}" ]
 then
@@ -299,7 +299,7 @@ tool_dir="${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_
 
 # Retrieve existing firewall ID or provision a new firewall instance
 set +e
-firewall_id="$("${tool_dir}/get_firewall_id.sh" "${firewall_name}")"
+jq_response="$("${tool_dir}/list_firewalls.sh" "${firewall_name}")"
 get_status="$?"
 set -e
 
@@ -307,19 +307,33 @@ if [ "${get_status}" -ne 0 ]
 then
         status "Error: Failed to query existing firewall ID for ${firewall_name}."
         exit 1
+else
+        firewall_id="$(/bin/echo "${jq_response}" | /usr/bin/jq -r --arg lbl "${full_firewall_name}" '.[] | select(.label == $lbl) | .id // empty')"
+
+        if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
+        then
+                status "Success: got firewall id for pre-existing firewall: ${firewall_id}"
+        fi
 fi
 
 if [ -z "${firewall_id}" ]
 then
         set +e
-        firewall_id="$("${tool_dir}/create_firewall.sh" "${firewall_name}")"
+        jq_response="$("${tool_dir}/create_firewall.sh" "${firewall_name}")"
         create_status="$?"
         set -e
 
-        if [ "${create_status}" -ne 0 ] || [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
+        if [ "${create_status}" -ne 0 ] 
         then
                 status "Error: Failed to create native firewall for ${firewall_name}."
                 exit 1
+        else
+                firewall_id="$(/bin/echo "${jq_response}" | /usr/bin/jq -r --arg lbl "${full_firewall_name}" '(if type == "array" then .[] else . end) | select(.label == $lbl) | .id // empty')"
+
+                if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
+                then
+                        /bin/echo "${firewall_id}"
+                fi
         fi
         status "Success! Created Linode firewall (ID: ${firewall_id})."
 else
