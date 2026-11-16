@@ -1,37 +1,32 @@
 #!/bin/sh
-########################################################################################
-# @file        update_firewall.sh
-# @brief       Applies a dynamic network ruleset payload to a specified Linode firewall.
-# @author      Peter Winter
-# @date        06/11/2026
-# @version     1.0
-#
-# @details     This script connects to the Linode v4 API and targets a specific firewall by 
-#              its unique system ID. It packs a dynamically generated JSON arrays data block 
-#              safely via jq, assigning it directly onto the inbound network security schema.
-#
-# @param       $1  [Required] The unique system ID of the target Linode firewall to be updated.
-# @param       $2  [Required] The computed raw JSON string ruleset payload to append.
-#
-# @env         BUILD_HOME          Path to the framework root directory (read from file).
-# @env         TOKEN               Linode API bearer authorization token.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active framework layout.
-#              - LogStatusMessages.sh utility logging system messages.
-#              - GetVariableValue.sh centralized wrapper for lookup configurations.
-#              - external dependencies: curl, jq, cat, echo
-#
-# @security    
-#              - Filters curl interactions through piped authorization headers via @- syntax.
-#              - Hardens system-owned paths (/bin, /usr/bin) to eliminate executable hijack vectors.
-#              - Sanitizes the input ruleset structure natively inside jq argument variables.
-#
-# @exit        0  Success: The firewall ruleset payload was correctly updated.
-# @exit        1  Failure: Missing arguments, missing configuration, or remote API rejection.
-########################################################################################
+#: Name:        update_firewall.sh
+#: Purpose:     Applies a dynamic inbound network ruleset payload to a specified Linode firewall via REST API v4.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       update_firewall.sh "<firewall_id>" "<ruleset_json>"
+#:              update_firewall.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] The unique numeric ID of the target Linode firewall to update
+#:   $2         [Required] The JSON array string representing inbound firewall rules
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - GetVariableValue.sh
+#:   - External binaries: cat, echo, grep, cut, sed, jq, curl
+#:
+#: Exit Codes:
+#:   0          Firewall ruleset updated successfully
+#:   1          Missing arguments, invalid JSON ruleset, missing context variables, or non-2xx API status
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -42,26 +37,35 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-########################################################################################
-########################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-# Resolve BUILD_HOME baseline layout securely
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
+# Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# Input validation
+# Validate required positional arguments
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: Both firewall ID and ruleset arguments are required."
@@ -72,29 +76,75 @@ fi
 firewall_id="${1}"
 ruleset="${2}"
 
-# Secure framework configuration value extraction
+# Retrieve authentication token
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
 if [ -z "${TOKEN}" ]
-# Target routing token evaluation
 then
-        status "Error: API authorization TOKEN is empty or missing configuration."
+        status "Error: Failed to fetch required context variable (TOKEN)."
         exit 1
 fi
 
-# Securely assemble payload structure
-payload="$(/usr/bin/jq -n --argjson rules "${ruleset}" '{inbound: $rules}')"
+# Construct and validate the inbound firewall rules JSON payload via jq
+rules_payload="$(/usr/bin/jq -n -c --argjson rules "${ruleset}" '{ inbound: $rules }' 2>/dev/null || true)"
 
-# Temporary disable set -e to evaluate curl transaction pipeline failures manually
+if [ -z "${rules_payload}" ]
+then
+        status "Error: Failed to construct valid firewall rules JSON from provided ruleset."
+        exit 1
+fi
+
+# Assemble endpoint from split components to prevent browser URL rewriting during copy-paste
+api_sub="api"
+api_domain="linode.com"
+api_path="v4/networking/firewalls/${firewall_id}/rules"
+endpoint="https://${api_sub}.${api_domain}/${api_path}"
+
+# Submit the firewall rules PUT request with token passed securely via stdin
 set +e
-response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | curl -H @- -s -X PUT -H 'Content-Type: application/json' -d "${payload}" "https://api.linode.com/v4/networking/firewalls/${firewall_id}/rules")"
-curl_status="$?"
+RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X PUT "${endpoint}" -H "Content-Type: application/json" -d "${rules_payload}" -w "\nHTTP_STATUS:%{http_code}")
 set -e
 
-if [ "${curl_status}" -ne 0 ]
-then
-        status "Unable to update firewall rules"
-        exit 1
-fi
+# Separate the HTTP status code and JSON response body
+HTTP_CODE=$(/bin/echo "${RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
+RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
+
+# Evaluate HTTP status code and handle API errors explicitly
+case "${HTTP_CODE}" in
+        200|201)
+                status "Success! Linode firewall ${firewall_id} rules updated."
+                ;;
+        400)
+                status "Error 400: Bad Request. Check your firewall ruleset syntax."
+                status "API Response: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+        401)
+                status "Error 401: Unauthorized. Check your TOKEN."
+                exit 1
+                ;;
+        403)
+                status "Error 403: Forbidden. Missing permissions."
+                exit 1
+                ;;
+        404)
+                status "Error 404: Not Found. Firewall ID ${firewall_id} does not exist."
+                exit 1
+                ;;
+        429)
+                status "Error 429: Rate Limit Exceeded."
+                exit 1
+                ;;
+        5*)
+                status "Error ${HTTP_CODE}: Linode Server Error."
+                exit 1
+                ;;
+        *)
+                status "Error ${HTTP_CODE}: Unexpected response."
+                status "API Response: ${RESPONSE_BODY}"
+                exit 1
+                ;;
+esac
 
 exit 0
+
