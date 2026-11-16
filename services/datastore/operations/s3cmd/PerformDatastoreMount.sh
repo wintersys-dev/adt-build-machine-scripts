@@ -107,7 +107,7 @@ check_status=$?
 
 if [ "${check_status}" -ne 0 ]
 then
-        status "Creating S3 bucket 's3://${datastore_to_mount}' via profile ${count}..."
+        status "Creating S3 bucket 's3://${datastore_to_mount}' via profile ${count}..." "no"
         /usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" mb "s3://${datastore_to_mount}" >/dev/null 2>&1
         mb_status=$?
 
@@ -120,6 +120,6 @@ then
 fi
 set -e
 
-status "Success! Verified/mounted S3 bucket 's3://${datastore_to_mount}' on profile ${count}."
+status "Success! Verified/mounted S3 bucket 's3://${datastore_to_mount}' on profile ${count}." "no"
 exit 0
 
