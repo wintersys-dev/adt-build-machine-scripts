@@ -102,11 +102,11 @@ then
         exit 1
 fi
 
-firewall_id="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id // empty' 2>/dev/null)"
+response="$(/bin/echo "${response}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.[] | select(.label | contains($name)) | select(.label | endswith($build)).id // empty' 2>/dev/null)"
 
-if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
+if [ -n "${response}" ] && [ "${response}" != "null" ]
 then
-        /bin/echo "${firewall_id}"
+        /bin/echo "${response}"
 fi
 
 exit 0
