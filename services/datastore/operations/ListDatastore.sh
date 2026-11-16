@@ -90,90 +90,15 @@ then
 fi
 
 TOKEN="$(/bin/echo "${SERVER_USER}" | /usr/bin/fold -w 4 | /usr/bin/head -n 1 | /usr/bin/tr '[:upper:]' '[:lower:]')"
-# Construct the target bucket name based on bucket classification
-case "${bucket_type}" in
-        "ssl")
-                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
-                then
-                        service_token="lets"
-                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
-                then
-                        service_token="zero"
-                else
-                        status "Error: Unsupported or empty SSL_GENERATION_SERVICE '${SSL_GENERATION_SERVICE}'."
-                        exit 1
-                fi
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-${DNS_CHOICE}-${service_token}-ssl"
-                ;;
-        "auth-ssl")
-                AUTH_SERVER_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_SERVER_URL)"
-                AUTH_DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_DNS_CHOICE)"
-                if [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
-                then
-                        service_token="lets"
-                elif [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
-                then
-                        service_token="zero"
-                else
-                        status "Error: Unsupported or empty SSL_GENERATION_SERVICE '${SSL_GENERATION_SERVICE}'."
-                        exit 1
-                fi
-                active_bucket="$(/bin/echo "${AUTH_SERVER_URL}" | /bin/sed 's/\./-/g')-${AUTH_DNS_CHOICE}-${service_token}-ssl"
-                ;;
-        "multi-region")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-multi-region"
-                ;;
-        "config")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}-config" | /bin/sed 's/\./-/g')-${TOKEN}"
-                ;;
-        "auth-config")
-                AUTH_SERVER_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_SERVER_URL)"
-                active_bucket="$(/bin/echo "${AUTH_SERVER_URL}-config" | /bin/sed 's/\./-/g')-${TOKEN}"
-                ;;
-        "asset")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}-assets-${additional_specifier}" | /bin/sed -e 's/\./-/g' -e 's;/;-;g' -e 's/--/-/g')"
-                ;;
-        "scaling"|"backup-web")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-${additional_specifier}"
-                ;;
-        "firewall-auth-laptop-ips"|"whitelist-auth-laptop-ips"|"firewall-emailed-links"|"whitelist-emailed-links"|"basic-auth-credentials")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-${bucket_type}"
-                ;;
-        "wire-guard")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-wireguard"
-                ;;
-        "wire-guard-emails")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-wireguard-emails"
-                ;;
-        "wire-guard-emailed-links")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-wireguard-emailed-links"
-                ;;
-        "backup-db")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-db-${additional_specifier}"
-                ;;
-        "auth")
-                active_bucket="authip-adt-allowed-${additional_specifier}"
-                ;;
-        "dbaas")
-                active_bucket="$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-${DNS_CHOICE}-dbaas"
-                ;;
-        "ad-hoc")
-                active_bucket="${additional_specifier}"
-                ;;
-        "all")
-                active_bucket="all"
-                ;;
-        *)
-                status "Error: Unknown bucket classification type '${bucket_type}'."
-                exit 1
-                ;;
-esac
 
-if [ -z "${active_bucket}" ]
+resolver_script="${BUILD_HOME}/helpers/datastore/ResolveBucketName.sh"
+if [ ! -f "${resolver_script}" ] || [ ! -x "${resolver_script}" ]
 then
-        status "Error: Resolved target bucket name is empty for classification '${bucket_type}'."
+        status "Error: Bucket resolver script missing or not executable at ${resolver_script}"
         exit 1
 fi
+
+active_bucket="$("${resolver_script}" "${bucket_type}" "${additional_specifier}")"
 
 # Resolve the active datastore tool from software.dat and validate its listing driver
 software_file="${BUILD_HOME}/configuration/software.dat"
