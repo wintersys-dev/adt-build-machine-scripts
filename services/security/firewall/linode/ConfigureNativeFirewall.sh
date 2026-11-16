@@ -313,26 +313,31 @@ fi
 
 # Execute target actions safely, tracking exits manually
 set +e
-firewall_id="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/get_firewall_id.sh" "${firewall_name}")"
-
-
-if [ -z "${firewall_id}" ] 
+response_body="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/get_firewall_id.sh" "${firewall_name}")"
+if [ "$?" -ne 0 ] 
 then
-        response_body="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/create_firewall.sh" "${firewall_name}")"
-        if [ "$?" -ne 0 ] 
+        status "Failed to get firewall_id"
+        exit 1
+else
+        firewall_id="$/bin/echo "${response_body}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id' 2>/dev/null)"
+        if [ -z "${firewall_id}" ] 
         then
-                status "Failed to create firewall"
-                exit 1
-        else
-                firewall_id="$(/bin/echo "${response_body}" | /usr/bin/jq -r '.id' 2>/dev/null)"
-
-                if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
+                response_body="$("${BUILD_HOME}/services/security/firewall/${CLOUDHOST}/${orchestration_tool}/create_firewall.sh" "${firewall_name}")"
+                if [ "$?" -ne 0 ] 
                 then
-                        status "Error: Firewall creation succeeded but returned no valid ID."
-                        status "API Response: ${RESPONSE_BODY}"
+                        status "Failed to create firewall"
                         exit 1
+                else
+                        firewall_id="$(/bin/echo "${response_body}" | /usr/bin/jq -r '.id' 2>/dev/null)"
+
+                        if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
+                        then
+                                status "Error: Firewall creation succeeded but returned no valid ID."
+                                status "API Response: ${RESPONSE_BODY}"
+                                exit 1
+                        fi
                 fi
-        fi
+        fi        
 fi
 
 status "Success! Linode firewall created (ID: ${firewall_id})."
