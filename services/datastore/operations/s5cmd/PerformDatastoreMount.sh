@@ -120,7 +120,7 @@ then
 fi
 set -e
 
-status "Success! Verified/mounted S3 bucket 's3://${datastore_to_mount}' on profile ${count}."
+status "Success! Verified/mounted S3 bucket 's3://${datastore_to_mount}' on profile ${count}." "no"
 exit 0
 
 
