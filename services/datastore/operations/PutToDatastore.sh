@@ -46,7 +46,6 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -95,21 +94,21 @@ fi
 work_area="${HOME}/runtime/datastore_workarea"
 if [ ! -d "${work_area}" ]
 then
-    /bin/mkdir -p "${work_area}"
+        /bin/mkdir -p "${work_area}"
 fi
 
-if [ ! -f "$file_to_put" ]
+if [ ! -f "${file_to_put}" ]
 then
-    /bin/touch "${work_area}/$file_to_put"
-    file_to_put_with_path="${work_area}/$file_to_put"
+        /bin/touch "${work_area}/${file_to_put}"
+        file_to_put_with_path="${work_area}/${file_to_put}"
 else
-    file_to_put_with_path="$file_to_put"
+        file_to_put_with_path="${file_to_put}"
 fi
 
 # Validate that the local source path exists before proceeding
-if [ ! -e "${file_to_put}" ]
+if [ ! -e "${file_to_put_with_path}" ]
 then
-        status "Error: Local source file or directory does not exist at '${file_to_put}'."
+        status "Error: Local source file or directory does not exist at '${file_to_put_with_path}'."
         exit 1
 fi
 
@@ -175,18 +174,18 @@ target_destination="${active_bucket}/${place_to_put}"
 # Execute datastore upload locally (node 1) or across all distributed S3 nodes
 if [ "${mode}" = "local" ]
 then
-        status "Uploading '${file_to_put}' to '${target_destination}' in local mode (node 1)..."
-        "${put_object_driver}" "${file_to_put}" "${target_destination}" "${delete}" "${count}"
+        status "Uploading '${file_to_put_with_path}' to '${target_destination}' in local mode (node 1)..."
+        "${put_object_driver}" "${file_to_put_with_path}" "${target_destination}" "${delete}" "${count}"
 elif [ "${mode}" = "distributed" ]
 then
         while [ "${count}" -le "${no_tokens}" ]
         do
-                status "Uploading '${file_to_put}' to '${target_destination}' on node ${count} of ${no_tokens}..."
-                "${put_object_driver}" "${file_to_put}" "${target_destination}" "${delete}" "${count}"
+                status "Uploading '${file_to_put_with_path}' to '${target_destination}' on node ${count} of ${no_tokens}..."
+                "${put_object_driver}" "${file_to_put_with_path}" "${target_destination}" "${delete}" "${count}"
                 count=$((count + 1))
         done
 fi
 
-status "Success! Completed datastore upload for '${file_to_put}' to '${target_destination}'."
+status "Success! Completed datastore upload for '${file_to_put_with_path}' to '${target_destination}'."
 exit 0
 
