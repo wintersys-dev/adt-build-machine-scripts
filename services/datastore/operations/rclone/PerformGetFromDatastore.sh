@@ -1,37 +1,32 @@
-#!/bin/sh 
-###################################################################################
-# @file        PerformGetFromDatastore.sh
-# @brief       Automated S3 Datastore Object Retrieval and Local Ingestion Driver.
-# @author      Peter Winter
-# @date        09/04/2021
-# @version     1.0
-#
-# @details     This script automates down-level file transfer tasks from managed cloud
-#              datastores to local file system targets. It extracts target cloud
-#              endpoint parameters from static primary rclone profile structures,
-#              configures single-node data pipes, and maps object assets down into
-#              the requested endpoint destination folder.
-#
-# @param       $1  [Required] S3 bucket target pathway and the specific object key to copy.
-# @param       $2  [Required] Local directory path or target file name destination for the download.
-#
-# @env         None explicitly sourced from top-level environment registers.
-#
-# @dependencies
-#              - /home/buildhome.dat configuration file tracking the active application root path.
-#              - /usr/bin/rclone storage integration engine software utility.
-#              - /root/.config/rclone/rclone.conf-1 base primary cluster registration file.
-#
-# @security    
-#              - Restricts validation actions strictly to isolated tenant access keys inside config spaces.
-#              - Suppresses downstream standard error channels (`2>/dev/null`) to block credential exposure.
-#              - Relies on system-owned executable paths (/bin, /usr/bin) to circumvent malicious search path injection.
-#
-# @exit        0  Success: Cloud object securely retrieved and copied to local workspace destinations.
-# @exit        1  Failure: Missing mandatory parameters or rclone execution driver failure.
+#!/bin/sh
+#: Name:        PerformGetFromDatastore.sh
+#: Purpose:     Retrieves an individual S3 object via rclone from the primary cluster profile to a local destination.
+#: Author:      Peter Winter
+#: Date:        16/11/2026
+#: Version:     1.0
+#:
+#: Usage:       PerformGetFromDatastore.sh <file_to_get> <destination>
+#:              PerformGetFromDatastore.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] S3 bucket target pathway and specific object key to retrieve
+#:   $2         [Required] Local directory path or target filename destination
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - /root/.config/rclone/rclone.conf-1
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, awk, tr, rclone
+#:
+#: Exit Codes:
+#:   0          Target S3 object retrieved and copied locally successfully
+#:   1          Missing configuration, invalid arguments, missing rclone profile, or download failure
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -42,47 +37,83 @@
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-######################################################################################
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-if [ -z "$1" ] || [ -z "$2" ]
+# Validate mandatory positional parameters
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
-    /bin/echo "Error: 2 arguments are required."
-    /bin/echo "Usage: $0 <file_to_get> <destination>"
-    log_error "Script invoked with missing arguments."
-    exit 1
+        /bin/echo "Error: 2 arguments are required." >&2
+        /bin/echo "Usage: $0 <file_to_get> <destination>" >&2
+        status "Error: Script invoked with missing arguments."
+        exit 1
 fi
 
-file_to_get="$1"
-destination="$2"
+file_to_get="${1}"
+destination="${2}"
+
+# Validate that rclone binary and primary configuration profile exist
+if [ ! -x /usr/bin/rclone ]
+then
+        status "Error: Required binary /usr/bin/rclone missing or not executable."
+        exit 1
+fi
 
 cfg_file="/root/.config/rclone/rclone.conf-1"
-if [ ! -f "$cfg_file" ]
+if [ ! -r "${cfg_file}" ]
 then
-    /bin/echo "Error: Configuration profile $cfg_file not found."
-    status "Profile configuration file missing: $cfg_file"
-    exit 1
+        /bin/echo "Error: Configuration profile ${cfg_file} not found." >&2
+        status "Error: Profile configuration file missing or unreadable at ${cfg_file}"
+        exit 1
 fi
 
-host_base=$(/usr/bin/grep ^endpoint "$cfg_file" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ')
+# Extract and validate the S3 endpoint URL from the primary rclone configuration profile
+host_base="$(/usr/bin/grep "^endpoint" "${cfg_file}" | /usr/bin/awk -F'=' '{print $NF}' | /usr/bin/tr -d ' ' || true)"
+if [ -z "${host_base}" ]
+then
+        status "Error: Failed to extract endpoint from ${cfg_file}"
+        exit 1
+fi
 
+# Download the target S3 object via rclone to the local destination
+status "Downloading S3 object 's3:${file_to_get}' to '${destination}'..."
 set +e
-/usr/bin/rclone --config "$cfg_file" --s3-endpoint "$host_base" copy "s3:${file_to_get}" "${destination}" 2>/dev/null
+/usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" copy "s3:${file_to_get}" "${destination}" >/dev/null 2>&1
 rclone_status=$?
 set -e
 
-if [ $rclone_status -ne 0 ]
+if [ "${rclone_status}" -ne 0 ]
 then
-    /bin/echo "Failed to get file ${file_to_get} from datastore"
-    status "rclone failed to download s3:${file_to_get} to ${destination} (Exit code: $rclone_status)"
-    exit 1
+        /bin/echo "Failed to get file ${file_to_get} from datastore" >&2
+        status "Error: rclone failed to download s3:${file_to_get} to ${destination} (Exit code: ${rclone_status})"
+        exit 1
 fi
 
+status "Success! Downloaded S3 object 's3:${file_to_get}' to '${destination}'."
 exit 0
+
