@@ -102,12 +102,14 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 # Evaluate HTTP status code and handle API errors explicitly
 case "${HTTP_CODE}" in
         200|201)
-                firewall_id="$(/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id' 2>/dev/null)"
+                /bin/echo "${RESPONSE_BODY}" 
+                
+                #firewall_id="$/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r --arg name "${firewall_name}" --arg build "-${BUILD_IDENTIFIER}" '.data[] | select(.label | contains($name)) | select(.label | endswith($build)).id' 2>/dev/null)"
 
-                if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
-                then
-                        /bin/echo "${firewall_id}"
-                fi
+                #if [ -n "${firewall_id}" ] && [ "${firewall_id}" != "null" ]
+                #then
+                #        /bin/echo "${firewall_id}"
+                #fi
                 ;;
         400)
                 status "Error 400: Bad Request. Check your request parameters."
