@@ -71,19 +71,19 @@ count="$4"
 
 place_to_put="${place_to_put%root}"
 
-WORK_AREA="${HOME}/runtime/datastore_workarea"
-if [ ! -d "$WORK_AREA" ]
-then
-    /bin/mkdir -p "$WORK_AREA"
-fi
+#WORK_AREA="${HOME}/runtime/datastore_workarea"
+#if [ ! -d "$WORK_AREA" ]
+#then
+ #   /bin/mkdir -p "$WORK_AREA"
+#fi
 
-if [ ! -f "$file_to_put" ]
-then
-    /bin/touch "$WORK_AREA/$file_to_put"
-    file_to_put_with_path="$WORK_AREA/$file_to_put"
-else
-    file_to_put_with_path="$file_to_put"
-fi
+#if [ ! -f "$file_to_put" ]
+#then
+#    /bin/touch "$WORK_AREA/$file_to_put"
+#    file_to_put_with_path="$WORK_AREA/$file_to_put"
+#else
+#    file_to_put_with_path="$file_to_put"
+#fi
 
 cfg_file="/root/.config/rclone/rclone.conf-${count}"
 if [ ! -f "$cfg_file" ]
