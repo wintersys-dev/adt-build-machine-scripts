@@ -1,5 +1,5 @@
 #!/bin/sh
-#: Name:        get_firewall_id.sh
+#: Name:        list_firewalls.sh
 #: Purpose:     Retrieves the unique Linode API ID of an active firewall via the Linode CLI utility.
 #: Author:      Peter Winter
 #: Date:        16/11/2026
