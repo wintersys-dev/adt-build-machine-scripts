@@ -109,7 +109,7 @@ then
 fi
 
 # Delete the target S3 object or wildcard tree via s5cmd
-status "Deleting S3 object 's3://${file_to_delete}${wildcard}' via profile ${count}..."
+status "Deleting S3 object 's3://${file_to_delete}${wildcard}' via profile ${count}..." "no"
 set +e
 /usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" rm "s3://${file_to_delete}${wildcard}" >/dev/null 2>&1
 s5cmd_status=$?
@@ -122,7 +122,7 @@ then
         exit 1
 fi
 
-status "Success! Deleted S3 object 's3://${file_to_delete}${wildcard}' on profile ${count}."
+status "Success! Deleted S3 object 's3://${file_to_delete}${wildcard}' on profile ${count}." "no"
 exit 0
 
 
