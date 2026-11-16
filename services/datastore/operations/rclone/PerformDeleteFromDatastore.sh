@@ -122,11 +122,11 @@ set -e
 
 if [ "${rclone_status}" -ne 0 ]
 then
-        /bin/echo "Failed to delete file ${file_to_delete} from datastore" >&2
+        status "Failed to delete file ${file_to_delete} from datastore"
         status "Error: rclone failed to purge s3:${file_to_delete} (Prune empty dirs: ${rmdirs:-no}, Exit code: ${rclone_status})"
         exit 1
 fi
 
-status "Success! Deleted S3 object 's3:${file_to_delete}' on profile ${count}."
+status "Success! Deleted S3 object 's3:${file_to_delete}' on profile ${count}." "no"
 exit 0
 
