@@ -111,47 +111,34 @@ RESPONSE_BODY=$(/bin/echo "${RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
 # Evaluate HTTP status code and handle API errors explicitly
 case "${HTTP_CODE}" in
         200|201)
-
-                /bin/echo "${RESPONSE_BODY}" 
-
-           #     firewall_id="$(/bin/echo "${RESPONSE_BODY}" | /usr/bin/jq -r '.id' 2>/dev/null)"
-
-           #     if [ -z "${firewall_id}" ] || [ "${firewall_id}" = "null" ]
-            #    then
-            #            status "Error: Firewall creation succeeded but returned no valid ID."
-            #            status "API Response: ${RESPONSE_BODY}"
-            #            exit 1
-            #    fi#
-#
- #               status "Success! Linode firewall created (ID: ${firewall_id})."
-  #              /bin/echo "${firewall_id}"
-                ;;
-        400)
-                status "Error 400: Bad Request. Check your payload syntax."
-                status "API Response: ${RESPONSE_BODY}"
-                exit 1
-                ;;
-        401)
-                status "Error 401: Unauthorized. Check your TOKEN."
-                exit 1
-                ;;
-        403)
-                status "Error 403: Forbidden. Missing permissions."
-                exit 1
-                ;;
-        429)
-                status "Error 429: Rate Limit Exceeded."
-                exit 1
-                ;;
-        5*)
-                status "Error ${HTTP_CODE}: Linode Server Error."
-                exit 1
-                ;;
-        *)
-                status "Error ${HTTP_CODE}: Unexpected response."
-                status "API Response: ${RESPONSE_BODY}"
-                exit 1
-                ;;
+                /bin/echo "${RESPONSE_BODY}"
+           ;;
+   400)
+           status "Error 400: Bad Request. Check your payload syntax."
+           status "API Response: ${RESPONSE_BODY}"
+           exit 1
+           ;;
+   401)
+           status "Error 401: Unauthorized. Check your TOKEN."
+           exit 1
+           ;;
+   403)
+           status "Error 403: Forbidden. Missing permissions."
+           exit 1
+           ;;
+   429)
+           status "Error 429: Rate Limit Exceeded."
+           exit 1
+           ;;
+   5*)
+           status "Error ${HTTP_CODE}: Linode Server Error."
+           exit 1
+           ;;
+   *)
+           status "Error ${HTTP_CODE}: Unexpected response."
+           status "API Response: ${RESPONSE_BODY}"
+           exit 1
+           ;;
 esac
 
 exit 0
