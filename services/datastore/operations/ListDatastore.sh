@@ -122,10 +122,10 @@ then
         exit 1
 fi
 
-/bin/echo "Listing datastore contents for '${active_bucket}'..."
+status "Listing datastore contents for '${active_bucket}'..." "no"
 "${list_driver}" "${active_bucket}"
 
-/bin/echo "Success! Completed datastore listing for '${active_bucket}'."
+status "Success! Completed datastore listing for '${active_bucket}'." "no"
 exit 0
 
 
