@@ -100,7 +100,7 @@ then
 fi
 
 # Download the target S3 object via s5cmd to the local destination
-status "Downloading S3 object 's3://${file_to_get}' to '${destination}'..."
+status "Downloading S3 object 's3://${file_to_get}' to '${destination}'..." "no"
 set +e
 /usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" cp "s3://${file_to_get}" "${destination}" >/dev/null 2>&1
 s5cmd_status=$?
@@ -113,6 +113,6 @@ then
         exit 1
 fi
 
-status "Success! Downloaded S3 object 's3://${file_to_get}' to '${destination}'."
+status "Success! Downloaded S3 object 's3://${file_to_get}' to '${destination}'." "no"
 exit 0
 
