@@ -112,7 +112,7 @@ then
 fi
 
 # Upload the source payload to the target S3 path via s5cmd
-status "Uploading '${file_to_put}' to 's3://${place_to_put}/${filename}' via profile ${count}..."
+status "Uploading '${file_to_put}' to 's3://${place_to_put}/${filename}' via profile ${count}..." "no"
 set +e
 /usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" cp "${file_to_put}" "s3://${place_to_put}/${filename}" >/dev/null 2>&1
 s5cmd_status=$?
@@ -134,6 +134,6 @@ then
         fi
 fi
 
-status "Success! Uploaded '${filename}' to 's3://${place_to_put}/${filename}' on profile ${count}."
+status "Success! Uploaded '${filename}' to 's3://${place_to_put}/${filename}' on profile ${count}." "no"
 exit 0
 
