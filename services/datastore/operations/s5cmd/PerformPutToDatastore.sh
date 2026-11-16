@@ -86,22 +86,6 @@ count="${4}"
 place_to_put="${place_to_put%root}"
 place_to_put="${place_to_put%/}"
 
-# Resolve local source payload or provision a placeholder marker file in the runtime workarea
-#work_area="${HOME}/runtime/datastore_workarea"
-#if [ ! -d "${work_area}" ]
-#then
-#        /bin/mkdir -p "${work_area}"
-#fi
-
-#if [ ! -f "${file_to_put}" ]
-#then
-#        marker_name="${file_to_put##*/}"
- #       file_to_put_with_path="${work_area}/${marker_name}"
- #       /bin/touch "${file_to_put_with_path}"
-#else
-#        file_to_put_with_path="${file_to_put}"
-#fi
-
 filename="${file_to_put##*/}"
 
 # Validate that s5cmd binary and target configuration profile exist
