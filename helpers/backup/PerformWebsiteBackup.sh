@@ -213,7 +213,7 @@ then
         /bin/mkdir -p ${BUILD_HOME}/manualbackups/${date}
         WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
         backup_name="applicationsourcecode.tar.gz"        
-        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-web" "${backup_name}" "${BUILD_HOME}/manualbackups/${date}" "hourly"
+        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-webroot" "${backup_name}" "${BUILD_HOME}/manualbackups/${date}" "hourly"
 
         if ( [ -f ${BUILD_HOME}/manualbackups/${date}/${backup_name} ] )
         then
