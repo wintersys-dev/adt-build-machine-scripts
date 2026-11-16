@@ -526,10 +526,6 @@ then
 	${BUILD_HOME}/buildservers/BuildDatabase.sh
 fi
 
-# Put out any post processing messages to the user
-${BUILD_HOME}/processing/PostProcessingMessages.sh
-
-
 if ( [ ! -f ${BUILD_HOME}/runtime/BUILDING_ON_LAPTOP ] )
 then
 
@@ -557,6 +553,9 @@ then
     fi
 
 fi
+
+# Put out any post processing messages to the user
+${BUILD_HOME}/processing/PostProcessingMessages.sh
 
 #We inform the users of their credentials. Sometimes, depending on the application, the user needs to know more or less
 
