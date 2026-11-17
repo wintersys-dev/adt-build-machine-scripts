@@ -284,6 +284,24 @@ For the scripts to read your configuration settings the token you generate and u
 
 The email address of your account with your git provider of choice. Some providers require the email address for authentication purposes (bitbucket) whilst other providers are content with just the username). So you can fill this in if you find you need it. I don't anticipate it being needed for the configuration repositories but its here for consistency of approach
 
+-----
+
+### INFRASTRUCTURE_REPOSITORY_PROVIDER
+### INFRASTRUCTURE_REPOSITORY_PROVIDER_URL
+### INFRASTRUCTURE_REPOSITORY_OWNER
+### INFRASTRUCTURE_REPOSITORY_USERNAME
+### INFRASTRUCTURE_REPOSITORY_EMAIL
+
+By default these values are set as shown below, if you are building from your own forks you will need to set these according to your fork's criteria 
+
+INFRASTRUCTURE_REPOSITORY_PROVIDER="github"  
+
+INFRASTRUCTURE_REPOSITORY_PROVIDER="github.com"
+
+INFRASTRUCTURE_REPOSITORY_OWNER="wintersys-dev"  
+
+INFRASTRUCTURE_REPOSITORY_USERNAME="wintersys-dev"  
+
 ------
 
 ### BUILD_MACHINE_VPC
@@ -682,23 +700,6 @@ This is a gitlab and github specific token. When you have a private application 
 For github, you can do this by logging into your account and going to: https://github.com/settings/tokens and then generate one
     gitlab, you can do this by logging into your account with them and clicking on Profile Settings -> Access Tokens and then generating one"
 The token that you generate can be placed here in your template instead of a password (for your application repositories)
-
------
-
-### INFRASTRUCTURE_REPOSITORY_PROVIDER
-### INFRASTRUCTURE_REPOSITORY_PROVIDER_URL
-### INFRASTRUCTURE_REPOSITORY_OWNER
-### INFRASTRUCTURE_REPOSITORY_USERNAME
-
-By default these values are set as shown below, if you are building from your own forks you will need to set these according to your fork's criteria 
-
-INFRASTRUCTURE_REPOSITORY_PROVIDER="github"  
-
-INFRASTRUCTURE_REPOSITORY_PROVIDER="github.com"
-
-INFRASTRUCTURE_REPOSITORY_OWNER="wintersys-dev"  
-
-INFRASTRUCTURE_REPOSITORY_USERNAME="wintersys-dev"  
  
 
 ------
