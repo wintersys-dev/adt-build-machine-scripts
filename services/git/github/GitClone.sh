@@ -1,30 +1,33 @@
 #!/bin/sh
-##################################################################################
-# SCRIPT      : GitClone.sh (GitHub Provider)
-# AUTHOR      : Peter Winter
-# DATE        : 13/06/2021
-# VERSION     : 1.0.0
-# DESCRIPTION : This script safely executes a shallow Git clone from GitHub. 
-#               It dynamically creates a temporary `.netrc` file for secure 
-#               token authentication and guarantees its removal upon completion.
-#
-# INTERFACE   : $0 <owner_name> <repo_name> [auth_username]
-#
-# PARAMETERS  :
-#   $1 - repository_ownername : GitHub organization or individual profile namespace
-#   $2 - repository_name      : Case-sensitive name of the target repository
-#   $3 - repository_username  : (Optional) GitHub username associated with the token
-#
-# ENVIRONMENT VARIABLES:
-#   - REPOSITORY_TOKEN        : Must be exported in the shell for authentication
-#
-# CONFIGURATION DEPENDENCIES:
-#   - /home/buildhome.dat     : Must contain absolute path to build directory
-#   - ${HOME}/.netrc          : Managed temporarily during runtime (Chmod 600)
-#
-#######################################################################################
+#: Name:        GitClone.sh
+#: Purpose:     Executes a shallow Git clone from GitHub with optional scoped .netrc token authentication.
+#: Author:      Peter Winter
+#: Date:        17/11/2026
+#: Version:     1.0
+#:
+#: Usage:       GitClone.sh "<repository_ownername>" "<repository_name>" ["<repository_username>"]
+#:              GitClone.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] GitHub organisation or individual account namespace
+#:   $2         [Required] Case-sensitive name of the target GitHub repository
+#:   $3         [Optional] GitHub username associated with REPOSITORY_TOKEN (defaults to x-access-token)
+#:
+#: Environment:
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
+#:   REPOSITORY_TOKEN Optional personal access token for private repository authentication
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, chmod, rm, git
+#:
+#: Exit Codes:
+#:   0          Repository cloned successfully from GitHub
+#:   1          Missing required arguments, missing config file, or git clone failure
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -34,50 +37,90 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################################
-#####################################################################################
-#set -x
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 set -e
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the toolkit root directory from the system tracking file
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-
-
-if ( [ "${1}" = "" ] || [ "${2}" = "" ] )
+# Validate minimum required positional arguments
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        status "Error: 2 arguments are required and 1 optional argument"
+        status "Error: 2 arguments are required and 1 optional argument."
         status "Usage: $0 <repository_ownername> <repository_name> [repository_username]"
         exit 1
 fi
 
-repository_ownername="${1}" 
-repository_name="${2}" 
+repository_ownername="${1}"
+repository_name="${2}"
 repository_username="${3}"
 
-cat << EOF > ${HOME}/.netrc
+# Construct temporary .netrc with restricted permissions and guaranteed cleanup on exit
+netrc_file="${HOME}/.netrc"
+trap '/bin/rm -f "${netrc_file}"' EXIT
+
+if [ -n "${REPOSITORY_TOKEN}" ]
+then
+        if [ -z "${repository_username}" ]
+        then
+                repository_username="x-access-token"
+        fi
+
+        (
+                umask 077
+                /bin/cat << EOF > "${netrc_file}"
 machine github.com
 login ${repository_username}
 password ${REPOSITORY_TOKEN}
 EOF
+        )
+        /bin/chmod 600 "${netrc_file}"
+fi
 
-#I only use the .netrc file for git commands and I construct it and remove it every time I want to use it
-#if I need a .netrc file for curl (for example) I construct a custom file name and use the custom file so there is no clash
-chmod 600 ${HOME}/.netrc
+# Assemble GitHub repository URL from split components
+git_host="github.com"
+repo_url="https://${git_host}/${repository_ownername}/${repository_name}.git"
 
-/usr/bin/git clone --depth 1 https://github.com/${repository_ownername}/${repository_name}.git
-
+# Perform shallow clone and capture exit code safely
+set +e
+/usr/bin/git clone --depth 1 "${repo_url}"
 error_code="$?"
-/bin/rm ${HOME}/.netrc
+set -e
 
-if ( [ "${error_code}" != "0" ] )
+/bin/rm -f "${netrc_file}"
+
+if [ "${error_code}" -ne 0 ]
 then
-        status "git clone exited with error code ${error_code}"
+        status "Error: git clone exited with error code ${error_code}."
         exit 1
 fi
+
+status "Success! Cloned ${repository_ownername}/${repository_name} from GitHub."
+
+exit 0
+
 
 
 
