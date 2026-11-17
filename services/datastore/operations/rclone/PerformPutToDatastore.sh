@@ -64,7 +64,7 @@ fi
 # Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"  "${2}"  2>/dev/null
 }
 
 # Validate mandatory positional parameters
