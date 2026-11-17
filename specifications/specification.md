@@ -236,10 +236,53 @@ This is the username of the user that you are currently using to access the appl
 Personal access tokens are preferred to passwords, so, if you wish to, you can generate personal access tokens at:
 
 Github: www.github.com/settings/tokens  
-Gitlab: www.gitlab.com/profile/personal_access_tokens
+Gitlab: www.gitlab.com/profile/personal_access_tokens  
 Bitbucket: support.atlassian.com/bitbucket-cloud/docs/create-a-repository-access-token
 
 Make sure these tokens have the rights to create and destroy repositories as well as to read and write from them. Most likely, you will want to have a separate account with your git provider for your associated application deployments. 
+
+-------
+
+### APPLICATION_REPOSITORY_EMAIL
+
+The email address of your account with your git provider of choice. Some providers require the email address for authentication purposes (bitbucket) whilst other providers are content with just the username). So you can fill this in if you find you need it
+
+-----
+
+### CONFIGURATION_REPOSITORY_PROVIDER
+
+This is the git service provider where your configuration repositories are hosted. It has to be one of "github", "bitbucket" or "gitlab". If you fill this variable with one of those three exact strings, then, that will tell us who your configuration settings are hosted with. It may or may not be hosted with the same provider as the infrastructure code or the application code for the agile deployment toolkit. So, you could have your infrastructure code hosted on github, your application code on bitbucket and your configuration settings on gitlab. Remember with configuration settings repositories you shouldn't ever store any senstive credentials in there just stuff that isn't security relevant like how many servers you are going to spin up and what email service you want to use (but not the passwords for that email service, you see?). 
+
+-----
+
+### CONFIGURATION_REPOSITORY_OWNER
+
+This is the username of the user who owns (or created) your configuration repositories with your chosen git service provider
+
+-----
+
+### CONFIGURATION_REPOSITORY_USERNAME
+
+This is the username of the user that you are currently using to access the configuration repositories. For example, the repositories might be owned by userA and are kept private but, userB is granted access. In this case the APPLICATION_REPOSITORY_OWNER would be userA and the APPLICATION_REPOSITORY_USERNAME would be userB. If you are the application repository owner, then this username and the owner name above will be the same.
+
+
+-----
+
+### CONFIGURATION_REPOSITORY_TOKEN
+
+Personal access tokens are preferred to passwords, so, if you wish to, you can generate personal access tokens at:
+
+Github: www.github.com/settings/tokens  
+Gitlab: www.gitlab.com/profile/personal_access_tokens  
+Bitbucket: support.atlassian.com/bitbucket-cloud/docs/create-a-repository-access-token
+
+For the scripts to read your configuration settings the token you generate and use will have to have read access to the configuration repositories. If you want to make adjustments to the configuration settings maybe the best way is simply through the GUI of the git provider or you can use git to manage your configuration repositories from the command line. 
+
+-------
+
+### CONFIGURATION_REPOSITORY_EMAIL
+
+The email address of your account with your git provider of choice. Some providers require the email address for authentication purposes (bitbucket) whilst other providers are content with just the username). So you can fill this in if you find you need it. I don't anticipate it being needed for the configuration repositories but its here for consistency of approach
 
 ------
 
