@@ -1,3 +1,16 @@
+
+these scripts are essentially common to all the repositores of the agile deployment toolkit but I decided to duplicate them for each repository class
+which has the downside of potential code drift but the upside of allowing
+dicergence if there is a want to have customisations for a particular
+repository class and also if you make changes to these scripts for
+one server class you dont have to worry about unintended.consequences
+on your other repository classes so I decided not to have
+a common repository and rather have each repository paddle its own canoe
+i am undecided what was ultimately best because theres trade offs in both directions.
+ultimaely a common repository adds complexity and management a lack of a common
+repository increases code maintenance.
+
+
 The cleanest way to share services/datastore/operations across all Wintersys ADT repositories without duplicating code is to extract it into a dedicated Git repository and pull it in as a Git submodule.
 Because your toolkit uses #!/bin/sh, full binary paths, and dynamically resolves BUILD_HOME from /home/buildhome.dat, these scripts are already self-contained and portable across server roles (Build Machine, Web Server, Database, Reverse Proxy, Autoscaler, and Authenticator).
 
