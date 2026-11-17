@@ -152,6 +152,6 @@ then
         done
 fi
 
-status "Success! Completed datastore mount for '${active_bucket}'."
+status "Success! Completed datastore mount for '${active_bucket}'." "no"
 exit 0
 
