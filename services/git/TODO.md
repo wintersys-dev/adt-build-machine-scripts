@@ -5,6 +5,12 @@ this script can then be called from interrogate repository and the state of the 
 
 the curl commands need to be written so that the credentials don't show up in the process tree
 
+this keeps the credentials out of the process tree
+printf 'header = "Authorization: Bearer %s"\n' "$YOUR_GITHUB_TOKEN" | curl -L -K - \
+  -o dbp.dat \
+  https://raw.githubusercontent.com/adt-demos/communitybuilder-webroot-sourcecode-baseline/main/dbp.dat
+
+
 
 test all the git changes I have made and slim down the interrogation process by not cloning the whole repository and only looking for specific files
 
