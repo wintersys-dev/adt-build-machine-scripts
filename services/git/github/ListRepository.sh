@@ -12,7 +12,7 @@
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
+#:   BUILD_HOME       Resolved automatically from /home/homedir.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
@@ -72,7 +72,7 @@ fi
 repository_ownername="${1}"
 repository_name="${2}"
 
-software_file="${HOME}/configuration/software.dat"
+software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
         status "Error: Cannot read software configuration file at ${software_file}"
@@ -87,7 +87,7 @@ then
         exit 1
 fi
 
-worker_script="${HOME}/services/git/github/${orchestration_tool}/list_repository.sh"
+worker_script="${BUILD_HOME}/services/git/github/${orchestration_tool}/list_repository.sh"
 
 if [ ! -x "${worker_script}" ]
 then
