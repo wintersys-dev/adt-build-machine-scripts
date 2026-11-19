@@ -1,4 +1,8 @@
 
+
+test all the git changes I have made and slim down the interrogation process by not cloning the whole repository and only looking for specific files
+
+need to see if the api method of cloning is a runner and also, all the CloneRepository.sh calls in various scripts on all machine types need to be tested
 get the application type file from the git repository to tell what type of application it is
 
 curl -O https://raw.githubusercontent.com/adt-demos/communitybuilder-webroot-sourcecode-baseline/main/dbp.dat
