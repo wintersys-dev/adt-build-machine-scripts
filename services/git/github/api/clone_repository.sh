@@ -128,8 +128,8 @@ case "${HTTP_CODE}" in
                 fi
 
                 # Normalise CRLF (^M) line endings to LF on extracted text files while skipping binary assets
-                /usr/bin/find "${destination_directory}" -type f -exec /usr/bin/grep -Il '' {} + | /usr/bin/xargs -r /bin/sed -i 's/\r$//'
-
+                /usr/bin/find "${destination_directory}" -type f -exec /usr/bin/grep -IlZ "" {} + | /usr/bin/xargs -0 -r /bin/sed -i 's/\r$//'
+                
                 /bin/echo "${destination_directory}"
                 exit 0
                 ;;
