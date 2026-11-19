@@ -15,8 +15,8 @@
 #:   HOME       Resolved automatically from /home/homedir.dat
 #:
 #: Dependencies:
-#:   - /home/homedir.dat
-#:   - ${HOME}/utilities/config/ExtractConfigValue.sh
+#:   - /home/buildhome.dat
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - External binaries: cat, curl, cut, echo, grep, jq, sed
 #:
 #: Exit Codes:
@@ -66,8 +66,8 @@ status()
 
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        /bin/echo "Error: Repository owner name and repository name arguments are required." >&2
-        /bin/echo "Usage: $0 <repository_ownername> <repository_name>" >&2
+        status "Error: Repository owner name and repository name arguments are required." 
+        status "Usage: $0 <repository_ownername> <repository_name>" 
         exit 1
 fi
 
@@ -75,13 +75,13 @@ repository_ownername="${1}"
 repository_name="${2}"
 
 set +e
-REPOSITORY_TOKEN="$(${HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYTOKEN')"
-ATLASSIAN_EMAIL="$(${HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYEMAIL')"
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')"
+ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL')"
 set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ] || [ -z "${ATLASSIAN_EMAIL}" ]
 then
-        /bin/echo "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN or APPLICATIONREPOSITORYEMAIL)." >&2
+        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN or APPLICATIONREPOSITORYEMAIL)."
         exit 1
 fi
 
@@ -111,24 +111,24 @@ case "${REPO_HTTP_CODE}" in
                 exit 0
                 ;;
         401)
-                /bin/echo "Error 401: Unauthorized. Your REPOSITORY_TOKEN or ATLASSIAN_EMAIL is invalid or has expired." >&2
+                status "Error 401: Unauthorized. Your REPOSITORY_TOKEN or ATLASSIAN_EMAIL is invalid or has expired." 
                 exit 401
                 ;;
         403)
-                /bin/echo "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}." >&2
+                status "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}." 
                 exit 403
                 ;;
         429)
-                /bin/echo "Error 429: Rate Limit Exceeded. Back off request frequency." >&2
+                status "Error 429: Rate Limit Exceeded. Back off request frequency." 
                 exit 429
                 ;;
         5*)
-                /bin/echo "Error ${REPO_HTTP_CODE}: Bitbucket Gateway or Remote Server Exception." >&2
+                status "Error ${REPO_HTTP_CODE}: Bitbucket Gateway or Remote Server Exception." 
                 exit 500
                 ;;
         *)
-                /bin/echo "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." >&2
-                /bin/echo "API Detail: ${REPO_BODY}" >&2
+                status "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
+                status "API Detail: ${REPO_BODY}" 
                 exit 1
                 ;;
 esac
@@ -161,7 +161,7 @@ case "${COMMITS_HTTP_CODE}" in
                 exit 0
                 ;;
         *)
-                /bin/echo "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits." >&2
+                status "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits." 
                 /bin/echo "API Detail: ${COMMITS_BODY}" >&2
                 exit 1
                 ;;
