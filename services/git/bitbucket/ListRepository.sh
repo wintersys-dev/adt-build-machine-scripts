@@ -40,13 +40,26 @@
 
 set -e
 
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
         exit 1
 fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
 
 # Input validation
 if [ -z "${1}" ] || [ -z "${2}" ] 
