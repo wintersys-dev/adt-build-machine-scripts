@@ -15,7 +15,7 @@
 #:   $4         [Required] Local destination directory for the extracted files.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
@@ -83,7 +83,7 @@ repository_name="${3}"
 destination_directory="${4}"
 
 set +e
-REPOSITORY_TOKEN="$(${HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYTOKEN')"
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')"
 set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ]
