@@ -13,7 +13,7 @@
 #:   $2         [Required] The name/slug of the GitLab project to inspect.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/homedir.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
@@ -76,7 +76,7 @@ repository_ownername="${1}"
 repository_name="${2}"
 
 set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')"
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
 set -e
 
 
