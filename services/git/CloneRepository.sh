@@ -68,7 +68,7 @@ then
         exit 1
 fi
 
-repository_provider="${1:-$(${BUILD_HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYPROVIDER')}"
+repository_provider="${1:-${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')}"
 repository_ownername="${2}"
 repository_name="${3}"
 repository_branch="${4}"
