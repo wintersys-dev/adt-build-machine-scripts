@@ -19,7 +19,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
-#:   - ${BUILD_HOME}/utilities/config/ExtractConfigValue.sh
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - ${BUILD_HOME}/services/git/${repository_provider}/${orchestration_tool}/clone_repository.sh
 #:   - External binaries: cat, echo, awk, tr, ls
 #:
