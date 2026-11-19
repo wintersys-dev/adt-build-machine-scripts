@@ -313,57 +313,119 @@ Use code with caution.
 
 3. Production-Ready install_software.sh (With Bootstrap Order & Role Argument)
 
+Yes—you can and should use ADT's built-in GetFromDatastore.sh and PutToDatastore.sh helpers instead of hardcoding raw curl or s5cmd S3 commands.
+Using ADT's native datastore wrapper scripts keeps your refactored installer 100% consistent with the rest of the toolkit:
+• Provider-agnostic: It automatically uses whichever S3 provider, credentials, and endpoint you already configured in ADT (~/.s5cfg, ~/.s3cfg, or ~/.config/rclone/rclone.conf).
+• Private by default: Your artifact bucket stays completely private—no public bucket policies or manual SigV4 headers needed.
+• No duplicated S3 config: You don't have to export extra AWS_ACCESS_KEY_ID or S3_MIRROR_URL environment variables.
+
+How to Handle the Bootstrap Ordering
+
+There is only one ordering rule to respect: GetFromDatastore.sh and PutToDatastore.sh depend on your configured datastore CLI (s5cmd, rclone, or s3cmd) already being installed.
+1. Install your datastore CLI first (from GitHub or nala if not yet present).
+2. Every subsequent tool (doctl, vultr-cli, exo, goofys, geesefs, lego, acme.sh) uses GetFromDatastore.sh first, falls back to upstream on cache miss, and seeds the bucket via PutToDatastore.sh.
+
+POSIX install_software.sh Using ADT Datastore Scripts
+
 sh
 #!/bin/sh
 set -eu
 
 MANIFEST="${1:?Usage: $0 <path-to-manifest.dat>}"
+BUILD_HOME="${BUILD_HOME:-/root}"
+DATASTORE_OPS="${BUILD_HOME}/providerscripts/datastore"
+ARTIFACT_BUCKET="${ARTIFACT_BUCKET:-adt-binary-cache}"
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
+
 SYSTEM_PKGS=""
 PINNED_LIST=""
 PIP_LIST=""
 
+# Pull-through cache using ADT's native GetFromDatastore.sh & PutToDatastore.sh
+fetch_artifact() {
+    rel_path="$1"      # e.g., doctl/1.115.0/doctl-1.115.0-linux-amd64.tar.gz
+    upstream_url="$2"  # Upstream GitHub release URL
+    dest="$3"          # Local temp destination path
+
+    get_script="${DATASTORE_OPS}/GetFromDatastore.sh"
+    put_script="${DATASTORE_OPS}/PutToDatastore.sh"
+
+    # 1. Try ADT Datastore first (if datastore scripts & CLI are ready)
+    if [ -x "$get_script" ]; then
+        if "$get_script" "$ARTIFACT_BUCKET" "$rel_path" "$dest" >/dev/null 2>&1 && [ -s "$dest" ]; then
+            printf '[DATASTORE HIT] %s\n' "$rel_path"
+            return 0
+        fi
+    fi
+
+    # 2. Fallback to upstream on cache miss or datastore unavailability
+    printf '[DATASTORE MISS] Fetching %s from upstream...\n' "$rel_path"
+    curl -fsSL --retry 2 --connect-timeout 15 "$upstream_url" -o "$dest"
+
+    # 3. Seed ADT Datastore for future builds
+    if [ -x "$put_script" ]; then
+        "$put_script" "$ARTIFACT_BUCKET" "$dest" "$rel_path" >/dev/null 2>&1 || true
+    fi
+}
+
 install_pinned_binary() {
     tool="$1"
     ver="$2"
+    archive="${TMP_DIR}/${tool}-${ver}.pkg"
 
     case "$tool" in
-        doctl)
-            url="https://github.com{ver}/doctl-${ver}-linux-amd64.tar.gz"
-            curl -fsSL "$url" | tar -xz -C /usr/local/bin doctl
-            ;;
-        vultr-cli)
-            url="https://github.com{ver}/vultr-cli_v${ver}_linux_amd64.tar.gz"
-            curl -fsSL "$url" | tar -xz -C /usr/local/bin vultr-cli
-            ;;
-        exo)
-            url="https://github.com{ver}/exoscale-cli_${ver}_linux_amd64.tar.gz"
-            curl -fsSL "$url" | tar -xz -C /usr/local/bin exo
-            ;;
         s5cmd)
+            rel="s5cmd/${ver}/s5cmd_${ver}_Linux-64bit.tar.gz"
             url="https://github.com{ver}/s5cmd_${ver}_Linux-64bit.tar.gz"
-            curl -fsSL "$url" | tar -xz -C /usr/local/bin s5cmd
+            fetch_artifact "$rel" "$url" "$archive"
+            tar -xzf "$archive" -C /usr/local/bin s5cmd
             ;;
         rclone)
+            rel="rclone/${ver}/rclone-v${ver}-linux-amd64.zip"
             url="https://rclone.org{ver}/rclone-v${ver}-linux-amd64.zip"
-            curl -fsSL "$url" -o /tmp/rclone.zip
-            unzip -p /tmp/rclone.zip "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
-            rm -f /tmp/rclone.zip
+            fetch_artifact "$rel" "$url" "$archive"
+            unzip -p "$archive" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
+            ;;
+        doctl)
+            rel="doctl/${ver}/doctl-${ver}-linux-amd64.tar.gz"
+            url="https://github.com{ver}/doctl-${ver}-linux-amd64.tar.gz"
+            fetch_artifact "$rel" "$url" "$archive"
+            tar -xzf "$archive" -C /usr/local/bin doctl
+            ;;
+        vultr-cli)
+            rel="vultr-cli/${ver}/vultr-cli_v${ver}_linux_amd64.tar.gz"
+            url="https://github.com{ver}/vultr-cli_v${ver}_linux_amd64.tar.gz"
+            fetch_artifact "$rel" "$url" "$archive"
+            tar -xzf "$archive" -C /usr/local/bin vultr-cli
+            ;;
+        exo)
+            rel="exo/${ver}/exoscale-cli_${ver}_linux_amd64.tar.gz"
+            url="https://github.com{ver}/exoscale-cli_${ver}_linux_amd64.tar.gz"
+            fetch_artifact "$rel" "$url" "$archive"
+            tar -xzf "$archive" -C /usr/local/bin exo
             ;;
         goofys)
+            rel="goofys/${ver}/goofys"
             url="https://github.com{ver}/goofys"
-            curl -fsSL "$url" -o /usr/local/bin/goofys
+            fetch_artifact "$rel" "$url" /usr/local/bin/goofys
             ;;
         geesefs)
+            rel="geesefs/${ver}/geesefs-linux-amd64"
             url="https://github.com{ver}/geesefs-linux-amd64"
-            curl -fsSL "$url" -o /usr/local/bin/geesefs
+            fetch_artifact "$rel" "$url" /usr/local/bin/geesefs
             ;;
         lego)
+            rel="lego/${ver}/lego_v${ver}_linux_amd64.tar.gz"
             url="https://github.com{ver}/lego_v${ver}_linux_amd64.tar.gz"
-            curl -fsSL "$url" | tar -xz -C /usr/local/bin lego
+            fetch_artifact "$rel" "$url" "$archive"
+            tar -xzf "$archive" -C /usr/local/bin lego
             ;;
         acme.sh)
+            rel="acme.sh/${ver}/acme.sh"
             url="https://githubusercontent.com{ver}/acme.sh"
-            curl -fsSL "$url" -o /usr/local/bin/acme.sh
+            fetch_artifact "$rel" "$url" /usr/local/bin/acme.sh
             ;;
         *)
             printf 'Unknown PINNED tool: %s\n' "$tool" >&2
@@ -383,40 +445,40 @@ install_pinned_pip() {
     ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
 }
 
-# 1. Parse manifest into buckets first
+# 1. Parse manifest and prioritize datastore tools (s5cmd/rclone) first
 while IFS=':' read -r type arg1 arg2; do
     case "$type" in
         ""|\#*) continue ;;
-        SYSTEM)     SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
-        PINNED)     PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
-        PINNED_PIP) PIP_LIST="$PIP_LIST ${arg1}:${arg2}" ;;
-        *)
-            printf 'Unknown directive: %s\n' "$type" >&2
-            exit 1
+        SYSTEM) SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
+        PINNED)
+            case "$arg1" in
+                s5cmd|rclone) PINNED_LIST="${arg1}:${arg2} $PINNED_LIST" ;;
+                *)            PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
+            esac
             ;;
+        PINNED_PIP) PIP_LIST="$PIP_LIST ${arg1}:${arg2}" ;;
     esac
 done < "$MANIFEST"
 
-# 2. Install SYSTEM packages FIRST (ensures curl, tar, unzip, python3-venv exist)
+# 2. Install SYSTEM packages first (provides curl, tar, unzip, s3cmd if listed)
 if [ -n "$SYSTEM_PKGS" ]; then
     nala update
     # shellcheck disable=SC2086
     nala install -y curl tar unzip ca-certificates $SYSTEM_PKGS
 fi
 
-# 3. Install PINNED binaries
+# 3. Install PINNED binaries (datastore tool installs first, then caches the rest)
 for item in $PINNED_LIST; do
     install_pinned_binary "${item%%:*}" "${item#*:}"
 done
 
-# 4. Install PINNED_PIP tools
+# 4. Install PINNED_PIP packages
 for item in $PIP_LIST; do
     install_pinned_pip "${item%%:*}" "${item#*:}"
 done
 Use code with caution.
-This eliminates ~90% of the boilerplate in installscripts/ while making your builds faster, cleaner, and completely predictable across every server role.
-If you'd like, let me know if any of your old installer scripts performed post-install steps (like creating systemd services, sysctl tweaks, or www-data permissions), and we can keep those cleanly separated in a small configure_role.sh script.
-
+(Note: Verify the exact positional argument order of your fork's GetFromDatastore.sh and PutToDatastore.sh—in Wintersys ADT, PutToDatastore.sh typically takes <source_file> <datastore_path> <bucket_name> or <bucket_name> <source_file> <datastore_path> depending on the version of providerscripts/datastore/ you are running.)
+If you paste the top 10 lines of your GetFromDatastore.sh and PutToDatastore.sh scripts, I can verify the exact parameter order and flags so it drops straight into your fork without adjustment.
 
 
 
