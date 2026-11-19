@@ -44,12 +44,6 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
-# Route status log entries to the centralized logging utility
-status()
-{
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
-}
-
 # Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
@@ -65,6 +59,12 @@ else
         /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
+
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
 
 # Validate minimum required positional arguments
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ]
