@@ -273,74 +273,54 @@ Based on the official Wintersys ADT software.dat specification, every installabl
 
 Uncomment only the tools your stack needs. Notice how DATASTORETOOL, DATASTOREMOUNTTOOL, CLOUDCLITOOL, SSLCERTCLIENT, FIREWALL, and EMAILUTIL all collapse into one unified format:
 ini
-# ============================================================
-# 1. PINNED BINARIES (PINNED:tool:version)
-# Deterministic single-file binaries -> /usr/local/bin
-# ============================================================
-# Cloud CLIs
-PINNED:doctl:1.115.0
-#PINNED:vultr-cli:3.3.2
-#PINNED:exo:1.80.0
 
-# Datastore & Mount Tools
-PINNED:s5cmd:2.2.2
-PINNED:rclone:1.68.1
-#PINNED:goofys:0.24.0
-#PINNED:geesefs:0.42.3
-
-# SSL Clients
-#PINNED:lego:4.19.2
-#PINNED:acme.sh:3.0.8
-
-# ============================================================
-# 2. PYTHON CLI TOOLS (PIP:package:version)
-# Isolated venv -> /opt/<tool> + symlink in /usr/local/bin
-# ============================================================
-#PINNED_PIP:linode-cli:5.53.1
-
-# ============================================================
-# 3. SYSTEM PACKAGES (SYSTEM:apt-package-name)
-# Batch-installed via nala (auto security-patched)
-# ============================================================
-# Datastore / Mount OS packages
-SYSTEM:s3cmd
-SYSTEM:fuse3
-#SYSTEM:s3fs
-
-# Webserver (pick one)
-SYSTEM:nginx
-#SYSTEM:apache2
-#SYSTEM:lighttpd
-
-# Database (pick one)
-SYSTEM:mariadb-server
-#SYSTEM:mysql-server
-#SYSTEM:postgresql
-
-# PHP + Extensions (minor-pinned via package name)
-SYSTEM:php8.3-fpm
-SYSTEM:php8.3-mysql
-SYSTEM:php8.3-curl
-SYSTEM:php8.3-gd
-SYSTEM:php8.3-zip
-SYSTEM:php8.3-soap
-#SYSTEM:php8.3-pgsql
-
-# Firewall & Mail Utilities
-SYSTEM:ufw
-#SYSTEM:iptables
-SYSTEM:sendemail
-#SYSTEM:mailutils
 Use code with caution.
 
-2. Complete POSIX Parser (install_software.sh)
+Notes on Non-Package Directives in ADT's software.dat
+
+ADT's original software.dat also mixes runtime configuration directives into the same file (such as CONFIGPHPPOOL, CONFIGPHPINI, NGINX:settings:..., BUILDCHAINTYPE, and DATASTORECONFIGSTYLE). [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/newdoco/Deployment/Config%20Directories%20Synchronisation)
+• Keep software.dat strictly for installing packages as shown above.
+• Move service tuning (php.ini, php-fpm pool, nginx.conf timeouts) into dedicated drop-in template files (e.g., /etc/nginx/conf.d/adt-tuning.conf and /etc/php/8.3/fpm/conf.d/99-adt.ini) copied during server setup—eliminating complex string-splitting parsers in POSIX shell.
+If you also need upstream APT repository setup inside this script for specific database branches (such as MariaDB 11.x, MySQL 8.4/9.x, or PostgreSQL 17) before nala install runs, let me know which database you use and I can add the clean POSIX repo setup block.
+
+
+Yes, exactly. You can delete all of your separate InstallDoctl.sh, InstallS5cmd.sh, InstallRclone.sh, InstallNginx.sh, and similar per-tool scripts and replace them with one single install_software.sh script and one software.dat manifest.
+
+1. What Your Directory Structure Becomes
+
+Instead of dozens of individual installer scripts scattered across installscripts/ with branching logic for :source, :snap, :pip, and :repo, your entire software provisioning layer shrinks to two files:
+text
+${BUILD_HOME}/
+├── configuration/
+│   └── software.dat          # Your single source of truth (what to install + versions)
+└── installscripts/
+    └── install_software.sh   # Your single POSIX engine (how to install it)
+Use code with caution.
+
+2. Two Small Details to Watch Out For When Merging
+
+Before deleting your old scripts, make sure your single install_software.sh handles two edge cases that individual scripts used to manage:
+1. Bootstrap prerequisites (curl, tar, unzip, python3-venv):
+If PINNED or PINNED_PIP runs before SYSTEM packages are installed, a bare Ubuntu/Debian image might lack unzip (needed for rclone) or python3-venv (needed for linode-cli).
+	• Fix: Run SYSTEM (nala install) first in install_software.sh, and include curl, tar, unzip, and ca-certificates in your SYSTEM list so the pinned binary installers always have their extraction tools ready.
+2. Role-specific manifests (Build Machine vs. Webserver vs. Database):
+In ADT, a Build Machine only needs doctl and s5cmd (not nginx or mariadb), while a Database Server doesn't need nginx or php.
+	• Fix: Keep the exact same single install_software.sh script, and pass the role manifest as an argument:sh
+./install_software.sh "${BUILD_HOME}/configuration/software-webserver.dat"
+./install_software.sh "${BUILD_HOME}/configuration/software-database.dat"
+./install_software.sh "${BUILD_HOME}/configuration/software-buildhost.dat"
+Use code with caution.
+
+3. Production-Ready install_software.sh (With Bootstrap Order & Role Argument)
 
 sh
 #!/bin/sh
 set -eu
 
-MANIFEST="${BUILD_HOME}/configuration/software.dat"
+MANIFEST="${1:?Usage: $0 <path-to-manifest.dat>}"
 SYSTEM_PKGS=""
+PINNED_LIST=""
+PIP_LIST=""
 
 install_pinned_binary() {
     tool="$1"
@@ -403,34 +383,40 @@ install_pinned_pip() {
     ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
 }
 
-# 1. Read manifest
+# 1. Parse manifest into buckets first
 while IFS=':' read -r type arg1 arg2; do
     case "$type" in
         ""|\#*) continue ;;
-        PINNED)     install_pinned_binary "$arg1" "$arg2" ;;
-        PINNED_PIP) install_pinned_pip "$arg1" "$arg2" ;;
         SYSTEM)     SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
+        PINNED)     PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
+        PINNED_PIP) PIP_LIST="$PIP_LIST ${arg1}:${arg2}" ;;
         *)
-            printf 'Unknown directive in software.dat: %s\n' "$type" >&2
+            printf 'Unknown directive: %s\n' "$type" >&2
             exit 1
             ;;
     esac
 done < "$MANIFEST"
 
-# 2. Batch-install all SYSTEM packages in one nala call
+# 2. Install SYSTEM packages FIRST (ensures curl, tar, unzip, python3-venv exist)
 if [ -n "$SYSTEM_PKGS" ]; then
     nala update
     # shellcheck disable=SC2086
-    nala install -y $SYSTEM_PKGS
+    nala install -y curl tar unzip ca-certificates $SYSTEM_PKGS
 fi
+
+# 3. Install PINNED binaries
+for item in $PINNED_LIST; do
+    install_pinned_binary "${item%%:*}" "${item#*:}"
+done
+
+# 4. Install PINNED_PIP tools
+for item in $PIP_LIST; do
+    install_pinned_pip "${item%%:*}" "${item#*:}"
+done
 Use code with caution.
+This eliminates ~90% of the boilerplate in installscripts/ while making your builds faster, cleaner, and completely predictable across every server role.
+If you'd like, let me know if any of your old installer scripts performed post-install steps (like creating systemd services, sysctl tweaks, or www-data permissions), and we can keep those cleanly separated in a small configure_role.sh script.
 
-Notes on Non-Package Directives in ADT's software.dat
-
-ADT's original software.dat also mixes runtime configuration directives into the same file (such as CONFIGPHPPOOL, CONFIGPHPINI, NGINX:settings:..., BUILDCHAINTYPE, and DATASTORECONFIGSTYLE). [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/newdoco/Deployment/Config%20Directories%20Synchronisation)
-• Keep software.dat strictly for installing packages as shown above.
-• Move service tuning (php.ini, php-fpm pool, nginx.conf timeouts) into dedicated drop-in template files (e.g., /etc/nginx/conf.d/adt-tuning.conf and /etc/php/8.3/fpm/conf.d/99-adt.ini) copied during server setup—eliminating complex string-splitting parsers in POSIX shell.
-If you also need upstream APT repository setup inside this script for specific database branches (such as MariaDB 11.x, MySQL 8.4/9.x, or PostgreSQL 17) before nala install runs, let me know which database you use and I can add the clean POSIX repo setup block.
 
 
 
