@@ -18,7 +18,7 @@
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - ${HOME}/services/git/${repository_provider}/ListRepository.sh
+#:   - ${BUILD_HOME}/services/git/${repository_provider}/ListRepository.sh
 #:   - External binaries: cat, echo, grep, cut
 #:
 #: Exit Codes:
@@ -42,6 +42,12 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
+
 # Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
@@ -54,15 +60,15 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        status "Application root configuration file missing at /home/buildhome.dat" 
         exit 1
 fi
 
 # Validate minimum required positional arguments
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
 then
-        /bin/echo "Error: 3 arguments are required" >&2
-        /bin/echo "Usage: $0 <repository_provider> <repository_ownername> <repository_name> " >&2
+        status "Error: 3 arguments are required" 
+        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> "
         exit 1
 fi
 
@@ -75,13 +81,13 @@ provider_script="${BUILD_HOME}/services/git/${repository_provider}/ListRepositor
 
 if [ ! -f "${provider_script}" ]
 then
-        /bin/echo "Error: Git provider script not found at ${provider_script}" >&2
+        status "Error: Git provider script not found at ${provider_script}" 
         exit 1
 fi
 
 if [ ! -x "${provider_script}" ]
 then
-        /bin/echo "Error: Git provider script at ${provider_script} is not executable." >&2
+        status "Error: Git provider script at ${provider_script} is not executable." 
         exit 1
 fi
 
@@ -93,7 +99,7 @@ set -e
 
 if [ "${exit_code}" -ne 0 ]
 then
-        /bin/echo "Error: ${provider_script} returned error code ${exit_code}." >&2
+        status "Error: ${provider_script} returned error code ${exit_code}."
         exit 1
 fi
 
