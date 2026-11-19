@@ -12,7 +12,7 @@
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
