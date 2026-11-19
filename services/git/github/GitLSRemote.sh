@@ -1,30 +1,28 @@
 #!/bin/sh
-#: Name:        GitLSRemote.sh
-#: Purpose:     Checks whether a GitHub repository exists and resolves its HEAD reference via git ls-remote.
+#: Name:        ListRepository.sh
+#: Purpose:     Checks whether a Bitbucket repository is "full", "empty", or "none".
 #: Author:      Peter Winter
-#: Date:        17/11/2026
+#: Date:        18/11/2026
 #: Version:     1.0
 #:
-#: Usage:       GitLSRemote.sh "<repository_ownername>" "<repository_name>" ["<repository_username>"]
-#:              GitLSRemote.sh [-h|--help]
+#: Usage:       ListRepository.sh <repository_ownername> <repository_name>
 #:
 #: Parameters:
-#:   $1         [Required] GitHub organisation or individual account namespace
-#:   $2         [Required] Case-sensitive name of the target GitHub repository
-#:   $3         [Optional] GitHub username associated with REPOSITORY_TOKEN (defaults to x-access-token)
+#:   $1         [Required] The Bitbucket workspace or repository owner name.
+#:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
-#:   REPOSITORY_TOKEN Optional personal access token for private repository authentication
+#:   HOME       Resolved automatically from /home/homedir.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - LogStatusMessages.sh
-#:   - External binaries: cat, echo, grep, cut, chmod, rm, git
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh
+#:   - External binaries: awk, cat, echo, tr
 #:
 #: Exit Codes:
-#:   0          Remote repository exists and HEAD reference found
-#:   1          Missing required arguments, missing config file, or git ls-remote failure
+#:   0          Repository state ("full", "empty", or "none") printed to stdout
+#:   1          Missing arguments, layout faults, configuration errors, or worker failure
 ###################################################################################
 # License Agreement:
 # This file is part of The Wintersys Agile Deployment Toolkit.
@@ -40,7 +38,6 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 
-# Exit immediately if any command exits with a non-zero status
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -50,12 +47,11 @@ then
         exit 0
 fi
 
-# Resolve the toolkit root directory from the system tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
         exit 1
 fi
 
@@ -65,65 +61,64 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
 }
 
-# Validate minimum required positional arguments
-if [ -z "${1}" ] || [ -z "${2}" ]
+# Input validation
+if [ -z "${1}" ] || [ -z "${2}" ] 
 then
-        status "Error: 2 arguments are required and 1 optional argument."
-        status "Usage: $0 <repository_ownername> <repository_name> [repository_username]"
+        status "Error: Repository owner name, and repository name arguments are required." 
+        status "Usage: $0 <repository_ownername> <repository_name>" 
         exit 1
 fi
 
 repository_ownername="${1}"
 repository_name="${2}"
-repository_username="${3}"
 
-# Construct temporary .netrc with restricted permissions and guaranteed cleanup on exit
-netrc_file="${HOME}/.netrc"
-trap '/bin/rm -f "${netrc_file}"' EXIT
-
-if [ -n "${REPOSITORY_TOKEN}" ]
+software_file="${HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
-        if [ -z "${repository_username}" ]
-        then
-                repository_username="x-access-token"
-        fi
-
-        (
-                umask 077
-                /bin/cat << EOF > "${netrc_file}"
-machine github.com
-login ${repository_username}
-password ${REPOSITORY_TOKEN}
-EOF
-        )
-        /bin/chmod 600 "${netrc_file}"
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
 fi
 
-# Assemble GitHub repository URL from split components
-git_host="github.com"
-repo_url="https://${git_host}/${repository_ownername}/${repository_name}.git"
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
 
-# Perform remote repository lookup and capture exit code safely
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+        exit 1
+fi
+
+worker_script="${HOME}/services/git/github/${orchestration_tool}/list_repository.sh"
+
+if [ ! -x "${worker_script}" ]
+then
+        status "Error: Provider repository check script not found or not executable at ${worker_script}" 
+        exit 1
+fi
+
+# Temporary disable set -e to evaluate worker execution failures manually
 set +e
-remote_refs="$(/usr/bin/git ls-remote "${repo_url}" 2>/dev/null)"
-error_code="$?"
+output="$(${worker_script} "${repository_ownername}" "${repository_name}")"
+worker_status="$?"
 set -e
 
-/bin/rm -f "${netrc_file}"
-
-if [ "${error_code}" -ne 0 ]
+if [ "${worker_status}" -eq 0 ] && [ -n "${output}" ]
 then
-        status "Error: git ls-remote exited with error code ${error_code}."
+        case "${output}" in
+                full|empty|none)
+                        /bin/echo "${output}"
+                        exit 0
+                        ;;
+                *)
+                        /bin/echo "none"
+                        status "Error: Unexpected repository state returned: ${output}"
+                        exit 1
+                        ;;
+        esac
+else
+        /bin/echo "none"
+        status "Repository check failed for ${repository_ownername}/${repository_name}. Check your API token or configuration."
         exit 1
 fi
-
-if ! /bin/echo "${remote_refs}" | /usr/bin/grep -q 'HEAD'
-then
-        status "Error: No HEAD reference found for ${repository_ownername}/${repository_name} on GitHub."
-        exit 1
-fi
-
-/bin/echo "${remote_refs}" | /usr/bin/grep 'HEAD'
 
 exit 0
 
