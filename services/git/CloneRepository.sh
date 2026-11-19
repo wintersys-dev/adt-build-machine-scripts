@@ -1,31 +1,31 @@
 #!/bin/sh
-#: Name:        GitClone.sh
-#: Purpose:     Orchestrates repository cloning requests by delegating to the configured Git provider sub-driver.
+#: Name:        CloneRepository.sh
+#: Purpose:     Orchestrates repository cloning across configured Git providers.
 #: Author:      Peter Winter
-#: Date:        17/11/2026
+#: Date:        18/11/2026
 #: Version:     1.0
 #:
-#: Usage:       GitClone.sh "<repository_provider>" "<repository_ownername>" "<repository_name>" ["<repository_username>"]
-#:              GitClone.sh [-h|--help]
+#: Usage:       CloneRepository.sh <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>
+#:              CloneRepository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] Hosting vendor identifier (e.g. github, gitlab, bitbucket)
-#:   $2         [Required] Organisation or user namespace account name
-#:   $3         [Required] Case-sensitive target repository name
-#:   $4         [Optional] Account username or credential identifier for authenticated clones
+#:   $1         [Required] The Git provider name (e.g. bitbucket, github, gitlab).
+#:   $2         [Required] The workspace or repository owner name.
+#:   $3         [Required] The name/slug of the repository to clone.
+#:   $4         [Required] The target branch name to clone.
+#:   $5         [Required] The local destination directory path.
 #:
 #: Environment:
-#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - LogStatusMessages.sh
-#:   - ${BUILD_HOME}/services/git/<repository_provider>/GitClone.sh
+#:   - ${HOME}/services/git/${repository_provider}/GitClone.sh
 #:   - External binaries: cat, echo, grep, cut
 #:
 #: Exit Codes:
-#:   0          Repository cloned successfully via provider sub-driver
-#:   1          Missing required arguments, missing config/provider script, or sub-driver execution failure
+#:   0          Repository cloned cleanly by provider sub-driver
+#:   1          Missing arguments, layout faults, missing/non-executable sub-driver, or clone failure
 ###################################################################################
 # License Agreement:
 # This file is part of The Wintersys Agile Deployment Toolkit.
@@ -51,7 +51,7 @@ then
         exit 0
 fi
 
-# Resolve the toolkit root directory from the system tracking file
+# Resolve the toolkit root directory from the server tracking file
 if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -60,53 +60,46 @@ else
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
-status()
-{
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
-}
-
 # Validate minimum required positional arguments
-if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ]
 then
-        status "Error: 3 arguments are required and 1 optional argument."
-        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> [repository_username]"
+        /bin/echo "Error: 5 arguments are required with 1 optional argument." >&2
+        /bin/echo "Usage: $0 <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>" >&2
         exit 1
 fi
 
-repository_provider="${1}"
+repository_provider="${1:-$(${BUILD_HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYPROVIDER')}"
 repository_ownername="${2}"
 repository_name="${3}"
-repository_username="${4}"
+repository_branch="${4}"
+destination_directory="${5}"
 
 # Verify provider sub-driver script exists and is executable before delegating
-provider_script="${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh"
+provider_script="${BUILD_HOME}/services/git/${repository_provider}/CloneRepository.sh"
 
 if [ ! -f "${provider_script}" ]
 then
-        status "Error: Git provider script not found at ${provider_script}"
+        /bin/echo "Error: Git provider script not found at ${provider_script}" >&2
         exit 1
 fi
 
 if [ ! -x "${provider_script}" ]
 then
-        status "Error: Git provider script at ${provider_script} is not executable."
+        /bin/echo "Error: Git provider script at ${provider_script} is not executable." >&2
         exit 1
 fi
 
 # Delegate clone operation to the provider-specific sub-driver
 set +e
-"${provider_script}" "${repository_ownername}" "${repository_name}" "${repository_username}"
+"${provider_script}" "${repository_ownername}" "${repository_name}" "${repository_branch}" "${destination_directory}"
 exit_code="$?"
 set -e
 
 if [ "${exit_code}" -ne 0 ]
 then
-        status "Error: ${provider_script} exited with error status ${exit_code}."
+        /bin/echo "Error: ${provider_script} exited with error code ${exit_code}." >&2
         exit 1
 fi
-
-status "Success! Cloned ${repository_ownername}/${repository_name} via ${repository_provider}."
 
 exit 0
 
