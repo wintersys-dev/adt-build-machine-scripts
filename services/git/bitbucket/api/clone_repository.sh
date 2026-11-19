@@ -18,7 +18,7 @@
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - ${BUILD_HOME}/utilities/config/ExtractConfigValue.sh
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - External binaries: cat, curl, echo, mkdir, mktemp, printf, rm, sed, tar
 #:
 #: Exit Codes:
@@ -70,8 +70,8 @@ status()
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-        /bin/echo "Error: Branch, repository owner, repository name, and destination directory are required." >&2
-        /bin/echo "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>" >&2
+        status "Error: Branch, repository owner, repository name, and destination directory are required." 
+        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>" 
         exit 1
 fi
 
@@ -81,10 +81,9 @@ repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-
 set +e
-REPOSITORY_TOKEN="$(${HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYTOKEN')"
-ATLASSIAN_EMAIL="$(${HOME}/utilities/config/ExtractConfigValue.sh 'APPLICATIONREPOSITORYEMAIL')"
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')"
+ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL')"
 set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ] || [ -z "${ATLASSIAN_EMAIL}" ]
@@ -100,7 +99,6 @@ cleanup() {
         /bin/rm -f "${tmp_archive}"
 }
 trap cleanup EXIT INT TERM
-
 
 api_base="https://bitbucket.org"
 repo_endpoint="${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
@@ -126,7 +124,7 @@ case "${HTTP_CODE}" in
 
                 if [ "${tar_status}" -ne 0 ]
                 then
-                        /bin/echo "Error: Failed to extract repository archive into ${destination_directory}." >&2
+                        status "Error: Failed to extract repository archive into ${destination_directory}." 
                         exit 1
                 fi
 
@@ -134,31 +132,31 @@ case "${HTTP_CODE}" in
                 exit 0
                 ;;
         400)
-                /bin/echo "Error 400: Bad Request. Check branch or repository parameter syntax." >&2
+                status "Error 400: Bad Request. Check branch or repository parameter syntax." 
                 exit 400
                 ;;
         401)
-                /bin/echo "Error 401: Unauthorized. Your REPOSITORY_TOKEN is invalid or has expired." >&2
+                status "Error 401: Unauthorized. Your REPOSITORY_TOKEN is invalid or has expired." 
                 exit 401
                 ;;
         403)
-                /bin/echo "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}." >&2
+                status "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}." 
                 exit 403
                 ;;
         404)
-                /bin/echo "Error 404: Not Found. Repository ${repository_ownername}/${repository_name} or branch '${branch}' does not exist." >&2
+                status "Error 404: Not Found. Repository ${repository_ownername}/${repository_name} or branch '${branch}' does not exist." 
                 exit 404
                 ;;
         429)
-                /bin/echo "Error 429: Rate Limit Exceeded. Back off request frequency." >&2
+                status "Error 429: Rate Limit Exceeded. Back off request frequency." 
                 exit 429
                 ;;
         5*)
-                /bin/echo "Error ${HTTP_CODE}: Bitbucket Gateway or Remote Server Exception." >&2
+                status "Error ${HTTP_CODE}: Bitbucket Gateway or Remote Server Exception." 
                 exit 500
                 ;;
         *)
-                /bin/echo "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." >&2
+                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
                 exit 1
                 ;;
 esac
