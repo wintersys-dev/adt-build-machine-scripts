@@ -64,6 +64,40 @@ If you are pruning your fork today, delete all :source compilation blocks and :s
 If you'd like, share one of your current installer scripts (e.g., for your cloud CLI or datastore tool), and I can refactor it into a single-path pure-Bash function with checksum verification.
 
 
+To install a specific version of a package using nala, append =<version> directly to the package name, just like with apt:
+bash
+sudo nala install <package>=<version>
+Use code with caution.
+
+1. Find Available Versions
+
+Before installing, check the exact version string available in your configured repositories:
+bash
+nala show -a <package>
+Use code with caution.
+Look for the Version: line in the output (for example, 1.24.0-2ubuntu7.1).
+
+2. Install & Lock the Version
+
+Pass that exact version string to nala install along with -y for non-interactive Bash scripts:
+bash
+sudo nala install -y nginx=1.24.0-2ubuntu7.1
+Use code with caution.
+To prevent nala upgrade or apt upgrade from overwriting that pinned version later, hold the package immediately afterward:
+bash
+sudo apt-mark hold nginx
+Use code with caution.
+
+Important Caveat for Automated Toolkits
+
+Because standard Debian and Ubuntu repositories remove older .deb versions as soon as a new security update is published, hardcoding full Debian version strings (1.24.0-2ubuntu7.1) in software.dat will eventually break your builds once that version is purged from the mirrors.
+In an automated deployment toolkit:
+• Use nala install -y <package> (unpinned) for OS packages (nginx, mariadb-server, curl), or pin only via package name (php8.3-fpm) where the minor version is part of the package name itself.
+• Use tool:version only for direct binary downloads (GitHub Releases) and pip packages, where historical versions remain permanently downloadable.
+If you'd like, let me know which OS packages you are installing with nala (e.g., PHP, Nginx, MariaDB), and I can show you the safest way to pin or manage them in your build script.
+
+
+
 
 
 
