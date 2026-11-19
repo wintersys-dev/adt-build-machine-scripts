@@ -78,7 +78,7 @@ repository_name="${3}"
 destination_directory="${4}"
 
 set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')"
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
 set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ]
