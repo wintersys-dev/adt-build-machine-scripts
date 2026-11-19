@@ -91,7 +91,7 @@ then
         exit 1
 fi
 
-worker_script="${HOME}/services/git/bitbucket/${orchestration_tool}/clone_repository.sh"
+worker_script="${HOME}/services/git/github/${orchestration_tool}/clone_repository.sh"
 
 if [ ! -x "${worker_script}" ]
 then
