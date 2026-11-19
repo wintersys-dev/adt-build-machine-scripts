@@ -20,7 +20,7 @@
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - ${HOME}/services/git/${repository_provider}/GitClone.sh
+#:   - ${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh
 #:   - External binaries: cat, echo, grep, cut
 #:
 #: Exit Codes:
@@ -44,6 +44,12 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
+# Route status log entries to the centralized logging utility
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+}
+
 # Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
@@ -63,8 +69,8 @@ fi
 # Validate minimum required positional arguments
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ]
 then
-        /bin/echo "Error: 5 arguments are required with 1 optional argument." >&2
-        /bin/echo "Usage: $0 <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>" >&2
+        status "Error: 5 arguments are required with 1 optional argument." 
+        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>" 
         exit 1
 fi
 
@@ -79,13 +85,13 @@ provider_script="${BUILD_HOME}/services/git/${repository_provider}/CloneReposito
 
 if [ ! -f "${provider_script}" ]
 then
-        /bin/echo "Error: Git provider script not found at ${provider_script}" >&2
+        status "Error: Git provider script not found at ${provider_script}" 
         exit 1
 fi
 
 if [ ! -x "${provider_script}" ]
 then
-        /bin/echo "Error: Git provider script at ${provider_script} is not executable." >&2
+        status "Error: Git provider script at ${provider_script} is not executable." 
         exit 1
 fi
 
@@ -97,7 +103,7 @@ set -e
 
 if [ "${exit_code}" -ne 0 ]
 then
-        /bin/echo "Error: ${provider_script} exited with error code ${exit_code}." >&2
+        status "Error: ${provider_script} exited with error code ${exit_code}." 
         exit 1
 fi
 
