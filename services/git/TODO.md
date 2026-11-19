@@ -1,4 +1,10 @@
 
+create a script here Obtain file from repository which takes in provider user name repository name location to put file and so on
+
+this script can then be called from interrogate repository and the state of the repository checked
+
+the curl commands need to be written so that the credentials don't show up in the process tree
+
 
 test all the git changes I have made and slim down the interrogation process by not cloning the whole repository and only looking for specific files
 
