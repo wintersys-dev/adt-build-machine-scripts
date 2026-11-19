@@ -3,6 +3,45 @@ get the application type file from the git repository to tell what type of appli
 
 curl -O https://raw.githubusercontent.com/adt-demos/communitybuilder-webroot-sourcecode-baseline/main/dbp.dat
 
+curl -L \
+  -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
+  -o dbp.dat \
+  https://raw.githubusercontent.com/adt-demos/communitybuilder-webroot-sourcecode-baseline/main/dbp.dat
+
+  or
+
+  curl -L \
+  -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw+json" \
+  -o dbp.dat \
+  https://api.github.com/repos/adt-demos/communitybuilder-webroot-sourcecode-baseline/contents/dbp.dat?ref=main
+
+bitbucket
+
+curl -O https://bitbucket.org/<workspace>/<repository>/raw/<branch>/<path-to-file>
+
+curl -L -O https://api.bitbucket.org/2.0/repositories/myworkspace/myrepo/src/main/dbp.dat
+
+curl -u "YOUR_EMAIL:YOUR_API_TOKEN" -L -O \
+"https://api.bitbucket.org/2.0/repositories/myworkspace/myrepo/src/main/dbp.dat"
+
+gitlab
+
+curl -L -O https://gitlab.com/<group>/<project>/-/raw/main/dbp.dat
+
+curl -L -O https://gitlab.com/adt-demos/communitybuilder-webroot-sourcecode-baseline/-/raw/main/dbp.dat
+
+
+curl -L \
+  --header "PRIVATE-TOKEN: YOUR_GITLAB_TOKEN" \
+  -o dbp.dat \
+  "https://gitlab.com/<group>/<project>/-/raw/main/dbp.dat"
+
+
+  curl -L \
+  --header "PRIVATE-TOKEN: YOUR_GITLAB_TOKEN" \
+  -o dbp.dat \
+  "https://gitlab.com/api/v4/projects/<PROJECT_ID>/repository/files/dbp.dat/raw?ref=main"
 
 
 need to interrogate these files on the build machine from the application repository
