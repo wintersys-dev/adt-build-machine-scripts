@@ -14,7 +14,7 @@
 #:   $4         [Required] The local destination directory path.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
@@ -91,7 +91,7 @@ then
         exit 1
 fi
 
-worker_script="${HOME}/services/git/github/${orchestration_tool}/clone_repository.sh"
+worker_script="${BUILD_HOME}/services/git/github/${orchestration_tool}/clone_repository.sh"
 
 if [ ! -x "${worker_script}" ]
 then
