@@ -1,0 +1,110 @@
+#!/bin/sh
+#: Name:        ListRepository.sh
+#: Purpose:     Checks whether a Bitbucket repository is "full", "empty", or "none".
+#: Author:      Peter Winter
+#: Date:        18/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ListRepository.sh <repository_ownername> <repository_name>
+#:
+#: Parameters:
+#:   $1         [Required] The Bitbucket workspace or repository owner name.
+#:   $2         [Required] The name/slug of the repository to inspect.
+#:
+#: Environment:
+#:   HOME       Resolved automatically from /home/homedir.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh
+#:   - External binaries: awk, cat, echo, tr
+#:
+#: Exit Codes:
+#:   0          Repository state ("full", "empty", or "none") printed to stdout
+#:   1          Missing arguments, layout faults, configuration errors, or worker failure
+###################################################################################
+# License Agreement:
+# This file is part of The Wintersys Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+set -e
+
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+# Input validation
+if [ -z "${1}" ] || [ -z "${2}" ] 
+then
+        status "Error: Repository owner name, and repository name arguments are required." 
+        status "Usage: $0 <repository_ownername> <repository_name>" 
+        exit 1
+fi
+
+repository_ownername="${1}"
+repository_name="${2}"
+
+software_file="${HOME}/configuration/software.dat"
+if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
+then
+        status "Error: Cannot read software configuration file at ${software_file}"
+        exit 1
+fi
+
+orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}" 2>/dev/null | /bin/tr -d ' ')"
+
+if [ -z "${orchestration_tool}" ]
+then
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+        exit 1
+fi
+
+worker_script="${HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh"
+
+if [ ! -x "${worker_script}" ]
+then
+        status "Error: Provider repository check script not found or not executable at ${worker_script}" 
+        exit 1
+fi
+
+# Temporary disable set -e to evaluate worker execution failures manually
+set +e
+output="$(${worker_script} "${repository_ownername}" "${repository_name}")"
+worker_status="$?"
+set -e
+
+if [ "${worker_status}" -eq 0 ] && [ -n "${output}" ]
+then
+        case "${output}" in
+                full|empty|none)
+                        /bin/echo "${output}"
+                        exit 0
+                        ;;
+                *)
+                        /bin/echo "none"
+                        status "Error: Unexpected repository state returned: ${output}"
+                        exit 1
+                        ;;
+        esac
+else
+        /bin/echo "none"
+        status "Repository check failed for ${repository_ownername}/${repository_name}. Check your API token or configuration."
+        exit 1
+fi
+
+exit 0
