@@ -1,0 +1,233 @@
+To cover all the other software installed in adt-webserver-scripts/installation/—such as datastore tools (s3cmd/rclone), database clients (MySQL/MariaDB/PostgreSQL), firewall tools (ufw), SSL clients (acme.sh/certbot), cron, and the authenticator—we expand the provider model into a unified mod_* contract across five distinct provider categories. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Deployment/DirectoryTreeStructure), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewWebserver), [3] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatastoreProvider), [4] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewCloudProvider), [5] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatabaseType)
+Instead of writing custom branching logic inside runner.sh for every piece of auxiliary software, every provider exposes the exact same three POSIX functions: mod_install, mod_configure, and mod_verify.
+
+1. Complete Directory Structure
+
+text
+installation/
+├── core/
+│   ├── runner.sh              # Universal POSIX orchestrator calling mod_* contracts
+│   ├── lib_log.sh             # Structured JSON logging & EXIT error trap
+│   └── lib_state.sh           # Step checkpointing (/var/lib/adt/state/*)
+├── providers/
+│   ├── os/
+│   │   └── nala.sh            # Bootstraps nala & handles InstallPackageManager.sh duties
+│   ├── datastore/
+│   │   └── s3cmd.sh           # Replaces InstallDatastoreTools.sh (s3cmd / rclone)
+│   ├── database/
+│   │   ├── mysql.sh           # Replaces InstallDatabaseClient.sh & InstallMySQLClient.sh
+│   │   └── postgres.sh        # PostgreSQL client provider
+│   ├── runtime/
+│   │   └── php.sh             # Replaces InstallPHPBase.sh (PHP-FPM + extensions)
+│   ├── webserver/
+│   │   ├── nginx.sh           # Replaces InstallNGINX.sh & BuildNginxFromSource.sh
+│   │   ├── apache.sh          # Replaces InstallApache.sh
+│   │   └── lighttpd.sh        # Replaces InstallLighttpd.sh
+│   └── addon/
+│       ├── authenticator.sh   # Replaces InstallAuthenticator.sh (reverse-proxy auth gate)
+│       ├── firewall.sh        # Installs & verifies ufw / ipset dependencies
+│       └── ssl_acme.sh        # Installs acme.sh / certbot for ObtainSSLCertificate.sh
+└── manifests/
+    └── default.manifest       # Full declarative stack execution order
+Use code with caution.
+
+2. Full Declarative Manifest (manifests/default.manifest)
+
+Each line maps a logical step to a provider category and resolves the provider name dynamically from /etc/adt/deployment.env (using the env_override_var column).
+text
+# step_name       | category  | default_provider | env_override_var
+os_base           | os        | nala             | OS_PKG_MANAGER
+datastore_tools   | datastore | s3cmd            | DATASTORE_TOOL
+database_client   | database  | mysql            | DATABASE_INSTALLATION_TYPE
+php_runtime       | runtime   | php              | RUNTIME_TYPE
+webserver         | webserver | nginx            | WEBSERVER_TYPE
+firewall_tools    | addon     | firewall         | FIREWALL_TOOL
+ssl_client        | addon     | ssl_acme         | SSL_CLIENT
+authenticator     | addon     | authenticator    | AUTHENTICATOR_ENABLED
+Use code with caution.
+
+3. Universal POSIX Orchestrator (core/runner.sh)
+
+By standardizing every provider on mod_install, mod_configure, and mod_verify, runner.sh stays small and never needs modification when you add new tools.
+sh
+#!/bin/sh
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+BASE_DIR="$(CDPATH='' cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+. "${BASE_DIR}/core/lib_log.sh"
+. "${BASE_DIR}/core/lib_state.sh"
+
+if [ -f /etc/adt/deployment.env ]; then
+    . /etc/adt/deployment.env
+fi
+
+trim() {
+    var="$1"
+    var="${var#"${var%%[![:space:]]*}"}"
+    var="${var%"${var##*[![:space:]]}"}"
+    printf '%s' "$var"
+}
+
+run_step() {
+    step_name="$1"
+    category="$2"
+    provider="$3"
+
+    CURRENT_STEP="$step_name"
+    CURRENT_CMD="initializing ${step_name}"
+
+    if [ "$provider" = "none" ] || [ "$provider" = "0" ] || [ "$provider" = "false" ]; then
+        log_info "Skipping '${step_name}' (disabled by configuration)."
+        return 0
+    fi
+
+    if is_step_done "$step_name"; then
+        log_info "Skipping '${step_name}' (already completed)."
+        return 0
+    fi
+
+    provider_file="${BASE_DIR}/providers/${category}/${provider}.sh"
+    if [ ! -f "$provider_file" ]; then
+        log_error "Provider script missing: ${provider_file}"
+        exit 1
+    fi
+
+    # shellcheck disable=SC1090
+    . "$provider_file"
+
+    mod_install
+    mod_configure
+    mod_verify
+
+    mark_step_done "$step_name"
+}
+
+main() {
+    log_info "Starting full ADT Webserver software stack installation..."
+
+    while IFS='|' read -r raw_step raw_cat raw_default raw_env || [ -n "$raw_step" ]; do
+        step="$(trim "$raw_step")"
+        case "$step" in
+            ""|\#*) continue ;;
+        esac
+
+        category="$(trim "$raw_cat")"
+        provider="$(trim "$raw_default")"
+        env_var="$(trim "$raw_env")"
+
+        # Resolve dynamic override from deployment.env if set
+        if [ -n "$env_var" ]; then
+            eval "override_val=\${${env_var}:-}"
+            if [ -n "$override_val" ]; then
+                provider="$override_val"
+            fi
+        fi
+
+        run_step "$step" "$category" "$provider"
+    done < "${BASE_DIR}/manifests/default.manifest"
+
+    CURRENT_STEP="complete"
+    CURRENT_CMD=""
+    log_info "All webserver software modules installed and verified."
+}
+
+main "$@"
+Use code with caution.
+
+4. Auxiliary Software Providers (providers/)
+
+All auxiliary scripts call pkg_install (provided by providers/os/nala.sh, which runs first in the manifest and stays sourced in the shell environment).
+
+providers/datastore/s3cmd.sh (Replaces InstallDatastoreTools.sh)
+
+sh
+#!/bin/sh
+
+mod_install() {
+    log_info "Installing S3 datastore tools via nala..."
+    pkg_install s3cmd python3-pip ca-certificates
+}
+
+mod_configure() {
+    log_info "Preparing datastore configuration directories..."
+    mkdir -p /root/.s3cfg.d
+}
+
+mod_verify() {
+    CURRENT_CMD="s3cmd --version"
+    command -v s3cmd >/dev/null 2>&1
+    s3cmd --version
+}
+Use code with caution.
+
+providers/database/mysql.sh (Replaces InstallDatabaseClient.sh / InstallMySQLClient.sh)
+
+sh
+#!/bin/sh
+
+mod_install() {
+    log_info "Installing MariaDB/MySQL client utilities via nala..."
+    pkg_install mariadb-client
+}
+
+mod_configure() {
+    log_info "Configuring default MySQL client options..."
+    mkdir -p /etc/mysql/conf.d
+}
+
+mod_verify() {
+    CURRENT_CMD="mysql --version"
+    command -v mysql >/dev/null 2>&1
+    mysql --version
+}
+Use code with caution.
+
+providers/addon/authenticator.sh (Replaces InstallAuthenticator.sh)
+
+sh
+#!/bin/sh
+
+mod_install() {
+    log_info "Installing Authenticator dependencies via nala..."
+    pkg_install apache2-utils jq openssl
+}
+
+mod_configure() {
+    log_info "Setting up Authenticator runtime directories..."
+    mkdir -p /etc/adt/authenticator
+    chmod 700 /etc/adt/authenticator
+}
+
+mod_verify() {
+    CURRENT_CMD="verify htpasswd & jq"
+    command -v htpasswd >/dev/null 2>&1
+    command -v jq >/dev/null 2>&1
+}
+Use code with caution.
+
+providers/addon/firewall.sh & providers/addon/ssl_acme.sh
+
+sh
+# providers/addon/firewall.sh
+#!/bin/sh
+mod_install()   { pkg_install ufw ipset fail2ban; }
+mod_configure() { ufw default deny incoming && ufw default allow outgoing; }
+mod_verify()    { command -v ufw >/dev/null 2>&1 && command -v ipset >/dev/null 2>&1; }
+Use code with caution.
+sh
+# providers/addon/ssl_acme.sh
+#!/bin/sh
+mod_install() {
+    pkg_install socat curl cron
+    if [ ! -d /root/.acme.sh ]; then
+        CURRENT_CMD="install acme.sh"
+        curl -fsSL https://acme.sh | sh -s email="${ADMIN_EMAIL:-admin@localhost}"
+    fi
+}
+mod_configure() { /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt; }
+mod_verify()    { [ -x /root/.acme.sh/acme.sh ]; }
+Use code with caution.
+If you'd like to complete the rest of the provider files, let me know which ones you want generated next:
+• providers/runtime/php.sh (replacing InstallPHPBase.sh with Ondřej Surý's PPA + nala extension installs)
+• Legacy compatibility shims (replacing InstallWebserver.sh, InstallDatastoreTools.sh, etc., with 2-line wrappers so existing ADT callers work untouched)
+• Build-on-node providers for Apache & Lighttpd (providers/webserver/apache.sh and lighttpd.sh)
