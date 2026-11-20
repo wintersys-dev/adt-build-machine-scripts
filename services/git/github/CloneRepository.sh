@@ -8,7 +8,7 @@
 #: Usage:       CloneRepository.sh <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>
 #:
 #: Parameters:
-#:   $1         [Required] The Bitbucket workspace or repository owner name.
+#:   $1         [Required] The Github workspace or repository owner name.
 #:   $2         [Required] The name/slug of the repository to clone.
 #:   $3         [Required] The target branch name to clone.
 #:   $4         [Required] The local destination directory path.
@@ -19,7 +19,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
-#:   - ${BUILD_HOME}/services/git/${repository_provider}/${orchestration_tool}/clone_repository.sh
+#:   - ${BUILD_HOME}/services/git/github/${orchestration_tool}/clone_repository.sh
 #:   - External binaries: cat, echo, awk, tr, ls
 #:
 #: Exit Codes:
