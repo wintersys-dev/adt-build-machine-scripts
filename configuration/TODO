@@ -326,14 +326,90 @@ There is only one ordering rule to respect: GetFromDatastore.sh and PutToDatasto
 2. Every subsequent tool (doctl, vultr-cli, exo, goofys, geesefs, lego, acme.sh) uses GetFromDatastore.sh first, falls back to upstream on cache miss, and seeds the bucket via PutToDatastore.sh.
 
 POSIX install_software.sh Using ADT Datastore Scripts
+Here is the complete solution split into clean, copy-pasteable sections.
+
+Here is the entire solution split into clean sections, using printf for all URL construction so every path renders cleanly without mangled characters.
+
+Part 1: The Manifest (${BUILD_HOME}/configuration/software.dat)
+
+ini
+# Format: TYPE:NAME:VERSION:SCOPE
+# SCOPE accepts comma-separated values matching 'all', CLOUDHOST
+# (digitalocean, exoscale, vultr, linode), or SERVER_ROLE
+# (buildhost, webserver, reverseproxy, authenticator, database, autoscaler).
+
+# ============================================================
+# 1. ACTIVE DATASTORE TOOL (Required by Get/PutToDatastore.sh)
+# ============================================================
+DATASTORETOOL:s5cmd:2.2.2:all
+
+# ============================================================
+# 2. PINNED BINARIES (PINNED:<tool>:<version>:<scope>)
+# ============================================================
+# Cloud CLIs
+PINNED:doctl:1.115.0:digitalocean
+PINNED:exo:1.80.0:exoscale
+PINNED:vultr-cli:3.3.2:vultr
+
+# Datastore & Mount Tools
+PINNED:rclone:1.68.1:all
+#PINNED:goofys:0.24.0:webserver
+#PINNED:geesefs:0.42.3:webserver
+
+# SSL Clients
+PINNED:lego:4.19.2:webserver,reverseproxy,authenticator
+#PINNED:acme.sh:3.0.8:webserver,reverseproxy,authenticator
+
+# ============================================================
+# 3. PYTHON CLI TOOLS (PINNED_PIP:<pkg>:<version>:<scope>)
+# ============================================================
+PINNED_PIP:linode-cli:5.53.1:linode
+
+# ============================================================
+# 4. SYSTEM PACKAGES (SYSTEM:<apt-package>::<scope>)
+# ============================================================
+SYSTEM:s3cmd::all
+SYSTEM:fuse3::webserver
+SYSTEM:nginx::webserver,reverseproxy,authenticator
+SYSTEM:php8.3-fpm::webserver
+SYSTEM:php8.3-mysql::webserver
+SYSTEM:php8.3-curl::webserver
+SYSTEM:mariadb-server::database
+SYSTEM:ufw::all
+SYSTEM:sendemail::all
+Use code with caution.
+
+Part 2: Setup, Scope Filter & Pull-Through Cache Helpers (install_software.sh — Top Half)
 
 sh
 #!/bin/sh
+#: Name:        install_software.sh
+#: Purpose:     Selectively installs system packages and upstream-SHA256-verified CLI binaries using an S3 pull-through cache.
+#: Usage:       install_software.sh [server_role] [path-to-manifest.dat]
 set -eu
 
-MANIFEST="${1:?Usage: $0 <path-to-manifest.dat>}"
-BUILD_HOME="${BUILD_HOME:-/root}"
-DATASTORE_OPS="${BUILD_HOME}/providerscripts/datastore"
+# Resolve BUILD_HOME identically to ADT datastore scripts
+if [ -r /home/buildhome.dat ]; then
+    BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+    /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+    exit 1
+fi
+
+SERVER_ROLE="${1:-${SERVER_ROLE:-all}}"
+MANIFEST="${2:-${BUILD_HOME}/configuration/software.dat}"
+
+if [ ! -r "$MANIFEST" ]; then
+    printf 'Manifest file missing or unreadable: %s\n' "$MANIFEST" >&2
+    exit 1
+fi
+
+CLOUDHOST="${CLOUDHOST:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST 2>/dev/null || true)}"
+
+DATASTORE_OPS="${BUILD_HOME}/services/datastore/operations"
+GET_SCRIPT="${DATASTORE_OPS}/GetFromDatastore.sh"
+PUT_SCRIPT="${DATASTORE_OPS}/PutToDatastore.sh"
+MOUNT_SCRIPT="${DATASTORE_OPS}/MountDatastore.sh"
 ARTIFACT_BUCKET="${ARTIFACT_BUCKET:-adt-binary-cache}"
 
 TMP_DIR="$(mktemp -d)"
@@ -342,90 +418,202 @@ trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
 SYSTEM_PKGS=""
 PINNED_LIST=""
 PIP_LIST=""
+ARCHIVE_MISS=0
+CHECKSUM_MISS=0
 
-# Pull-through cache using ADT's native GetFromDatastore.sh & PutToDatastore.sh
-fetch_artifact() {
-    rel_path="$1"      # e.g., doctl/1.115.0/doctl-1.115.0-linux-amd64.tar.gz
-    upstream_url="$2"  # Upstream GitHub release URL
-    dest="$3"          # Local temp destination path
+# Returns 0 (true) if any comma-separated token matches 'all', CLOUDHOST, or SERVER_ROLE
+should_install() {
+    scope_list="$1"
+    [ -z "$scope_list" ] && return 0
 
-    get_script="${DATASTORE_OPS}/GetFromDatastore.sh"
-    put_script="${DATASTORE_OPS}/PutToDatastore.sh"
+    old_ifs="$IFS"
+    IFS=','
+    for token in $scope_list; do
+        case "$token" in
+            all|"$CLOUDHOST"|"$SERVER_ROLE")
+                IFS="$old_ifs"
+                return 0
+                ;;
+        esac
+    done
+    IFS="$old_ifs"
+    return 1
+}
 
-    # 1. Try ADT Datastore first (if datastore scripts & CLI are ready)
-    if [ -x "$get_script" ]; then
-        if "$get_script" "$ARTIFACT_BUCKET" "$rel_path" "$dest" >/dev/null 2>&1 && [ -s "$dest" ]; then
-            printf '[DATASTORE HIT] %s\n' "$rel_path"
+# Fetch a single file from ADT Datastore or fall back to upstream URL
+pull_file() {
+    remote_path="$1"
+    upstream_url="$2"
+    dest="$3"
+
+    if [ -x "$GET_SCRIPT" ]; then
+        if "$GET_SCRIPT" "ad-hoc" "$remote_path" "$dest" "$ARTIFACT_BUCKET" >/dev/null 2>&1 && [ -s "$dest" ]; then
             return 0
         fi
     fi
 
-    # 2. Fallback to upstream on cache miss or datastore unavailability
-    printf '[DATASTORE MISS] Fetching %s from upstream...\n' "$rel_path"
     curl -fsSL --retry 2 --connect-timeout 15 "$upstream_url" -o "$dest"
-
-    # 3. Seed ADT Datastore for future builds
-    if [ -x "$put_script" ]; then
-        "$put_script" "$ARTIFACT_BUCKET" "$dest" "$rel_path" >/dev/null 2>&1 || true
-    fi
+    return 1
 }
 
+# Extract expected SHA256 hash for target_file from an upstream checksum manifest
+resolve_expected_sha256() {
+    checksum_file="$1"
+    target_file="$2"
+
+    # Supports both "<hash>  <filename>" (GNU) and "<hash>  *<filename>" (BSD/GoReleaser)
+    awk -v f="$target_file" '
+        {
+            name = $2
+            sub(/^\*/, "", name)
+            sub(/^.*\//, "", name)
+            if (name == f || NF == 1) {
+                print tolower($1)
+                exit
+            }
+        }
+    ' "$checksum_file"
+}
+
+# Fetch archive + optional upstream checksum file, verify SHA256 before extraction
+fetch_and_verify() {
+    bucket_dir="$1"     # e.g., exo/1.80.0
+    filename="$2"       # e.g., exoscale-cli_1.80.0_linux_amd64.tar.gz
+    upstream_url="$3"   # Archive download URL
+    checksum_url="$4"   # Upstream checksum file URL (empty if upstream publishes none)
+    dest="$5"           # Local temp archive path
+
+    ARCHIVE_MISS=0
+    CHECKSUM_MISS=0
+
+    # 1. Fetch archive (S3 cache -> upstream fallback)
+    if pull_file "${bucket_dir}/${filename}" "$upstream_url" "$dest"; then
+        printf '[DATASTORE HIT] %s/%s\n' "$bucket_dir" "$filename"
+    else
+        printf '[DATASTORE MISS] Fetched %s/%s from upstream\n' "$bucket_dir" "$filename"
+        ARCHIVE_MISS=1
+    fi
+
+    # 2. If upstream publishes no checksum file, skip verification
+    [ -z "$checksum_url" ] && return 0
+
+    checksum_name="${filename}.sha256"
+    checksum_dest="${TMP_DIR}/${checksum_name}"
+
+    # 3. Fetch checksum file (S3 cache -> upstream fallback)
+    if ! pull_file "${bucket_dir}/${checksum_name}" "$checksum_url" "$checksum_dest"; then
+        CHECKSUM_MISS=1
+    fi
+
+    expected_sha="$(resolve_expected_sha256 "$checksum_dest" "$filename")"
+    if [ -z "$expected_sha" ]; then
+        printf 'Could not find hash for %s inside %s\n' "$filename" "$checksum_url" >&2
+        exit 1
+    fi
+
+    actual_sha="$(sha256sum "$dest" | awk '{print $1}')"
+    if [ "$actual_sha" != "$expected_sha" ]; then
+        printf 'SHA256 mismatch for %s!\n  Expected: %s\n  Actual:   %s\n' \
+            "$filename" "$expected_sha" "$actual_sha" >&2
+        exit 1
+    fi
+
+    printf '[SHA256 OK] %s\n' "$filename"
+}
+
+# Seed S3 bucket AFTER binary extraction (ensures DATASTORETOOL self-caches on first boot)
+seed_datastore() {
+    bucket_dir="$1"
+    archive_file="$2"
+    checksum_file="${archive_file}.sha256"
+
+    [ "$ARCHIVE_MISS" -eq 1 ] || [ "$CHECKSUM_MISS" -eq 1 ] || return 0
+
+    if [ -x "$MOUNT_SCRIPT" ]; then
+        "$MOUNT_SCRIPT" "ad-hoc" "distributed" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+
+    if [ "$ARCHIVE_MISS" -eq 1 ] && [ -x "$PUT_SCRIPT" ] && [ -s "$archive_file" ]; then
+        "$PUT_SCRIPT" "ad-hoc" "$archive_file" "$bucket_dir" "distributed" "false" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+
+    if [ "$CHECKSUM_MISS" -eq 1 ] && [ -x "$PUT_SCRIPT" ] && [ -s "$checksum_file" ]; then
+        "$PUT_SCRIPT" "ad-hoc" "$checksum_file" "$bucket_dir" "distributed" "false" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+}
+Use code with caution.
+
+Part 3: Tool Definitions & Execution Loop (install_software.sh — Bottom Half)
+
+sh
 install_pinned_binary() {
     tool="$1"
     ver="$2"
-    archive="${TMP_DIR}/${tool}-${ver}.pkg"
+    gh="https://github.com"
 
     case "$tool" in
         s5cmd)
-            rel="s5cmd/${ver}/s5cmd_${ver}_Linux-64bit.tar.gz"
-            url="https://github.com{ver}/s5cmd_${ver}_Linux-64bit.tar.gz"
-            fetch_artifact "$rel" "$url" "$archive"
-            tar -xzf "$archive" -C /usr/local/bin s5cmd
+            dir="s5cmd/${ver}"
+            file="s5cmd_${ver}_Linux-64bit.tar.gz"
+            base="$(printf '%s/peak/s5cmd/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/s5cmd_checksums.txt" "${TMP_DIR}/${file}"
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin s5cmd
             ;;
         rclone)
-            rel="rclone/${ver}/rclone-v${ver}-linux-amd64.zip"
-            url="https://rclone.org{ver}/rclone-v${ver}-linux-amd64.zip"
-            fetch_artifact "$rel" "$url" "$archive"
-            unzip -p "$archive" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
+            dir="rclone/${ver}"
+            file="rclone-v${ver}-linux-amd64.zip"
+            base="$(printf 'https://rclone.org' "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/SHA256SUMS" "${TMP_DIR}/${file}"
+            unzip -p "${TMP_DIR}/${file}" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
             ;;
         doctl)
-            rel="doctl/${ver}/doctl-${ver}-linux-amd64.tar.gz"
-            url="https://github.com{ver}/doctl-${ver}-linux-amd64.tar.gz"
-            fetch_artifact "$rel" "$url" "$archive"
-            tar -xzf "$archive" -C /usr/local/bin doctl
+            dir="doctl/${ver}"
+            file="doctl-${ver}-linux-amd64.tar.gz"
+            base="$(printf '%s/digitalocean/doctl/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/doctl-${ver}-checksums.sha256" "${TMP_DIR}/${file}"
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin doctl
             ;;
         vultr-cli)
-            rel="vultr-cli/${ver}/vultr-cli_v${ver}_linux_amd64.tar.gz"
-            url="https://github.com{ver}/vultr-cli_v${ver}_linux_amd64.tar.gz"
-            fetch_artifact "$rel" "$url" "$archive"
-            tar -xzf "$archive" -C /usr/local/bin vultr-cli
+            dir="vultr-cli/${ver}"
+            file="vultr-cli_v${ver}_linux_amd64.tar.gz"
+            base="$(printf '%s/vultr/vultr-cli/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/vultr-cli_v${ver}_checksums.txt" "${TMP_DIR}/${file}"
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin vultr-cli
             ;;
         exo)
-            rel="exo/${ver}/exoscale-cli_${ver}_linux_amd64.tar.gz"
-            url="https://github.com{ver}/exoscale-cli_${ver}_linux_amd64.tar.gz"
-            fetch_artifact "$rel" "$url" "$archive"
-            tar -xzf "$archive" -C /usr/local/bin exo
-            ;;
-        goofys)
-            rel="goofys/${ver}/goofys"
-            url="https://github.com{ver}/goofys"
-            fetch_artifact "$rel" "$url" /usr/local/bin/goofys
+            dir="exo/${ver}"
+            file="exoscale-cli_${ver}_linux_amd64.tar.gz"
+            base="$(printf '%s/exoscale/cli/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin exo
             ;;
         geesefs)
-            rel="geesefs/${ver}/geesefs-linux-amd64"
-            url="https://github.com{ver}/geesefs-linux-amd64"
-            fetch_artifact "$rel" "$url" /usr/local/bin/geesefs
+            dir="geesefs/${ver}"
+            file="geesefs-linux-amd64"
+            base="$(printf '%s/yandex-cloud/geesefs/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+            cp "${TMP_DIR}/${file}" /usr/local/bin/geesefs
             ;;
         lego)
-            rel="lego/${ver}/lego_v${ver}_linux_amd64.tar.gz"
-            url="https://github.com{ver}/lego_v${ver}_linux_amd64.tar.gz"
-            fetch_artifact "$rel" "$url" "$archive"
-            tar -xzf "$archive" -C /usr/local/bin lego
+            dir="lego/${ver}"
+            file="lego_v${ver}_linux_amd64.tar.gz"
+            base="$(printf '%s/go-acme/lego/releases/download/v%s' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/lego_${ver}_checksums.txt" "${TMP_DIR}/${file}"
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin lego
+            ;;
+        goofys)
+            dir="goofys/${ver}"
+            file="goofys"
+            url="$(printf '%s/kahing/goofys/releases/download/v%s/goofys' "$gh" "$ver")"
+            fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+            cp "${TMP_DIR}/${file}" /usr/local/bin/goofys
             ;;
         acme.sh)
-            rel="acme.sh/${ver}/acme.sh"
-            url="https://githubusercontent.com{ver}/acme.sh"
-            fetch_artifact "$rel" "$url" /usr/local/bin/acme.sh
+            dir="acme.sh/${ver}"
+            file="acme.sh"
+            url="$(printf 'https://githubusercontent.com' "$ver")"
+            fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+            cp "${TMP_DIR}/${file}" /usr/local/bin/acme.sh
             ;;
         *)
             printf 'Unknown PINNED tool: %s\n' "$tool" >&2
@@ -434,6 +622,9 @@ install_pinned_binary() {
     esac
 
     chmod +x "/usr/local/bin/${tool}"
+
+    # Seed S3 after binary is installed & verified
+    seed_datastore "$dir" "${TMP_DIR}/${file}"
 }
 
 install_pinned_pip() {
@@ -445,29 +636,38 @@ install_pinned_pip() {
     ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
 }
 
-# 1. Parse manifest and prioritize datastore tools (s5cmd/rclone) first
-while IFS=':' read -r type arg1 arg2; do
+# 1. Parse manifest, filter by scope, and prioritize DATASTORETOOL first
+while IFS=':' read -r type arg1 arg2 scope; do
     case "$type" in
         ""|\#*) continue ;;
-        SYSTEM) SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
-        PINNED)
-            case "$arg1" in
-                s5cmd|rclone) PINNED_LIST="${arg1}:${arg2} $PINNED_LIST" ;;
-                *)            PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
-            esac
+    esac
+
+    should_install "$scope" || continue
+
+    case "$type" in
+        DATASTORETOOL)
+            if [ -n "$arg2" ]; then
+                PINNED_LIST="${arg1}:${arg2} $PINNED_LIST"
+            fi
             ;;
+        SYSTEM)     SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
+        PINNED)     PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
         PINNED_PIP) PIP_LIST="$PIP_LIST ${arg1}:${arg2}" ;;
+        *)
+            printf 'Unknown directive in %s: %s\n' "$MANIFEST" "$type" >&2
+            exit 1
+            ;;
     esac
 done < "$MANIFEST"
 
-# 2. Install SYSTEM packages first (provides curl, tar, unzip, s3cmd if listed)
+# 2. Batch-install SYSTEM packages first (provides curl, tar, unzip, sha256sum)
 if [ -n "$SYSTEM_PKGS" ]; then
     nala update
     # shellcheck disable=SC2086
     nala install -y curl tar unzip ca-certificates $SYSTEM_PKGS
 fi
 
-# 3. Install PINNED binaries (datastore tool installs first, then caches the rest)
+# 3. Install PINNED binaries (DATASTORETOOL installs & self-caches first, then caches the rest)
 for item in $PINNED_LIST; do
     install_pinned_binary "${item%%:*}" "${item#*:}"
 done
@@ -477,12 +677,7 @@ for item in $PIP_LIST; do
     install_pinned_pip "${item%%:*}" "${item#*:}"
 done
 Use code with caution.
-(Note: Verify the exact positional argument order of your fork's GetFromDatastore.sh and PutToDatastore.sh—in Wintersys ADT, PutToDatastore.sh typically takes <source_file> <datastore_path> <bucket_name> or <bucket_name> <source_file> <datastore_path> depending on the version of providerscripts/datastore/ you are running.)
-If you paste the top 10 lines of your GetFromDatastore.sh and PutToDatastore.sh scripts, I can verify the exact parameter order and flags so it drops straight into your fork without adjustment.
-
-
-
-
+If you'd like to run a quick dry-run or URL smoke test before deploying this to a live node, let me know and I can share a one-line verification check for your configured CLOUDHOST and SERVER_ROLE.
 
 
 
