@@ -100,13 +100,9 @@ set -e
 if [ "${REPO_HTTP_CODE}" != "200" ]
 then
         set +e
-        RAW_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
-        RAW_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL' 2>/dev/null)"
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
+        ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL')"
         set -e
-
-        REPOSITORY_TOKEN="$(/usr/bin/printf '%s' "${RAW_TOKEN}" | /usr/bin/tr -d '\r\n')"
-        ATLASSIAN_EMAIL="$(/usr/bin/printf '%s' "${RAW_EMAIL}" | /usr/bin/tr -d '\r\n')"
-        unset RAW_TOKEN RAW_EMAIL
 
         if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
         then
