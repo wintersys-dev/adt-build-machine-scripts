@@ -3,24 +3,24 @@
 #: Purpose:     Performs a shallow Git clone from Bitbucket (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
-#: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
+#: Usage:       clone_repository.sh [--branch] <branch> <repository_ownername> <repository_name> <destination_directory>
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] Target branch name or "--branch <name>" flag.
+#:   $1         [Required] Target branch name (or "--branch" followed by branch name).
 #:   $2         [Required] The Bitbucket workspace or repository owner name.
 #:   $3         [Required] The name/slug of the repository to clone.
 #:   $4         [Required] Local destination directory for the cloned repository.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: base64, cat, cut, echo, git, grep, printf, rm, sed
+#:   - External binaries: base64, cat, cut, echo, git, grep, printf, rm, sed, tr
 #:
 #: Exit Codes:
 #:   0          Repository cloned cleanly into destination directory
@@ -43,7 +43,6 @@
 
 set -e
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
         /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
@@ -58,16 +57,20 @@ else
         exit 1
 fi
 
-# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
+if [ "${1}" = "--branch" ]
+then
+        shift
+fi
+
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
         status "Error: Branch, repository owner, repository name, and destination directory are required."
-        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
+        status "Usage: $0 [--branch] <branch> <repository_ownername> <repository_name> <destination_directory>"
         exit 1
 fi
 
@@ -80,7 +83,7 @@ repo_url="https://bitbucket.org/${repository_ownername}/${repository_name}.git"
 
 export GIT_TERMINAL_PROMPT=0
 
-# 1. Attempt unauthenticated shallow clone first (works for public repositories without touching credentials)
+# 1. Attempt unauthenticated shallow clone first
 set +e
 /usr/bin/git clone \
         --depth 1 \
@@ -106,7 +109,7 @@ then
                 exit "${git_status}"
         fi
 
-        encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
+        encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 | /usr/bin/tr -d '\n')"
         unset REPOSITORY_TOKEN
 
         if [ -z "${encoded_auth}" ]
@@ -142,4 +145,5 @@ fi
 
 /bin/echo "${destination_directory}"
 exit 0
+
 
