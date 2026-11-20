@@ -10,7 +10,7 @@
 #:
 #: Parameters:
 #:   $1         [Required] Target branch name or "--branch <name>" flag.
-#:   $2         [Required] The GitLab username or group path (repository owner).
+#:   $2         [Required] The GitHub username or group path (repository owner).
 #:   $3         [Required] The name/slug of the GitLab project to clone.
 #:   $4         [Required] Local destination directory path to clone into.
 #:
@@ -77,7 +77,7 @@ repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-git_base="https://gitlab.com"
+git_base="https://api.github.com"
 repo_url="${git_base}/${repository_ownername}/${repository_name}.git"
 
 export GIT_TERMINAL_PROMPT=0
