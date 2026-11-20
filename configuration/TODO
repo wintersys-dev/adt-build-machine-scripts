@@ -335,14 +335,40 @@ One Important Design Detail
 Because your software.dat includes mutually exclusive alternatives (such as apache2, nginx, and lighttpd, or mariadb-server, mysql-server, and postgresql), we can also filter by your active ADT variables (WEBSERVER_CHOICE / DATABASE_INSTALLATION_TYPE) or comment out the unused alternatives—while keeping every single package defined in both the manifest and install_software.sh.
 Below is the complete manifest containing every single package from your file, followed by the updated install_software.sh (now including Go binary installation + SHA256 verification).
 
-Part 1: Complete Manifest (${BUILD_HOME}/configuration/software.dat)
+Here is the complete solution, starting with the directory layout diagram followed by every file in the architecture.
+
+Directory Layout
+
+text
+${BUILD_HOME}/
+├── configuration/
+│   ├── software.dat             # 1. Pure package lockfile (TYPE:NAME:VERSION:SCOPE)
+│   └── deployment.dat           # 2. Extracted runtime, firewall & module settings
+└── installscripts/
+    ├── install_software.sh      # 3. Orchestrator (scope filter, --dry-run, nala, driver runner)
+    ├── lib/
+    │   └── artifact_cache.sh    # 4. Shared library (S3 pull-through cache, SHA256 verify, APT lock wait)
+    └── drivers/                 # 5. Tiny single-tool drivers (standalone testable)
+        ├── s5cmd.sh
+        ├── rclone.sh
+        ├── doctl.sh
+        ├── exo.sh
+        ├── vultr-cli.sh
+        ├── geesefs.sh
+        ├── goofys.sh
+        ├── lego.sh
+        ├── acme.sh.sh
+        ├── go.sh
+        └── linode-cli.sh
+Use code with caution.
+
+1. ${BUILD_HOME}/configuration/software.dat
 
 ini
 # Format: TYPE:NAME:VERSION:SCOPE
 # SCOPE accepts comma-separated values matching 'all', CLOUDHOST
 # (digitalocean, exoscale, vultr, linode), or SERVER_ROLE
 # (buildhost, webserver, reverseproxy, authenticator, database, autoscaler).
-# Comment out mutually exclusive alternatives you aren't currently deploying.
 
 # ============================================================
 # 1. ACTIVE DATASTORE TOOL (Required by Get/PutToDatastore.sh)
@@ -354,21 +380,14 @@ DATASTORETOOL:s5cmd:2.2.2:all
 # ============================================================
 # 2. PINNED BINARIES (PINNED:<tool>:<version>:<scope>)
 # ============================================================
-# Cloud CLIs
 PINNED:doctl:1.115.0:digitalocean
 PINNED:exo:1.80.0:exoscale
 PINNED:vultr-cli:3.3.2:vultr
-
-# Datastore & Mount Tools
 PINNED:rclone:1.68.1:all
 PINNED:geesefs:0.42.3:webserver,autoscaler
 #PINNED:goofys:0.24.0:webserver,autoscaler
-
-# SSL Clients
 PINNED:lego:4.19.2:webserver,reverseproxy,authenticator
 #PINNED:acme.sh:3.0.8:webserver,reverseproxy,authenticator
-
-# Go Language Toolchain
 #PINNED:go:1.23.3:buildhost
 
 # ============================================================
@@ -379,67 +398,123 @@ PINNED_PIP:linode-cli:5.53.1:linode
 # ============================================================
 # 4. SYSTEM PACKAGES (SYSTEM:<apt-package>::<scope>)
 # ============================================================
-# Core Utilities & Datastore
 SYSTEM:s3cmd::all
 SYSTEM:jq::all
 SYSTEM:python3-venv::linode
 SYSTEM:fuse3::webserver,autoscaler
 #SYSTEM:s3fs::webserver,autoscaler
-
-# Webservers (keep active choice uncommented)
 SYSTEM:nginx::webserver,reverseproxy,authenticator
 #SYSTEM:apache2::webserver,reverseproxy,authenticator
 #SYSTEM:lighttpd::webserver,reverseproxy,authenticator
-
-# PHP Stack
 SYSTEM:php-fpm::webserver,autoscaler
 SYSTEM:php-cli::webserver,autoscaler
 SYSTEM:php-mysql::webserver,autoscaler
 SYSTEM:php-pgsql::webserver,autoscaler
 SYSTEM:php-curl::webserver,autoscaler
-
-# Databases (keep active choice uncommented)
 SYSTEM:mariadb-server::database
 #SYSTEM:mysql-server::database
 #SYSTEM:postgresql::database
-
-# Firewall (keep active choice uncommented)
 SYSTEM:iptables::all
 #SYSTEM:ufw::all
-
-# Security & Virus Scanning
 #SYSTEM:fail2ban::all
 #SYSTEM:clamav::all
 #SYSTEM:clamav-daemon::all
-
-# Email Utilities (keep active choice uncommented)
 SYSTEM:ssmtp::all
 #SYSTEM:sendemail::all
-
-# Text Browsers
 SYSTEM:lynx::all
 #SYSTEM:w3m::all
 #SYSTEM:elinks::all
 Use code with caution.
 
-Part 2: Setup, Scope Filter & S3 Cache Helpers (install_software.sh — Top Half)
+2. ${BUILD_HOME}/configuration/deployment.dat
+
+ini
+###############################################################################################
+# Name:        deployment.dat
+# Purpose:     Runtime behavior, orchestration, firewall, and service tuning settings for ADT.
+###############################################################################################
+
+# =============================================================================================
+# 1. BUILD & ORCHESTRATION TOPOLOGY
+# =============================================================================================
+BUILDCHAINTYPE:standard
+GITBRANCH:main
+ORCHESTRATION_TOOL:api
+DATASTORECONFIGSTYLE:tool
+
+# =============================================================================================
+# 2. SECURITY, FIREWALL & SYSTEM UTILITIES
+# =============================================================================================
+#FIREWALL:ufw
+FIREWALL:iptables:20:30
+#FAIL2BAN:active
+#VIRUSSCANNER:clamav:daily
+#EMAILUTIL:sendemail
+EMAILUTIL:ssmtp
+#TEXTBROWSER:lynx
+#TEXTBROWSER:w3m
+TEXTBROWSER:elinks
+SSLCERTCLIENT:lego
+#SSLCERTCLIENT:acme
+
+# =============================================================================================
+# 3. PHP RUNTIME MODE
+# =============================================================================================
+#PHP:cli:fpm|9176
+PHP:fpm
+
+# =============================================================================================
+# 4. WEBSERVER MODULES & RUNTIME TUNING
+# =============================================================================================
+NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
+
+APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+
+LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv:mod_redirect:mod_rewrite:mod_authn_file
+LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
+Use code with caution.
+
+3. ${BUILD_HOME}/installscripts/install_software.sh
 
 sh
 #!/bin/sh
 #: Name:        install_software.sh
-#: Purpose:     Selectively installs system packages, SHA256-verified CLI binaries, and cached Python wheels using an S3 pull-through cache.
+#: Purpose:     Orchestrates selective installation of system packages and pinned tool drivers from software.dat.
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     2.0
+#: Version:     2.1
 #:
-#: Usage:       install_software.sh [server_role] [path-to-manifest.dat]
+#: Usage:       install_software.sh [--dry-run|-n] [server_role] [path-to-manifest.dat]
 #:              install_software.sh [-h|--help]
 set -eu
 
-if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
-    /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
-    exit 0
-fi
+DRY_RUN=0
+SERVER_ROLE=""
+MANIFEST=""
+
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)
+            /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+            exit 0
+            ;;
+        -n|--dry-run)
+            DRY_RUN=1
+            ;;
+        *)
+            if [ -z "$SERVER_ROLE" ]; then
+                SERVER_ROLE="$arg"
+            elif [ -z "$MANIFEST" ]; then
+                MANIFEST="$arg"
+            else
+                printf 'Error: Unexpected argument "%s"\n' "$arg" >&2
+                exit 1
+            fi
+            ;;
+    esac
+done
 
 if [ -r /home/buildhome.dat ]; then
     BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
@@ -448,16 +523,12 @@ else
     exit 1
 fi
 
-status() {
-    if [ -x "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" ]; then
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" "${2:-no}" 2>/dev/null || true
-    else
-        printf '%s\n' "${1}"
-    fi
-}
+export BUILD_HOME
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
 
-SERVER_ROLE="${1:-${SERVER_ROLE:-all}}"
-MANIFEST="${2:-${BUILD_HOME}/configuration/software.dat}"
+SERVER_ROLE="${SERVER_ROLE:-all}"
+MANIFEST="${MANIFEST:-${BUILD_HOME}/configuration/software.dat}"
+DRIVERS_DIR="${BUILD_HOME}/installscripts/drivers"
 
 if [ ! -r "$MANIFEST" ]; then
     status "Error: Manifest file missing or unreadable at ${MANIFEST}"
@@ -466,36 +537,8 @@ fi
 
 CLOUDHOST="${CLOUDHOST:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST 2>/dev/null || true)}"
 
-DATASTORE_OPS="${BUILD_HOME}/services/datastore/operations"
-GET_SCRIPT="${DATASTORE_OPS}/GetFromDatastore.sh"
-PUT_SCRIPT="${DATASTORE_OPS}/PutToDatastore.sh"
-MOUNT_SCRIPT="${DATASTORE_OPS}/MountDatastore.sh"
-ARTIFACT_BUCKET="${ARTIFACT_BUCKET:-adt-binary-cache}"
-
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
-
 SYSTEM_PKGS=""
-PINNED_LIST=""
-PIP_LIST=""
-ARCHIVE_MISS=0
-CHECKSUM_MISS=0
-
-wait_for_apt_lock() {
-    attempts=0
-    while [ "$attempts" -lt 24 ]; do
-        if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 &&
-           ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1 &&
-           ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
-            return 0
-        fi
-        status "Waiting for dpkg/apt lock to clear before installing system packages..."
-        attempts=$((attempts + 1))
-        sleep 5
-    done
-    status "Error: Timed out waiting for dpkg/apt lock after 120 seconds."
-    exit 1
-}
+DRIVER_LIST=""
 
 should_install() {
     scope_list="$1"
@@ -513,6 +556,146 @@ should_install() {
     done
     IFS="$old_ifs"
     return 1
+}
+
+# 1. Parse manifest, filter by scope, and prioritize DATASTORETOOL first
+while IFS=':' read -r type arg1 arg2 scope; do
+    case "$type" in
+        ""|\#*) continue ;;
+    esac
+
+    should_install "$scope" || continue
+
+    case "$type" in
+        DATASTORETOOL)
+            if [ -n "$arg2" ]; then
+                DRIVER_LIST="${arg1}:${arg2} $DRIVER_LIST"
+            else
+                SYSTEM_PKGS="$SYSTEM_PKGS $arg1"
+            fi
+            ;;
+        SYSTEM)            SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
+        PINNED|PINNED_PIP) DRIVER_LIST="$DRIVER_LIST ${arg1}:${arg2}" ;;
+        *)
+            status "Error: Unknown directive '${type}' in ${MANIFEST}"
+            exit 1
+            ;;
+    esac
+done < "$MANIFEST"
+
+# 2. Validate that all matched drivers exist on disk before making any changes
+for item in $DRIVER_LIST; do
+    tool="${item%%:*}"
+    driver="${DRIVERS_DIR}/${tool}.sh"
+    if [ ! -f "$driver" ]; then
+        status "Error: Missing driver script ${driver} for tool '${tool}'"
+        exit 1
+    fi
+done
+
+# 3. Preview execution plan and exit cleanly if --dry-run was requested
+if [ "$DRY_RUN" -eq 1 ]; then
+    printf '=== DRY-RUN EXECUTION PLAN ===\n'
+    printf 'Manifest:    %s\n' "$MANIFEST"
+    printf 'Cloudhost:   %s\n' "${CLOUDHOST:-<unset>}"
+    printf 'Server Role: %s\n\n' "$SERVER_ROLE"
+
+    printf ' SYSTEM PACKAGES (via nala):\n'
+    if [ -n "$SYSTEM_PKGS" ]; then
+        for pkg in $SYSTEM_PKGS; do
+            printf '    - %s\n' "$pkg"
+        done
+    else
+        printf '    (none)\n'
+    fi
+
+    printf '\n PINNED DRIVERS (in execution order):\n'
+    if [ -n "$DRIVER_LIST" ]; then
+        for item in $DRIVER_LIST; do
+            printf '    - %s (version %s) -> %s/%s.sh\n' \
+                "${item%%:*}" "${item#*:}" "$DRIVERS_DIR" "${item%%:*}"
+        done
+    else
+        printf '    (none)\n'
+    fi
+    exit 0
+fi
+
+# 4. Wait for dpkg/apt locks, ensure nala exists, and batch-install SYSTEM packages
+wait_for_apt_lock
+
+if ! command -v nala >/dev/null 2>&1; then
+    status "Bootstrapping nala package manager..."
+    apt-get update -y
+    apt-get install -y nala
+fi
+
+nala update
+# shellcheck disable=SC2086
+nala install -y curl tar unzip ca-certificates psmisc $SYSTEM_PKGS
+
+# 5. Execute each matching tool driver (DATASTORETOOL runs & self-caches first)
+for item in $DRIVER_LIST; do
+    tool="${item%%:*}"
+    ver="${item#*:}"
+    sh "${DRIVERS_DIR}/${tool}.sh" "$ver"
+done
+
+status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
+Use code with caution.
+
+4. ${BUILD_HOME}/installscripts/lib/artifact_cache.sh
+
+sh
+#!/bin/sh
+#: Name:        artifact_cache.sh
+#: Purpose:     Shared library for APT lock safety, S3 pull-through caching, and upstream SHA256 verification.
+
+if [ -z "${BUILD_HOME:-}" ]; then
+    if [ -r /home/buildhome.dat ]; then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+    else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+    fi
+fi
+
+DATASTORE_OPS="${BUILD_HOME}/services/datastore/operations"
+GET_SCRIPT="${DATASTORE_OPS}/GetFromDatastore.sh"
+PUT_SCRIPT="${DATASTORE_OPS}/PutToDatastore.sh"
+MOUNT_SCRIPT="${DATASTORE_OPS}/MountDatastore.sh"
+ARTIFACT_BUCKET="${ARTIFACT_BUCKET:-adt-binary-cache}"
+
+if [ -z "${TMP_DIR:-}" ]; then
+    TMP_DIR="$(mktemp -d)"
+    trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
+fi
+
+ARCHIVE_MISS=0
+CHECKSUM_MISS=0
+
+status() {
+    if [ -x "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" ]; then
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" "${2:-no}" 2>/dev/null || true
+    else
+        printf '%s\n' "${1}"
+    fi
+}
+
+wait_for_apt_lock() {
+    attempts=0
+    while [ "$attempts" -lt 24 ]; do
+        if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 &&
+           ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1 &&
+           ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+            return 0
+        fi
+        status "Waiting for dpkg/apt lock to clear before installing system packages..."
+        attempts=$((attempts + 1))
+        sleep 5
+    done
+    status "Error: Timed out waiting for dpkg/apt lock after 120 seconds."
+    exit 1
 }
 
 pull_file() {
@@ -610,291 +793,229 @@ seed_datastore() {
 }
 Use code with caution.
 
-Part 3: All Tool Definitions (Including go) & Execution Loop (install_software.sh — Bottom Half)
+5. ${BUILD_HOME}/installscripts/drivers/*.sh
+
+
+drivers/s5cmd.sh
 
 sh
-install_pinned_binary() {
-    tool="$1"
-    ver="$2"
-    gh="https://github.com"
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
 
-    case "$tool" in
-        s5cmd)
-            dir="s5cmd/${ver}"
-            file="s5cmd_${ver}_Linux-64bit.tar.gz"
-            base="$(printf '%s/peak/s5cmd/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/s5cmd_checksums.txt" "${TMP_DIR}/${file}"
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin s5cmd
-            chmod +x /usr/local/bin/s5cmd
-            ;;
-        rclone)
-            dir="rclone/${ver}"
-            file="rclone-v${ver}-linux-amd64.zip"
-            base="$(printf 'https://rclone.org' "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/SHA256SUMS" "${TMP_DIR}/${file}"
-            unzip -p "${TMP_DIR}/${file}" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
-            chmod +x /usr/local/bin/rclone
-            ;;
-        doctl)
-            dir="doctl/${ver}"
-            file="doctl-${ver}-linux-amd64.tar.gz"
-            base="$(printf '%s/digitalocean/doctl/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/doctl-${ver}-checksums.sha256" "${TMP_DIR}/${file}"
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin doctl
-            chmod +x /usr/local/bin/doctl
-            ;;
-        vultr-cli)
-            dir="vultr-cli/${ver}"
-            file="vultr-cli_v${ver}_linux_amd64.tar.gz"
-            base="$(printf '%s/vultr/vultr-cli/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/vultr-cli_v${ver}_checksums.txt" "${TMP_DIR}/${file}"
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin vultr-cli
-            chmod +x /usr/local/bin/vultr-cli
-            ;;
-        exo)
-            dir="exo/${ver}"
-            file="exoscale-cli_${ver}_linux_amd64.tar.gz"
-            base="$(printf '%s/exoscale/cli/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin exo
-            chmod +x /usr/local/bin/exo
-            ;;
-        geesefs)
-            dir="geesefs/${ver}"
-            file="geesefs-linux-amd64"
-            base="$(printf '%s/yandex-cloud/geesefs/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
-            cp "${TMP_DIR}/${file}" /usr/local/bin/geesefs
-            chmod +x /usr/local/bin/geesefs
-            ;;
-        lego)
-            dir="lego/${ver}"
-            file="lego_v${ver}_linux_amd64.tar.gz"
-            base="$(printf '%s/go-acme/lego/releases/download/v%s' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/lego_${ver}_checksums.txt" "${TMP_DIR}/${file}"
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin lego
-            chmod +x /usr/local/bin/lego
-            ;;
-        goofys)
-            dir="goofys/${ver}"
-            file="goofys"
-            url="$(printf '%s/kahing/goofys/releases/download/v%s/goofys' "$gh" "$ver")"
-            fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
-            cp "${TMP_DIR}/${file}" /usr/local/bin/goofys
-            chmod +x /usr/local/bin/goofys
-            ;;
-        acme.sh)
-            dir="acme.sh/${ver}"
-            file="acme.sh"
-            url="$(printf 'https://githubusercontent.com' "$ver")"
-            fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
-            cp "${TMP_DIR}/${file}" /usr/local/bin/acme.sh
-            chmod +x /usr/local/bin/acme.sh
-            ;;
-        go)
-            dir="go/${ver}"
-            file="go${ver}.linux-amd64.tar.gz"
-            url="$(printf 'https://go.dev' "$file")"
-            fetch_and_verify "$dir" "$file" "$url" "${url}.sha256" "${TMP_DIR}/${file}"
-            rm -rf /usr/local/go
-            tar -xzf "${TMP_DIR}/${file}" -C /usr/local
-            ln -sf /usr/local/go/bin/go /usr/local/bin/go
-            ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-            ;;
-        *)
-            status "Error: Unknown PINNED tool '${tool}'"
-            exit 1
-            ;;
-    esac
+dir="s5cmd/${ver}"
+file="s5cmd_${ver}_Linux-64bit.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
 
-    seed_datastore "$dir" "${TMP_DIR}/${file}"
-}
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/s5cmd_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin s5cmd
+chmod +x /usr/local/bin/s5cmd
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
 
-install_pinned_pip() {
-    pkg="$1"
-    ver="$2"
+drivers/rclone.sh
 
-    dir="pip/${pkg}/${ver}"
-    bundle="${pkg}-${ver}-wheels.tar.gz"
-    bundle_path="${TMP_DIR}/${bundle}"
-    wheel_dir="${TMP_DIR}/wheels-${pkg}"
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
 
-    mkdir -p "$wheel_dir"
-    python3 -m venv "/opt/${pkg}"
+dir="rclone/${ver}"
+file="rclone-v${ver}-linux-amd64.zip"
+base="$(printf 'https://rclone.org' "$ver")"
 
-    if pull_file "${dir}/${bundle}" "" "$bundle_path"; then
-        status "[DATASTORE HIT] ${dir}/${bundle}"
-        tar -xzf "$bundle_path" -C "$wheel_dir"
-        "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
-    else
-        status "[DATASTORE MISS] Downloading wheels for ${pkg}==${ver} from PyPI"
-        "/opt/${pkg}/bin/pip" download --dest "$wheel_dir" "${pkg}==${ver}"
-        "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/SHA256SUMS" "${TMP_DIR}/${file}"
+unzip -p "${TMP_DIR}/${file}" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
+chmod +x /usr/local/bin/rclone
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
 
-        tar -czf "$bundle_path" -C "$wheel_dir" .
-        ARCHIVE_MISS=1
-        CHECKSUM_MISS=0
-        seed_datastore "$dir" "$bundle_path"
-    fi
+drivers/doctl.sh
 
-    ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
-}
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
 
-# 1. Parse manifest, filter by scope, and prioritize DATASTORETOOL first
-while IFS=':' read -r type arg1 arg2 scope; do
-    case "$type" in
-        ""|\#*) continue ;;
-    esac
+dir="doctl/${ver}"
+file="doctl-${ver}-linux-amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
 
-    should_install "$scope" || continue
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/doctl-${ver}-checksums.sha256" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin doctl
+chmod +x /usr/local/bin/doctl
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
 
-    case "$type" in
-        DATASTORETOOL)
-            if [ -n "$arg2" ]; then
-                PINNED_LIST="${arg1}:${arg2} $PINNED_LIST"
-            else
-                SYSTEM_PKGS="$SYSTEM_PKGS $arg1"
-            fi
-            ;;
-        SYSTEM)     SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
-        PINNED)     PINNED_LIST="$PINNED_LIST ${arg1}:${arg2}" ;;
-        PINNED_PIP) PIP_LIST="$PIP_LIST ${arg1}:${arg2}" ;;
-        *)
-            status "Error: Unknown directive '${type}' in ${MANIFEST}"
-            exit 1
-            ;;
-    esac
-done < "$MANIFEST"
+drivers/exo.sh
 
-# 2. Wait for dpkg/apt locks, ensure nala exists, and batch-install SYSTEM packages
-wait_for_apt_lock
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
 
-if ! command -v nala >/dev/null 2>&1; then
-    status "Bootstrapping nala package manager..."
-    apt-get update -y
-    apt-get install -y nala
+dir="exo/${ver}"
+file="exoscale-cli_${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin exo
+chmod +x /usr/local/bin/exo
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/vultr-cli.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="vultr-cli/${ver}"
+file="vultr-cli_v${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/vultr-cli_v${ver}_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin vultr-cli
+chmod +x /usr/local/bin/vultr-cli
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/geesefs.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="geesefs/${ver}"
+file="geesefs-linux-amd64"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/geesefs
+chmod +x /usr/local/bin/geesefs
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/goofys.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="goofys/${ver}"
+file="goofys"
+url="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/goofys
+chmod +x /usr/local/bin/goofys
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/lego.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="lego/${ver}"
+file="lego_v${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/lego_${ver}_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin lego
+chmod +x /usr/local/bin/lego
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/acme.sh.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="acme.sh/${ver}"
+file="acme.sh"
+url="$(printf 'https://githubusercontent.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/acme.sh
+chmod +x /usr/local/bin/acme.sh
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/go.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="go/${ver}"
+file="go${ver}.linux-amd64.tar.gz"
+url="$(printf 'https://go.dev' "$file")"
+
+fetch_and_verify "$dir" "$file" "$url" "${url}.sha256" "${TMP_DIR}/${file}"
+rm -rf /usr/local/go
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local
+ln -sf /usr/local/go/bin/go /usr/local/bin/go
+ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/linode-cli.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+pkg="linode-cli"
+dir="pip/${pkg}/${ver}"
+bundle="${pkg}-${ver}-wheels.tar.gz"
+bundle_path="${TMP_DIR}/${bundle}"
+wheel_dir="${TMP_DIR}/wheels-${pkg}"
+
+mkdir -p "$wheel_dir"
+python3 -m venv "/opt/${pkg}"
+
+if pull_file "${dir}/${bundle}" "" "$bundle_path"; then
+    status "[DATASTORE HIT] ${dir}/${bundle}"
+    tar -xzf "$bundle_path" -C "$wheel_dir"
+    "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
+else
+    status "[DATASTORE MISS] Downloading wheels for ${pkg}==${ver} from PyPI"
+    "/opt/${pkg}/bin/pip" download --dest "$wheel_dir" "${pkg}==${ver}"
+    "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
+
+    tar -czf "$bundle_path" -C "$wheel_dir" .
+    ARCHIVE_MISS=1
+    CHECKSUM_MISS=0
+    seed_datastore "$dir" "$bundle_path"
 fi
 
-nala update
-# shellcheck disable=SC2086
-nala install -y curl tar unzip ca-certificates psmisc $SYSTEM_PKGS
-
-# 3. Install PINNED binaries (DATASTORETOOL installs & self-caches first, then caches the rest)
-for item in $PINNED_LIST; do
-    install_pinned_binary "${item%%:*}" "${item#*:}"
-done
-
-# 4. Install PINNED_PIP packages (using S3 wheel-bundle pull-through cache)
-for item in $PIP_LIST; do
-    install_pinned_pip "${item%%:*}" "${item#*:}"
-done
-
-status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
+ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
 Use code with caution.
-
-Notice Two Neat Details Added for Your File
-
-• If DATASTORETOOL is a SYSTEM package (DATASTORETOOL:s3cmd::all): Because arg2 is blank, the parser automatically routes s3cmd into SYSTEM_PKGS so nala installs it before any binary downloads begin.
-• go toolchain support (PINNED:go:1.23.3:buildhost): Extracts cleanly into /usr/local/go, verifies against go.dev's official .sha256 file, caches in S3, and symlinks go and gofmt into /usr/local/bin.
-If you also want to move the non-package settings from your original software.dat (like BUILDCHAINTYPE, DATASTORECONFIGSTYLE, GITBRANCH, ORCHESTRATION_TOOL, and NGINX/APACHE/LIGHTTPD module lists) into a separate deployment.dat or role config files so nothing gets lost when you replace software.dat, let me know and we can map those out cleanly.
-
-
-status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
-Use code with caution.
-(Note: psmisc is included in the base nala install line so fuser is always guaranteed present for wait_for_apt_lock() on subsequent runs, and python3-venv is automatically pulled in whenever PINNED_PIP is used if you add SYSTEM:python3-venv::linode to software.dat.)
-You now have the complete, hardened software.dat + install_software.sh ready for your testing over the next couple of weeks—whenever you run your first test build and want to inspect the output or tweak anything, just drop back in!
-
-Use code with caution.
-If you'd like to run a quick dry-run or URL smoke test before deploying this to a live node, let me know and I can share a one-line verification check for your configured CLOUDHOST and SERVER_ROLE.
-
-
-Yes, pretty much. Passing the server role (webserver, database, reverseproxy, authenticator, buildhost) to install_software.sh handles all package and CLI binary provisioning automatically.
-
-The Only 3 Things install_software.sh Does Not Do
-
-Because install_software.sh is strictly a clean package/binary installer, make sure your existing role setup scripts still handle these three post-install steps:
-1. Upstream APT Repositories (if needed): If you use a non-default database version (such as Oracle's MySQL 8.4/9.x repo or MariaDB's official mirror rather than Ubuntu/Debian's built-in mariadb-server), add that repo keyring/sources file before install_software.sh runs nala update.
-2. CLI & Datastore Credentials: GetFromDatastore.sh and PutToDatastore.sh need your S3 credentials (~/.s5cfg or ~/.config/rclone/rclone.conf) and /home/buildhome.dat + CLOUDHOST in place on the server before install_software.sh executes so the S3 pull-through cache works immediately.
-3. Service Configuration & Firewall Rules: Writing nginx.conf, tuning php-fpm pools, securing mariadb-server, and enabling ufw ports still belong in your dedicated role configuration scripts after install_software.sh finishes.
-Once those three pieces are in your base provisioning flow, running sh "${BUILD_HOME}/installscripts/install_software.sh" <role> sorts out the entire software stack across every server type.
-If you'd like, share one of your role provisioning scripts (such as webserver or database), and I can double-check that the handoff between install_software.sh and your post-install configuration is completely seamless.
+Whenever you start testing this layout on your build host over the next couple of weeks, feel free to share any --dry-run output or test logs if you want to verify or fine-tune any piece of it.
 
 
 
-###############################################################################################
-# Name:        deployment.dat
-# Purpose:     Runtime behavior, orchestration, firewall, and service tuning settings for ADT.
-#              (Separated from software.dat so package installation stays a pure lockfile.)
-# Author:      Peter Winter
-# Date:        20/11/2026
-###############################################################################################
-
-# =============================================================================================
-# 1. BUILD & ORCHESTRATION TOPOLOGY
-# =============================================================================================
-# Build chain type: standard (autoscaler + webserver + database) | webserver | database
-BUILDCHAINTYPE:standard
-
-# Infrastructure repository branch: main | dev
-GITBRANCH:main
-
-# Orchestration mechanism: api | cli
-ORCHESTRATION_TOOL:api
-
-# Datastore configuration state style: tool | lightweight | heavyweight
-DATASTORECONFIGSTYLE:tool
-
-# =============================================================================================
-# 2. SECURITY, FIREWALL & SYSTEM UTILITIES
-# =============================================================================================
-# Firewall style & rate limiting:
-#   FIREWALL:ufw
-#   FIREWALL:ufw:limit
-#   FIREWALL:iptables:20:30  (20 connections/min per IP, burst rate 30)
-#FIREWALL:ufw
-FIREWALL:iptables:20:30
-
-# Fail2Ban intrusion prevention: active | inactive
-#FAIL2BAN:active
-
-# Periodic virus scanning: VIRUSSCANNER:<scanner>:<hourly|daily|weekly|monthly>
-#VIRUSSCANNER:clamav:daily
-
-# Active email utility: sendemail | ssmtp
-#EMAILUTIL:sendemail
-EMAILUTIL:ssmtp
-
-# Active text browser: lynx | w3m | elinks
-#TEXTBROWSER:lynx
-#TEXTBROWSER:w3m
-TEXTBROWSER:elinks
-
-# Active SSL certificate client: lego | acme
-SSLCERTCLIENT:lego
-#SSLCERTCLIENT:acme
-
-# =============================================================================================
-# 3. PHP RUNTIME MODE
-# =============================================================================================
-# PHP:fpm              -> Unix socket (/var/run/php${PHP_VERSION}-fpm.sock)
-# PHP:cli:fpm|9176     -> TCP port 9176
-#PHP:cli:fpm|9176
-PHP:fpm
-
-# =============================================================================================
-# 4. WEBSERVER MODULES & RUNTIME TUNING
-# =============================================================================================
-# --- NGINX ---
-NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
-NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
-
-# --- APACHE ---
-APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
-APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
-
-# --- LIGHTTPD ---
-LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv:mod_redirect:mod_rewrite:mod_authn_file
-LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 
 
 
