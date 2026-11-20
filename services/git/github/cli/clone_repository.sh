@@ -1,29 +1,30 @@
 #!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Performs a branch-specific shallow Git clone from GitLab (public first, authenticated fallback).
+#: Purpose:     Performs a branch-specific shallow Git clone from GitHub (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.1
+#: Version:     1.2
 #:
 #: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] Target branch name or "--branch <name>" flag.
-#:   $2         [Required] The GitHub username or group path (repository owner).
-#:   $3         [Required] The name/slug of the GitLab project to clone.
+#:   $2         [Required] The GitHub organisation or account owner name.
+#:   $3         [Required] The name/slug of the GitHub repository to clone.
 #:   $4         [Required] Local destination directory path to clone into.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
+#:   - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh
 #:   - External binaries: base64, cat, cut, echo, git, grep, printf, rm, sed
 #:
 #: Exit Codes:
-#:   0          Project branch cloned cleanly into destination directory
+#:   0          Repository branch cloned cleanly into destination directory
 #:   1          Missing arguments, layout faults, or missing credentials
 #:   *          Bubbled non-zero exit code from git clone
 ###################################################################################
@@ -44,7 +45,6 @@
 #set -x
 set -e
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
         /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
@@ -59,11 +59,15 @@ else
         exit 1
 fi
 
-# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
+
+if [ "${1}" = "--branch" ]
+then
+        shift
+fi
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
@@ -77,12 +81,12 @@ repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-git_base="https://api.github.com"
+git_base="https://github.com"
 repo_url="${git_base}/${repository_ownername}/${repository_name}.git"
 
 export GIT_TERMINAL_PROMPT=0
 
-# 1. Attempt unauthenticated shallow clone first (works for public projects without touching credentials)
+# 1. Attempt unauthenticated shallow clone first (works for public repositories)
 set +e
 /usr/bin/git clone \
         --depth 1 \
@@ -92,7 +96,7 @@ set +e
 git_status="$?"
 set -e
 
-# 2. If public clone fails, clean up any partial directory and retry with oauth2 Basic Auth header
+# 2. If public clone fails, clean up any partial directory and retry with x-access-token Basic Auth
 if [ "${git_status}" -ne 0 ]
 then
         /bin/rm -rf "${destination_directory}"
@@ -108,13 +112,13 @@ then
                 exit "${git_status}"
         fi
 
-        encoded_auth="$(/usr/bin/printf '%s' "oauth2:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
+        encoded_auth="$(/usr/bin/printf '%s' "x-access-token:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
         unset REPOSITORY_TOKEN
 
         if [ -z "${encoded_auth}" ]
         then
                 unset GIT_TERMINAL_PROMPT
-                status "Error: Failed to encode GitLab authentication header."
+                status "Error: Failed to encode GitHub authentication header."
                 exit 1
         fi
 
@@ -144,4 +148,5 @@ fi
 
 /bin/echo "${destination_directory}"
 exit 0
+
 
