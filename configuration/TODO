@@ -1,0 +1,147 @@
+To integrate the read-through S3 cache natively into the Wintersys Agile Deployment Toolkit (ADT), we replace direct aws CLI calls with ADT's built-in datastore abstraction scripts (MountDatastore.sh, GetFromDatastore.sh, and PutToDatastore.sh) located under ${HOME}/services/datastore/operations/ (or ${BUILD_HOME}/services/datastore/operations/ on the build machine).
+This makes your nala cache automatically inherit ADT's provider-agnostic S3 tooling (s3cmd, s5cmd, or rclone) as well as its multi-region replication chains (S3_HOST_BASE / S3_ACCESS_KEY pipe-delimited configs). [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatastoreProvider)
+
+ADT Integration Architecture
+
+1. Bucket Nomenclature: Following ADT's datastore naming conventions (<website_url>-<purpose> or <prefix>-apt-cache), we isolate packages by OS codename and architecture (e.g., ${CACHE_BUCKET}/debian-bookworm-amd64/) so mixed fleets never collide.
+2. Region Awareness:
+	• MountDatastore.sh: Invoked with distributed mode so the cache bucket is provisioned across all configured regions/providers in your ADT template.
+	• GetFromDatastore.sh: Invoked against the local region (local / index 1 in ADT's credential chain) for fast, low-latency pulls.
+	• PutToDatastore.sh: Invoked with distributed mode (or local if you only want single-region caching) so newly fetched .deb packages propagate across all configured regions.
+
+Refactored ADT Script: ${HOME}/utilities/software/InstallWithNalaCache.sh
+
+Save this script in your forked ADT repository (e.g., under utilities/software/ across your webserver, database, autoscaler, and build-machine script trees). [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatastoreProvider)
+sh
+#!/bin/sh
+###############################################################################################
+# Description: Read-through S3 package cache wrapper for nala integrated with Wintersys ADT
+# Author: Refactored for Wintersys Agile Deployment Toolkit
+###############################################################################################
+set -eu
+
+# 1. Resolve ADT base directory (${HOME} on provisioned nodes, ${BUILD_HOME} on build machine)
+ADT_BASE="${BUILD_HOME:-${HOME}}"
+OPS_DIR="${ADT_BASE}/services/datastore/operations"
+
+# Verify ADT datastore scripts exist; fallback cleanly to plain nala if not yet initialised
+if [ ! -x "${OPS_DIR}/MountDatastore.sh" ] || \
+   [ ! -x "${OPS_DIR}/GetFromDatastore.sh" ] || \
+   [ ! -x "${OPS_DIR}/PutToDatastore.sh" ]; then
+    exec /usr/bin/nala "$@"
+fi
+
+# 2. Derive bucket name using ADT config helpers (falls back to a dedicated ADT cache bucket)
+if [ -x "${ADT_BASE}/utilities/config/ExtractConfigValue.sh" ]; then
+    WEBSITE_URL="$("${ADT_BASE}/utilities/config/ExtractConfigValue.sh" 'WEBSITEURL' 2>/dev/null || true)"
+fi
+
+if [ -n "${NALA_CACHE_BUCKET:-}" ]; then
+    CACHE_BUCKET="${NALA_CACHE_BUCKET}"
+elif [ -n "${WEBSITE_URL:-}" ]; then
+    # Aligns with ADT datastore nomenclature: <website_url>-<purpose>
+    SANITIZED_URL="$(printf '%s' "${WEBSITE_URL}" | /usr/bin/tr '.' '-')"
+    CACHE_BUCKET="${SANITIZED_URL}-nala-cache"
+else
+    CACHE_BUCKET="adt-shared-nala-cache"
+fi
+
+# Namespace objects inside the bucket by OS codename and architecture
+OS_CODENAME="$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-linux}")"
+ARCH="$(/usr/bin/dpkg --print-architecture 2>/dev/null || printf 'amd64')"
+BUCKET_PREFIX="${CACHE_BUCKET}/${OS_CODENAME}-${ARCH}"
+
+CACHE_DIR="/var/cache/apt/archives"
+PARTIAL_DIR="${CACHE_DIR}/partial"
+LOCK_FILE="/var/lock/adt-nala-cache.lock"
+WORK_DIR="$(/bin/mktemp -d /tmp/adt-nala-cache.XXXXXX)"
+
+cleanup() {
+    /bin/rm -rf "${WORK_DIR}"
+}
+trap cleanup EXIT
+
+case "${1:-}" in
+    install|upgrade|full-upgrade)
+        # Prevent concurrent apt/nala lock collisions on the same VM
+        if command -v flock >/dev/null 2>&1 && [ "${ADT_NALA_LOCKED:-0}" != "1" ]; then
+            export ADT_NALA_LOCKED=1
+            exec /usr/bin/flock "${LOCK_FILE}" "$0" "$@"
+        fi
+
+        /bin/mkdir -p "${PARTIAL_DIR}"
+
+        # Ensure the datastore bucket exists across configured ADT regions (idempotent)
+        "${OPS_DIR}/MountDatastore.sh" "${CACHE_BUCKET}" "distributed" >/dev/null 2>&1 || :
+
+        # 3. Record existing .deb packages in local APT cache
+        /bin/ls -1 "${CACHE_DIR}"/*.deb 2>/dev/null | /usr/bin/xargs -r -n1 /usr/bin/basename | /usr/bin/sort > "${WORK_DIR}/before.txt" || :
+
+        # 4. Strip nala-specific flags before querying apt-get for required .deb filenames
+        subcmd="$1"; shift
+        apt_args=""
+        for arg in "$@"; do
+            case "$arg" in
+                --no-update|--raw-dpkg|--verbose|-v|--simple|--assume-yes|-y) ;;
+                *) apt_args="${apt_args} $(printf '%s' "$arg" | /bin/sed "s/'/'\\\\''/g; s/^/'/; s/$/'/")" ;;
+            esac
+        done
+
+        eval "set -- ${apt_args}"
+        /usr/bin/apt-get --print-uris -y "${subcmd}" "$@" 2>/dev/null | /usr/bin/awk '/^'\''/ {print $2}' > "${WORK_DIR}/needed.txt" || :
+
+        # 5. Read-Through Check: Pull missing .deb files from local-region ADT Datastore
+        while IFS= read -r deb_file; do
+            if [ -n "${deb_file}" ] && [ ! -f "${CACHE_DIR}/${deb_file}" ]; then
+                # GetFromDatastore.sh fetches from the primary/local region into PARTIAL_DIR
+                if "${OPS_DIR}/GetFromDatastore.sh" "${BUCKET_PREFIX}/${deb_file}" "${PARTIAL_DIR}" >/dev/null 2>&1; then
+                    if [ -f "${PARTIAL_DIR}/${deb_file}" ]; then
+                        /bin/mv -f "${PARTIAL_DIR}/${deb_file}" "${CACHE_DIR}/${deb_file}"
+                        printf "[ADT-CACHE HIT]  %s\n" "${deb_file}"
+                    fi
+                else
+                    printf "[ADT-CACHE MISS] %s\n" "${deb_file}"
+                fi
+            fi
+        done < "${WORK_DIR}/needed.txt"
+
+        # 6. Execute nala (uses cached .deb files and downloads misses from upstream mirrors)
+        # Force Keep-Downloaded-Packages so newly fetched .deb files remain available for step 7
+        /usr/bin/nala "${subcmd}" -o APT::Keep-Downloaded-Packages="true" "$@"
+
+        # 7. Write-Back: Push newly downloaded .deb files to ADT Datastore (replicated across regions)
+        /bin/ls -1 "${CACHE_DIR}"/*.deb 2>/dev/null | /usr/bin/xargs -r -n1 /usr/bin/basename | /usr/bin/sort | /usr/bin/comm -13 "${WORK_DIR}/before.txt" - > "${WORK_DIR}/new.txt" || :
+
+        while IFS= read -r new_deb; do
+            if [ -n "${new_deb}" ] && [ -f "${CACHE_DIR}/${new_deb}" ]; then
+                printf "[ADT-CACHE PUSH] %s\n" "${new_deb}"
+                # "no" = do not delete local source file after upload; "distributed" = sync to all regions
+                "${OPS_DIR}/PutToDatastore.sh" "${CACHE_DIR}/${new_deb}" "${BUCKET_PREFIX}" "no" "distributed" >/dev/null 2>&1 || :
+            fi
+        done < "${WORK_DIR}/new.txt"
+        ;;
+    *)
+        # Pass non-install commands (update, search, history, autopurge) directly to nala
+        exec /usr/bin/nala "$@"
+        ;;
+esac
+Use code with caution.
+
+How to Wire This into Your ADT Repositories
+
+To make every machine role in your forked ADT repositories (adt-webserver-scripts, adt-database-scripts, adt-autoscaler-scripts, adt-build-machine-scripts) use this automatically: [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatastoreProvider)
+1. Verify GetFromDatastore.sh / PutToDatastore.sh Argument Signatures:
+In ADT, ${HOME}/services/datastore/operations/GetFromDatastore.sh and PutToDatastore.sh wrap PerformGetFromDatastore.sh and PerformPutToDatastore.sh. Depending on your ADT branch version:
+	• Some versions expect PutToDatastore.sh <local_file> <bucket/prefix> <delete_after:yes|no> <mode:local|distributed>.
+	• Others take PutToDatastore.sh <local_file> <bucket/prefix> <mode> (handling deletion separately).
+	• Check the top 15 lines of ${HOME}/services/datastore/operations/PutToDatastore.sh and GetFromDatastore.sh in your fork to confirm the exact positional parameters ($1, $2, $3, $4).
+2. Install After InitialiseDatastoreConfig.sh:
+In ADT's boot sequence (CloudInitWorkflow / InitialiseDatastoreConfig.sh), datastore credentials (/root/.s5cfg-1, ~/.s3cfg, or rclone.conf) are written before application packages (nginx, php, mariadb, postgres, etc.) are installed.
+	• Place InstallWithNalaCache.sh in your providerscripts/ or utilities/software/ directory.
+	• Update your software installation scripts (or symlink /usr/local/bin/nala -> ${HOME}/utilities/software/InstallWithNalaCache.sh once InitialiseDatastoreConfig.sh finishes) so every subsequent nala install call during server provisioning hits your S3 datastore first. [1] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/Development/AddingANewDatastoreProvider), [2] (https://www.wintersys-initiatives.uk/Agile%20Deployment%20Toolkit/newdoco/Deployment/Config%20Directories%20Synchronisation)
+3. Multi-Region Speed Optimization:
+Because ADT orders S3_HOST_BASE with the local region first (--credentials-file /root/.s5cfg-1), GetFromDatastore.sh will always read from the datacenter region closest to the VM being provisioned, while PutToDatastore.sh ... distributed populates all secondary regions in the background.
+If you'd like to fine-tune the script to match your exact ADT fork, let me know:
+• Which datastore provider tool you have configured in ADT (s5cmd, s3cmd, or rclone) so we can batch transfers if supported
+• Whether you want to auto-purge /var/cache/apt/archives/*.deb after PutToDatastore.sh completes to keep small VPS root disks clean
+• The exact header/arguments of your fork's GetFromDatastore.sh if it differs from the standard 2-argument signature
