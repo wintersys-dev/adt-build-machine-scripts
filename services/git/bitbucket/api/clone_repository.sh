@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Downloads and extracts a Bitbucket repository branch archive via HTTP API (public first, authenticated fallback).
+#: Purpose:     Downloads and extracts a Bitbucket repository branch archive (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.2
+#: Version:     1.3
 #:
 #: Usage:       clone_repository.sh [--branch] <branch> <repository_ownername> <repository_name> <destination_directory>
 #:              clone_repository.sh [-h|--help]
@@ -20,7 +20,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, mkdir, mktemp, printf, rm, sed, tar
+#:   - External binaries: cat, curl, cut, echo, grep, gzip, mkdir, mktemp, printf, rm, sed, tar
 #:
 #: Exit Codes:
 #:   0          Repository archive downloaded and extracted cleanly
@@ -45,7 +45,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-
+set -x
 set -e
 
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
@@ -91,36 +91,56 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-api_base="https://bitbucket.org"
-repo_endpoint="${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
+archive_url="https://api.bitbucket.org/2.0/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
+archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
 
-# 1. Attempt unauthenticated download first
+# 1. Attempt unauthenticated download first (works for public repositories)
 set +e
 HTTP_CODE=$(/usr/bin/curl -s -L --connect-timeout 15 \
         -o "${tmp_archive}" \
         -w "%{http_code}" \
-        "${api_base}/${repo_endpoint}")
+        "${archive_url}")
 set -e
 
-# 2. If public access fails, retry with Atlassian email + API token
-if [ "${HTTP_CODE}" != "200" ]
+# Verify that HTTP 200 actually returned a gzip archive (Bitbucket can return 200 HTML login pages)
+is_valid_gzip=0
+if [ "${HTTP_CODE}" = "200" ] && /bin/gzip -t "${tmp_archive}" 2>/dev/null
+then
+        is_valid_gzip=1
+fi
+
+# 2. If public access failed or did not return a valid gzip archive, retry with Bitbucket credentials
+if [ "${is_valid_gzip}" -ne 1 ]
 then
         set +e
         REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
         ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL' 2>/dev/null)"
         set -e
 
-        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ] && \
-           [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
         then
                 /bin/rm -f "${tmp_archive}"
-                set +e
-                HTTP_CODE=$(/usr/bin/printf 'user = "%s:%s"\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
-                        /usr/bin/curl -s -L --connect-timeout 15 -K - \
-                        -o "${tmp_archive}" \
-                        -w "%{http_code}" \
-                        "${api_base}/${repo_endpoint}")
-                set -e
+
+                if [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
+                then
+                        # Atlassian Account API Token (email:token Basic Auth)
+                        set +e
+                        HTTP_CODE=$(/usr/bin/printf 'user = "%s:%s"\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
+                                /usr/bin/curl -s -L --connect-timeout 15 -K - \
+                                -o "${tmp_archive}" \
+                                -w "%{http_code}" \
+                                "${archive_url}")
+                        set -e
+                else
+                        # Bitbucket Repository / Workspace Access Token (Bearer Auth)
+                        set +e
+                        HTTP_CODE=$(/usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
+                                /usr/bin/curl -s -L --connect-timeout 15 -H @- \
+                                -o "${tmp_archive}" \
+                                -w "%{http_code}" \
+                                "${archive_url}")
+                        set -e
+                fi
         fi
 
         unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
@@ -132,6 +152,12 @@ case "${HTTP_CODE}" in
                 exit 1
                 ;;
         200)
+                if ! /bin/gzip -t "${tmp_archive}" 2>/dev/null
+                then
+                        status "Error: Downloaded response from Bitbucket is not a valid gzip archive (check token scopes or branch name)."
+                        exit 1
+                fi
+
                 /bin/mkdir -p "${destination_directory}"
                 set +e
                 /bin/tar -xzf "${tmp_archive}" -C "${destination_directory}" --strip-components=1 >&2
