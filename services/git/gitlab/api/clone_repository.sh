@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Downloads and extracts a GitLab project branch archive via REST API v4.
+#: Purpose:     Downloads and extracts a GitLab project branch archive via REST API v4 (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
 #:              clone_repository.sh [-h|--help]
@@ -20,12 +20,12 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, mkdir, mktemp, rm, sed, tar
+#:   - External binaries: cat, curl, cut, echo, grep, mkdir, mktemp, printf, rm, sed, tar
 #:
 #: Exit Codes:
 #:   0          Project archive downloaded and extracted cleanly
 #:   1          Missing arguments, layout faults, extraction error, or unexpected HTTP code
-#:   401        Unauthorized (invalid or expired APPLICATIONREPOSITORYTOKEN)
+#:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN)
 #:   403        Forbidden (token lacks read permissions for target project)
 #:   404        Not Found (project or branch does not exist)
 #:   429        Rate Limit Exceeded
@@ -59,19 +59,19 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-        status "Error: Branch, repository owner, repository name, and destination directory are required." 
+        status "Error: Branch, repository owner, repository name, and destination directory are required."
         status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
         exit 1
 fi
@@ -80,16 +80,6 @@ branch="$(/bin/echo "${1}" | /usr/bin/sed 's/^--branch[[:space:]]*//')"
 repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
-
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
-
-if [ -z "${REPOSITORY_TOKEN}" ]
-then
-        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN)." 
-        exit 1
-fi
 
 tmp_archive="$(/bin/mktemp /tmp/repo_archive.XXXXXX.tar.gz)"
 
@@ -103,15 +93,41 @@ encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr
 api_base="https://gitlab.com/api/v4"
 endpoint_url="${api_base}/projects/${encoded_project}/repository/archive.tar.gz?sha=${branch}"
 
+# 1. Attempt unauthenticated download first (works for public projects without touching credentials)
 set +e
-HTTP_CODE=$(/bin/echo "PRIVATE-TOKEN: ${REPOSITORY_TOKEN}" | \
-        /usr/bin/curl -s -L -H @- \
+HTTP_CODE=$(/usr/bin/curl -s -L --connect-timeout 15 \
         -o "${tmp_archive}" \
         -w "%{http_code}" \
         "${endpoint_url}")
 set -e
 
+# 2. If public access fails (e.g., 404/403/401 on a private project), retry with PRIVATE-TOKEN
+if [ "${HTTP_CODE}" != "200" ]
+then
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
+
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+        then
+                /bin/rm -f "${tmp_archive}"
+                set +e
+                HTTP_CODE=$(/usr/bin/printf 'PRIVATE-TOKEN: %s\n' "${REPOSITORY_TOKEN}" | \
+                        /usr/bin/curl -s -L --connect-timeout 15 -H @- \
+                        -o "${tmp_archive}" \
+                        -w "%{http_code}" \
+                        "${endpoint_url}")
+                set -e
+        fi
+
+        unset REPOSITORY_TOKEN
+fi
+
 case "${HTTP_CODE}" in
+        000)
+                status "Error 000: Connection failed or timed out while reaching gitlab.com."
+                exit 1
+                ;;
         200)
                 /bin/mkdir -p "${destination_directory}"
                 set +e
@@ -121,7 +137,7 @@ case "${HTTP_CODE}" in
 
                 if [ "${tar_status}" -ne 0 ]
                 then
-                        /bin/echo "Error: Failed to extract project archive into ${destination_directory}." >&2
+                        status "Error: Failed to extract project archive into ${destination_directory}."
                         exit 1
                 fi
 
@@ -129,29 +145,30 @@ case "${HTTP_CODE}" in
                 exit 0
                 ;;
         401)
-                status "Error 401: Unauthorized. Your APPLICATIONREPOSITORYTOKEN is invalid or has expired." 
+                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN is invalid or has expired."
                 exit 401
                 ;;
         403)
-                status "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}." 
+                status "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}."
                 exit 403
                 ;;
         404)
-                status "Error 404: Not Found. Project ${repository_ownername}/${repository_name} or branch '${branch}' does not exist." 
+                status "Error 404: Not Found. Project ${repository_ownername}/${repository_name} or branch '${branch}' does not exist."
                 exit 404
                 ;;
         429)
-                status "Error 429: Rate Limit Exceeded. Back off request frequency." 
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
                 exit 429
                 ;;
         5*)
-                status "Error ${HTTP_CODE}: GitLab Gateway or Remote Server Exception." 
+                status "Error ${HTTP_CODE}: GitLab Gateway or Remote Server Exception."
                 exit 500
                 ;;
         *)
-                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
+                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
                 exit 1
                 ;;
 esac
 
 exit 0
+
