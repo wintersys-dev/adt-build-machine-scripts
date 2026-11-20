@@ -1,3 +1,6 @@
+replace BUILDOS and BUILDOS_VERSION with this /etc/os-release
+
+
 Here is your complete, ready-to-use adt-source-cache.sh updated with the cleaner /etc/os-release detection snippet (and the stray blank line in the find command fixed):
 sh
 #!/bin/sh
