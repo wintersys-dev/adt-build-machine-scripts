@@ -55,7 +55,7 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        status "Application root configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" 
         exit 1
 fi
 
