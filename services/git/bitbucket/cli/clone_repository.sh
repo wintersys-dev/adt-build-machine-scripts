@@ -1,11 +1,12 @@
-!/bin/sh
+#!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Performs a shallow Git clone from Bitbucket using secure env headers.
+#: Purpose:     Performs a shallow Git clone from Bitbucket (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
+#: Date:        20/11/2026
 #: Version:     1.0
 #:
 #: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
+#:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] Target branch name or "--branch <name>" flag.
@@ -14,12 +15,12 @@
 #:   $4         [Required] Local destination directory for the cloned repository.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: base64, cat, echo, git, printf, sed
+#:   - External binaries: base64, cat, cut, echo, git, grep, printf, rm, sed
 #:
 #: Exit Codes:
 #:   0          Repository cloned cleanly into destination directory
@@ -53,64 +54,85 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
         status "Error: Branch, repository owner, repository name, and destination directory are required."
-        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>" 
+        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
         exit 1
 fi
 
-# Strip optional "--branch " prefix so both "main" and "--branch main" inputs work cleanly
 branch="$(/bin/echo "${1}" | /usr/bin/sed 's/^--branch[[:space:]]*//')"
 repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
+repo_url="https://bitbucket.org/${repository_ownername}/${repository_name}.git"
 
-if [ -z "${REPOSITORY_TOKEN}" ] 
-then
-        status "Error: Failed to fetch required context variable APPLICATIONREPOSITORYTOKEN ."
-        exit 1
-fi
+export GIT_TERMINAL_PROMPT=0
 
-encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
-unset REPOSITORY_TOKEN
-
-if [ -z "${encoded_auth}" ]
-then
-        status "Error: Failed to encode Bitbucket authentication header."
-        exit 1
-fi
-
-# Export transient Git HTTP header configuration to avoid exposing tokens in process trees
-export GIT_CONFIG_COUNT=1
-export GIT_CONFIG_KEY_0="http.extraheader"
-export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
-
+# 1. Attempt unauthenticated shallow clone first (works for public repositories without touching credentials)
 set +e
 /usr/bin/git clone \
         --depth 1 \
         --branch "${branch}" \
-        -- "https://bitbucket.org/${repository_ownername}/${repository_name}.git" \
-        "${destination_directory}" >&2
+        -- "${repo_url}" \
+        "${destination_directory}" >/dev/null 2>&1
 git_status="$?"
 set -e
 
-# Immediately scrub sensitive environment variables
-unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 encoded_auth REPOSITORY_TOKEN
+# 2. If public clone fails, clean up any partial directory and retry with Bitbucket Basic Auth header
+if [ "${git_status}" -ne 0 ]
+then
+        /bin/rm -rf "${destination_directory}"
+
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
+
+        if [ -z "${REPOSITORY_TOKEN}" ] || [ "${REPOSITORY_TOKEN}" = "none" ]
+        then
+                unset GIT_TERMINAL_PROMPT REPOSITORY_TOKEN
+                status "Error: Public git clone failed and no APPLICATION_REPOSITORY_TOKEN is configured."
+                exit "${git_status}"
+        fi
+
+        encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
+        unset REPOSITORY_TOKEN
+
+        if [ -z "${encoded_auth}" ]
+        then
+                unset GIT_TERMINAL_PROMPT
+                status "Error: Failed to encode Bitbucket authentication header."
+                exit 1
+        fi
+
+        export GIT_CONFIG_COUNT=1
+        export GIT_CONFIG_KEY_0="http.extraheader"
+        export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
+
+        set +e
+        /usr/bin/git clone \
+                --depth 1 \
+                --branch "${branch}" \
+                -- "${repo_url}" \
+                "${destination_directory}" >&2
+        git_status="$?"
+        set -e
+
+        unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 encoded_auth
+fi
+
+unset GIT_TERMINAL_PROMPT
 
 if [ "${git_status}" -ne 0 ]
 then
@@ -120,3 +142,4 @@ fi
 
 /bin/echo "${destination_directory}"
 exit 0
+
