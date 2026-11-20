@@ -87,7 +87,7 @@ then
         exit 1
 fi
 
-worker_script="${HOME}/services/git/gitlab/${orchestration_tool}/list_repository.sh"
+worker_script="${BUILD_HOME}/services/git/gitlab/${orchestration_tool}/list_repository.sh"
 
 if [ ! -x "${worker_script}" ]
 then
