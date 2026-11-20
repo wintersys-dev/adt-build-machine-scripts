@@ -23,7 +23,7 @@
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
 #:   1          Missing arguments, layout faults, missing credentials, or unexpected HTTP code
-#:   401        Unauthorized (invalid or expired APPLICATIONREPOSITORYTOKEN)
+#:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN)
 #:   403        Forbidden (token lacks permissions to inspect target repository)
 #:   429        Rate Limit Exceeded
 #:   500        GitHub Gateway or Remote Server Exception (5xx)
@@ -82,7 +82,7 @@ set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ]
 then
-        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN)." 
+        status "Error: Failed to fetch required context variables (APPLICATION_REPOSITORY_TOKEN)." 
         exit 1
 fi
 
@@ -111,7 +111,7 @@ case "${REPO_HTTP_CODE}" in
                 exit 0
                 ;;
         401)
-                status "Error 401: Unauthorized. Your APPLICATIONREPOSITORYTOKEN is invalid or has expired." 
+                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN is invalid or has expired." 
                 exit 401
                 ;;
         403)
