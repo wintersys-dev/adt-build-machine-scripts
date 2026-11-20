@@ -1,6 +1,6 @@
 #!/bin/sh
 #: Name:        ListRepository.sh
-#: Purpose:     Checks whether a Bitbucket repository is "full", "empty", or "none".
+#: Purpose:     Checks whether a Github repository is "full", "empty", or "none".
 #: Author:      Peter Winter
 #: Date:        18/11/2026
 #: Version:     1.0
@@ -8,7 +8,7 @@
 #: Usage:       ListRepository.sh <repository_ownername> <repository_name>
 #:
 #: Parameters:
-#:   $1         [Required] The Bitbucket workspace or repository owner name.
+#:   $1         [Required] The Github workspace or repository owner name.
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
@@ -17,7 +17,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
-#:   - ${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh
+#:   - ${BUILD_HOME}/services/git/github/${orchestration_tool}/list_repository.sh
 #:   - External binaries: awk, cat, echo, tr
 #:
 #: Exit Codes:
