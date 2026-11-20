@@ -680,6 +680,19 @@ Use code with caution.
 If you'd like to run a quick dry-run or URL smoke test before deploying this to a live node, let me know and I can share a one-line verification check for your configured CLOUDHOST and SERVER_ROLE.
 
 
+Yes, pretty much. Passing the server role (webserver, database, reverseproxy, authenticator, buildhost) to install_software.sh handles all package and CLI binary provisioning automatically.
+
+The Only 3 Things install_software.sh Does Not Do
+
+Because install_software.sh is strictly a clean package/binary installer, make sure your existing role setup scripts still handle these three post-install steps:
+1. Upstream APT Repositories (if needed): If you use a non-default database version (such as Oracle's MySQL 8.4/9.x repo or MariaDB's official mirror rather than Ubuntu/Debian's built-in mariadb-server), add that repo keyring/sources file before install_software.sh runs nala update.
+2. CLI & Datastore Credentials: GetFromDatastore.sh and PutToDatastore.sh need your S3 credentials (~/.s5cfg or ~/.config/rclone/rclone.conf) and /home/buildhome.dat + CLOUDHOST in place on the server before install_software.sh executes so the S3 pull-through cache works immediately.
+3. Service Configuration & Firewall Rules: Writing nginx.conf, tuning php-fpm pools, securing mariadb-server, and enabling ufw ports still belong in your dedicated role configuration scripts after install_software.sh finishes.
+Once those three pieces are in your base provisioning flow, running sh "${BUILD_HOME}/installscripts/install_software.sh" <role> sorts out the entire software stack across every server type.
+If you'd like, share one of your role provisioning scripts (such as webserver or database), and I can double-check that the handoff between install_software.sh and your post-install configuration is completely seamless.
+
+
+
 
 
 
