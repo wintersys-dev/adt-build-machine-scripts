@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        list_repository.sh
-#: Purpose:     Checks a GitHub repository state ("full", "empty", or "none") via REST API.
+#: Purpose:     Checks a GitHub repository state ("full", "empty", or "none") via REST API (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.1
+#: Version:     1.2
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
 #:              list_repository.sh [-h|--help]
@@ -19,11 +19,11 @@
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh
-#:   - External binaries: cat, curl, cut, echo, grep, jq, printf, sed
+#:   - External binaries: cat, curl, cut, echo, grep, jq, mktemp, printf, rm
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, or unexpected HTTP code
+#:   1          Missing arguments, layout faults, connection error, or unexpected HTTP code
 #:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN)
 #:   403        Forbidden (token lacks permissions to inspect target repository)
 #:   429        Rate Limit Exceeded
@@ -75,40 +75,56 @@ fi
 repository_ownername="${1}"
 repository_name="${2}"
 
+tmp_response="$(/bin/mktemp /tmp/gh_repo_list.XXXXXX.json)"
+
+cleanup() {
+        /bin/rm -f "${tmp_response}"
+}
+trap cleanup EXIT INT TERM
+
 api_base="https://api.github.com"
 repo_endpoint="${api_base}/repos/${repository_ownername}/${repository_name}"
 commits_endpoint="${repo_endpoint}/commits?per_page=1"
 
+# 1. Attempt unauthenticated repository lookup first (works for public repos without touching credentials)
 set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+REPO_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+        -H "Accept: application/vnd.github+json" \
+        -o "${tmp_response}" \
+        -w "%{http_code}" \
+        "${repo_endpoint}")
 set -e
 
-github_curl()
-{
-        target_url="${1}"
+USE_AUTH=0
+
+# 2. If public access fails (e.g., 404 on a private repo, or 403/429 unauthenticated rate limit), retry with Bearer token
+if [ "${REPO_HTTP_CODE}" != "200" ]
+then
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
+
         if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
         then
-                /usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
-                        /usr/bin/curl -s -H @- \
+                USE_AUTH=1
+                : > "${tmp_response}"
+                set +e
+                REPO_HTTP_CODE=$(/usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
+                        /usr/bin/curl -s --connect-timeout 15 -H @- \
                         -H "Accept: application/vnd.github+json" \
-                        "${target_url}" \
-                        -w "\nHTTP_STATUS:%{http_code}"
-        else
-                /usr/bin/curl -s \
-                        -H "Accept: application/vnd.github+json" \
-                        "${target_url}" \
-                        -w "\nHTTP_STATUS:%{http_code}"
+                        -o "${tmp_response}" \
+                        -w "%{http_code}" \
+                        "${repo_endpoint}")
+                set -e
         fi
-}
-
-set +e
-REPO_RESPONSE="$(github_curl "${repo_endpoint}")"
-set -e
-
-REPO_HTTP_CODE=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-REPO_BODY=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
+fi
 
 case "${REPO_HTTP_CODE}" in
+        000)
+                unset REPOSITORY_TOKEN
+                status "Error 000: Connection failed or timed out while reaching ://github.com."
+                exit 1
+                ;;
         200)
                 ;;
         404)
@@ -137,6 +153,7 @@ case "${REPO_HTTP_CODE}" in
                 exit 500
                 ;;
         *)
+                REPO_BODY="$(/bin/cat "${tmp_response}" 2>/dev/null)"
                 unset REPOSITORY_TOKEN
                 status "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
                 status "API Detail: ${REPO_BODY}"
@@ -144,18 +161,37 @@ case "${REPO_HTTP_CODE}" in
                 ;;
 esac
 
-set +e
-COMMITS_RESPONSE="$(github_curl "${commits_endpoint}")"
-set -e
+# 3. Query /commits using the same auth mode that succeeded for the repository metadata
+: > "${tmp_response}"
+if [ "${USE_AUTH}" -eq 1 ]
+then
+        set +e
+        COMMITS_HTTP_CODE=$(/usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
+                /usr/bin/curl -s --connect-timeout 15 -H @- \
+                -H "Accept: application/vnd.github+json" \
+                -o "${tmp_response}" \
+                -w "%{http_code}" \
+                "${commits_endpoint}")
+        set -e
+else
+        set +e
+        COMMITS_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+                -H "Accept: application/vnd.github+json" \
+                -o "${tmp_response}" \
+                -w "%{http_code}" \
+                "${commits_endpoint}")
+        set -e
+fi
 
 unset REPOSITORY_TOKEN
 
-COMMITS_HTTP_CODE=$(/bin/echo "${COMMITS_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-COMMITS_BODY=$(/bin/echo "${COMMITS_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
-
 case "${COMMITS_HTTP_CODE}" in
+        000)
+                status "Error 000: Connection failed or timed out while querying repository commits."
+                exit 1
+                ;;
         200)
-                commit_count="$(/bin/echo "${COMMITS_BODY}" | /usr/bin/jq 'length' 2>/dev/null)"
+                commit_count="$(/usr/bin/jq 'length' "${tmp_response}" 2>/dev/null)"
                 if [ -n "${commit_count}" ] && [ "${commit_count}" -gt 0 ]
                 then
                         /bin/echo "full"
@@ -170,6 +206,7 @@ case "${COMMITS_HTTP_CODE}" in
                 exit 0
                 ;;
         *)
+                COMMITS_BODY="$(/bin/cat "${tmp_response}" 2>/dev/null)"
                 status "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits."
                 status "API Detail: ${COMMITS_BODY}"
                 exit 1
@@ -177,4 +214,5 @@ case "${COMMITS_HTTP_CODE}" in
 esac
 
 exit 0
+
 
