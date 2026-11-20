@@ -20,7 +20,7 @@
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
-#:   - ${BUILD_HOME}/services/git/${repository_provider}/GitClone.sh
+#:   - ${BUILD_HOME}/services/git/${repository_provider}/CloneRepository.sh
 #:   - External binaries: cat, echo, grep, cut
 #:
 #: Exit Codes:
@@ -74,7 +74,7 @@ then
         exit 1
 fi
 
-repository_provider="${1:-${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')}"
+repository_provider="${1:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
 repository_ownername="${2}"
 repository_name="${3}"
 repository_branch="${4}"
