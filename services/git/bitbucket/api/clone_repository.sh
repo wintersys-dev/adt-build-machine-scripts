@@ -91,7 +91,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-archive_url="https://api.bitbucket.org/2.0/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
 archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
 
 # 1. Attempt unauthenticated download first (works for public repositories)
