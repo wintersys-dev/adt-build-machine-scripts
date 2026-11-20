@@ -78,7 +78,7 @@ set -e
 
 if [ -z "${REPOSITORY_TOKEN}" ]
 then
-        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN)." 
+        status "Error: Failed to fetch required context variables (APPLICATION_REPOSITORY_TOKEN)." 
         exit 1
 fi
 
