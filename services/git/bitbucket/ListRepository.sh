@@ -2,23 +2,24 @@
 #: Name:        ListRepository.sh
 #: Purpose:     Checks whether a Bitbucket repository is "full", "empty", or "none".
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       ListRepository.sh <repository_ownername> <repository_name>
+#:              ListRepository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The Bitbucket workspace or repository owner name.
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
 #:   - ${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh
-#:   - External binaries: awk, cat, echo, tr
+#:   - External binaries: awk, cat, cut, echo, grep, tr
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
@@ -40,7 +41,6 @@
 
 set -e
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
         /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
@@ -51,21 +51,19 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-# Input validation
-if [ -z "${1}" ] || [ -z "${2}" ] 
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        status "Error: Repository owner name, and repository name arguments are required." 
-        status "Usage: $0 <repository_ownername> <repository_name>" 
+        status "Error: Repository owner name and repository name arguments are required."
+        status "Usage: $0 <repository_ownername> <repository_name>"
         exit 1
 fi
 
@@ -83,7 +81,7 @@ orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "$
 
 if [ -z "${orchestration_tool}" ]
 then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_file}" 
+        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
         exit 1
 fi
 
@@ -91,11 +89,10 @@ worker_script="${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_r
 
 if [ ! -x "${worker_script}" ]
 then
-        status "Error: Provider repository check script not found or not executable at ${worker_script}" 
+        status "Error: Provider repository check script not found or not executable at ${worker_script}"
         exit 1
 fi
 
-# Temporary disable set -e to evaluate worker execution failures manually
 set +e
 output="$(${worker_script} "${repository_ownername}" "${repository_name}")"
 worker_status="$?"
@@ -121,3 +118,4 @@ else
 fi
 
 exit 0
+
