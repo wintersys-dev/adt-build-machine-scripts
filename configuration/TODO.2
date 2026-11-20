@@ -1,0 +1,49 @@
+The exact same adt-source-cache.sh wrapper works out of the box for pre-built third-party binaries, standalone scripts, and release tarballs (such as Composer, WP-CLI, Certbot, Go, Node.js, Hugo, or custom CLI tools).
+Because the wrapper does not care how files end up inside <install_prefix>—only that <install_prefix> is populated after the command runs—it works identically whether your command compiles C code or downloads a binary via curl.
+
+How to Use It for Binary & Script Installs
+
+
+1. Standalone CLI Binaries / PHAR Scripts (e.g., WP-CLI, Composer, kubectl)
+
+If you are installing a single binary or script into a dedicated directory (like /opt/wp-cli or /usr/local/bin), point <install_prefix> to a dedicated folder and symlink it into /usr/local/bin:
+sh
+sudo adt-source-cache.sh wp-cli 2.11.0 /opt/wp-cli \
+  sh -c 'mkdir -p /opt/wp-cli && curl -fsSL https://githubusercontent.com -o /opt/wp-cli/wp && chmod +x /opt/wp-cli/wp'
+
+sudo ln -sf /opt/wp-cli/wp /usr/local/bin/wp
+Use code with caution.
+• Why use /opt/wp-cli instead of /usr/local/bin directly? If you pass /usr/local/bin as <install_prefix>, the wrapper will tar up everything in /usr/local/bin (including unrelated tools). Always give each cached tool its own isolated directory under /opt/<tool> or /usr/local/<tool>.
+
+2. Pre-Compiled Release Tarballs (e.g., Node.js, Go, Lego ACME client)
+
+For tools distributed as pre-compiled archives:
+sh
+sudo adt-source-cache.sh node 22.11.0 /usr/local/node \
+  sh -c 'mkdir -p /usr/local/node && curl -fsSL https://nodejs.org | tar -xJ --strip-components=1 -C /usr/local/node'
+Use code with caution.
+
+3. Multi-File Script Suites (e.g., Custom Deploy Scripts, PHPMyAdmin, Adminer)
+
+If you have an installer script /root/scripts/install-phpmyadmin.sh that downloads and configures a web app into /var/www/phpmyadmin:
+sh
+sudo adt-source-cache.sh phpmyadmin 5.2.1 /var/www/phpmyadmin /root/scripts/install-phpmyadmin.sh
+Use code with caution.
+
+Why Caching Pre-Built Binaries in S3 Is Still Worth It in ADT
+
+Even though binary installs skip compilation, routing them through your Wintersys ADT S3 cache solves three real production problems:
+1. Zero Upstream Outage Risk: If GitHub Releases, nodejs.org, or getcomposer.org experiences downtime or rate-limiting during an auto-scaling event, your nodes pull directly from your private S3 bucket instead of failing deployment.
+2. Protection Against Upstream Deletion / Supply-Chain Tampering: Upstream maintainers occasionally delete old patch releases or overwrite tags. Your S3 bucket acts as an immutable, SHA-256-verified artifact mirror.
+3. Architecture-Safe Caching: Because the S3 path automatically namespaces by ${OS_CODENAME}-${ARCH} (e.g., bookworm-amd64 vs. bookworm-arm64), Graviton/ARM64 nodes and x86_64 nodes will never collide—provided your install command uses $(uname -m) or $(dpkg --print-architecture) when fetching the upstream binary.
+
+Quick Tip for Shared System Directories (/usr/local/bin)
+
+If you have several small single-file binaries and don't want to manage symlinks for each one, create a small helper wrapper or post-install loop:
+sh
+# Install into isolated /opt/<tool> directories, then link all binaries into /usr/local/bin
+for bin in /opt/*/bin/* /opt/*/*; do
+    [ -f "$bin" ] && [ -x "$bin" ] && sudo ln -sf "$bin" "/usr/local/bin/$(basename "$bin")"
+done
+Use code with caution.
+Would you like to share which specific binaries or scripts you are installing in your ADT build (e.g., Composer, Node, Certbot, custom scripts) so I can write the exact cache-wrapped commands for them?
