@@ -2,8 +2,8 @@
 #: Name:        list_repository.sh
 #: Purpose:     Checks a GitHub repository state ("full", "empty", or "none") via REST API.
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
 #:              list_repository.sh [-h|--help]
@@ -13,16 +13,17 @@
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, jq, sed
+#:   - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh
+#:   - External binaries: cat, curl, cut, echo, grep, jq, printf, sed
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, missing credentials, or unexpected HTTP code
+#:   1          Missing arguments, layout faults, or unexpected HTTP code
 #:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN)
 #:   403        Forbidden (token lacks permissions to inspect target repository)
 #:   429        Rate Limit Exceeded
@@ -45,7 +46,6 @@
 #set -x
 set -e
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
         /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
@@ -56,48 +56,56 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        /bin/echo "Error: Repository owner name and repository name arguments are required." >&2
-        /bin/echo "Usage: $0 <repository_ownername> <repository_name>" >&2
+        status "Error: Repository owner name and repository name arguments are required."
+        status "Usage: $0 <repository_ownername> <repository_name>"
         exit 1
 fi
 
 repository_ownername="${1}"
 repository_name="${2}"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
-
-if [ -z "${REPOSITORY_TOKEN}" ]
-then
-        status "Error: Failed to fetch required context variables (APPLICATION_REPOSITORY_TOKEN)." 
-        exit 1
-fi
-
-github_api_version="2026-03-10"
-api_base="https://api.github.com"
+github_api_version="2022-11-28"
+api_base="https://github.com"
 repo_endpoint="${api_base}/repos/${repository_ownername}/${repository_name}"
 commits_endpoint="${repo_endpoint}/commits?per_page=1"
 
 set +e
-REPO_RESPONSE=$(/bin/echo "Authorization: Bearer ${REPOSITORY_TOKEN}" | \
-        /usr/bin/curl -s -H @- \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: ${github_api_version}" \
-        "${repo_endpoint}" \
-        -w "\nHTTP_STATUS:%{http_code}")
+REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+set -e
+
+github_curl()
+{
+        target_url="${1}"
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+        then
+                /usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
+                        /usr/bin/curl -s -H @- \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "X-GitHub-Api-Version: ${github_api_version}" \
+                        "${target_url}" \
+                        -w "\nHTTP_STATUS:%{http_code}"
+        else
+                /usr/bin/curl -s \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "X-GitHub-Api-Version: ${github_api_version}" \
+                        "${target_url}" \
+                        -w "\nHTTP_STATUS:%{http_code}"
+        fi
+}
+
+set +e
+REPO_RESPONSE="$(github_curl "${repo_endpoint}")"
 set -e
 
 REPO_HTTP_CODE=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
@@ -107,40 +115,43 @@ case "${REPO_HTTP_CODE}" in
         200)
                 ;;
         404)
+                unset REPOSITORY_TOKEN
                 /bin/echo "none"
                 exit 0
                 ;;
         401)
-                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN is invalid or has expired." 
+                unset REPOSITORY_TOKEN
+                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN is invalid or has expired."
                 exit 401
                 ;;
         403)
-                status "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}." 
+                unset REPOSITORY_TOKEN
+                status "Error 403: Forbidden. Token lacks permissions or rate limit exceeded for ${repository_ownername}/${repository_name}."
                 exit 403
                 ;;
         429)
+                unset REPOSITORY_TOKEN
                 status "Error 429: Rate Limit Exceeded. Back off request frequency."
                 exit 429
                 ;;
         5*)
-                status "Error ${REPO_HTTP_CODE}: GitHub Gateway or Remote Server Exception." 
+                unset REPOSITORY_TOKEN
+                status "Error ${REPO_HTTP_CODE}: GitHub Gateway or Remote Server Exception."
                 exit 500
                 ;;
         *)
-                status "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
-                status "API Detail: ${REPO_BODY}" 
+                unset REPOSITORY_TOKEN
+                status "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
+                status "API Detail: ${REPO_BODY}"
                 exit 1
                 ;;
 esac
 
 set +e
-COMMITS_RESPONSE=$(/bin/echo "Authorization: Bearer ${REPOSITORY_TOKEN}" | \
-        /usr/bin/curl -s -H @- \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: ${github_api_version}" \
-        "${commits_endpoint}" \
-        -w "\nHTTP_STATUS:%{http_code}")
+COMMITS_RESPONSE="$(github_curl "${commits_endpoint}")"
 set -e
+
+unset REPOSITORY_TOKEN
 
 COMMITS_HTTP_CODE=$(/bin/echo "${COMMITS_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
 COMMITS_BODY=$(/bin/echo "${COMMITS_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
@@ -162,10 +173,11 @@ case "${COMMITS_HTTP_CODE}" in
                 exit 0
                 ;;
         *)
-                status "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits." 
-                status "API Detail: ${COMMITS_BODY}" 
+                status "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits."
+                status "API Detail: ${COMMITS_BODY}"
                 exit 1
                 ;;
 esac
 
 exit 0
+
