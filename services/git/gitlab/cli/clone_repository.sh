@@ -15,7 +15,7 @@
 #:   $4         [Required] Local destination directory path to clone into.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
