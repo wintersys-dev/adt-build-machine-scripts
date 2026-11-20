@@ -1,0 +1,984 @@
+Here is the complete, end-to-end solution with Nala, native ADT Datastore S3 pull-through caching (MountDatastore.sh, GetFromDatastore.sh, PutToDatastore.sh, ListFromDatastore.sh, DeleteFromDatastore.sh), pre-compiled binary caching for NGINX, Apache, and Lighttpd, pre-flight verification, and cache pruning.
+
+1. Filesystem Structure
+
+text
+${BUILD_HOME}/                                     # e.g., /home/adt-build-machine-scripts
+├── configuration/
+│   └── packages.manifest                          # Declarative manifest for all roles
+└── installscripts/
+    ├── InstallEngine.sh                           # Core role-based runner & version tracker
+    ├── VerifyManifest.sh                          # Pre-flight URL, syntax, and recipe validator
+    ├── PruneArtifactCache.sh                      # Cleans stale versions from S3 datastore
+    └── strategies/
+        ├── lib_pkg.sh                             # Unified Nala -> apt-get wrapper
+        ├── lib_s3_cache.sh                        # Native ADT Datastore pull/push/list/delete helper
+        ├── install_repo.sh                        # Batched single-transaction Nala package installer
+        ├── install_binary.sh                      # Staged binary/archive downloader & atomic swap
+        ├── install_source.sh                      # Source tarball fetcher & recipe delegator
+        ├── install_custom.sh                      # Escape hatch delegator for multi-step tools
+        └── recipes/
+            ├── nginx.sh                           # S3 pre-compiled binary cache + source fallback
+            ├── apache.sh                          # S3 pre-compiled binary cache + source fallback
+            ├── lighttpd.sh                        # S3 pre-compiled binary cache + source fallback
+            ├── php.sh                             # PHP-FPM, extensions, and port/socket binding
+            ├── mariadb.sh                         # Pinned MariaDB upstream repo setup
+            ├── mysql.sh                           # Pinned MySQL .deb-bundle installer
+            ├── postgres.sh                        # Pinned PGDG PostgreSQL installer
+            ├── linode-cli.sh                      # PEP-668 safe Python venv installer
+            ├── goofys.sh -> s3mount.sh            # FUSE3 + raw binary S3 mount installer
+            ├── geesefs.sh -> s3mount.sh           # FUSE3 + raw binary S3 mount installer
+            ├── s3mount.sh                         # Shared FUSE3 + S3 mount binary installer
+            ├── acme.sh                            # ZeroSSL / Let's Encrypt acme.sh installer
+            ├── composer.sh                        # PHP Composer with SHA384 signature check
+            ├── wpcli.sh                           # WP-CLI PHAR with smoke test
+            └── awscli.sh                          # AWS CLI v2 bundled installer with --update
+Use code with caution.
+
+2. Core Runner, Validator, & Pruner (installscripts/)
+
+
+installscripts/InstallEngine.sh
+
+sh
+#!/bin/sh
+####################################################################################
+# Description: Declarative, idempotent software installation engine for Wintersys ADT
+# Usage: ./InstallEngine.sh <build|web|auto|db>
+####################################################################################
+set -eu
+
+ROLE="${1:-}"
+if [ -z "${ROLE}" ]; then
+    /bin/echo "Usage: $0 <build|web|auto|db>" >&2
+    exit 1
+fi
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+MANIFEST="${BUILD_HOME}/configuration/packages.manifest"
+STRATEGY_DIR="${BUILD_HOME}/installscripts/strategies"
+STATE_DIR="${HOME}/runtime/installedsoftware"
+
+/bin/mkdir -p "${STATE_DIR}"
+. "${STRATEGY_DIR}/lib_pkg.sh"
+
+trim() {
+    /bin/echo "$1" | /usr/bin/sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+}
+
+# 0. Bootstrap Nala immediately if configured for this role
+HAS_NALA=$(/usr/bin/awk -F'|' -v role="${ROLE}" '
+    $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/ {
+        gsub(/[[:space:]]/, "", $1);
+        gsub(/[[:space:]]/, "", $2);
+        if ($1 == "nala" && ("," $2 "," ~ "," role ",")) print "yes"
+    }
+' "${MANIFEST}")
+
+if [ "${HAS_NALA}" = "yes" ] && ! command -v nala >/dev/null 2>&1; then
+    /bin/echo "[ADT-BOOTSTRAP] Installing nala package manager..."
+    pkg_update
+    pkg_install nala
+fi
+
+# 1. Batch all 'repo' packages for this role into ONE single Nala transaction
+REPO_PKGS=$(/usr/bin/awk -F'|' -v role="${ROLE}" '
+    $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/ {
+        gsub(/[[:space:]]/, "", $1);
+        gsub(/[[:space:]]/, "", $2);
+        gsub(/[[:space:]]/, "", $3);
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", $5);
+        if ($1 != "nala" && ("," $2 "," ~ "," role ",") && $3 == "repo") {
+            printf "%s ", $5
+        }
+    }
+' "${MANIFEST}")
+
+if [ -n "${REPO_PKGS}" ]; then
+    /bin/sh "${STRATEGY_DIR}/install_repo.sh" "${REPO_PKGS}"
+fi
+
+# 2. Process 'binary', 'source', and 'custom' rows sequentially
+/usr/bin/awk -F'|' -v role="${ROLE}" '
+    $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/ {
+        gsub(/[[:space:]]/, "", $2);
+        gsub(/[[:space:]]/, "", $3);
+        if (("," $2 "," ~ "," role ",") && $3 != "repo") {
+            print $0
+        }
+    }
+' "${MANIFEST}" | while IFS='|' read -r raw_id raw_roles raw_method raw_ver raw_src raw_sha raw_bin; do
+    ID=$(trim "${raw_id}")
+    METHOD=$(trim "${raw_method}")
+    VERSION=$(trim "${raw_ver}")
+    SOURCE=$(trim "${raw_src}")
+    SHA256=$(trim "${raw_sha}")
+    BIN_NAME=$(trim "${raw_bin:-$ID}")
+
+    STATE_FILE="${STATE_DIR}/${ID}.state"
+
+    if [ -f "${STATE_FILE}" ] && [ "`/bin/cat "${STATE_FILE}"`" = "${VERSION}" ]; then
+        if [ -x "/usr/local/bin/${BIN_NAME}" ] || [ -x "/usr/bin/${BIN_NAME}" ] || [ -x "/usr/sbin/${BIN_NAME}" ]; then
+            continue
+        fi
+    fi
+
+    /bin/echo "[ADT-INSTALL] Installing ${ID} (${VERSION}) via ${METHOD}..."
+    /bin/sh "${STRATEGY_DIR}/install_${METHOD}.sh" "${ID}" "${VERSION}" "${SOURCE}" "${SHA256}" "${BIN_NAME}"
+
+    /bin/echo "${VERSION}" > "${STATE_FILE}"
+done
+Use code with caution.
+
+installscripts/VerifyManifest.sh
+
+sh
+#!/bin/sh
+####################################################################################
+# Description: Pre-flight validator for packages.manifest in Wintersys ADT
+# Usage: ./VerifyManifest.sh [--verify-hashes]
+####################################################################################
+set -eu
+
+VERIFY_HASHES="${1:-}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+MANIFEST="${BUILD_HOME}/configuration/packages.manifest"
+RECIPE_DIR="${BUILD_HOME}/installscripts/strategies/recipes"
+
+[ ! -f "${MANIFEST}" ] && { /bin/echo "[FAIL] Manifest not found: ${MANIFEST}" >&2; exit 1; }
+
+trim() { /bin/echo "$1" | /usr/bin/sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+
+ERRORS=0
+LINE_NUM=0
+
+while IFS= read -r line || [ -n "${line}" ]; do
+    LINE_NUM=$((LINE_NUM + 1))
+    case "${line}" in ""|\#*) continue ;; esac
+
+    PIPE_COUNT=$(/bin/echo "${line}" | /usr/bin/tr -cd '|' | /usr/bin/wc -c)
+    if [ "${PIPE_COUNT}" -ne 6 ]; then
+        /bin/echo "[FAIL] Line ${LINE_NUM}: Expected 7 columns, found $((PIPE_COUNT + 1))" >&2
+        ERRORS=$((ERRORS + 1))
+        continue
+    fi
+
+    IFS='|' read -r raw_id raw_roles raw_method raw_ver raw_src raw_sha raw_bin <<EOF
+${line}
+EOF
+    ID=$(trim "${raw_id}")
+    METHOD=$(trim "${raw_method}")
+    SOURCE=$(trim "${raw_src}")
+    SHA256=$(trim "${raw_sha}")
+
+    case "${METHOD}" in
+        repo)
+            [ -z "${SOURCE}" ] && { /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): Empty package name" >&2; ERRORS=$((ERRORS + 1)); }
+            ;;
+        binary|source)
+            if ! /usr/bin/curl -fsIL --max-time 10 "${SOURCE}" >/dev/null 2>&1; then
+                /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): Unreachable URL -> ${SOURCE}" >&2
+                ERRORS=$((ERRORS + 1))
+            fi
+            if [ "${VERIFY_HASHES}" = "--verify-hashes" ] && [ "${SHA256}" != "skip" ]; then
+                TMP_FILE="/tmp/adt_verify_${ID}_$$"
+                /usr/bin/curl -fsSL "${SOURCE}" -o "${TMP_FILE}"
+                ACTUAL=$(/usr/bin/sha256sum "${TMP_FILE}" | /usr/bin/awk '{print $1}')
+                /bin/rm -f "${TMP_FILE}"
+                [ "${ACTUAL}" != "${SHA256}" ] && { /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): SHA256 mismatch" >&2; ERRORS=$((ERRORS + 1)); }
+            fi
+            [ "${METHOD}" = "source" ] && [ ! -f "${RECIPE_DIR}/${ID}.sh" ] && { /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): Missing recipe ${RECIPE_DIR}/${ID}.sh" >&2; ERRORS=$((ERRORS + 1)); }
+            ;;
+        custom)
+            [ ! -f "${RECIPE_DIR}/${ID}.sh" ] && { /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): Missing custom recipe ${RECIPE_DIR}/${ID}.sh" >&2; ERRORS=$((ERRORS + 1)); }
+            ;;
+        *)
+            /bin/echo "[FAIL] Line ${LINE_NUM} (${ID}): Invalid method '${METHOD}'" >&2
+            ERRORS=$((ERRORS + 1))
+            ;;
+    esac
+done < "${MANIFEST}"
+
+[ "${ERRORS}" -gt 0 ] && { /bin/echo "[ADT-VERIFY] Failed with ${ERRORS} error(s)." >&2; exit 1; }
+/bin/echo "[ADT-VERIFY] All manifest entries passed validation."
+Use code with caution.
+
+installscripts/PruneArtifactCache.sh
+
+sh
+#!/bin/sh
+####################################################################################
+# Description: Prunes stale artifacts and old compiled bundles from the S3 cache
+# Usage: ./PruneArtifactCache.sh [--dry-run]
+####################################################################################
+set -eu
+
+DRY_RUN="${1:-}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+MANIFEST="${BUILD_HOME}/configuration/packages.manifest"
+STRATEGY_DIR="${BUILD_HOME}/installscripts/strategies"
+
+. "${STRATEGY_DIR}/lib_s3_cache.sh"
+
+if [ -z "${ADT_CACHE_BUCKET}" ]; then
+    /bin/echo "[ERROR] ADT_CACHE_BUCKET is not set and ${HOME}/runtime/DATASTORE_BUCKET was not found." >&2
+    exit 1
+fi
+
+trim() { /bin/echo "$1" | /usr/bin/sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+
+ACTIVE_KEYS_FILE="/tmp/adt_active_keys_$$"
+trap '/bin/rm -f "${ACTIVE_KEYS_FILE}"' EXIT INT TERM
+: > "${ACTIVE_KEYS_FILE}"
+
+while IFS= read -r line || [ -n "${line}" ]; do
+    case "${line}" in ""|\#*) continue ;; esac
+
+    IFS='|' read -r raw_id raw_roles raw_method raw_ver raw_src raw_sha raw_bin <<EOF
+${line}
+EOF
+    ID=$(trim "${raw_id}")
+    METHOD=$(trim "${raw_method}")
+    VERSION=$(trim "${raw_ver}")
+
+    [ "${METHOD}" = "repo" ] && continue
+
+    /bin/echo "${ID}/${VERSION}/" >> "${ACTIVE_KEYS_FILE}"
+    /bin/echo "compiled/${ID}/.*-${VERSION}\.tar\.gz$" >> "${ACTIVE_KEYS_FILE}"
+
+    case "${ID}" in
+        nginx|apache|lighttpd)
+            /bin/echo "${ID}-src/${VERSION}/" >> "${ACTIVE_KEYS_FILE}"
+            ;;
+    esac
+done < "${MANIFEST}"
+
+CACHED_OBJECTS=$(s3_cache_list || true)
+[ -z "${CACHED_OBJECTS}" ] && { /bin/echo "[ADT-PRUNE] Cache is empty or unreachable."; exit 0; }
+
+/bin/echo "${CACHED_OBJECTS}" | while IFS= read -r raw_obj; do
+    [ -z "${raw_obj}" ] && continue
+    REL_KEY=$(/bin/echo "${raw_obj}" | /usr/bin/sed -E "s|^.*${ADT_CACHE_ROOT}/||")
+    [ -z "${REL_KEY}" ] || [ "${REL_KEY}" = "${raw_obj}" ] && continue
+
+    IS_ACTIVE=0
+    while IFS= read -r pattern; do
+        [ -z "${pattern}" ] && continue
+        if /bin/echo "${REL_KEY}" | /usr/bin/grep -Eq "^${pattern}"; then
+            IS_ACTIVE=1
+            break
+        fi
+    done < "${ACTIVE_KEYS_FILE}"
+
+    [ "${IS_ACTIVE}" -eq 1 ] && continue
+
+    if [ "${DRY_RUN}" = "--dry-run" ]; then
+        /bin/echo "[DRY-RUN] Would delete stale artifact: ${REL_KEY}"
+    else
+        /bin/echo "[ADT-PRUNE] Deleting stale artifact: ${REL_KEY}"
+        s3_cache_delete "${REL_KEY}"
+    fi
+done
+Use code with caution.
+
+3. Shared Libraries & Strategy Handlers (installscripts/strategies/)
+
+
+strategies/lib_pkg.sh
+
+sh
+#!/bin/sh
+pkg_update() {
+    if command -v nala >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive /usr/bin/nala update >/dev/null 2>&1 || \
+        DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update
+    else
+        DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y update
+    fi
+}
+
+pkg_install() {
+    if command -v nala >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive /usr/bin/nala install --assume-yes --no-install-recommends --simple "$@"
+    else
+        DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -o DPkg::Lock::Timeout=-1 -qq -y install --no-install-recommends "$@"
+    fi
+}
+Use code with caution.
+
+strategies/lib_s3_cache.sh
+
+sh
+#!/bin/sh
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+DATASTORE_DIR="${BUILD_HOME}/providerscripts/datastore"
+
+if [ ! -d "${DATASTORE_DIR}" ] && [ -d "${HOME}/providerscripts/datastore" ]; then
+    DATASTORE_DIR="${HOME}/providerscripts/datastore"
+fi
+
+ADT_CACHE_BUCKET="${ADT_CACHE_BUCKET:-}"
+if [ -z "${ADT_CACHE_BUCKET}" ] && [ -f "${HOME}/runtime/DATASTORE_BUCKET" ]; then
+    ADT_CACHE_BUCKET="`/bin/cat "${HOME}/runtime/DATASTORE_BUCKET"`"
+fi
+
+ADT_CACHE_ROOT="adt-artifacts"
+ADT_DATASTORE_MOUNTED=0
+
+ensure_datastore_ready() {
+    [ -z "${ADT_CACHE_BUCKET}" ] && return 1
+    [ ! -x "${DATASTORE_DIR}/MountDatastore.sh" ] && return 1
+
+    if [ "${ADT_DATASTORE_MOUNTED}" -eq 0 ]; then
+        /bin/sh "${DATASTORE_DIR}/MountDatastore.sh" "${ADT_CACHE_BUCKET}" >/dev/null 2>&1 || return 1
+        ADT_DATASTORE_MOUNTED=1
+    fi
+    return 0
+}
+
+s3_cache_pull() {
+    CACHE_KEY="$1"
+    DEST_FILE="$2"
+
+    ensure_datastore_ready || return 1
+    [ ! -x "${DATASTORE_DIR}/GetFromDatastore.sh" ] && return 1
+
+    REMOTE_PATH="${ADT_CACHE_BUCKET}/${ADT_CACHE_ROOT}/${CACHE_KEY}"
+    DEST_DIR=$(/usr/bin/dirname "${DEST_FILE}")
+    DEST_NAME=$(/usr/bin/basename "${DEST_FILE}")
+    REMOTE_NAME=$(/usr/bin/basename "${CACHE_KEY}")
+
+    if /bin/sh "${DATASTORE_DIR}/GetFromDatastore.sh" "${REMOTE_PATH}" "${DEST_DIR}" >/dev/null 2>&1; then
+        if [ -f "${DEST_DIR}/${REMOTE_NAME}" ]; then
+            [ "${REMOTE_NAME}" != "${DEST_NAME}" ] && /bin/mv -f "${DEST_DIR}/${REMOTE_NAME}" "${DEST_FILE}"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+s3_cache_push() {
+    SRC_FILE="$1"
+    CACHE_KEY="$2"
+
+    [ ! -f "${SRC_FILE}" ] && return 0
+    ensure_datastore_ready || return 0
+    [ ! -x "${DATASTORE_DIR}/PutToDatastore.sh" ] && return 0
+
+    REMOTE_SUBDIR="${ADT_CACHE_BUCKET}/${ADT_CACHE_ROOT}/$(/usr/bin/dirname "${CACHE_KEY}")"
+    /bin/sh "${DATASTORE_DIR}/PutToDatastore.sh" "${SRC_FILE}" "${REMOTE_SUBDIR}" >/dev/null 2>&1 || true
+}
+
+s3_cache_list() {
+    SUB_PREFIX="${1:-}"
+    ensure_datastore_ready || return 1
+    [ ! -x "${DATASTORE_DIR}/ListFromDatastore.sh" ] && return 1
+
+    TARGET_PATH="${ADT_CACHE_BUCKET}/${ADT_CACHE_ROOT}"
+    [ -n "${SUB_PREFIX}" ] && TARGET_PATH="${TARGET_PATH}/${SUB_PREFIX}"
+    /bin/sh "${DATASTORE_DIR}/ListFromDatastore.sh" "${TARGET_PATH}" 2>/dev/null || return 1
+}
+
+s3_cache_delete() {
+    CACHE_KEY="$1"
+    ensure_datastore_ready || return 1
+    [ ! -x "${DATASTORE_DIR}/DeleteFromDatastore.sh" ] && return 1
+
+    REMOTE_PATH="${ADT_CACHE_BUCKET}/${ADT_CACHE_ROOT}/${CACHE_KEY}"
+    /bin/sh "${DATASTORE_DIR}/DeleteFromDatastore.sh" "${REMOTE_PATH}" >/dev/null 2>&1
+}
+
+cached_fetch() {
+    TOOL_ID="$1"
+    TOOL_VER="$2"
+    UPSTREAM_URL="$3"
+    EXPECTED_SHA="$4"
+    OUT_FILE="$5"
+
+    FILENAME=$(/usr/bin/basename "${UPSTREAM_URL%%\?*}")
+    CACHE_KEY="${TOOL_ID}/${TOOL_VER}/${FILENAME}"
+    FROM_CACHE=0
+
+    if s3_cache_pull "${CACHE_KEY}" "${OUT_FILE}"; then
+        /bin/echo "[ADT-CACHE] HIT: ${CACHE_KEY}"
+        FROM_CACHE=1
+    else
+        /bin/echo "[ADT-CACHE] MISS: ${UPSTREAM_URL}"
+        /usr/bin/curl -fsSL --retry 3 "${UPSTREAM_URL}" -o "${OUT_FILE}"
+    fi
+
+    if [ "${EXPECTED_SHA}" != "skip" ] && [ -n "${EXPECTED_SHA}" ]; then
+        ACTUAL_SHA=$(/usr/bin/sha256sum "${OUT_FILE}" | /usr/bin/awk '{print $1}')
+        if [ "${ACTUAL_SHA}" != "${EXPECTED_SHA}" ]; then
+            /bin/echo "[ERROR] SHA256 mismatch for ${TOOL_ID}!" >&2
+            /bin/rm -f "${OUT_FILE}"
+            return 1
+        fi
+    fi
+
+    if [ "${FROM_CACHE}" -eq 0 ]; then
+        /bin/echo "[ADT-CACHE] POPULATE: ${CACHE_KEY}"
+        s3_cache_push "${OUT_FILE}" "${CACHE_KEY}"
+    fi
+}
+Use code with caution.
+
+strategies/install_repo.sh, install_binary.sh, install_source.sh, & install_custom.sh
+
+sh
+# --- strategies/install_repo.sh ---
+#!/bin/sh
+set -eu
+PACKAGES="$1"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+pkg_update
+# shellcheck disable=SC2086
+pkg_install ${PACKAGES}
+
+# --- strategies/install_binary.sh ---
+#!/bin/sh
+set -eu
+ID="$1"; VERSION="$2"; URL="$3"; EXPECTED_SHA256="$4"; BIN_NAME="$5"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+
+STAGE_DIR="/tmp/adt_stage_${ID}_$$"
+/bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+
+ARCHIVE="${STAGE_DIR}/download"
+cached_fetch "${ID}" "${VERSION}" "${URL}" "${EXPECTED_SHA256}" "${ARCHIVE}"
+
+case "${URL}" in
+    *.tar.gz|*.tgz) /bin/tar -xzf "${ARCHIVE}" -C "${STAGE_DIR}" ;;
+    *.tar.xz)       /bin/tar -xJf "${ARCHIVE}" -C "${STAGE_DIR}" ;;
+    *.zip)          /usr/bin/unzip -q "${ARCHIVE}" -d "${STAGE_DIR}" ;;
+    *)              /bin/mv "${ARCHIVE}" "${STAGE_DIR}/${BIN_NAME}" ;;
+esac
+
+FOUND_BIN=$(/usr/bin/find "${STAGE_DIR}" -type f -name "${BIN_NAME}" | /usr/bin/head -n 1)
+[ -z "${FOUND_BIN}" ] && { /bin/echo "[ERROR] Binary '${BIN_NAME}' not found for ${ID}" >&2; exit 1; }
+/bin/chmod 0755 "${FOUND_BIN}"
+/bin/mv -f "${FOUND_BIN}" "/usr/local/bin/${BIN_NAME}"
+
+# --- strategies/install_source.sh ---
+#!/bin/sh
+set -eu
+ID="$1"; VERSION="$2"; URL="$3"; EXPECTED_SHA256="$4"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+
+RECIPE="${BUILD_HOME}/installscripts/strategies/recipes/${ID}.sh"
+[ ! -f "${RECIPE}" ] && { /bin/echo "[ERROR] Missing recipe: ${RECIPE}" >&2; exit 1; }
+
+SRC_DIR="/tmp/adt_src_${ID}_$$"
+/bin/mkdir -p "${SRC_DIR}"
+trap '/bin/rm -rf "${SRC_DIR}"' EXIT INT TERM
+
+cached_fetch "${ID}" "${VERSION}" "${URL}" "${EXPECTED_SHA256}" "${SRC_DIR}/source.tar.gz"
+/bin/tar -xzf "${SRC_DIR}/source.tar.gz" -C "${SRC_DIR}" --strip-components=1
+cd "${SRC_DIR}"
+/bin/sh "${RECIPE}" "${VERSION}"
+
+# --- strategies/install_custom.sh ---
+#!/bin/sh
+set -eu
+ID="$1"; VERSION="$2"; SOURCE="$3"; EXPECTED_SHA256="$4"; BIN_NAME="$5"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+RECIPE="${BUILD_HOME}/installscripts/strategies/recipes/${ID}.sh"
+[ ! -f "${RECIPE}" ] && { /bin/echo "[ERROR] Missing custom recipe: ${RECIPE}" >&2; exit 1; }
+/bin/sh "${RECIPE}" "${VERSION}" "${SOURCE}" "${EXPECTED_SHA256}" "${BIN_NAME}"
+Use code with caution.
+
+4. Webserver Recipes (nginx.sh, apache.sh, lighttpd.sh)
+
+
+strategies/recipes/nginx.sh
+
+sh
+#!/bin/sh
+set -eu
+
+VERSION="${1:-1.27.3}"
+SOURCE_URL="${2:-https://nginx.org{VERSION}.tar.gz}"
+EXPECTED_SHA256="${3:-skip}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+
+. /etc/os-release
+ARCH=$(/usr/bin/uname -m)
+COMPILED_KEY="compiled/nginx/${ID}-${VERSION_ID}-${ARCH}-${VERSION}.tar.gz"
+
+STAGE_DIR="/tmp/adt_nginx_$$"
+/bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+
+setup_service() {
+    /bin/mkdir -p /var/log/nginx /etc/nginx/conf.d /etc/nginx/sites-enabled
+    /bin/chown -R www-data:www-data /var/log/nginx
+    /bin/ln -sf /usr/sbin/nginx /usr/local/bin/nginx
+
+    if [ ! -f /lib/systemd/system/nginx.service ]; then
+        /bin/cat <<'UNIT' > /lib/systemd/system/nginx.service
+[Unit]
+Description=NGINX HTTP and reverse proxy server
+After=syslog.target network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+ExecStartPre=/usr/sbin/nginx -t
+ExecStart=/usr/sbin/nginx
+ExecReload=/usr/sbin/nginx -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+UNIT
+        /bin/systemctl daemon-reload
+        /bin/systemctl enable nginx
+    fi
+}
+
+if s3_cache_pull "${COMPILED_KEY}" "${STAGE_DIR}/nginx-compiled.tar.gz"; then
+    pkg_update
+    pkg_install libpcre2-8-0 zlib1g libssl3
+    /bin/tar -xzf "${STAGE_DIR}/nginx-compiled.tar.gz" -C /
+    setup_service
+    exit 0
+fi
+
+pkg_update
+pkg_install build-essential libpcre2-dev zlib1g-dev libssl-dev
+
+cached_fetch "nginx-src" "${VERSION}" "${SOURCE_URL}" "${EXPECTED_SHA256}" "${STAGE_DIR}/nginx.tar.gz"
+/bin/mkdir -p "${STAGE_DIR}/src"
+/bin/tar -xzf "${STAGE_DIR}/nginx.tar.gz" -C "${STAGE_DIR}/src" --strip-components=1
+cd "${STAGE_DIR}/src"
+
+./configure --prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib/nginx/modules \
+    --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log \
+    --http-log-path=/var/log/nginx/access.log --pid-path=/run/nginx.pid --lock-path=/run/nginx.lock \
+    --user=www-data --group=www-data --with-http_ssl_module --with-http_v2_module \
+    --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module \
+    --with-threads --with-file-aio
+
+/usr/bin/make -j"$(/usr/bin/nproc 2>/dev/null || /bin/echo 2)"
+/usr/bin/make install
+setup_service
+
+/bin/tar -czf "${STAGE_DIR}/nginx-compiled.tar.gz" /usr/sbin/nginx /etc/nginx $([ -d /usr/lib/nginx ] && /bin/echo /usr/lib/nginx)
+s3_cache_push "${STAGE_DIR}/nginx-compiled.tar.gz" "${COMPILED_KEY}"
+Use code with caution.
+
+strategies/recipes/apache.sh
+
+sh
+#!/bin/sh
+set -eu
+
+VERSION="${1:-2.4.62}"
+SOURCE_URL="${2:-https://apache.org{VERSION}.tar.gz}"
+EXPECTED_SHA256="${3:-skip}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+
+. /etc/os-release
+ARCH=$(/usr/bin/uname -m)
+COMPILED_KEY="compiled/apache/${ID}-${VERSION_ID}-${ARCH}-${VERSION}.tar.gz"
+
+STAGE_DIR="/tmp/adt_apache_$$"
+/bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+
+setup_service() {
+    /bin/mkdir -p /var/log/apache2 /etc/apache2/sites-enabled /etc/apache2/conf-enabled /run/apache2
+    /bin/chown -R www-data:www-data /var/log/apache2 /run/apache2
+    /bin/ln -sf /usr/local/apache2/bin/httpd /usr/local/bin/httpd
+    /bin/ln -sf /usr/local/apache2/bin/apachectl /usr/local/bin/apachectl
+
+    if [ ! -f /lib/systemd/system/apache2.service ]; then
+        /bin/cat <<'UNIT' > /lib/systemd/system/apache2.service
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+[Service]
+Type=forking
+PIDFile=/run/apache2/httpd.pid
+ExecStart=/usr/local/apache2/bin/apachectl start
+ExecStop=/usr/local/apache2/bin/apachectl graceful-stop
+ExecReload=/usr/local/apache2/bin/apachectl graceful
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+UNIT
+        /bin/systemctl daemon-reload
+        /bin/systemctl enable apache2
+    fi
+}
+
+if s3_cache_pull "${COMPILED_KEY}" "${STAGE_DIR}/apache-compiled.tar.gz"; then
+    pkg_update
+    pkg_install libapr1t64 libaprutil1t64 libpcre2-8-0 libssl3 libnghttp2-14 zlib1g || \
+        pkg_install libapr1 libaprutil1 libpcre2-8-0 libssl3 libnghttp2-14 zlib1g
+    /bin/tar -xzf "${STAGE_DIR}/apache-compiled.tar.gz" -C /
+    setup_service
+    exit 0
+fi
+
+pkg_update
+pkg_install build-essential libapr1-dev libaprutil1-dev libpcre2-dev libssl-dev libnghttp2-dev zlib1g-dev
+
+cached_fetch "apache-src" "${VERSION}" "${SOURCE_URL}" "${EXPECTED_SHA256}" "${STAGE_DIR}/httpd.tar.gz"
+/bin/mkdir -p "${STAGE_DIR}/src"
+/bin/tar -xzf "${STAGE_DIR}/httpd.tar.gz" -C "${STAGE_DIR}/src" --strip-components=1
+cd "${STAGE_DIR}/src"
+
+./configure --prefix=/usr/local/apache2 --sysconfdir=/etc/apache2 --with-mpm=event \
+    --enable-so --enable-ssl --enable-http2 --enable-rewrite --enable-headers \
+    --enable-expires --enable-deflate --enable-proxy --enable-proxy-fcgi \
+    --enable-remoteip --with-included-apr=no
+
+/usr/bin/make -j"$(/usr/bin/nproc 2>/dev/null || /bin/echo 2)"
+/usr/bin/make install
+
+if [ -f /etc/apache2/httpd.conf ]; then
+    /usr/bin/sed -i 's|^User daemon|User www-data|g; s|^Group daemon|Group www-data|g' /etc/apache2/httpd.conf
+    /bin/grep -q '^PidFile ' /etc/apache2/httpd.conf || /bin/echo 'PidFile /run/apache2/httpd.pid' >> /etc/apache2/httpd.conf
+fi
+
+setup_service
+
+/bin/tar -czf "${STAGE_DIR}/apache-compiled.tar.gz" /usr/local/apache2 /etc/apache2
+s3_cache_push "${STAGE_DIR}/apache-compiled.tar.gz" "${COMPILED_KEY}"
+Use code with caution.
+
+strategies/recipes/lighttpd.sh
+
+sh
+#!/bin/sh
+set -eu
+
+VERSION="${1:-1.4.76}"
+MAJOR_MINOR="${VERSION%.*}"
+SOURCE_URL="${2:-https://lighttpd.net{MAJOR_MINOR}.x/lighttpd-${VERSION}.tar.xz}"
+EXPECTED_SHA256="${3:-skip}"
+
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+
+. /etc/os-release
+ARCH=$(/usr/bin/uname -m)
+COMPILED_KEY="compiled/lighttpd/${ID}-${VERSION_ID}-${ARCH}-${VERSION}.tar.gz"
+
+STAGE_DIR="/tmp/adt_lighttpd_$$"
+/bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+
+setup_service() {
+    /bin/mkdir -p /var/log/lighttpd /etc/lighttpd/conf-enabled /run/lighttpd
+    /bin/chown -R www-data:www-data /var/log/lighttpd /run/lighttpd
+    /bin/ln -sf /usr/sbin/lighttpd /usr/local/bin/lighttpd
+
+    if [ ! -f /etc/lighttpd/lighttpd.conf ]; then
+        /bin/cat <<'CONF' > /etc/lighttpd/lighttpd.conf
+server.modules = ( "mod_access", "mod_alias", "mod_compress", "mod_redirect", "mod_rewrite", "mod_fastcgi" )
+server.document-root        = "/var/www/html"
+server.upload-dirs          = ( "/var/cache/lighttpd/uploads" )
+server.errorlog             = "/var/log/lighttpd/error.log"
+server.pid-file             = "/run/lighttpd/lighttpd.pid"
+server.username             = "www-data"
+server.groupname            = "www-data"
+server.port                 = 80
+include_shell "/usr/share/lighttpd/include-conf-enabled.pl"
+CONF
+    fi
+
+    if [ ! -f /lib/systemd/system/lighttpd.service ]; then
+        /bin/cat <<'UNIT' > /lib/systemd/system/lighttpd.service
+[Unit]
+Description=Lighttpd Daemon
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+PIDFile=/run/lighttpd/lighttpd.pid
+ExecStartPre=/usr/sbin/lighttpd -tt -f /etc/lighttpd/lighttpd.conf
+ExecStart=/usr/sbin/lighttpd -D -f /etc/lighttpd/lighttpd.conf
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+UNIT
+        /bin/systemctl daemon-reload
+        /bin/systemctl enable lighttpd
+    fi
+}
+
+if s3_cache_pull "${COMPILED_KEY}" "${STAGE_DIR}/lighttpd-compiled.tar.gz"; then
+    pkg_update
+    pkg_install libpcre2-8-0 zlib1g libssl3
+    /bin/tar -xzf "${STAGE_DIR}/lighttpd-compiled.tar.gz" -C /
+    setup_service
+    exit 0
+fi
+
+pkg_update
+pkg_install build-essential pkg-config libpcre2-dev zlib1g-dev libssl-dev xz-utils
+
+cached_fetch "lighttpd-src" "${VERSION}" "${SOURCE_URL}" "${EXPECTED_SHA256}" "${STAGE_DIR}/lighttpd.tar.xz"
+/bin/mkdir -p "${STAGE_DIR}/src"
+/bin/tar -xJf "${STAGE_DIR}/lighttpd.tar.xz" -C "${STAGE_DIR}/src" --strip-components=1
+cd "${STAGE_DIR}/src"
+
+./configure --prefix=/usr --sbindir=/usr/sbin --libdir=/usr/lib/lighttpd \
+    --sysconfdir=/etc/lighttpd --with-openssl --with-pcre2 --with-zlib
+
+/usr/bin/make -j"$(/usr/bin/nproc 2>/dev/null || /bin/echo 2)"
+/usr/bin/make install
+setup_service
+
+/bin/tar -czf "${STAGE_DIR}/lighttpd-compiled.tar.gz" /usr/sbin/lighttpd /usr/lib/lighttpd /etc/lighttpd
+s3_cache_push "${STAGE_DIR}/lighttpd-compiled.tar.gz" "${COMPILED_KEY}"
+Use code with caution.
+
+5. PHP, Database, Cloud CLI, & S3 Mount Recipes (strategies/recipes/)
+
+
+strategies/recipes/php.sh
+
+sh
+#!/bin/sh
+set -eu
+SOURCE_SPEC="${2:-mysqli:curl:gd:zip}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+
+EXTENSIONS_PART=$(/bin/echo "${SOURCE_SPEC}" | /usr/bin/awk -F'|' '{print $1}')
+LISTEN_PORT=$(/bin/echo "${SOURCE_SPEC}" | /usr/bin/awk -F'|' '{print $2}')
+
+pkg_update
+pkg_install php-fpm php-cli
+
+OLD_IFS="${IFS}"; IFS=':'
+for ext in ${EXTENSIONS_PART}; do
+    [ -n "${ext}" ] && pkg_install "php-${ext}"
+done
+IFS="${OLD_IFS}"
+
+POOL_CONF=$(/usr/bin/find /etc/php -name "www.conf" | /usr/bin/head -n 1)
+[ -n "${LISTEN_PORT}" ] && [ -f "${POOL_CONF}" ] && /usr/bin/sed -i "s|^listen = .*|listen = 127.0.0.1:${LISTEN_PORT}|g" "${POOL_CONF}"
+
+PHP_FPM_SVC=$(/usr/bin/systemctl list-unit-files | /usr/bin/awk '/php.*fpm\.service/ {print $1; exit}')
+[ -n "${PHP_FPM_SVC}" ] && { /bin/systemctl enable "${PHP_FPM_SVC}"; /bin/systemctl restart "${PHP_FPM_SVC}"; }
+Use code with caution.
+
+strategies/recipes/mariadb.sh, mysql.sh, & postgres.sh
+
+sh
+# --- strategies/recipes/mariadb.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-11.5.2}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+pkg_update
+pkg_install curl ca-certificates apt-transport-https
+/usr/bin/curl -fsSL https://mariadb.com | /bin/bash -s -- --mariadb-server-version="mariadb-${VERSION}"
+pkg_update
+pkg_install mariadb-server mariadb-client
+/bin/systemctl enable mariadb
+
+# --- strategies/recipes/mysql.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-9.2.0}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+STAGE_DIR="/tmp/adt_mysql_$$"; /bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+. /etc/os-release
+[ "${ID}" = "debian" ] && BUNDLE="mysql-server_${VERSION}-1debian${VERSION_ID}_amd64.deb-bundle.tar" || BUNDLE="mysql-server_${VERSION}-1ubuntu${VERSION_ID}_amd64.deb-bundle.tar"
+/usr/bin/curl -fsSL "https://mysql.com{VERSION%.*}/${BUNDLE}" -o "${STAGE_DIR}/${BUNDLE}"
+/bin/tar -xf "${STAGE_DIR}/${BUNDLE}" -C "${STAGE_DIR}"
+pkg_update
+pkg_install "${STAGE_DIR}"/*.deb
+/bin/systemctl enable mysql
+
+# --- strategies/recipes/postgres.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-17}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+pkg_update
+pkg_install postgresql-common ca-certificates
+/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+pkg_update
+pkg_install "postgresql-${VERSION}" "postgresql-client-${VERSION}"
+/bin/systemctl enable postgresql
+Use code with caution.
+
+strategies/recipes/s3mount.sh (Symlink as goofys.sh & geesefs.sh)
+
+sh
+#!/bin/sh
+set -eu
+VERSION="${1:-latest}"; URL="$2"; EXPECTED_SHA256="${3:-skip}"; BIN_NAME="$4"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+
+pkg_update
+pkg_install fuse3 ca-certificates
+
+STAGE_BIN="/tmp/adt_${BIN_NAME}_$$"
+trap '/bin/rm -f "${STAGE_BIN}"' EXIT INT TERM
+cached_fetch "${BIN_NAME}" "${VERSION}" "${URL}" "${EXPECTED_SHA256}" "${STAGE_BIN}"
+/bin/chmod 0755 "${STAGE_BIN}"
+/bin/mv -f "${STAGE_BIN}" "/usr/local/bin/${BIN_NAME}"
+Use code with caution.
+
+strategies/recipes/linode-cli.sh, acme.sh, composer.sh, wpcli.sh, & awscli.sh
+
+sh
+# --- strategies/recipes/linode-cli.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-latest}"; BIN_NAME="${4:-linode-cli}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+pkg_update
+pkg_install python3-venv python3-pip
+/usr/bin/python3 -m venv /opt/linode-cli-venv
+[ "${VERSION}" = "latest" ] && /opt/linode-cli-venv/bin/pip install --quiet --upgrade linode-cli || /opt/linode-cli-venv/bin/pip install --quiet "linode-cli==${VERSION}"
+/bin/ln -sf /opt/linode-cli-venv/bin/linode-cli "/usr/local/bin/${BIN_NAME}"
+
+# --- strategies/recipes/acme.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-master}"; BIN_NAME="${4:-acme.sh}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_pkg.sh"
+pkg_update
+pkg_install curl cron socat
+STAGE_DIR="/tmp/adt_acme_$$"; /bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+/usr/bin/curl -fsSL "https://github.com{VERSION}.tar.gz" -o "${STAGE_DIR}/acme.tar.gz"
+/bin/tar -xzf "${STAGE_DIR}/acme.tar.gz" -C "${STAGE_DIR}" --strip-components=1
+cd "${STAGE_DIR}" && ./acme.sh --install --nocron --home "${HOME}/.acme.sh" >/dev/null
+/bin/ln -sf "${HOME}/.acme.sh/acme.sh" "/usr/local/bin/${BIN_NAME}"
+
+# --- strategies/recipes/composer.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-latest}"; INSTALLER_URL="${2:-https://getcomposer.org}"; BIN_NAME="${4:-composer}"
+STAGE_DIR="/tmp/adt_composer_$$"; /bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+EXPECTED_SIG=$(/usr/bin/curl -fsSL https://github.io)
+/usr/bin/curl -fsSL "${INSTALLER_URL}" -o "${STAGE_DIR}/composer-setup.php"
+ACTUAL_SIG=$(/usr/bin/php -r "echo hash_file('sha384', '${STAGE_DIR}/composer-setup.php');")
+[ "${EXPECTED_SIG}" != "${ACTUAL_SIG}" ] && { /bin/echo "Composer signature mismatch" >&2; exit 1; }
+VFLAG=""; [ "${VERSION}" != "latest" ] && VFLAG="--version=${VERSION}"
+/usr/bin/php "${STAGE_DIR}/composer-setup.php" --install-dir="${STAGE_DIR}" --filename="${BIN_NAME}" ${VFLAG} >/dev/null
+/bin/chmod 0755 "${STAGE_DIR}/${BIN_NAME}" && /bin/mv -f "${STAGE_DIR}/${BIN_NAME}" "/usr/local/bin/${BIN_NAME}"
+
+# --- strategies/recipes/wpcli.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-latest}"; BASE_URL="${2}"; EXPECTED_SHA256="${3:-skip}"; BIN_NAME="${4:-wp}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+STAGE_DIR="/tmp/adt_wpcli_$$"; /bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+URL="${BASE_URL}"; [ "${VERSION}" != "latest" ] && URL="https://github.com{VERSION}/wp-cli-${VERSION}.phar"
+cached_fetch "wpcli" "${VERSION}" "${URL}" "${EXPECTED_SHA256}" "${STAGE_DIR}/${BIN_NAME}"
+/bin/chmod 0755 "${STAGE_DIR}/${BIN_NAME}"
+/usr/bin/php "${STAGE_DIR}/${BIN_NAME}" --info --allow-root >/dev/null 2>&1
+/bin/mv -f "${STAGE_DIR}/${BIN_NAME}" "/usr/local/bin/${BIN_NAME}"
+
+# --- strategies/recipes/awscli.sh ---
+#!/bin/sh
+set -eu
+VERSION="${1:-latest}"; BASE_URL="${2}"; EXPECTED_SHA256="${3:-skip}"
+BUILD_HOME="`/bin/cat /home/buildhome.dat 2>/dev/null || /bin/echo ${HOME}/adt-build-machine-scripts`"
+. "${BUILD_HOME}/installscripts/strategies/lib_s3_cache.sh"
+STAGE_DIR="/tmp/adt_awscli_$$"; /bin/mkdir -p "${STAGE_DIR}"
+trap '/bin/rm -rf "${STAGE_DIR}"' EXIT INT TERM
+URL="${BASE_URL}"; [ "${VERSION}" != "latest" ] && URL="https://amazonaws.com{VERSION}.zip"
+cached_fetch "awscli" "${VERSION}" "${URL}" "${EXPECTED_SHA256}" "${STAGE_DIR}/awscliv2.zip"
+/usr/bin/unzip -q "${STAGE_DIR}/awscliv2.zip" -d "${STAGE_DIR}"
+"${STAGE_DIR}/aws/install" --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update >/dev/null
+Use code with caution.
+
+6. Declarative Manifest: configuration/packages.manifest
+
+text
+# ID         | ROLES              | METHOD | VERSION | SOURCE_OR_PKG                                                                                   | SHA256 | BIN_NAME
+# 0. Parallel Package Manager (bootstrapped first by InstallEngine.sh)
+nala         | build,web,auto,db  | repo   | latest  | nala                                                                                            | none   | nala
+
+# 1. Datastore CLI tooling (must come before binary/custom items so PutToDatastore/GetFromDatastore work)
+s3cmd        | build,web,auto,db  | repo   | latest  | s3cmd                                                                                           | none   | s3cmd
+s5cmd        | build,web,auto,db  | binary | 2.3.0   | https://github.com/peak/s5cmd/releases/download/v2.3.0/s5cmd_2.3.0_Linux-64bit.tar.gz           | skip   | s5cmd
+
+# 2. Core OS & System Utilities
+jq           | build,web,auto,db  | repo   | latest  | jq                                                                                              | none   | jq
+firewall     | build,web,auto,db  | repo   | latest  | ufw                                                                                             | none   | ufw
+mail         | build,web,auto,db  | repo   | latest  | sendemail                                                                                       | none   | sendemail
+
+# 3. Datastore Sync & FUSE Mount Tools
+rclone       | build,web,auto,db  | binary | 1.68.2  | https://downloads.rclone.org/v1.68.2/rclone-v1.68.2-linux-amd64.zip                             | skip   | rclone
+s3fs         | web                | repo   | latest  | s3fs                                                                                            | none   | s3fs
+goofys       | web                | custom | 0.24.0  | https://github.com/kahing/goofys/releases/download/v0.24.0/goofys                               | skip   | goofys
+geesefs      | web                | custom | 0.43.1  | https://github.com/yandex-cloud/geesefs/releases/download/v0.43.1/geesefs-linux-amd64           | skip   | geesefs
+
+# 4. SSL / ACME Clients
+lego         | build,auto         | binary | 4.20.4  | https://github.com/go-acme/lego/releases/download/v4.20.4/lego_v4.20.4_linux_amd64.tar.gz       | skip   | lego
+acme         | build,auto         | custom | 3.0.9   | https://github.com/acmesh-official/acme.sh                                                      | skip   | acme.sh
+
+# 5. Cloud Provider CLIs
+doctl        | build,auto         | binary | 1.118.0 | https://github.com/digitalocean/doctl/releases/download/v1.118.0/doctl-1.118.0-linux-amd64.tar.gz | skip | doctl
+exo          | build,auto         | binary | 1.80.0  | https://github.com/exoscale/cli/releases/download/v1.80.0/exoscale-cli_1.80.0_linux_amd64.tar.gz | skip  | exo
+vultr-cli    | build,auto         | binary | 3.3.2   | https://github.com/vultr/vultr-cli/releases/download/v3.3.2/vultr-cli_v3.3.2_linux_amd64.tar.gz | skip   | vultr-cli
+linode-cli   | build,auto         | custom | 5.53.1  | pypi                                                                                            | skip   | linode-cli
+awscli       | build,auto,web     | custom | 2.22.0  | https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip                                        | skip   | aws
+
+# 6. Webserver, PHP, & Application Tooling (uncomment your active webserver)
+nginx        | web                | custom | 1.27.3  | https://nginx.org/download/nginx-1.27.3.tar.gz                                                  | skip   | nginx
+# apache     | web                | custom | 2.4.62  | https://downloads.apache.org/httpd/httpd-2.4.62.tar.gz                                          | skip   | httpd
+# lighttpd   | web                | custom | 1.4.76  | https://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.76.tar.xz                    | skip   | lighttpd
+php          | web                | custom | 8.3     | soap:mysqli:pgsql:curl:gd:zip|9176                                                              | skip   | php
+composer     | build,web          | custom | 2.8.3   | https://getcomposer.org/installer                                                               | skip   | composer
+wpcli        | build,web          | custom | 2.11.0  | https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar                       | skip   | wp
+
+# 7. Database Engines (enable the one matching your DB role)
+mariadb      | db                 | custom | 11.5.2  | mariadb-repo                                                                                    | skip   | mariadbd
+# mysql      | db                 | custom | 9.2.0   | mysql-bundle                                                                                    | skip   | mysqld
+# postgres   | db                 | custom | 17      | pgdg-repo                                                                                       | skip   | psql
+Use code with caution.
+
+7. Quick Start Commands
+
+1. Validate all URLs, columns, and recipes before deployment:sh
+/bin/sh "${BUILD_HOME}/installscripts/VerifyManifest.sh"
+Use code with caution.
+2. Execute on each machine role during bootstrap:sh
+/bin/sh "${BUILD_HOME}/installscripts/InstallEngine.sh" build   # Build Machine
+/bin/sh "${BUILD_HOME}/installscripts/InstallEngine.sh" web     # Webserver
+/bin/sh "${BUILD_HOME}/installscripts/InstallEngine.sh" auto    # Autoscaler
+/bin/sh "${BUILD_HOME}/installscripts/InstallEngine.sh" db      # Database
+Use code with caution.
+3. Preview and prune stale cached artifacts after version upgrades:sh
+/bin/sh "${BUILD_HOME}/installscripts/PruneArtifactCache.sh" --dry-run
+/bin/sh "${BUILD_HOME}/installscripts/PruneArtifactCache.sh"
+Use code with caution.
+If you'd like any final additions, I can:
+• Provide a one-command setup script that writes all of these files and symlinks (goofys.sh, geesefs.sh) onto disk in /home/development
+• Add nala fetch --auto to InstallEngine.sh for automatic mirror benchmarking
