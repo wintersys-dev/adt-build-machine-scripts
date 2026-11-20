@@ -1,0 +1,883 @@
+Here is the complete solution we have built so far—starting with the directory layout diagram, followed by every configuration file, shared library, orchestrator, and pre-built/compile-once driver.
+
+Directory Layout
+
+text
+/home/
+├── buildhome.dat                    # Points to main ADT engine repo (e.g., /root/adt-engine)
+└── confighome.dat                   # Optional: points to forked config repo (e.g., /root/adt-config)
+
+${CONFIG_HOME}/                      # Forked config repo (or ${BUILD_HOME}/configuration fallback)
+├── software.dat                     # 1. Pure package & source lockfile (TYPE:NAME:VERSION:SCOPE)
+└── deployment.dat                   # 2. Runtime settings, firewall, modules & custom ./configure flags
+
+${BUILD_HOME}/installscripts/
+├── install_software.sh              # 3. Orchestrator (scope filter, --dry-run, nala, driver runner)
+├── lib/
+│   └── artifact_cache.sh            # 4. Shared POSIX library (S3 cache, SHA256 verify, APT lock wait)
+└── drivers/                         # 5. Standalone binary, Python wheel & compile-once source drivers
+    ├── s5cmd.sh
+    ├── rclone.sh
+    ├── doctl.sh
+    ├── exo.sh
+    ├── vultr-cli.sh
+    ├── geesefs.sh
+    ├── goofys.sh
+    ├── lego.sh
+    ├── acme.sh.sh
+    ├── go.sh
+    ├── linode-cli.sh
+    ├── nginx-source.sh
+    ├── apache-source.sh
+    └── lighttpd-source.sh
+Use code with caution.
+
+1. ${CONFIG_HOME}/software.dat
+
+ini
+# Format: TYPE:NAME:VERSION:SCOPE
+# TYPE: DATASTORETOOL | PINNED | PINNED_PIP | SOURCE | SYSTEM
+# SCOPE: comma-separated values matching 'all', CLOUDHOST
+#        (digitalocean, exoscale, vultr, linode), or SERVER_ROLE
+#        (buildhost, webserver, reverseproxy, authenticator, database, autoscaler).
+
+# ============================================================
+# 1. ACTIVE DATASTORE TOOL (Required by Get/PutToDatastore.sh)
+# ============================================================
+DATASTORETOOL:s5cmd:2.2.2:all
+#DATASTORETOOL:rclone:1.68.1:all
+#DATASTORETOOL:s3cmd::all
+
+# ============================================================
+# 2. PINNED PRE-BUILT BINARIES (PINNED:<tool>:<version>:<scope>)
+# ============================================================
+PINNED:doctl:1.115.0:digitalocean
+PINNED:exo:1.80.0:exoscale
+PINNED:vultr-cli:3.3.2:vultr
+PINNED:rclone:1.68.1:all
+PINNED:geesefs:0.42.3:webserver,autoscaler
+#PINNED:goofys:0.24.0:webserver,autoscaler
+PINNED:lego:4.19.2:webserver,reverseproxy,authenticator
+#PINNED:acme.sh:3.0.8:webserver,reverseproxy,authenticator
+#PINNED:go:1.23.3:buildhost
+
+# ============================================================
+# 3. PYTHON CLI TOOLS (PINNED_PIP:<pkg>:<version>:<scope>)
+# ============================================================
+PINNED_PIP:linode-cli:5.53.1:linode
+
+# ============================================================
+# 4. CUSTOM SOURCE BUILDS (SOURCE:<tool>:<version>:<scope>)
+# Compiled once on cache miss -> cached in S3 -> unpacked on autoscaled nodes
+# ============================================================
+#SOURCE:nginx:1.29.0:webserver,reverseproxy,authenticator
+#SOURCE:apache:2.4.66:webserver,reverseproxy,authenticator
+#SOURCE:lighttpd:1.4.85:webserver,reverseproxy,authenticator
+
+# ============================================================
+# 5. SYSTEM PACKAGES (SYSTEM:<apt-package>::<scope>)
+# ============================================================
+SYSTEM:s3cmd::all
+SYSTEM:jq::all
+SYSTEM:python3-venv::linode
+SYSTEM:fuse3::webserver,autoscaler
+#SYSTEM:s3fs::webserver,autoscaler
+SYSTEM:nginx::webserver,reverseproxy,authenticator
+#SYSTEM:apache2::webserver,reverseproxy,authenticator
+#SYSTEM:lighttpd::webserver,reverseproxy,authenticator
+SYSTEM:php-fpm::webserver,autoscaler
+SYSTEM:php-cli::webserver,autoscaler
+SYSTEM:php-mysql::webserver,autoscaler
+SYSTEM:php-pgsql::webserver,autoscaler
+SYSTEM:php-curl::webserver,autoscaler
+SYSTEM:mariadb-server::database
+#SYSTEM:mysql-server::database
+#SYSTEM:postgresql::database
+SYSTEM:iptables::all
+#SYSTEM:ufw::all
+#SYSTEM:fail2ban::all
+#SYSTEM:clamav::all
+#SYSTEM:clamav-daemon::all
+SYSTEM:ssmtp::all
+#SYSTEM:sendemail::all
+SYSTEM:lynx::all
+#SYSTEM:w3m::all
+#SYSTEM:elinks::all
+Use code with caution.
+
+2. ${CONFIG_HOME}/deployment.dat
+
+ini
+###############################################################################################
+# Name:        deployment.dat
+# Purpose:     Runtime behavior, orchestration, firewall, and service/compile tuning for ADT.
+###############################################################################################
+
+# =============================================================================================
+# 1. BUILD & ORCHESTRATION TOPOLOGY
+# =============================================================================================
+BUILDCHAINTYPE:standard
+GITBRANCH:main
+ORCHESTRATION_TOOL:api
+DATASTORECONFIGSTYLE:tool
+
+# =============================================================================================
+# 2. SECURITY, FIREWALL & SYSTEM UTILITIES
+# =============================================================================================
+#FIREWALL:ufw
+FIREWALL:iptables:20:30
+#FAIL2BAN:active
+#VIRUSSCANNER:clamav:daily
+#EMAILUTIL:sendemail
+EMAILUTIL:ssmtp
+#TEXTBROWSER:lynx
+#TEXTBROWSER:w3m
+TEXTBROWSER:elinks
+SSLCERTCLIENT:lego
+#SSLCERTCLIENT:acme
+
+# =============================================================================================
+# 3. PHP RUNTIME MODE
+# =============================================================================================
+#PHP:cli:fpm|9176
+PHP:fpm
+
+# =============================================================================================
+# 4. WEBSERVER MODULES, RUNTIME TUNING & CUSTOM SOURCE FLAGS
+# =============================================================================================
+NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
+NGINX:configure-flags:--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-pcre-jit
+
+APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+APACHE:configure-flags:--prefix=/etc/apache2 --sbindir=/usr/sbin --with-included-apr --enable-so --enable-ssl --enable-rewrite --enable-headers --enable-expires --enable-proxy --enable-proxy-http --enable-proxy-fcgi --enable-remoteip --enable-http2 --with-mpm=event
+
+LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv:mod_redirect:mod_rewrite:mod_authn_file
+LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
+LIGHTTPD:configure-flags:--prefix=/usr --sysconfdir=/etc/lighttpd --with-openssl --with-pcre2 --with-zlib
+Use code with caution.
+
+3. ${BUILD_HOME}/installscripts/lib/artifact_cache.sh
+
+sh
+#!/bin/sh
+#: Name:        artifact_cache.sh
+#: Purpose:     Shared library for config resolution, APT lock safety, S3 pull-through caching, and SHA256 verification.
+
+if [ -z "${BUILD_HOME:-}" ]; then
+    if [ -r /home/buildhome.dat ]; then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+    else
+        /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+    fi
+fi
+
+# Resolve separate config repo if /home/confighome.dat exists; fallback to ${BUILD_HOME}/configuration
+if [ -z "${CONFIG_HOME:-}" ]; then
+    if [ -r /home/confighome.dat ]; then
+        CONFIG_HOME="$(/bin/cat /home/confighome.dat)"
+    else
+        CONFIG_HOME="${BUILD_HOME}/configuration"
+    fi
+fi
+
+DATASTORE_OPS="${BUILD_HOME}/services/datastore/operations"
+GET_SCRIPT="${DATASTORE_OPS}/GetFromDatastore.sh"
+PUT_SCRIPT="${DATASTORE_OPS}/PutToDatastore.sh"
+MOUNT_SCRIPT="${DATASTORE_OPS}/MountDatastore.sh"
+ARTIFACT_BUCKET="${ARTIFACT_BUCKET:-adt-binary-cache}"
+
+if [ -z "${TMP_DIR:-}" ]; then
+    TMP_DIR="$(mktemp -d)"
+    trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
+fi
+
+ARCHIVE_MISS=0
+CHECKSUM_MISS=0
+
+status() {
+    if [ -x "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" ]; then
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" "${2:-no}" 2>/dev/null || true
+    else
+        printf '%s\n' "${1}"
+    fi
+}
+
+wait_for_apt_lock() {
+    attempts=0
+    while [ "$attempts" -lt 24 ]; do
+        if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 &&
+           ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1 &&
+           ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+            return 0
+        fi
+        status "Waiting for dpkg/apt lock to clear before installing system packages..."
+        attempts=$((attempts + 1))
+        sleep 5
+    done
+    status "Error: Timed out waiting for dpkg/apt lock after 120 seconds."
+    exit 1
+}
+
+pull_file() {
+    remote_path="$1"
+    upstream_url="$2"
+    dest="$3"
+
+    if [ -x "$GET_SCRIPT" ]; then
+        if "$GET_SCRIPT" "ad-hoc" "$remote_path" "$dest" "$ARTIFACT_BUCKET" >/dev/null 2>&1 && [ -s "$dest" ]; then
+            return 0
+        fi
+    fi
+
+    [ -n "$upstream_url" ] || return 1
+    curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 15 "$upstream_url" -o "$dest"
+    return 1
+}
+
+resolve_expected_sha256() {
+    checksum_file="$1"
+    target_file="$2"
+
+    awk -v f="$target_file" '
+        {
+            name = $2
+            sub(/^\*/, "", name)
+            sub(/^.*\//, "", name)
+            if (name == f || NF == 1) {
+                print tolower($1)
+                exit
+            }
+        }
+    ' "$checksum_file"
+}
+
+fetch_and_verify() {
+    bucket_dir="$1"
+    filename="$2"
+    upstream_url="$3"
+    checksum_url="$4"
+    dest="$5"
+
+    ARCHIVE_MISS=0
+    CHECKSUM_MISS=0
+
+    if pull_file "${bucket_dir}/${filename}" "$upstream_url" "$dest"; then
+        status "[DATASTORE HIT] ${bucket_dir}/${filename}"
+    else
+        status "[DATASTORE MISS] Fetched ${bucket_dir}/${filename} from upstream"
+        ARCHIVE_MISS=1
+    fi
+
+    [ -z "$checksum_url" ] && return 0
+
+    checksum_name="${filename}.sha256"
+    checksum_dest="${TMP_DIR}/${checksum_name}"
+
+    if ! pull_file "${bucket_dir}/${checksum_name}" "$checksum_url" "$checksum_dest"; then
+        CHECKSUM_MISS=1
+    fi
+
+    expected_sha="$(resolve_expected_sha256 "$checksum_dest" "$filename")"
+    if [ -z "$expected_sha" ]; then
+        status "Error: Could not find SHA256 hash for ${filename} inside ${checksum_url}"
+        exit 1
+    fi
+
+    actual_sha="$(sha256sum "$dest" | awk '{print $1}')"
+    if [ "$actual_sha" != "$expected_sha" ]; then
+        status "Error: SHA256 mismatch for ${filename} (expected ${expected_sha}, got ${actual_sha})"
+        exit 1
+    fi
+
+    status "[SHA256 OK] ${filename}"
+}
+
+seed_datastore() {
+    bucket_dir="$1"
+    archive_file="$2"
+    checksum_file="${archive_file}.sha256"
+
+    [ "$ARCHIVE_MISS" -eq 1 ] || [ "$CHECKSUM_MISS" -eq 1 ] || return 0
+
+    if [ -x "$MOUNT_SCRIPT" ]; then
+        "$MOUNT_SCRIPT" "ad-hoc" "distributed" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+
+    if [ "$ARCHIVE_MISS" -eq 1 ] && [ -x "$PUT_SCRIPT" ] && [ -s "$archive_file" ]; then
+        "$PUT_SCRIPT" "ad-hoc" "$archive_file" "$bucket_dir" "distributed" "false" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+
+    if [ "$CHECKSUM_MISS" -eq 1 ] && [ -x "$PUT_SCRIPT" ] && [ -s "$checksum_file" ]; then
+        "$PUT_SCRIPT" "ad-hoc" "$checksum_file" "$bucket_dir" "distributed" "false" "$ARTIFACT_BUCKET" >/dev/null 2>&1 || true
+    fi
+}
+Use code with caution.
+
+4. ${BUILD_HOME}/installscripts/install_software.sh
+
+sh
+#!/bin/sh
+#: Name:        install_software.sh
+#: Purpose:     Orchestrates selective installation of system packages, pinned binaries, and cached source builds.
+#: Author:      Peter Winter
+#: Date:        20/11/2026
+#: Version:     2.2
+#:
+#: Usage:       install_software.sh [--dry-run|-n] [server_role] [path-to-manifest.dat]
+#:              install_software.sh [-h|--help]
+set -eu
+
+DRY_RUN=0
+SERVER_ROLE=""
+MANIFEST=""
+
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)
+            /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+            exit 0
+            ;;
+        -n|--dry-run)
+            DRY_RUN=1
+            ;;
+        *)
+            if [ -z "$SERVER_ROLE" ]; then
+                SERVER_ROLE="$arg"
+            elif [ -z "$MANIFEST" ]; then
+                MANIFEST="$arg"
+            else
+                printf 'Error: Unexpected argument "%s"\n' "$arg" >&2
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+if [ -r /home/buildhome.dat ]; then
+    BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+    /bin/echo "Application root configuration file missing at /home/buildhome.dat" >&2
+    exit 1
+fi
+
+export BUILD_HOME
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+export CONFIG_HOME
+
+SERVER_ROLE="${SERVER_ROLE:-all}"
+MANIFEST="${MANIFEST:-${CONFIG_HOME}/software.dat}"
+DRIVERS_DIR="${BUILD_HOME}/installscripts/drivers"
+
+if [ ! -r "$MANIFEST" ]; then
+    status "Error: Manifest file missing or unreadable at ${MANIFEST}"
+    exit 1
+fi
+
+CLOUDHOST="${CLOUDHOST:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST 2>/dev/null || true)}"
+
+SYSTEM_PKGS=""
+DRIVER_LIST=""
+
+should_install() {
+    scope_list="$1"
+    [ -z "$scope_list" ] && return 0
+
+    old_ifs="$IFS"
+    IFS=','
+    for token in $scope_list; do
+        case "$token" in
+            all|"$CLOUDHOST"|"$SERVER_ROLE")
+                IFS="$old_ifs"
+                return 0
+                ;;
+        esac
+    done
+    IFS="$old_ifs"
+    return 1
+}
+
+# 1. Parse manifest, filter by scope, and prioritize DATASTORETOOL first
+while IFS=':' read -r type arg1 arg2 scope; do
+    case "$type" in
+        ""|\#*) continue ;;
+    esac
+
+    should_install "$scope" || continue
+
+    case "$type" in
+        DATASTORETOOL)
+            if [ -n "$arg2" ]; then
+                DRIVER_LIST="${arg1}:${arg2} $DRIVER_LIST"
+            else
+                SYSTEM_PKGS="$SYSTEM_PKGS $arg1"
+            fi
+            ;;
+        SYSTEM)            SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
+        PINNED|PINNED_PIP) DRIVER_LIST="$DRIVER_LIST ${arg1}:${arg2}" ;;
+        SOURCE)            DRIVER_LIST="$DRIVER_LIST ${arg1}-source:${arg2}" ;;
+        *)
+            status "Error: Unknown directive '${type}' in ${MANIFEST}"
+            exit 1
+            ;;
+    esac
+done < "$MANIFEST"
+
+# 2. Validate that all matched drivers exist on disk before making any changes
+for item in $DRIVER_LIST; do
+    tool="${item%%:*}"
+    driver="${DRIVERS_DIR}/${tool}.sh"
+    if [ ! -f "$driver" ]; then
+        status "Error: Missing driver script ${driver} for tool '${tool}'"
+        exit 1
+    fi
+done
+
+# 3. Preview execution plan and exit cleanly if --dry-run was requested
+if [ "$DRY_RUN" -eq 1 ]; then
+    printf '=== DRY-RUN EXECUTION PLAN ===\n'
+    printf 'Config Home: %s\n' "$CONFIG_HOME"
+    printf 'Manifest:    %s\n' "$MANIFEST"
+    printf 'Cloudhost:   %s\n' "${CLOUDHOST:-<unset>}"
+    printf 'Server Role: %s\n\n' "$SERVER_ROLE"
+
+    printf ' SYSTEM PACKAGES (via nala):\n'
+    if [ -n "$SYSTEM_PKGS" ]; then
+        for pkg in $SYSTEM_PKGS; do
+            printf '    - %s\n' "$pkg"
+        done
+    else
+        printf '    (none)\n'
+    fi
+
+    printf '\n DRIVERS (in execution order):\n'
+    if [ -n "$DRIVER_LIST" ]; then
+        for item in $DRIVER_LIST; do
+            printf '    - %s (version %s) -> %s/%s.sh\n' \
+                "${item%%:*}" "${item#*:}" "$DRIVERS_DIR" "${item%%:*}"
+        done
+    else
+        printf '    (none)\n'
+    fi
+    exit 0
+fi
+
+# 4. Wait for dpkg/apt locks, ensure nala exists, and batch-install SYSTEM packages
+wait_for_apt_lock
+
+if ! command -v nala >/dev/null 2>&1; then
+    status "Bootstrapping nala package manager..."
+    apt-get update -y
+    apt-get install -y nala
+fi
+
+nala update
+# shellcheck disable=SC2086
+nala install -y curl tar unzip ca-certificates psmisc $SYSTEM_PKGS
+
+# 5. Execute each matching tool/source driver (DATASTORETOOL runs & self-caches first)
+for item in $DRIVER_LIST; do
+    tool="${item%%:*}"
+    ver="${item#*:}"
+    sh "${DRIVERS_DIR}/${tool}.sh" "$ver"
+done
+
+status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
+Use code with caution.
+
+5. Compile-Once Source Drivers (${BUILD_HOME}/installscripts/drivers/*-source.sh)
+
+
+drivers/nginx-source.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+default_flags="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-pcre-jit"
+cfg_flags="$(grep '^NGINX:configure-flags:' "${CONFIG_HOME}/deployment.dat" 2>/dev/null | cut -d':' -f3- || true)"
+cfg_flags="${cfg_flags:-$default_flags}"
+
+flags_hash="$(printf '%s' "$cfg_flags" | sha256sum | awk '{print substr($1,1,12)}')"
+compiled_dir="nginx-compiled/${ver}"
+compiled_pkg="nginx-${ver}-${flags_hash}-linux-amd64.tar.gz"
+compiled_path="${TMP_DIR}/${compiled_pkg}"
+
+if pull_file "${compiled_dir}/${compiled_pkg}" "" "$compiled_path"; then
+    status "[COMPILED CACHE HIT] Unpacking ${compiled_pkg}..."
+    tar -xzf "$compiled_path" -C /
+    exit 0
+fi
+
+status "[COMPILED CACHE MISS] Compiling Nginx ${ver} (flags hash: ${flags_hash})..."
+wait_for_apt_lock
+nala install -y build-essential libpcre2-dev libssl-dev zlib1g-dev
+
+src_file="nginx-${ver}.tar.gz"
+src_url="$(printf 'https://nginx.org' "$src_file")"
+fetch_and_verify "nginx-src/${ver}" "$src_file" "$src_url" "" "${TMP_DIR}/${src_file}"
+
+mkdir -p "${TMP_DIR}/build" "${TMP_DIR}/stage"
+tar -xzf "${TMP_DIR}/${src_file}" -C "${TMP_DIR}/build"
+
+(
+    cd "${TMP_DIR}/build/nginx-${ver}"
+    # shellcheck disable=SC2086
+    ./configure $cfg_flags
+    make -j"$(nproc)"
+    make DESTDIR="${TMP_DIR}/stage" install
+)
+
+tar -czf "$compiled_path" -C "${TMP_DIR}/stage" .
+tar -xzf "$compiled_path" -C /
+
+ARCHIVE_MISS=1
+CHECKSUM_MISS=0
+seed_datastore "$compiled_dir" "$compiled_path"
+status "[COMPILED & CACHED] ${compiled_pkg} seeded to S3."
+Use code with caution.
+
+drivers/apache-source.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+apr_ver="${APR_VER:-1.7.6}"
+apr_util_ver="${APR_UTIL_VER:-1.6.3}"
+
+default_flags="--prefix=/etc/apache2 --sbindir=/usr/sbin --with-included-apr --enable-so --enable-ssl --enable-rewrite --enable-headers --enable-expires --enable-proxy --enable-proxy-http --enable-proxy-fcgi --enable-remoteip --enable-http2 --with-mpm=event"
+cfg_flags="$(grep '^APACHE:configure-flags:' "${CONFIG_HOME}/deployment.dat" 2>/dev/null | cut -d':' -f3- || true)"
+cfg_flags="${cfg_flags:-$default_flags}"
+
+flags_hash="$(printf '%s|%s|%s' "$cfg_flags" "$apr_ver" "$apr_util_ver" | sha256sum | awk '{print substr($1,1,12)}')"
+compiled_dir="apache-compiled/${ver}"
+compiled_pkg="apache-${ver}-${flags_hash}-linux-amd64.tar.gz"
+compiled_path="${TMP_DIR}/${compiled_pkg}"
+
+if pull_file "${compiled_dir}/${compiled_pkg}" "" "$compiled_path"; then
+    status "[COMPILED CACHE HIT] Unpacking ${compiled_pkg}..."
+    tar -xzf "$compiled_path" -C /
+    exit 0
+fi
+
+status "[COMPILED CACHE MISS] Compiling Apache ${ver} (flags hash: ${flags_hash})..."
+wait_for_apt_lock
+nala install -y build-essential libpcre2-dev libssl-dev libnghttp2-dev libexpat1-dev zlib1g-dev
+
+httpd_file="httpd-${ver}.tar.gz"
+apr_file="apr-${apr_ver}.tar.gz"
+apr_util_file="apr-util-${apr_util_ver}.tar.gz"
+
+httpd_url="$(printf 'https://apache.org' "$httpd_file")"
+apr_url="$(printf 'https://apache.org' "$apr_file")"
+apr_util_url="$(printf 'https://apache.org' "$apr_util_file")"
+
+fetch_and_verify "apache-src/${ver}" "$httpd_file" "$httpd_url" "${httpd_url}.sha256" "${TMP_DIR}/${httpd_file}"
+fetch_and_verify "apache-src/${ver}" "$apr_file" "$apr_url" "${apr_url}.sha256" "${TMP_DIR}/${apr_file}"
+fetch_and_verify "apache-src/${ver}" "$apr_util_file" "$apr_util_url" "${apr_util_url}.sha256" "${TMP_DIR}/${apr_util_file}"
+
+mkdir -p "${TMP_DIR}/build" "${TMP_DIR}/stage"
+tar -xzf "${TMP_DIR}/${httpd_file}" -C "${TMP_DIR}/build"
+tar -xzf "${TMP_DIR}/${apr_file}" -C "${TMP_DIR}/build/httpd-${ver}/srclib"
+tar -xzf "${TMP_DIR}/${apr_util_file}" -C "${TMP_DIR}/build/httpd-${ver}/srclib"
+mv "${TMP_DIR}/build/httpd-${ver}/srclib/apr-${apr_ver}" "${TMP_DIR}/build/httpd-${ver}/srclib/apr"
+mv "${TMP_DIR}/build/httpd-${ver}/srclib/apr-util-${apr_util_ver}" "${TMP_DIR}/build/httpd-${ver}/srclib/apr-util"
+
+(
+    cd "${TMP_DIR}/build/httpd-${ver}"
+    # shellcheck disable=SC2086
+    ./configure $cfg_flags
+    make -j"$(nproc)"
+    make DESTDIR="${TMP_DIR}/stage" install
+)
+
+tar -czf "$compiled_path" -C "${TMP_DIR}/stage" .
+tar -xzf "$compiled_path" -C /
+
+ARCHIVE_MISS=1
+CHECKSUM_MISS=0
+seed_datastore "$compiled_dir" "$compiled_path"
+status "[COMPILED & CACHED] ${compiled_pkg} seeded to S3."
+Use code with caution.
+
+drivers/lighttpd-source.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+default_flags="--prefix=/usr --sysconfdir=/etc/lighttpd --with-openssl --with-pcre2 --with-zlib"
+cfg_flags="$(grep '^LIGHTTPD:configure-flags:' "${CONFIG_HOME}/deployment.dat" 2>/dev/null | cut -d':' -f3- || true)"
+cfg_flags="${cfg_flags:-$default_flags}"
+
+flags_hash="$(printf '%s' "$cfg_flags" | sha256sum | awk '{print substr($1,1,12)}')"
+compiled_dir="lighttpd-compiled/${ver}"
+compiled_pkg="lighttpd-${ver}-${flags_hash}-linux-amd64.tar.gz"
+compiled_path="${TMP_DIR}/${compiled_pkg}"
+
+if pull_file "${compiled_dir}/${compiled_pkg}" "" "$compiled_path"; then
+    status "[COMPILED CACHE HIT] Unpacking ${compiled_pkg}..."
+    tar -xzf "$compiled_path" -C /
+    exit 0
+fi
+
+status "[COMPILED CACHE MISS] Compiling Lighttpd ${ver} (flags hash: ${flags_hash})..."
+wait_for_apt_lock
+nala install -y build-essential pkg-config libssl-dev libpcre2-dev zlib1g-dev
+
+branch="$(printf '%s' "$ver" | awk -F'.' '{print $1"."$2}')"
+src_file="lighttpd-${ver}.tar.gz"
+src_url="$(printf 'https://lighttpd.net' "$branch" "$src_file")"
+sha_url="$(printf 'https://lighttpd.net.sha256sum' "$branch" "$src_file")"
+
+fetch_and_verify "lighttpd-src/${ver}" "$src_file" "$src_url" "$sha_url" "${TMP_DIR}/${src_file}"
+
+mkdir -p "${TMP_DIR}/build" "${TMP_DIR}/stage"
+tar -xzf "${TMP_DIR}/${src_file}" -C "${TMP_DIR}/build"
+
+(
+    cd "${TMP_DIR}/build/lighttpd-${ver}"
+    # shellcheck disable=SC2086
+    ./configure $cfg_flags
+    make -j"$(nproc)"
+    make DESTDIR="${TMP_DIR}/stage" install
+)
+
+tar -czf "$compiled_path" -C "${TMP_DIR}/stage" .
+tar -xzf "$compiled_path" -C /
+
+ARCHIVE_MISS=1
+CHECKSUM_MISS=0
+seed_datastore "$compiled_dir" "$compiled_path"
+status "[COMPILED & CACHED] ${compiled_pkg} seeded to S3."
+Use code with caution.
+
+6. Pre-Built Binary & Wheel Drivers (${BUILD_HOME}/installscripts/drivers/*.sh)
+
+
+drivers/s5cmd.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="s5cmd/${ver}"
+file="s5cmd_${ver}_Linux-64bit.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/s5cmd_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin s5cmd
+chmod +x /usr/local/bin/s5cmd
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/rclone.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="rclone/${ver}"
+file="rclone-v${ver}-linux-amd64.zip"
+base="$(printf 'https://rclone.org' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/SHA256SUMS" "${TMP_DIR}/${file}"
+unzip -p "${TMP_DIR}/${file}" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
+chmod +x /usr/local/bin/rclone
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/doctl.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="doctl/${ver}"
+file="doctl-${ver}-linux-amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/doctl-${ver}-checksums.sha256" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin doctl
+chmod +x /usr/local/bin/doctl
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/exo.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="exo/${ver}"
+file="exoscale-cli_${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin exo
+chmod +x /usr/local/bin/exo
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/vultr-cli.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="vultr-cli/${ver}"
+file="vultr-cli_v${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/vultr-cli_v${ver}_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin vultr-cli
+chmod +x /usr/local/bin/vultr-cli
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/geesefs.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="geesefs/${ver}"
+file="geesefs-linux-amd64"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/geesefs
+chmod +x /usr/local/bin/geesefs
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/goofys.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="goofys/${ver}"
+file="goofys"
+url="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/goofys
+chmod +x /usr/local/bin/goofys
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/lego.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="lego/${ver}"
+file="lego_v${ver}_linux_amd64.tar.gz"
+base="$(printf 'https://github.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/lego_${ver}_checksums.txt" "${TMP_DIR}/${file}"
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin lego
+chmod +x /usr/local/bin/lego
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/acme.sh.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="acme.sh/${ver}"
+file="acme.sh"
+url="$(printf 'https://githubusercontent.com' "$ver")"
+
+fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
+cp "${TMP_DIR}/${file}" /usr/local/bin/acme.sh
+chmod +x /usr/local/bin/acme.sh
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/go.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+dir="go/${ver}"
+file="go${ver}.linux-amd64.tar.gz"
+url="$(printf 'https://go.dev' "$file")"
+
+fetch_and_verify "$dir" "$file" "$url" "${url}.sha256" "${TMP_DIR}/${file}"
+rm -rf /usr/local/go
+tar -xzf "${TMP_DIR}/${file}" -C /usr/local
+ln -sf /usr/local/go/bin/go /usr/local/bin/go
+ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+seed_datastore "$dir" "${TMP_DIR}/${file}"
+Use code with caution.
+
+drivers/linode-cli.sh
+
+sh
+#!/bin/sh
+set -eu
+ver="${1:?Version required}"
+. "${BUILD_HOME}/installscripts/lib/artifact_cache.sh"
+
+pkg="linode-cli"
+dir="pip/${pkg}/${ver}"
+bundle="${pkg}-${ver}-wheels.tar.gz"
+bundle_path="${TMP_DIR}/${bundle}"
+wheel_dir="${TMP_DIR}/wheels-${pkg}"
+
+mkdir -p "$wheel_dir"
+python3 -m venv "/opt/${pkg}"
+
+if pull_file "${dir}/${bundle}" "" "$bundle_path"; then
+    status "[DATASTORE HIT] ${dir}/${bundle}"
+    tar -xzf "$bundle_path" -C "$wheel_dir"
+    "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
+else
+    status "[DATASTORE MISS] Downloading wheels for ${pkg}==${ver} from PyPI"
+    "/opt/${pkg}/bin/pip" download --dest "$wheel_dir" "${pkg}==${ver}"
+    "/opt/${pkg}/bin/pip" install --no-index --find-links="$wheel_dir" "${pkg}==${ver}"
+
+    tar -czf "$bundle_path" -C "$wheel_dir" .
+    ARCHIVE_MISS=1
+    CHECKSUM_MISS=0
+    seed_datastore "$dir" "$bundle_path"
+fi
+
+ln -sf "/opt/${pkg}/bin/${pkg}" "/usr/local/bin/${pkg}"
+Use code with caution.
+Get a good sleep, mate—when you're ready to test this after your git driver refactor and API/CLI verification, just drop back in if you need any tweaks or want to add systemd unit templates for the source-built webservers.
