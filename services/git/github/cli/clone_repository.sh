@@ -1,29 +1,29 @@
 #!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Performs a branch-specific shallow Git clone from GitHub using secure env headers.
+#: Purpose:     Performs a branch-specific shallow Git clone from GitLab (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] Target branch name or "--branch <name>" flag.
-#:   $2         [Required] GitHub organisation or individual account namespace.
-#:   $3         [Required] Case-sensitive name of the target GitHub repository.
+#:   $2         [Required] The GitLab username or group path (repository owner).
+#:   $3         [Required] The name/slug of the GitLab project to clone.
 #:   $4         [Required] Local destination directory path to clone into.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: base64, cat, cut, echo, git, grep, printf, sed
+#:   - External binaries: base64, cat, cut, echo, git, grep, printf, rm, sed
 #:
 #: Exit Codes:
-#:   0          Repository branch cloned cleanly into destination directory
+#:   0          Project branch cloned cleanly into destination directory
 #:   1          Missing arguments, layout faults, or missing credentials
 #:   *          Bubbled non-zero exit code from git clone
 ###################################################################################
@@ -55,20 +55,20 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-        status "Error: Branch, repository owner, repository name, and destination directory are required." 
-        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>" 
+        status "Error: Branch, repository owner, repository name, and destination directory are required."
+        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
         exit 1
 fi
 
@@ -77,50 +77,71 @@ repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
-
-if [ -z "${REPOSITORY_TOKEN}" ]
-then
-        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN)." 
-        exit 1
-fi
-
-# Encode credentials via pipe without writing temporary .netrc files to disk
-encoded_auth="$(/usr/bin/printf '%s' "x-access-token:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
-unset REPOSITORY_TOKEN
-
-if [ -z "${encoded_auth}" ]
-then
-        status "Error: Failed to encode GitHub authentication header." 
-        exit 1
-fi
-
-git_base="https://github.com"
+git_base="https://gitlab.com"
 repo_url="${git_base}/${repository_ownername}/${repository_name}.git"
 
-export GIT_CONFIG_COUNT=1
-export GIT_CONFIG_KEY_0="http.extraheader"
-export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
 export GIT_TERMINAL_PROMPT=0
 
+# 1. Attempt unauthenticated shallow clone first (works for public projects without touching credentials)
 set +e
 /usr/bin/git clone \
         --depth 1 \
         --branch "${branch}" \
         -- "${repo_url}" \
-        "${destination_directory}" >&2
+        "${destination_directory}" >/dev/null 2>&1
 git_status="$?"
 set -e
 
-unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_TERMINAL_PROMPT encoded_auth
+# 2. If public clone fails, clean up any partial directory and retry with oauth2 Basic Auth header
+if [ "${git_status}" -ne 0 ]
+then
+        /bin/rm -rf "${destination_directory}"
+
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
+
+        if [ -z "${REPOSITORY_TOKEN}" ] || [ "${REPOSITORY_TOKEN}" = "none" ]
+        then
+                unset GIT_TERMINAL_PROMPT REPOSITORY_TOKEN
+                status "Error: Public git clone failed and no APPLICATION_REPOSITORY_TOKEN is configured."
+                exit "${git_status}"
+        fi
+
+        encoded_auth="$(/usr/bin/printf '%s' "oauth2:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
+        unset REPOSITORY_TOKEN
+
+        if [ -z "${encoded_auth}" ]
+        then
+                unset GIT_TERMINAL_PROMPT
+                status "Error: Failed to encode GitLab authentication header."
+                exit 1
+        fi
+
+        export GIT_CONFIG_COUNT=1
+        export GIT_CONFIG_KEY_0="http.extraheader"
+        export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
+
+        set +e
+        /usr/bin/git clone \
+                --depth 1 \
+                --branch "${branch}" \
+                -- "${repo_url}" \
+                "${destination_directory}" >&2
+        git_status="$?"
+        set -e
+
+        unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 encoded_auth
+fi
+
+unset GIT_TERMINAL_PROMPT
 
 if [ "${git_status}" -ne 0 ]
 then
-        status "Error: git clone exited with error code ${git_status}." 
+        status "Error: git clone exited with error code ${git_status}."
         exit "${git_status}"
 fi
 
 /bin/echo "${destination_directory}"
 exit 0
+
