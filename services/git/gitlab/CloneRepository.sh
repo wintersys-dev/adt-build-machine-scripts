@@ -8,7 +8,7 @@
 #: Usage:       CloneRepository.sh <repository_ownername> <repository_name> <repository_branch> <destination_directory>
 #:
 #: Parameters:
-#:   $1         [Required] The Bitbucket workspace or repository owner name.
+#:   $1         [Required] The Gitlab workspace or repository owner name.
 #:   $2         [Required] The name/slug of the repository to clone.
 #:   $3         [Required] The target branch name to clone.
 #:   $4         [Required] The local destination directory path.
