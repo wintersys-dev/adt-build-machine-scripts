@@ -1,3 +1,5 @@
+In the git scripts work out which parameters should be option (in other words, they can be defined in the template and update them)
+
 replace BUILDOS and BUILDOS_VERSION with this /etc/os-release
 
 
