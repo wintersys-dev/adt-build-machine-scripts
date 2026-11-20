@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        list_repository.sh
-#: Purpose:     Checks a GitHub repository state ("full", "empty", or "none") via Git CLI.
+#: Purpose:     Checks a GitHub repository state ("full", "empty", or "none") via Git CLI (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.1
+#: Version:     1.2
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
 #:              list_repository.sh [-h|--help]
@@ -23,7 +23,7 @@
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments or framework layout faults
+#:   1          Missing arguments, framework layout faults, or authentication encoding failure
 ###################################################################################
 # License Agreement:
 # This file is part of The Wintersys Agile Deployment Toolkit.
@@ -70,13 +70,15 @@ fi
 
 repository_ownername="${1}"
 repository_name="${2}"
-repo_url="https://github.com{repository_ownername}/${repository_name}.git"
+git_base="https://github.com"
+repo_url="${git_base}/${repository_ownername}/${repository_name}.git"
+
 
 export GIT_TERMINAL_PROMPT=0
 
 # 1. Attempt unauthenticated ls-remote first (works for public repositories)
 set +e
-ls_output="$(/usr/bin/git ls-remote "${repo_url}" 2>/dev/null)"
+ls_output="$(/usr/bin/git ls-remote -- "${repo_url}" 2>/dev/null)"
 git_status="$?"
 set -e
 
@@ -104,7 +106,7 @@ then
                 export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
 
                 set +e
-                ls_output="$(/usr/bin/git ls-remote "${repo_url}" 2>/dev/null)"
+                ls_output="$(/usr/bin/git ls-remote -- "${repo_url}" 2>/dev/null)"
                 git_status="$?"
                 set -e
 
@@ -130,4 +132,5 @@ else
 fi
 
 exit 0
+
 
