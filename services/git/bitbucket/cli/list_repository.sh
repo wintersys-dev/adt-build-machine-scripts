@@ -1,27 +1,28 @@
 #!/bin/sh
 #: Name:        list_repository.sh
-#: Purpose:     Checks a Bitbucket Git repository state ("full", "empty", or "none") via Git CLI.
+#: Purpose:     Checks a Bitbucket Git repository state ("full", "empty", or "none") via Git CLI (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
+#:              list_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The Bitbucket workspace or repository owner name.
 #:   $2         [Required] The name/slug of the repository to inspect.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: base64, cat, echo, git, grep, printf
+#:   - External binaries: base64, cat, cut, echo, git, grep, printf, tr
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, or missing credentials
+#:   1          Missing arguments, layout faults, authentication error, or network failure
 ###################################################################################
 # License Agreement:
 # This file is part of The Wintersys Agile Deployment Toolkit.
@@ -39,7 +40,6 @@
 
 set -e
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
         /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
@@ -50,65 +50,83 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        status "Error: Repository owner name, and repository name arguments are required." 
-        status "Usage: $0 <repository_ownername> <repository_name>" 
+        status "Error: Repository owner name and repository name arguments are required."
+        status "Usage: $0 <repository_ownername> <repository_name>"
         exit 1
 fi
 
 repository_ownername="${1}"
 repository_name="${2}"
+repo_url="https://bitbucket.org/${repository_ownername}/${repository_name}.git"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
-
-if [ -z "${REPOSITORY_TOKEN}" ]
-then
-        status "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN)."
-        exit 1
-fi
-
-# Encode credentials via pipe without writing any files to disk
-encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0)"
-unset REPOSITORY_TOKEN
-
-if [ -z "${encoded_auth}" ]
-then
-        status "Error: Failed to encode Bitbucket authentication header." 
-        exit 1
-fi
-
-export GIT_CONFIG_COUNT=1
-export GIT_CONFIG_KEY_0="http.extraheader"
-export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
 export GIT_TERMINAL_PROMPT=0
 
+# 1. Attempt unauthenticated ls-remote first
 set +e
-ls_output="$(/usr/bin/git ls-remote "https://bitbucket.org/${repository_ownername}/${repository_name}.git" 2>/dev/null)"
+ls_output="$(/usr/bin/git ls-remote "${repo_url}" 2>&1)"
 git_status="$?"
 set -e
 
-unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_TERMINAL_PROMPT encoded_auth
+# 2. If unauthenticated ls-remote fails, retry with Bitbucket Basic Auth header
+if [ "${git_status}" -ne 0 ]
+then
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
+
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+        then
+                encoded_auth="$(/usr/bin/printf '%s' "x-bitbucket-api-token-auth:${REPOSITORY_TOKEN}" | /usr/bin/base64 | /usr/bin/tr -d '\n')"
+                unset REPOSITORY_TOKEN
+
+                if [ -z "${encoded_auth}" ]
+                then
+                        unset GIT_TERMINAL_PROMPT
+                        status "Error: Failed to encode Bitbucket authentication header."
+                        exit 1
+                fi
+
+                export GIT_CONFIG_COUNT=1
+                export GIT_CONFIG_KEY_0="http.extraheader"
+                export GIT_CONFIG_VALUE_0="Authorization: Basic ${encoded_auth}"
+
+                set +e
+                ls_output="$(/usr/bin/git ls-remote "${repo_url}" 2>&1)"
+                git_status="$?"
+                set -e
+
+                unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 encoded_auth
+        else
+                unset REPOSITORY_TOKEN
+        fi
+fi
+
+unset GIT_TERMINAL_PROMPT
 
 if [ "${git_status}" -ne 0 ]
 then
-        /bin/echo "none"
-        exit 0
+        if /bin/echo "${ls_output}" | /usr/bin/grep -qiE 'not found|does not exist'
+        then
+                /bin/echo "none"
+                exit 0
+        else
+                status "Error: git ls-remote failed for ${repository_ownername}/${repository_name}: ${ls_output}"
+                exit 1
+        fi
 fi
 
-if /bin/echo "${ls_output}" | /bin/grep -q 'HEAD'
+if /bin/echo "${ls_output}" | /usr/bin/grep -q 'HEAD'
 then
         /bin/echo "full"
 else
@@ -116,3 +134,4 @@ else
 fi
 
 exit 0
+
