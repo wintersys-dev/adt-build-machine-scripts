@@ -3,7 +3,7 @@
 #: Purpose:     Checks a Bitbucket repository state ("full", "empty", or "none") via REST API (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.1
+#: Version:     1.3
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
 #:              list_repository.sh [-h|--help]
@@ -18,11 +18,11 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, jq, printf, sed
+#:   - External binaries: base64, cat, chmod, curl, cut, echo, grep, jq, mktemp, printf, rm, tr
 #:
 #: Exit Codes:
 #:   0          Repository state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, missing credentials, or unexpected HTTP code
+#:   1          Missing arguments, layout faults, connection error, or unexpected HTTP code
 #:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN or email)
 #:   403        Forbidden (token lacks permissions to inspect target repository)
 #:   429        Rate Limit Exceeded
@@ -41,7 +41,7 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-
+set -x
 set -e
 
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
@@ -73,109 +73,126 @@ fi
 repository_ownername="${1}"
 repository_name="${2}"
 
+tmp_response="$(/bin/mktemp /tmp/bb_repo_list.XXXXXX.json)"
+tmp_curl_cfg="$(/bin/mktemp /tmp/bb_curl_cfg.XXXXXX)"
+/bin/chmod 600 "${tmp_response}" "${tmp_curl_cfg}"
+
+cleanup() {
+        /bin/rm -f "${tmp_response}" "${tmp_curl_cfg}"
+}
+trap cleanup EXIT INT TERM
+
 api_base="https://api.bitbucket.org/2.0"
 repo_endpoint="${api_base}/repositories/${repository_ownername}/${repository_name}"
 commits_endpoint="${repo_endpoint}/commits?pagelen=1"
 
 use_auth=0
 
-# Step 1a: Attempt unauthenticated repository check first
+# 1. Attempt unauthenticated lookup first (works for public repositories)
 set +e
-REPO_RESPONSE=$(/usr/bin/curl -s --connect-timeout 15 \
-        "${repo_endpoint}" \
-        -w "\nHTTP_STATUS:%{http_code}" 2>/dev/null)
+REPO_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+        -o "${tmp_response}" \
+        -w "%{http_code}" \
+        "${repo_endpoint}")
 set -e
 
-REPO_HTTP_CODE=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-
-# Step 1b: If public access fails (e.g., 401/403/404 on private repo), retry with credentials
+# 2. If public access fails, load credentials and build a secure 0600 curl config file
 if [ "${REPO_HTTP_CODE}" != "200" ]
 then
         set +e
-        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
-        ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL' 2>/dev/null)"
+        RAW_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        RAW_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL' 2>/dev/null)"
         set -e
 
-        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ] && \
-           [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
-        then
-                use_auth=1
-                set +e
-                REPO_RESPONSE=$(/usr/bin/printf 'machine api.bitbucket.org login %s password %s\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
-                        /usr/bin/curl -s --connect-timeout 15 --netrc-file /dev/stdin \
-                        "${repo_endpoint}" \
-                        -w "\nHTTP_STATUS:%{http_code}" 2>/dev/null)
-                set -e
-                REPO_HTTP_CODE=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-        fi
-fi
+        REPOSITORY_TOKEN="$(/usr/bin/printf '%s' "${RAW_TOKEN}" | /usr/bin/tr -d '\r\n')"
+        ATLASSIAN_EMAIL="$(/usr/bin/printf '%s' "${RAW_EMAIL}" | /usr/bin/tr -d '\r\n')"
+        unset RAW_TOKEN RAW_EMAIL
 
-REPO_BODY=$(/bin/echo "${REPO_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+        then
+                if [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
+                then
+                        encoded_auth="$(/usr/bin/printf '%s' "${ATLASSIAN_EMAIL}:${REPOSITORY_TOKEN}" | /usr/bin/base64 -w0 2>/dev/null || /usr/bin/printf '%s' "${ATLASSIAN_EMAIL}:${REPOSITORY_TOKEN}" | /usr/bin/base64 | /usr/bin/tr -d '\r\n')"
+                        /usr/bin/printf 'header = "Authorization: Basic %s"\n' "${encoded_auth}" > "${tmp_curl_cfg}"
+                        unset encoded_auth
+                else
+                        /usr/bin/printf 'header = "Authorization: Bearer %s"\n' "${REPOSITORY_TOKEN}" > "${tmp_curl_cfg}"
+                fi
+
+                use_auth=1
+                : > "${tmp_response}"
+                set +e
+                REPO_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+                        --config "${tmp_curl_cfg}" \
+                        -o "${tmp_response}" \
+                        -w "%{http_code}" \
+                        "${repo_endpoint}")
+                set -e
+        fi
+
+        unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
+fi
 
 case "${REPO_HTTP_CODE}" in
         000)
                 status "Error 000: Connection failed or timed out while reaching api.bitbucket.org."
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 1
                 ;;
         200)
                 ;;
         404)
                 /bin/echo "none"
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 0
                 ;;
         401)
                 status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN or APPLICATION_REPOSITORY_EMAIL is invalid or has expired."
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 401
                 ;;
         403)
                 status "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}."
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 403
                 ;;
         429)
                 status "Error 429: Rate Limit Exceeded. Back off request frequency."
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 429
                 ;;
         5*)
                 status "Error ${REPO_HTTP_CODE}: Bitbucket Gateway or Remote Server Exception."
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 500
                 ;;
         *)
+                REPO_BODY="$(/bin/cat "${tmp_response}" 2>/dev/null)"
                 status "Error ${REPO_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
                 status "API Detail: ${REPO_BODY}"
-                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
                 exit 1
                 ;;
 esac
 
-# Step 2: Check whether the repository has any commits ("full" vs "empty")
+# 3. Check whether the repository has any commits ("full" vs "empty")
+: > "${tmp_response}"
 set +e
 if [ "${use_auth}" -eq 1 ]
 then
-        COMMITS_RESPONSE=$(/usr/bin/printf 'machine api.bitbucket.org login %s password %s\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
-                /usr/bin/curl -s --connect-timeout 15 --netrc-file /dev/stdin \
-                "${commits_endpoint}" \
-                -w "\nHTTP_STATUS:%{http_code}" 2>/dev/null)
+        COMMITS_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+                --config "${tmp_curl_cfg}" \
+                -o "${tmp_response}" \
+                -w "%{http_code}" \
+                "${commits_endpoint}")
 else
-        COMMITS_RESPONSE=$(/usr/bin/curl -s --connect-timeout 15 \
-                "${commits_endpoint}" \
-                -w "\nHTTP_STATUS:%{http_code}" 2>/dev/null)
+        COMMITS_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+                -o "${tmp_response}" \
+                -w "%{http_code}" \
+                "${commits_endpoint}")
 fi
 set -e
 
-unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
-
-COMMITS_HTTP_CODE=$(/usr/bin/printf '%s\n' "${COMMITS_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-COMMITS_BODY=$(/usr/bin/printf '%s\n' "${COMMITS_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
-
 case "${COMMITS_HTTP_CODE}" in
+        000)
+                status "Error 000: Connection failed or timed out while querying repository commits."
+                exit 1
+                ;;
         200)
-                commit_count="$(/bin/echo "${COMMITS_BODY}" | /usr/bin/jq '.values | length' 2>/dev/null)"
+                commit_count="$(/usr/bin/jq '.values | length' "${tmp_response}" 2>/dev/null)"
                 if [ -n "${commit_count}" ] && [ "${commit_count}" -gt 0 ]
                 then
                         /bin/echo "full"
@@ -189,6 +206,7 @@ case "${COMMITS_HTTP_CODE}" in
                 exit 0
                 ;;
         *)
+                COMMITS_BODY="$(/bin/cat "${tmp_response}" 2>/dev/null)"
                 status "Error ${COMMITS_HTTP_CODE}: Unexpected response querying repository commits."
                 status "API Detail: ${COMMITS_BODY}"
                 exit 1
