@@ -328,25 +328,28 @@ There is only one ordering rule to respect: GetFromDatastore.sh and PutToDatasto
 POSIX install_software.sh Using ADT Datastore Scripts
 Here is the complete solution split into clean, copy-pasteable sections.
 
-Here is the production-hardened (9.5+/10) complete solution, split into clean, copy-pasteable parts.
-It incorporates all four robustness upgrades and matches the exact 2026 coding style of your GetFromDatastore.sh and get_instance_ips.sh scripts:
-1. Self-extracting #: help header (-h|--help) & centralized LogStatusMessages.sh logging.
-2. APT lock contention guard (wait_for_apt_lock) so cloud-init / unattended-upgrades on fresh VPS boots never cause lock failures.
-3. Automatic nala bootstrap (apt-get install -y nala if missing on minimal base images).
-4. Offline/outage S3 wheel caching for PINNED_PIP (linode-cli)—caches a .tar.gz bundle of downloaded Python wheels in your S3 bucket so even a PyPI outage won't break a Linode build.
+Got it. Looking at your complete software.dat, you have every package from the toolkit listed in there—including Go, Apache2, Lighttpd, PostgreSQL, MySQL, MariaDB, Fail2Ban, ClamAV, Text Browsers (lynx, w3m, elinks), Email (sendemail, ssmtp), Firewalls (ufw, iptables), Mount tools (s3fs, goofys, geesefs, rclone), Datastore tools (s3cmd, s5cmd), Cloud CLIs (doctl, exo, vultr-cli, linode-cli), and SSL Clients (lego, acme.sh).
 
-Part 1: The Manifest (${BUILD_HOME}/configuration/software.dat)
+One Important Design Detail
+
+Because your software.dat includes mutually exclusive alternatives (such as apache2, nginx, and lighttpd, or mariadb-server, mysql-server, and postgresql), we can also filter by your active ADT variables (WEBSERVER_CHOICE / DATABASE_INSTALLATION_TYPE) or comment out the unused alternatives—while keeping every single package defined in both the manifest and install_software.sh.
+Below is the complete manifest containing every single package from your file, followed by the updated install_software.sh (now including Go binary installation + SHA256 verification).
+
+Part 1: Complete Manifest (${BUILD_HOME}/configuration/software.dat)
 
 ini
 # Format: TYPE:NAME:VERSION:SCOPE
 # SCOPE accepts comma-separated values matching 'all', CLOUDHOST
 # (digitalocean, exoscale, vultr, linode), or SERVER_ROLE
 # (buildhost, webserver, reverseproxy, authenticator, database, autoscaler).
+# Comment out mutually exclusive alternatives you aren't currently deploying.
 
 # ============================================================
 # 1. ACTIVE DATASTORE TOOL (Required by Get/PutToDatastore.sh)
 # ============================================================
 DATASTORETOOL:s5cmd:2.2.2:all
+#DATASTORETOOL:rclone:1.68.1:all
+#DATASTORETOOL:s3cmd::all
 
 # ============================================================
 # 2. PINNED BINARIES (PINNED:<tool>:<version>:<scope>)
@@ -358,12 +361,15 @@ PINNED:vultr-cli:3.3.2:vultr
 
 # Datastore & Mount Tools
 PINNED:rclone:1.68.1:all
-#PINNED:goofys:0.24.0:webserver
-#PINNED:geesefs:0.42.3:webserver
+PINNED:geesefs:0.42.3:webserver,autoscaler
+#PINNED:goofys:0.24.0:webserver,autoscaler
 
 # SSL Clients
 PINNED:lego:4.19.2:webserver,reverseproxy,authenticator
 #PINNED:acme.sh:3.0.8:webserver,reverseproxy,authenticator
+
+# Go Language Toolchain
+#PINNED:go:1.23.3:buildhost
 
 # ============================================================
 # 3. PYTHON CLI TOOLS (PINNED_PIP:<pkg>:<version>:<scope>)
@@ -373,19 +379,50 @@ PINNED_PIP:linode-cli:5.53.1:linode
 # ============================================================
 # 4. SYSTEM PACKAGES (SYSTEM:<apt-package>::<scope>)
 # ============================================================
+# Core Utilities & Datastore
 SYSTEM:s3cmd::all
 SYSTEM:jq::all
-SYSTEM:fuse3::webserver
+SYSTEM:python3-venv::linode
+SYSTEM:fuse3::webserver,autoscaler
+#SYSTEM:s3fs::webserver,autoscaler
+
+# Webservers (keep active choice uncommented)
 SYSTEM:nginx::webserver,reverseproxy,authenticator
-SYSTEM:php8.3-fpm::webserver
-SYSTEM:php8.3-mysql::webserver
-SYSTEM:php8.3-curl::webserver
+#SYSTEM:apache2::webserver,reverseproxy,authenticator
+#SYSTEM:lighttpd::webserver,reverseproxy,authenticator
+
+# PHP Stack
+SYSTEM:php-fpm::webserver,autoscaler
+SYSTEM:php-cli::webserver,autoscaler
+SYSTEM:php-mysql::webserver,autoscaler
+SYSTEM:php-pgsql::webserver,autoscaler
+SYSTEM:php-curl::webserver,autoscaler
+
+# Databases (keep active choice uncommented)
 SYSTEM:mariadb-server::database
-SYSTEM:ufw::all
-SYSTEM:sendemail::all
+#SYSTEM:mysql-server::database
+#SYSTEM:postgresql::database
+
+# Firewall (keep active choice uncommented)
+SYSTEM:iptables::all
+#SYSTEM:ufw::all
+
+# Security & Virus Scanning
+#SYSTEM:fail2ban::all
+#SYSTEM:clamav::all
+#SYSTEM:clamav-daemon::all
+
+# Email Utilities (keep active choice uncommented)
+SYSTEM:ssmtp::all
+#SYSTEM:sendemail::all
+
+# Text Browsers
+SYSTEM:lynx::all
+#SYSTEM:w3m::all
+#SYSTEM:elinks::all
 Use code with caution.
 
-Part 2: Headers, APT Lock Guard & S3 Cache Helpers (install_software.sh — Top Half)
+Part 2: Setup, Scope Filter & S3 Cache Helpers (install_software.sh — Top Half)
 
 sh
 #!/bin/sh
@@ -397,43 +434,13 @@ sh
 #:
 #: Usage:       install_software.sh [server_role] [path-to-manifest.dat]
 #:              install_software.sh [-h|--help]
-#:
-#: Parameters:
-#:   $1         [Optional] Server role filter (e.g., webserver, reverseproxy, authenticator, database, buildhost; defaults to "all")
-#:   $2         [Optional] Path to manifest file (defaults to ${BUILD_HOME}/configuration/software.dat)
-#:
-#: Environment:
-#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
-#:
-#: Dependencies:
-#:   - /home/buildhome.dat
-#:   - ${BUILD_HOME}/configuration/software.dat
-#:   - LogStatusMessages.sh
-#:   - GetVariableValue.sh
-#:   - GetFromDatastore.sh, PutToDatastore.sh, MountDatastore.sh
-###################################################################################
-# License Agreement:
-# This file is part of The Wintersys Agile Deployment Toolkit.
-# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
-###################################################################################
 set -eu
 
-# Render self-extracting help documentation when -h or --help is supplied
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
     /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
     exit 0
 fi
 
-# Resolve toolkit root directory
 if [ -r /home/buildhome.dat ]; then
     BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
@@ -474,7 +481,6 @@ PIP_LIST=""
 ARCHIVE_MISS=0
 CHECKSUM_MISS=0
 
-# Wait up to 120s for cloud-init or unattended-upgrades to release dpkg/apt locks on fresh boots
 wait_for_apt_lock() {
     attempts=0
     while [ "$attempts" -lt 24 ]; do
@@ -491,7 +497,6 @@ wait_for_apt_lock() {
     exit 1
 }
 
-# Returns 0 (true) if any comma-separated token matches 'all', CLOUDHOST, or SERVER_ROLE
 should_install() {
     scope_list="$1"
     [ -z "$scope_list" ] && return 0
@@ -510,7 +515,6 @@ should_install() {
     return 1
 }
 
-# Fetch a single file from ADT Datastore or fall back to upstream URL
 pull_file() {
     remote_path="$1"
     upstream_url="$2"
@@ -527,7 +531,6 @@ pull_file() {
     return 1
 }
 
-# Extract expected SHA256 hash for target_file from an upstream checksum manifest
 resolve_expected_sha256() {
     checksum_file="$1"
     target_file="$2"
@@ -545,7 +548,6 @@ resolve_expected_sha256() {
     ' "$checksum_file"
 }
 
-# Fetch archive + optional upstream checksum file, verify SHA256 before extraction
 fetch_and_verify() {
     bucket_dir="$1"
     filename="$2"
@@ -587,7 +589,6 @@ fetch_and_verify() {
     status "[SHA256 OK] ${filename}"
 }
 
-# Seed S3 bucket AFTER binary extraction (ensures DATASTORETOOL self-caches on first boot)
 seed_datastore() {
     bucket_dir="$1"
     archive_file="$2"
@@ -609,7 +610,7 @@ seed_datastore() {
 }
 Use code with caution.
 
-Part 3: Binary/Wheel Installers & Main Execution Loop (install_software.sh — Bottom Half)
+Part 3: All Tool Definitions (Including go) & Execution Loop (install_software.sh — Bottom Half)
 
 sh
 install_pinned_binary() {
@@ -624,6 +625,7 @@ install_pinned_binary() {
             base="$(printf '%s/peak/s5cmd/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/s5cmd_checksums.txt" "${TMP_DIR}/${file}"
             tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin s5cmd
+            chmod +x /usr/local/bin/s5cmd
             ;;
         rclone)
             dir="rclone/${ver}"
@@ -631,6 +633,7 @@ install_pinned_binary() {
             base="$(printf 'https://rclone.org' "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/SHA256SUMS" "${TMP_DIR}/${file}"
             unzip -p "${TMP_DIR}/${file}" "rclone-v${ver}-linux-amd64/rclone" > /usr/local/bin/rclone
+            chmod +x /usr/local/bin/rclone
             ;;
         doctl)
             dir="doctl/${ver}"
@@ -638,6 +641,7 @@ install_pinned_binary() {
             base="$(printf '%s/digitalocean/doctl/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/doctl-${ver}-checksums.sha256" "${TMP_DIR}/${file}"
             tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin doctl
+            chmod +x /usr/local/bin/doctl
             ;;
         vultr-cli)
             dir="vultr-cli/${ver}"
@@ -645,6 +649,7 @@ install_pinned_binary() {
             base="$(printf '%s/vultr/vultr-cli/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/vultr-cli_v${ver}_checksums.txt" "${TMP_DIR}/${file}"
             tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin vultr-cli
+            chmod +x /usr/local/bin/vultr-cli
             ;;
         exo)
             dir="exo/${ver}"
@@ -652,6 +657,7 @@ install_pinned_binary() {
             base="$(printf '%s/exoscale/cli/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
             tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin exo
+            chmod +x /usr/local/bin/exo
             ;;
         geesefs)
             dir="geesefs/${ver}"
@@ -659,6 +665,7 @@ install_pinned_binary() {
             base="$(printf '%s/yandex-cloud/geesefs/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "" "${TMP_DIR}/${file}"
             cp "${TMP_DIR}/${file}" /usr/local/bin/geesefs
+            chmod +x /usr/local/bin/geesefs
             ;;
         lego)
             dir="lego/${ver}"
@@ -666,6 +673,7 @@ install_pinned_binary() {
             base="$(printf '%s/go-acme/lego/releases/download/v%s' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "${base}/${file}" "${base}/lego_${ver}_checksums.txt" "${TMP_DIR}/${file}"
             tar -xzf "${TMP_DIR}/${file}" -C /usr/local/bin lego
+            chmod +x /usr/local/bin/lego
             ;;
         goofys)
             dir="goofys/${ver}"
@@ -673,6 +681,7 @@ install_pinned_binary() {
             url="$(printf '%s/kahing/goofys/releases/download/v%s/goofys' "$gh" "$ver")"
             fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
             cp "${TMP_DIR}/${file}" /usr/local/bin/goofys
+            chmod +x /usr/local/bin/goofys
             ;;
         acme.sh)
             dir="acme.sh/${ver}"
@@ -680,6 +689,17 @@ install_pinned_binary() {
             url="$(printf 'https://githubusercontent.com' "$ver")"
             fetch_and_verify "$dir" "$file" "$url" "" "${TMP_DIR}/${file}"
             cp "${TMP_DIR}/${file}" /usr/local/bin/acme.sh
+            chmod +x /usr/local/bin/acme.sh
+            ;;
+        go)
+            dir="go/${ver}"
+            file="go${ver}.linux-amd64.tar.gz"
+            url="$(printf 'https://go.dev' "$file")"
+            fetch_and_verify "$dir" "$file" "$url" "${url}.sha256" "${TMP_DIR}/${file}"
+            rm -rf /usr/local/go
+            tar -xzf "${TMP_DIR}/${file}" -C /usr/local
+            ln -sf /usr/local/go/bin/go /usr/local/bin/go
+            ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
             ;;
         *)
             status "Error: Unknown PINNED tool '${tool}'"
@@ -687,11 +707,9 @@ install_pinned_binary() {
             ;;
     esac
 
-    chmod +x "/usr/local/bin/${tool}"
     seed_datastore "$dir" "${TMP_DIR}/${file}"
 }
 
-# Install Python CLI in isolated venv with S3 wheel-bundle pull-through cache (survives PyPI outages)
 install_pinned_pip() {
     pkg="$1"
     ver="$2"
@@ -734,6 +752,8 @@ while IFS=':' read -r type arg1 arg2 scope; do
         DATASTORETOOL)
             if [ -n "$arg2" ]; then
                 PINNED_LIST="${arg1}:${arg2} $PINNED_LIST"
+            else
+                SYSTEM_PKGS="$SYSTEM_PKGS $arg1"
             fi
             ;;
         SYSTEM)     SYSTEM_PKGS="$SYSTEM_PKGS $arg1" ;;
@@ -756,7 +776,6 @@ if ! command -v nala >/dev/null 2>&1; then
 fi
 
 nala update
-# Ensure core bootstrap utilities exist even if SYSTEM_PKGS is empty
 # shellcheck disable=SC2086
 nala install -y curl tar unzip ca-certificates psmisc $SYSTEM_PKGS
 
@@ -769,6 +788,16 @@ done
 for item in $PIP_LIST; do
     install_pinned_pip "${item%%:*}" "${item#*:}"
 done
+
+status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
+Use code with caution.
+
+Notice Two Neat Details Added for Your File
+
+• If DATASTORETOOL is a SYSTEM package (DATASTORETOOL:s3cmd::all): Because arg2 is blank, the parser automatically routes s3cmd into SYSTEM_PKGS so nala installs it before any binary downloads begin.
+• go toolchain support (PINNED:go:1.23.3:buildhost): Extracts cleanly into /usr/local/go, verifies against go.dev's official .sha256 file, caches in S3, and symlinks go and gofmt into /usr/local/bin.
+If you also want to move the non-package settings from your original software.dat (like BUILDCHAINTYPE, DATASTORECONFIGSTYLE, GITBRANCH, ORCHESTRATION_TOOL, and NGINX/APACHE/LIGHTTPD module lists) into a separate deployment.dat or role config files so nothing gets lost when you replace software.dat, let me know and we can map those out cleanly.
+
 
 status "Software installation completed cleanly for role '${SERVER_ROLE}' (${CLOUDHOST:-unknown})."
 Use code with caution.
@@ -790,6 +819,82 @@ Because install_software.sh is strictly a clean package/binary installer, make s
 Once those three pieces are in your base provisioning flow, running sh "${BUILD_HOME}/installscripts/install_software.sh" <role> sorts out the entire software stack across every server type.
 If you'd like, share one of your role provisioning scripts (such as webserver or database), and I can double-check that the handoff between install_software.sh and your post-install configuration is completely seamless.
 
+
+
+###############################################################################################
+# Name:        deployment.dat
+# Purpose:     Runtime behavior, orchestration, firewall, and service tuning settings for ADT.
+#              (Separated from software.dat so package installation stays a pure lockfile.)
+# Author:      Peter Winter
+# Date:        20/11/2026
+###############################################################################################
+
+# =============================================================================================
+# 1. BUILD & ORCHESTRATION TOPOLOGY
+# =============================================================================================
+# Build chain type: standard (autoscaler + webserver + database) | webserver | database
+BUILDCHAINTYPE:standard
+
+# Infrastructure repository branch: main | dev
+GITBRANCH:main
+
+# Orchestration mechanism: api | cli
+ORCHESTRATION_TOOL:api
+
+# Datastore configuration state style: tool | lightweight | heavyweight
+DATASTORECONFIGSTYLE:tool
+
+# =============================================================================================
+# 2. SECURITY, FIREWALL & SYSTEM UTILITIES
+# =============================================================================================
+# Firewall style & rate limiting:
+#   FIREWALL:ufw
+#   FIREWALL:ufw:limit
+#   FIREWALL:iptables:20:30  (20 connections/min per IP, burst rate 30)
+#FIREWALL:ufw
+FIREWALL:iptables:20:30
+
+# Fail2Ban intrusion prevention: active | inactive
+#FAIL2BAN:active
+
+# Periodic virus scanning: VIRUSSCANNER:<scanner>:<hourly|daily|weekly|monthly>
+#VIRUSSCANNER:clamav:daily
+
+# Active email utility: sendemail | ssmtp
+#EMAILUTIL:sendemail
+EMAILUTIL:ssmtp
+
+# Active text browser: lynx | w3m | elinks
+#TEXTBROWSER:lynx
+#TEXTBROWSER:w3m
+TEXTBROWSER:elinks
+
+# Active SSL certificate client: lego | acme
+SSLCERTCLIENT:lego
+#SSLCERTCLIENT:acme
+
+# =============================================================================================
+# 3. PHP RUNTIME MODE
+# =============================================================================================
+# PHP:fpm              -> Unix socket (/var/run/php${PHP_VERSION}-fpm.sock)
+# PHP:cli:fpm|9176     -> TCP port 9176
+#PHP:cli:fpm|9176
+PHP:fpm
+
+# =============================================================================================
+# 4. WEBSERVER MODULES & RUNTIME TUNING
+# =============================================================================================
+# --- NGINX ---
+NGINX:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+NGINX:settings:client_body_timeout=15:client_header_timeout=20:keepalive_timeout=10:keepalive_requests=100:reset_timedout_connection=on
+
+# --- APACHE ---
+APACHE:modules-list:mpm_event:ssl:rewrite:expires:headers:proxy:proxy_http:remoteip:proxy_fcgi
+APACHE:settings:StartServers=4:MinSpareServers=20:MaxSpareServers=40:MaxRequestWorkers=200:MaxConnectionsPerChild=4500
+
+# --- LIGHTTPD ---
+LIGHTTPD:modules-list:mod_indexfile:mod_access:mod_accesslog:mod_alias:mod_auth:mod_deflate:mod_openssl:mod_dirlisting:mod_proxy:mod_fastcgi:mod_staticfile:mod_expire:mod_userdir:mod_status:mod_setenv:mod_redirect:mod_rewrite:mod_authn_file
+LIGHTTPD:settings:server.use-ipv6="disable":server.max-fds=2048:server.stat-cache-engine="simple"
 
 
 
