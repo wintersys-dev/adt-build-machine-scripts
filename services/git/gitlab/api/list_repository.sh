@@ -122,13 +122,14 @@ case "${PROJECT_HTTP_CODE}" in
                 exit 1
                 ;;
         200)
-                is_empty="$(/usr/bin/jq -r 'if .empty_repo == null then "" else (.empty_repo | tostring) end' "${tmp_response}" 2>/dev/null)"
-                if [ "${is_empty}" = "false" ]
-                then
-                        /bin/echo "full"
-                else
-                        /bin/echo "empty"
-                fi
+                repo_state="$(/usr/bin/jq -r '
+                if .empty_repo == false then "full"
+                elif .empty_repo == true then "empty"
+                elif .default_branch != null then "full"
+                else "empty"
+                end
+                ' "${tmp_response}" 2>/dev/null)"
+                /bin/echo "${repo_state:-empty}"
                 exit 0
                 ;;
         404)
