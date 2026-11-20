@@ -92,15 +92,13 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-github_api_version="2022-11-28"
-api_base="https://github.com"
+api_base="https://api.github.com"
 endpoint_url="${api_base}/repos/${repository_ownername}/${repository_name}/tarball/${branch}"
 
 # 1. Attempt unauthenticated download first (works for public repositories without touching credentials)
 set +e
 HTTP_CODE=$(/usr/bin/curl -s -L --connect-timeout 15 \
         -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: ${github_api_version}" \
         -o "${tmp_archive}" \
         -w "%{http_code}" \
         "${endpoint_url}")
@@ -120,7 +118,6 @@ then
                 HTTP_CODE=$(/usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
                         /usr/bin/curl -s -L --connect-timeout 15 -H @- \
                         -H "Accept: application/vnd.github+json" \
-                        -H "X-GitHub-Api-Version: ${github_api_version}" \
                         -o "${tmp_archive}" \
                         -w "%{http_code}" \
                         "${endpoint_url}")
