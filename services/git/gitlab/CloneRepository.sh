@@ -1,6 +1,6 @@
 #!/bin/sh
 #: Name:        CloneRepository.sh
-#: Purpose:     Clones or downloads a remote Git repository branch to a local path.
+#: Purpose:     Clones or downloads a remote Gitlab repository branch to a local path.
 #: Author:      Peter Winter
 #: Date:        18/11/2026
 #: Version:     1.0
@@ -19,7 +19,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
-#:   - ${BUILD_HOME}/services/git/${repository_provider}/${orchestration_tool}/clone_repository.sh
+#:   - ${BUILD_HOME}/services/git/gitlab/${orchestration_tool}/clone_repository.sh
 #:   - External binaries: cat, echo, awk, tr, ls
 #:
 #: Exit Codes:
