@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        list_repository.sh
-#: Purpose:     Checks a GitLab project state ("full", "empty", or "none") via REST API v4.
+#: Purpose:     Checks a GitLab project state ("full", "empty", or "none") via REST API v4 (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       list_repository.sh <repository_ownername> <repository_name>
 #:              list_repository.sh [-h|--help]
@@ -13,17 +13,17 @@
 #:   $2         [Required] The name/slug of the GitLab project to inspect.
 #:
 #: Environment:
-#:   BUILD_HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, jq, sed
+#:   - External binaries: cat, curl, cut, echo, grep, jq, mktemp, printf, rm, sed
 #:
 #: Exit Codes:
 #:   0          Project state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, missing credentials, or unexpected HTTP code
-#:   401        Unauthorized (invalid or expired APPLICATIONREPOSITORYTOKEN)
+#:   1          Missing arguments, layout faults, connection error, or unexpected HTTP code
+#:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN)
 #:   403        Forbidden (token lacks permissions to inspect target project)
 #:   429        Rate Limit Exceeded
 #:   500        GitLab Gateway or Remote Server Exception (5xx)
@@ -55,58 +55,74 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ]
 then
-        status "Error: Repository owner name and repository name arguments are required." 
-        status "Usage: $0 <repository_ownername> <repository_name>" 
+        status "Error: Repository owner name and repository name arguments are required."
+        status "Usage: $0 <repository_ownername> <repository_name>"
         exit 1
 fi
 
 repository_ownername="${1}"
 repository_name="${2}"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-set -e
+tmp_response="$(/bin/mktemp /tmp/repo_list.XXXXXX.json)"
 
-
-if [ -z "${REPOSITORY_TOKEN}" ]
-then
-        status "Error: Failed to fetch required context variables (APPLICATION_REPOSITORY_TOKEN)." 
-        exit 1
-fi
+cleanup() {
+        /bin/rm -f "${tmp_response}"
+}
+trap cleanup EXIT INT TERM
 
 encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr/bin/sed 's/\//%2F/g')"
 api_base="https://gitlab.com/api/v4"
 project_endpoint="${api_base}/projects/${encoded_project}"
 
-
-CLEAN_TOKEN="$(printf '%s' "${REPOSITORY_TOKEN}" | /usr/bin/tr -d '\r\n')"
-
+# 1. Attempt unauthenticated lookup first (works for public projects without touching credentials)
 set +e
-PROJECT_RESPONSE=$(/usr/bin/curl -s \
-        -H "PRIVATE-TOKEN: ${CLEAN_TOKEN}" \
-        "${project_endpoint}" \
-        -w "\nHTTP_STATUS:%{http_code}")
+PROJECT_HTTP_CODE=$(/usr/bin/curl -s --connect-timeout 15 \
+        -o "${tmp_response}" \
+        -w "%{http_code}" \
+        "${project_endpoint}")
 set -e
 
+# 2. If public access fails (e.g., 404/403/401 on a private project), retry with PRIVATE-TOKEN
+if [ "${PROJECT_HTTP_CODE}" != "200" ]
+then
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        set -e
 
-PROJECT_HTTP_CODE=$(/bin/echo "${PROJECT_RESPONSE}" | /usr/bin/grep "HTTP_STATUS:" | /usr/bin/cut -d':' -f2)
-PROJECT_BODY=$(/bin/echo "${PROJECT_RESPONSE}" | /usr/bin/sed '/HTTP_STATUS:/d')
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+        then
+                : > "${tmp_response}"
+                set +e
+                PROJECT_HTTP_CODE=$(/usr/bin/printf 'PRIVATE-TOKEN: %s\n' "${REPOSITORY_TOKEN}" | \
+                        /usr/bin/curl -s --connect-timeout 15 -H @- \
+                        -o "${tmp_response}" \
+                        -w "%{http_code}" \
+                        "${project_endpoint}")
+                set -e
+        fi
+
+        unset REPOSITORY_TOKEN
+fi
 
 case "${PROJECT_HTTP_CODE}" in
+        000)
+                status "Error 000: Connection failed or timed out while reaching gitlab.com."
+                exit 1
+                ;;
         200)
-                is_empty="$(/bin/echo "${PROJECT_BODY}" | /usr/bin/jq -r 'if .empty_repo == null then "" else (.empty_repo | tostring) end' 2>/dev/null)"
+                is_empty="$(/usr/bin/jq -r 'if .empty_repo == null then "" else (.empty_repo | tostring) end' "${tmp_response}" 2>/dev/null)"
                 if [ "${is_empty}" = "false" ]
                 then
                         /bin/echo "full"
@@ -120,26 +136,28 @@ case "${PROJECT_HTTP_CODE}" in
                 exit 0
                 ;;
         401)
-                status "Error 401: Unauthorized. Your APPLICATIONREPOSITORYTOKEN is invalid or has expired." 
+                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN is invalid or has expired."
                 exit 401
                 ;;
         403)
-                status "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}." 
+                status "Error 403: Forbidden. Token lacks permissions to inspect ${repository_ownername}/${repository_name}."
                 exit 403
                 ;;
         429)
-                status "Error 429: Rate Limit Exceeded. Back off request frequency." 
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
                 exit 429
                 ;;
         5*)
-                status "Error ${PROJECT_HTTP_CODE}: GitLab Gateway or Remote Server Exception." 
+                status "Error ${PROJECT_HTTP_CODE}: GitLab Gateway or Remote Server Exception."
                 exit 500
                 ;;
         *)
-                status "Error ${PROJECT_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
-                status "API Detail: ${PROJECT_BODY}" 
+                PROJECT_BODY="$(/bin/cat "${tmp_response}" 2>/dev/null)"
+                status "Error ${PROJECT_HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
+                status "API Detail: ${PROJECT_BODY}"
                 exit 1
                 ;;
 esac
 
 exit 0
+
