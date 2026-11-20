@@ -5,7 +5,7 @@
 #: Date:        18/11/2026
 #: Version:     1.0
 #:
-#: Usage:       CloneRepository.sh <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>
+#: Usage:       CloneRepository.sh <repository_ownername> <repository_name> <repository_branch> <destination_directory>
 #:
 #: Parameters:
 #:   $1         [Required] The Github workspace or repository owner name.
