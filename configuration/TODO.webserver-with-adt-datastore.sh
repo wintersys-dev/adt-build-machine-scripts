@@ -26,6 +26,678 @@ chmod +x "${HOME}/installation/InstallSoftware.sh" "${HOME}/installation/recipes
 # 2. Run the manifest installer (or pass --profile web / --profile proxy)
 "${HOME}/installation/InstallSoftware.sh" >> /var/log/adt-install.log 2>&1
 
+
+this is the simpler version (try this first) - this contains a prompt for generating recipes which can be added to a new chat and the recipe for a particular
+softwware installation can be generated
+-----------------------------------------------------------------------
+
+Here is the complete, unified solution with the single copy-paste prompt template built directly into ${HOME}/installation/recipes/README.md, split into modular, copy-pasteable sections so nothing overflows.
+
+1. Filesystem Layout
+
+text
+${HOME}/
+├── config/
+│   └── software.conf               <── Single file: settings + module lists + ON/OFF toggles
+└── installation/
+    ├── InstallSoftware.sh          <── Production-hardened POSIX engine + SHA-256 S3 cache
+    └── recipes/
+        ├── README.md               <── Includes ready-to-paste AI prompt template + spec
+        ├── s5cmd.sh
+        ├── rclone.sh
+        ├── s3fs.sh
+        ├── postgres.sh
+        ├── php.sh
+        ├── wpcli.sh
+        ├── composer.sh
+        ├── clamav.sh
+        ├── lego.sh
+        ├── nginx_source.sh
+        ├── lighttpd_repo.sh
+        ├── lighttpd_source.sh
+        └── apache_source.sh
+Use code with caution.
+
+2. The Single Config File (${HOME}/config/software.conf)
+
+text
+#@ POSTGRES_VERSION="17"
+#@ PHP_VERSION="8.4"
+#@ PHP_MODULES="mysql pgsql curl xml mbstring zip gd intl bcmath"
+#@ NGINX_VERSION="1.26.2"
+#@ NGINX_ARGS="--with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_gzip_static_module"
+#@ LIGHTTPD_VERSION="1.4.76"
+#@ LIGHTTPD_MODULES="mod_openssl mod_accesslog mod_deflate mod_setenv mod_access mod_expire mod_redirect mod_rewrite mod_proxy mod_fastcgi"
+#@ APACHE_VERSION="2.4.62"
+#@ APACHE_MODULES="rewrite ssl headers proxy proxy_fcgi"
+
+# STATE | NAME            | TYPE   | TARGET                                               | POST_CMD
+# -----------------------------------------------------------------------------------------------------------------
+ON      | prereqs         | apt    | curl wget jq unzip ca-certificates gnupg lsb-release |
+ON      | s5cmd           | recipe | s5cmd.sh                                             |
+OFF     | s3cmd           | apt    | s3cmd                                                | [ -f "${HOME}/.s3cfg" ] && cp "${HOME}/.s3cfg" /root/
+OFF     | rclone          | recipe | rclone.sh                                            |
+OFF     | s3fs_repo       | apt    | libfuse3-dev s3fs                                    |
+ON      | s3fs_source     | recipe | s3fs.sh                                              |
+ON      | ufw             | apt    | ufw                                                  | /usr/sbin/ufw disable
+ON      | sendemail       | apt    | sendemail                                            |
+ON      | ssmtp           | apt    | ssmtp mailutils                                      |
+OFF     | fail2ban        | apt    | fail2ban                                             |
+OFF     | clamav          | recipe | clamav.sh                                            |
+OFF     | lego            | recipe | lego.sh                                              |
+OFF     | w3m             | apt    | w3m                                                  |
+OFF     | lynx            | apt    | lynx                                                 |
+OFF     | elinks          | apt    | elinks                                               |
+OFF     | mariadb         | apt    | mariadb-server mariadb-client                        | systemctl enable mariadb
+OFF     | mariadb_client  | apt    | mariadb-client                                       |
+ON      | postgres        | recipe | postgres.sh                                          |
+ON      | php             | recipe | php.sh                                               |
+ON      | wpcli           | recipe | wpcli.sh                                             |
+OFF     | composer        | recipe | composer.sh                                          |
+ON      | nginx_repo      | apt    | nginx                                                |
+OFF     | nginx_source    | recipe | nginx_source.sh                                      |
+OFF     | lighttpd_repo   | recipe | lighttpd_repo.sh                                     |
+OFF     | lighttpd_source | recipe | lighttpd_source.sh                                   |
+OFF     | apache_repo     | apt    | apache2 apache2-utils                                |
+OFF     | apache_source   | recipe | apache_source.sh                                     |
+Use code with caution.
+
+3. InstallSoftware.sh — Block 1: Setup, S3 Cache & run_apt
+
+sh
+#!/bin/sh
+set -eu
+
+HOME="$(cat /home/homedir.dat)"
+export HOME
+
+CONF="${1:-${HOME}/config/software.conf}"
+RECIPES="${HOME}/installation/recipes"
+DONE_DIR="${HOME}/runtime/installedsoftware"
+CACHE_BUCKET="software-cache"
+
+[ -f "${CONF}" ] || { printf 'Error: Config not found: %s\n' "${CONF}" >&2; exit 1; }
+mkdir -p "${DONE_DIR}"
+
+WORK_DIR="$(mktemp -d /tmp/adt_install.XXXXXX)"
+trap 'rm -rf "${WORK_DIR}"' EXIT INT TERM
+
+. /etc/os-release
+ARCH="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+CACHE_PREFIX="${CACHE_BUCKET}/${ID}-${VERSION_ID}-${ARCH}"
+
+# Safely load any '#@ KEY="VAL"' settings from top of software.conf
+eval "$(grep '^#@' "${CONF}" | sed 's/^#@//' || true)"
+
+mount_cache() {
+    [ -x /usr/bin/s5cmd ] || [ -x /usr/bin/s3cmd ] || [ -x /usr/bin/rclone ] || [ -x /usr/bin/s3fs ] || return 1
+    "${HOME}/providerscripts/datastore/MountDatastore.sh" "${CACHE_BUCKET}" >/dev/null 2>&1 || true
+}
+
+cache_get() {
+    key="$1"; dest="$2"; sha="${dest}.sha256"
+    mount_cache || return 1
+    rm -f "${dest}" "${sha}"
+
+    "${HOME}/providerscripts/datastore/GetFromDatastore.sh" "${CACHE_PREFIX}/${key}" "${dest}" >/dev/null 2>&1 || return 1
+    "${HOME}/providerscripts/datastore/GetFromDatastore.sh" "${CACHE_PREFIX}/${key}.sha256" "${sha}" >/dev/null 2>&1 || return 1
+
+    if [ -s "${dest}" ] && [ -s "${sha}" ]; then
+        expected="$(awk '{print $1}' "${sha}")"
+        actual="$(sha256sum "${dest}" | awk '{print $1}')"
+        if [ -n "${expected}" ] && [ "${expected}" = "${actual}" ]; then
+            rm -f "${sha}"
+            printf '[CACHE HIT] %s\n' "${key}"
+            return 0
+        fi
+        printf '[CACHE CORRUPT] %s failed SHA-256 check\n' "${key}"
+    fi
+    rm -f "${dest}" "${sha}"
+    return 1
+}
+
+cache_put() {
+    src="$1"; key="$2"; sha="${src}.sha256"
+    [ -s "${src}" ] && mount_cache || return 0
+    sha256sum "${src}" | awk '{print $1}' > "${sha}"
+    if "${HOME}/providerscripts/datastore/PutToDatastore.sh" "${src}" "${CACHE_PREFIX}/${key}" >/dev/null 2>&1 && \
+       "${HOME}/providerscripts/datastore/PutToDatastore.sh" "${sha}" "${CACHE_PREFIX}/${key}.sha256" >/dev/null 2>&1; then
+        printf '[CACHE PUSH] %s\n' "${key}"
+    fi
+    rm -f "${sha}"
+}
+
+run_apt() {
+    deb_dir="${WORK_DIR}/$1_debs"; tar_file="${WORK_DIR}/$1.tar.gz"
+    mkdir -p "${deb_dir}/partial"
+    export DEBIAN_FRONTEND=noninteractive
+
+    if cache_get "$1.tar.gz" "${tar_file}"; then
+        tar -xzf "${tar_file}" -C "${deb_dir}"
+        apt-get -o DPkg::Lock::Timeout=-1 -o "Dir::Cache::Archives=${deb_dir}" -qq -y install --no-download $2 || \
+        apt-get -o DPkg::Lock::Timeout=-1 -o "Dir::Cache::Archives=${deb_dir}" -qq -y install $2
+        return 0
+    fi
+
+    apt-get -o DPkg::Lock::Timeout=-1 -qq -y update
+    apt-get -o DPkg::Lock::Timeout=-1 -o "Dir::Cache::Archives=${deb_dir}" -qq -y install --download-only --reinstall $2
+    apt-get -o DPkg::Lock::Timeout=-1 -o "Dir::Cache::Archives=${deb_dir}" -qq -y install $2
+
+    if ls "${deb_dir}"/*.deb >/dev/null 2>&1; then
+        tar -czf "${tar_file}" -C "${deb_dir}" .
+        cache_put "${tar_file}" "$1.tar.gz"
+    fi
+}
+Use code with caution.
+
+4. InstallSoftware.sh — Block 2: Main Orchestration Loop (Append to InstallSoftware.sh)
+
+sh
+grep -vE '^[[:space:]]*#|^[[:space:]]*$' "${CONF}" | while IFS='|' read -r r_state r_name r_type r_target r_post
+do
+    state="$(echo "$r_state" | xargs)"
+    name="$(echo "$r_name" | xargs)"
+    type="$(echo "$r_type" | xargs)"
+    target="$(echo "$r_target" | xargs)"
+    post="$(echo "$r_post" | xargs)"
+
+    [ "${state}" = "ON" ] || continue
+    [ -f "${DONE_DIR}/${name}.done" ] && continue
+
+    printf 'Installing %s...\n' "${name}"
+    for attempt in 1 2 3; do
+        rc=0
+        case "${type}" in
+            apt)    run_apt "${name}" "${target}" || rc=$? ;;
+            recipe) ( set -e; . "${RECIPES}/${target}" ) || rc=$? ;;
+            *)      printf 'Error: Unknown type %s\n' "${type}" >&2; exit 1 ;;
+        esac
+
+        if [ "${rc}" -eq 0 ]; then
+            [ -n "${post}" ] && sh -c "${post}"
+            touch "${DONE_DIR}/${name}.done"
+            break
+        fi
+        printf 'Retry %s/3 for %s...\n' "${attempt}" "${name}"
+        sleep 2
+    done
+
+    if [ ! -f "${DONE_DIR}/${name}.done" ]; then
+        "${HOME}/services/email/SendEmail.sh" "INSTALL ERROR: ${name}" "Failed to install ${name}" "ERROR" || true
+        exit 1
+    fi
+done
+Use code with caution.
+
+5. Webserver Recipes (nginx_source.sh, lighttpd_repo.sh, lighttpd_source.sh, apache_source.sh)
+
+sh
+# recipes/nginx_source.sh
+#!/bin/sh
+run_apt "nginx_build_deps" "build-essential libpcre2-dev zlib1g-dev libssl-dev"
+mkdir -p /var/log/nginx /var/cache/nginx /etc/nginx/conf.d
+
+ng_ver="${NGINX_VERSION:-1.26.2}"
+ng_args="${NGINX_ARGS:---with-http_ssl_module --with-http_v2_module}"
+cfg_hash="$(printf '%s|%s' "${ng_ver}" "${ng_args}" | sha256sum | awk '{print substr($1,1,8)}')"
+artifact="nginx-${ng_ver}-${cfg_hash}.tar.gz"
+
+if cache_get "${artifact}" "${WORK_DIR}/${artifact}"; then
+    tar -xzf "${WORK_DIR}/${artifact}" -C /
+else
+    mkdir -p "${WORK_DIR}/nginx_src"
+    curl -fsSL "https://nginx.org{ng_ver}.tar.gz" | tar -xz -C "${WORK_DIR}/nginx_src" --strip-components=1
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
+    (
+        cd "${WORK_DIR}/nginx_src"
+        ./configure --prefix=/etc/nginx --sbin-path=/usr/sbin/nginx \
+            --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log \
+            --pid-path=/run/nginx.pid --lock-path=/run/lock/nginx.lock ${ng_args}
+        make -j"${cpus}"
+        make install
+    )
+    tar -czf "${WORK_DIR}/${artifact}" /usr/sbin/nginx /etc/nginx
+    cache_put "${WORK_DIR}/${artifact}" "${artifact}"
+fi
+
+if [ ! -f /etc/systemd/system/nginx.service ] && [ ! -f /lib/systemd/system/nginx.service ]; then
+    cat <<'EOF' > /etc/systemd/system/nginx.service
+[Unit]
+Description=NGINX HTTP and Reverse Proxy Server
+After=network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+ExecStartPre=/usr/sbin/nginx -t
+ExecStart=/usr/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+fi
+
+systemctl enable nginx 2>/dev/null || true
+touch /etc/nginx/BUILT_FROM_SOURCE
+/usr/sbin/nginx -t >/dev/null
+Use code with caution.
+sh
+# recipes/lighttpd_repo.sh
+#!/bin/sh
+lt_pkgs="lighttpd"
+for mod in ${LIGHTTPD_MODULES:-}; do
+    case "${mod}" in
+        mod_openssl) lt_pkgs="${lt_pkgs} lighttpd-mod-openssl" ;;
+        mod_deflate) lt_pkgs="${lt_pkgs} lighttpd-mod-deflate" ;;
+    esac
+done
+
+run_apt "lighttpd_repo" "${lt_pkgs}"
+
+mkdir -p /etc/lighttpd
+if [ -n "${LIGHTTPD_MODULES:-}" ]; then
+    printf 'server.modules = (\n' > /etc/lighttpd/modules.conf
+    first=1
+    for mod in ${LIGHTTPD_MODULES}; do
+        [ "${first}" -eq 0 ] && printf ',\n' >> /etc/lighttpd/modules.conf
+        printf '    "%s"' "${mod}" >> /etc/lighttpd/modules.conf
+        first=0
+    done
+    printf '\n)\n' >> /etc/lighttpd/modules.conf
+fi
+
+systemctl enable lighttpd 2>/dev/null || true
+touch /etc/lighttpd/BUILT_FROM_REPO
+/usr/sbin/lighttpd -v >/dev/null
+Use code with caution.
+sh
+# recipes/lighttpd_source.sh
+#!/bin/sh
+run_apt "lighttpd_build_deps" "build-essential pkg-config libpcre2-dev zlib1g-dev libssl-dev"
+mkdir -p /etc/lighttpd /var/log/lighttpd
+
+lt_ver="${LIGHTTPD_VERSION:-1.4.76}"
+lt_major="$(printf '%s' "${lt_ver}" | awk -F'.' '{print $1"."$2}')"
+artifact="lighttpd-${lt_ver}.tar.gz"
+
+if cache_get "${artifact}" "${WORK_DIR}/${artifact}"; then
+    tar -xzf "${WORK_DIR}/${artifact}" -C /
+else
+    mkdir -p "${WORK_DIR}/lighttpd_src"
+    curl -fsSL "https://lighttpd.net{lt_major}.x/lighttpd-${lt_ver}.tar.xz" | \
+        tar -xJ -C "${WORK_DIR}/lighttpd_src" --strip-components=1
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
+    (
+        cd "${WORK_DIR}/lighttpd_src"
+        ./configure --prefix=/usr --libdir=/usr/lib/lighttpd --sysconfdir=/etc/lighttpd --with-openssl --with-pcre2 --with-zlib
+        make -j"${cpus}"
+        make install
+    )
+    tar -czf "${WORK_DIR}/${artifact}" /usr/sbin/lighttpd /usr/lib/lighttpd
+    cache_put "${WORK_DIR}/${artifact}" "${artifact}"
+fi
+
+if [ -n "${LIGHTTPD_MODULES:-}" ]; then
+    printf 'server.modules = (\n' > /etc/lighttpd/modules.conf
+    first=1
+    for mod in ${LIGHTTPD_MODULES}; do
+        [ "${first}" -eq 0 ] && printf ',\n' >> /etc/lighttpd/modules.conf
+        printf '    "%s"' "${mod}" >> /etc/lighttpd/modules.conf
+        first=0
+    done
+    printf '\n)\n' >> /etc/lighttpd/modules.conf
+fi
+
+if [ ! -f /etc/systemd/system/lighttpd.service ] && [ ! -f /lib/systemd/system/lighttpd.service ]; then
+    cat <<'EOF' > /etc/systemd/system/lighttpd.service
+[Unit]
+Description=Lighttpd Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/sbin/lighttpd -tt -f /etc/lighttpd/lighttpd.conf
+ExecStart=/usr/sbin/lighttpd -D -f /etc/lighttpd/lighttpd.conf
+ExecReload=/bin/kill -USR1 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+fi
+
+systemctl enable lighttpd 2>/dev/null || true
+touch /etc/lighttpd/BUILT_FROM_SOURCE
+/usr/sbin/lighttpd -v >/dev/null
+Use code with caution.
+sh
+# recipes/apache_source.sh
+#!/bin/sh
+run_apt "apache_build_deps" "build-essential libapr1-dev libaprutil1-dev libpcre2-dev libssl-dev zlib1g-dev libnghttp2-dev"
+mkdir -p /var/log/apache2 /var/run/apache2 /etc/apache2
+
+ap_ver="${APACHE_VERSION:-2.4.62}"
+ap_mods="${APACHE_MODULES:-rewrite ssl headers proxy proxy_fcgi}"
+cfg_hash="$(printf '%s|%s' "${ap_ver}" "${ap_mods}" | sha256sum | awk '{print substr($1,1,8)}')"
+artifact="apache-${ap_ver}-${cfg_hash}.tar.gz"
+
+if cache_get "${artifact}" "${WORK_DIR}/${artifact}"; then
+    tar -xzf "${WORK_DIR}/${artifact}" -C /
+else
+    mkdir -p "${WORK_DIR}/apache_src"
+    curl -fsSL "https://apache.org{ap_ver}.tar.gz" | \
+        tar -xz -C "${WORK_DIR}/apache_src" --strip-components=1
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
+
+    mod_flags="--enable-so --enable-http2"
+    for mod in ${ap_mods}; do
+        mod_flags="${mod_flags} --enable-${mod}"
+    done
+
+    (
+        cd "${WORK_DIR}/apache_src"
+        ./configure --prefix=/usr/local/apache2 --sbindir=/usr/sbin --sysconfdir=/etc/apache2 ${mod_flags}
+        make -j"${cpus}"
+        make install
+    )
+    tar -czf "${WORK_DIR}/${artifact}" /usr/sbin/apache2 /usr/sbin/httpd /usr/local/apache2 /etc/apache2 2>/dev/null || \
+        tar -czf "${WORK_DIR}/${artifact}" /usr/local/apache2 /etc/apache2
+    cache_put "${WORK_DIR}/${artifact}" "${artifact}"
+fi
+
+[ ! -e /usr/sbin/apache2 ] && [ -x /usr/sbin/httpd ] && ln -s /usr/sbin/httpd /usr/sbin/apache2
+
+if [ ! -f /etc/systemd/system/apache2.service ] && [ ! -f /lib/systemd/system/apache2.service ]; then
+    cat <<'EOF' > /etc/systemd/system/apache2.service
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+Environment=APACHE_RUN_USER=www-data
+Environment=APACHE_RUN_GROUP=www-data
+Environment=APACHE_PID_FILE=/var/run/apache2/apache2.pid
+Environment=APACHE_RUN_DIR=/var/run/apache2
+Environment=APACHE_LOCK_DIR=/var/lock/apache2
+Environment=APACHE_LOG_DIR=/var/log/apache2
+ExecStart=/usr/sbin/apachectl start
+ExecStop=/usr/sbin/apachectl graceful-stop
+ExecReload=/usr/sbin/apachectl graceful
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+fi
+
+systemctl enable apache2 2>/dev/null || true
+touch /etc/apache2/BUILT_FROM_SOURCE
+/usr/sbin/apache2 -v >/dev/null
+Use code with caution.
+
+6. Remaining Recipes (s5cmd.sh, rclone.sh, s3fs.sh, postgres.sh, php.sh, wpcli.sh, composer.sh, clamav.sh, lego.sh)
+
+sh
+# recipes/s5cmd.sh
+#!/bin/sh
+url="$(wget -q -O - https://github.com | \
+    jq -r ".assets[] | select(.name | endswith(\"linux_${ARCH}.deb\")).browser_download_url" | head -n 1)"
+[ -n "${url}" ]
+wget -q -O "${WORK_DIR}/s5cmd.deb" "${url}"
+dpkg -i "${WORK_DIR}/s5cmd.deb"
+/usr/bin/s5cmd version >/dev/null
+Use code with caution.
+sh
+# recipes/rclone.sh
+#!/bin/sh
+if ! cache_get "rclone.bin" "/usr/bin/rclone"; then
+    wget -q -O "${WORK_DIR}/rclone.zip" "https://rclone.org{ARCH}.zip"
+    unzip -q "${WORK_DIR}/rclone.zip" -d "${WORK_DIR}/rclone"
+    cp "${WORK_DIR}"/rclone/*/rclone /usr/bin/rclone
+    chmod +x /usr/bin/rclone
+    cache_put "/usr/bin/rclone" "rclone.bin"
+fi
+chmod +x /usr/bin/rclone
+/usr/bin/rclone version >/dev/null
+Use code with caution.
+sh
+# recipes/s3fs.sh
+#!/bin/sh
+if cache_get "s3fs.bin" "/usr/bin/s3fs"; then
+    run_apt "s3fs_runtime" "libfuse3-dev"
+    chmod +x /usr/bin/s3fs
+else
+    run_apt "s3fs_build" "build-essential git libfuse-dev libcurl4-openssl-dev libxml2-dev automake libtool pkg-config libssl-dev libfuse3-dev"
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
+    (
+        git clone --depth 1 https://github.com "${WORK_DIR}/s3fs-fuse"
+        cd "${WORK_DIR}/s3fs-fuse"
+        ./autogen.sh && ./configure --prefix=/usr --with-openssl && make -j"${cpus}" && make install
+    )
+    cache_put "/usr/bin/s3fs" "s3fs.bin"
+fi
+/usr/bin/s3fs --version >/dev/null
+Use code with caution.
+sh
+# recipes/postgres.sh
+#!/bin/sh
+if [ ! -f /etc/apt/sources.list.d/pgdg.list ] && [ ! -f /etc/apt/sources.list.d/pgdg.sources ]; then
+    run_apt "pg_common" "postgresql-common"
+    yes | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+fi
+pg_ver="${POSTGRES_VERSION:-17}"
+run_apt "postgres-${pg_ver}" "postgresql-${pg_ver} postgresql-client-${pg_ver}"
+systemctl enable postgresql
+/usr/bin/psql --version >/dev/null
+Use code with caution.
+sh
+# recipes/php.sh
+#!/bin/sh
+php_ver="${PHP_VERSION:-8.4}"
+use_native=0
+
+if [ "${ID}" = "ubuntu" ]; then
+    if { [ "${VERSION_ID}" = "24.04" ] && [ "${php_ver}" = "8.3" ]; } || \
+       { [ "${VERSION_ID}" = "26.04" ] && [ "${php_ver}" = "8.5" ]; }; then
+        use_native=1
+    fi
+elif [ "${ID}" = "debian" ]; then
+    if [ "${VERSION_ID}" = "13" ] && [ "${php_ver}" = "8.4" ]; then
+        use_native=1
+    fi
+fi
+
+if [ "${use_native}" -eq 0 ]; then
+    if [ "${ID}" = "ubuntu" ]; then
+        if ! grep -rq "ondrej/php" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+            run_apt "php_ppa_deps" "software-properties-common ca-certificates"
+            add-apt-repository -y ppa:ondrej/php
+        fi
+    elif [ "${ID}" = "debian" ]; then
+        if [ ! -f /etc/apt/sources.list.d/php.sources ] && [ ! -f /etc/apt/sources.list.d/php.list ]; then
+            curl -fsSLo /usr/share/keyrings/deb.sury.org-php.gpg https://sury.org
+            codename="$(lsb_release -sc)"
+            printf 'Types: deb\nURIs: https://sury.org\nSuites: %s\nComponents: main\nArchitectures: %s\nSigned-By: /usr/share/keyrings/deb.sury.org-php.gpg\n' \
+                "${codename}" "${ARCH}" > /etc/apt/sources.list.d/php.sources
+        fi
+    else
+        printf 'Error: Unsupported OS for PHP recipe: %s\n' "${ID}" >&2
+        exit 1
+    fi
+fi
+
+if [ "${use_native}" -eq 1 ]; then
+    pkg_list="php php-cli php-fpm"
+    for mod in ${PHP_MODULES:-}; do pkg_list="${pkg_list} php-${mod}"; done
+    cache_key="php-native-${ID}${VERSION_ID}"
+else
+    pkg_list="php${php_ver} php${php_ver}-cli php${php_ver}-fpm"
+    for mod in ${PHP_MODULES:-}; do pkg_list="${pkg_list} php${php_ver}-${mod}"; done
+    cache_key="php-${php_ver}"
+fi
+
+mod_hash="$(printf '%s' "${pkg_list}" | sha256sum | awk '{print substr($1,1,8)}')"
+run_apt "${cache_key}-${mod_hash}" "${pkg_list}"
+
+if [ "${use_native}" -eq 0 ] && [ -x "/usr/bin/php${php_ver}" ]; then
+    update-alternatives --set php "/usr/bin/php${php_ver}"
+    systemctl enable "php${php_ver}-fpm"
+else
+    systemctl enable php-fpm 2>/dev/null || systemctl enable "php${php_ver}-fpm" 2>/dev/null || true
+fi
+/usr/bin/php -v >/dev/null
+Use code with caution.
+sh
+# recipes/wpcli.sh
+#!/bin/sh
+if ! cache_get "wp-cli.phar" "/usr/local/bin/wp"; then
+    curl -fsSL -o "${WORK_DIR}/wp-cli.phar" https://githubusercontent.com
+    curl -fsSL -o "${WORK_DIR}/wp-cli.phar.asc" https://githubusercontent.com.asc
+    curl -fsSL https://githubusercontent.com | gpg --import
+    gpg --verify "${WORK_DIR}/wp-cli.phar.asc" "${WORK_DIR}/wp-cli.phar"
+    cp "${WORK_DIR}/wp-cli.phar" /usr/local/bin/wp
+    chmod +x /usr/local/bin/wp
+    cache_put "/usr/local/bin/wp" "wp-cli.phar"
+fi
+chmod +x /usr/local/bin/wp
+/usr/local/bin/wp --info >/dev/null
+Use code with caution.
+sh
+# recipes/composer.sh
+#!/bin/sh
+[ -x /usr/bin/php ] || { printf 'Error: PHP is required before installing Composer\n' >&2; exit 1; }
+if ! cache_get "composer.phar" "/usr/local/bin/composer"; then
+    expected_sig="$(curl -fsSL https://github.io)"
+    curl -fsSL -o "${WORK_DIR}/composer-setup.php" https://getcomposer.org
+    actual_sig="$(sha384sum "${WORK_DIR}/composer-setup.php" | awk '{print $1}')"
+    [ -n "${expected_sig}" ] && [ "${expected_sig}" = "${actual_sig}" ]
+    /usr/bin/php "${WORK_DIR}/composer-setup.php" --install-dir="${WORK_DIR}" --filename=composer
+    cp "${WORK_DIR}/composer" /usr/local/bin/composer
+    chmod +x /usr/local/bin/composer
+    cache_put "/usr/local/bin/composer" "composer.phar"
+fi
+chmod +x /usr/local/bin/composer
+/usr/local/bin/composer --version --no-interaction >/dev/null
+Use code with caution.
+sh
+# recipes/clamav.sh
+#!/bin/sh
+run_apt "clamav" "clamav clamav-daemon"
+systemctl stop clamav-freshclam 2>/dev/null || true
+freshclam || true
+systemctl enable clamav-freshclam clamav-daemon 2>/dev/null || true
+systemctl start clamav-freshclam clamav-daemon 2>/dev/null || true
+/usr/bin/clamscan --version >/dev/null
+Use code with caution.
+sh
+# recipes/lego.sh
+#!/bin/sh
+if ! cache_get "lego.bin" "/usr/local/bin/lego"; then
+    url="$(wget -q -O - https://github.com | \
+        jq -r ".assets[] | select(.name | endswith(\"linux_${ARCH}.tar.gz\")).browser_download_url" | head -n 1)"
+    [ -n "${url}" ]
+    wget -q -O "${WORK_DIR}/lego.tar.gz" "${url}"
+    tar -xzf "${WORK_DIR}/lego.tar.gz" -C "${WORK_DIR}" lego
+    cp "${WORK_DIR}/lego" /usr/local/bin/lego
+    chmod +x /usr/local/bin/lego
+    cache_put "/usr/local/bin/lego" "lego.bin"
+fi
+chmod +x /usr/local/bin/lego
+/usr/local/bin/lego --version >/dev/null
+Use code with caution.
+
+7. Single Copy-Paste AI Prompt Template (${HOME}/installation/recipes/README.md)
+
+Save this file in your repository. Whenever you start a new chat, copy everything inside the block below, replace <SOFTWARE_NAME> at the bottom, and paste it.
+markdown
+# Single Copy-Paste Prompt for Generating New Recipes
+
+Copy and paste the block below into any new AI chat session when you want a new recipe created:
+
+---
+
+```text
+Write a self-contained POSIX `/bin/sh` recipe for my `InstallSoftware.sh` engine, along with its `software.conf` row and any `#@ KEY="VAL"` variables.
+
+### System Rules & Context
+1. **Strict POSIX `/bin/sh`:** Recipes are sourced inside `( set -e; . recipe.sh )` on Ubuntu or Debian. Do NOT use Bashisms (`[[`, arrays, `local`, `source`).
+2. **Self-Contained:** Download or compile upstream sources directly inside `${WORK_DIR}`. If compiling a daemon from source, create its `/etc/systemd/system/<name>.service` unit if one doesn't exist and run `systemctl daemon-reload`.
+3. **Available Context Variables:**
+   - `${HOME}`: Toolkit root directory (exported)
+   - `${WORK_DIR}`: Auto-cleaned temporary build directory
+   - `${ID}`: OS identifier from `/etc/os-release` (`ubuntu` or `debian`)
+   - `${VERSION_ID}`: OS release version (`24.04`, `26.04`, `13`, etc.)
+   - `${ARCH}`: Normalized CPU architecture (`amd64` or `arm64`)
+   - Any `#@ KEY="VAL"` variables defined at the top of `software.conf`
+4. **Available Helper Functions:**
+   - `run_apt "<cache_key>" "<pkg1 pkg2>"` — Installs APT packages with SHA-256 verified S3 `.deb` caching.
+   - `cache_get "<s3_filename>" "<local_dest>"` — Pulls & SHA-256 verifies an artifact from S3 (`0` on hit, `1` on miss).
+   - `cache_put "<local_src>" "<s3_filename>"` — Uploads an artifact + `.sha256` sidecar to S3.
+5. **Conventions:**
+   - Always check `cache_get` before downloading or compiling; call `cache_put` afterward.
+   - Wrap `cd` calls in `( ... )` subshells.
+   - End every recipe with a smoke-test verification command (`--version`, `-v`, `-t`) so `InstallSoftware.sh` only marks it `.done` when verified.
+
+### Reference Example (`recipes/wpcli.sh`)
+#!/bin/sh
+if ! cache_get "wp-cli.phar" "/usr/local/bin/wp"; then
+    curl -fsSL -o "\${WORK_DIR}/wp-cli.phar" https://githubusercontent.com
+    curl -fsSL -o "\${WORK_DIR}/wp-cli.phar.asc" https://githubusercontent.com.asc
+    curl -fsSL https://githubusercontent.com | gpg --import
+    gpg --verify "\({WORK_DIR}/wp-cli.phar.asc" "\){WORK_DIR}/wp-cli.phar"
+    cp "\${WORK_DIR}/wp-cli.phar" /usr/local/bin/wp
+    chmod +x /usr/local/bin/wp
+    cache_put "/usr/local/bin/wp" "wp-cli.phar"
+fi
+chmod +x /usr/local/bin/wp
+/usr/local/bin/wp --info >/dev/null
+
+### Task
+Generate a new recipe for: <SOFTWARE_NAME_AND_REQUIREMENTS>
+```
+Use code with caution.
+
+8. Final Permissions & Syntax Validation Command
+
+Run this once after creating the files to apply executable permissions and validate POSIX syntax across every script:
+sh
+HOME="$(cat /home/homedir.dat)"
+chmod +x "${HOME}/installation/InstallSoftware.sh" "${HOME}/installation/recipes/"*.sh
+for f in "${HOME}/installation/InstallSoftware.sh" "${HOME}/installation/recipes/"*.sh; do
+    sh -n "$f" && printf '[OK] %s\n' "$f"
+done
+Use code with caution.
+If you'd like, I can:
+• Convert any remaining legacy scripts from your repository using that prompt template right now
+• Help you test InstallSoftware.sh on a fresh instance and verify the S3 cache bucket contents
+
+
+
+
+
+
+
+
+-------------------------------------------------
+this is the more complex version, if needed
+-------------------------------------------------
+
+
+
+
+
+
+
+
+
 # 3. Run your webserver application/reverse-proxy configuration scripts
 Use code with caution.
 If you'd like, I can:
