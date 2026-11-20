@@ -75,8 +75,7 @@ fi
 repository_ownername="${1}"
 repository_name="${2}"
 
-github_api_version="2022-11-28"
-api_base="https://github.com"
+api_base="https://api.github.com"
 repo_endpoint="${api_base}/repos/${repository_ownername}/${repository_name}"
 commits_endpoint="${repo_endpoint}/commits?per_page=1"
 
@@ -92,13 +91,11 @@ github_curl()
                 /usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | \
                         /usr/bin/curl -s -H @- \
                         -H "Accept: application/vnd.github+json" \
-                        -H "X-GitHub-Api-Version: ${github_api_version}" \
                         "${target_url}" \
                         -w "\nHTTP_STATUS:%{http_code}"
         else
                 /usr/bin/curl -s \
                         -H "Accept: application/vnd.github+json" \
-                        -H "X-GitHub-Api-Version: ${github_api_version}" \
                         "${target_url}" \
                         -w "\nHTTP_STATUS:%{http_code}"
         fi
