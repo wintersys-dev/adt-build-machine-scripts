@@ -1,11 +1,12 @@
 #!/bin/sh
 #: Name:        clone_repository.sh
-#: Purpose:     Downloads and extracts a Bitbucket repository branch archive via HTTP API.
+#: Purpose:     Downloads and extracts a Bitbucket repository branch archive via HTTP API (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        20/11/2026
+#: Version:     1.1
 #:
 #: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
+#:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] Target branch name or "--branch <name>" flag.
@@ -14,18 +15,18 @@
 #:   $4         [Required] Local destination directory for the extracted files.
 #:
 #: Environment:
-#:   HOME       Resolved automatically from /home/homedir.dat
+#:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, echo, mkdir, mktemp, printf, rm, sed, tar
+#:   - External binaries: cat, curl, cut, echo, grep, mkdir, mktemp, printf, rm, sed, tar
 #:
 #: Exit Codes:
 #:   0          Repository archive downloaded and extracted cleanly
 #:   1          Missing arguments, layout faults, extraction error, or unexpected HTTP code
 #:   400        Bad Request (invalid branch or repository parameter syntax)
-#:   401        Unauthorized (invalid or expired APPLICATIONREPOSITORYTOKEN or email)
+#:   401        Unauthorized (invalid or expired APPLICATION_REPOSITORY_TOKEN or email)
 #:   403        Forbidden (token lacks read permissions for target repository)
 #:   404        Not Found (repository or branch does not exist)
 #:   429        Rate Limit Exceeded
@@ -58,41 +59,28 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-        status "Error: Branch, repository owner, repository name, and destination directory are required." 
-        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>" 
+        status "Error: Branch, repository owner, repository name, and destination directory are required."
+        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
         exit 1
 fi
 
-# Strip optional "--branch " prefix so both "main" and "--branch main" inputs work cleanly
 branch="$(/bin/echo "${1}" | /usr/bin/sed 's/^--branch[[:space:]]*//')"
 repository_ownername="${2}"
 repository_name="${3}"
 destination_directory="${4}"
 
-set +e
-REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
-ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL')"
-set -e
-
-if [ -z "${REPOSITORY_TOKEN}" ] || [ -z "${ATLASSIAN_EMAIL}" ]
-then
-        /bin/echo "Error: Failed to fetch required context variables (APPLICATIONREPOSITORYTOKEN or APPLICATIONREPOSITORYEMAIL)." >&2
-        exit 1
-fi
-
-# Create a temporary file for the downloaded tarball and ensure cleanup on exit
 tmp_archive="$(/bin/mktemp /tmp/repo_archive.XXXXXX.tar.gz)"
 
 cleanup() {
@@ -103,28 +91,54 @@ trap cleanup EXIT INT TERM
 api_base="https://bitbucket.org"
 repo_endpoint="${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
 
+# 1. Attempt unauthenticated download first (works for public repositories without touching credentials)
 set +e
-HTTP_CODE=$(/usr/bin/printf 'user = "%s:%s"\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
-        /usr/bin/curl -s -L -K - \
+HTTP_CODE=$(/usr/bin/curl -s -L --connect-timeout 15 \
         -o "${tmp_archive}" \
         -w "%{http_code}" \
         "${api_base}/${repo_endpoint}")
 set -e
 
+# 2. If public access fails, retry with Atlassian email + API token via curl config stdin (-K -)
+if [ "${HTTP_CODE}" != "200" ]
+then
+        set +e
+        REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN' 2>/dev/null)"
+        ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL' 2>/dev/null)"
+        set -e
 
-# Evaluate the HTTP response code using strict POSIX structural matching
+        if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ] && \
+           [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
+        then
+                /bin/rm -f "${tmp_archive}"
+                set +e
+                HTTP_CODE=$(/usr/bin/printf 'user = "%s:%s"\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | \
+                        /usr/bin/curl -s -L --connect-timeout 15 -K - \
+                        -o "${tmp_archive}" \
+                        -w "%{http_code}" \
+                        "${api_base}/${repo_endpoint}")
+                set -e
+        fi
+
+        unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
+fi
+
 case "${HTTP_CODE}" in
+        000)
+                status "Error 000: Connection failed or timed out while reaching bitbucket.org."
+                exit 1
+                ;;
         200)
                 /bin/mkdir -p "${destination_directory}"
                 set +e
                 # Bitbucket archives wrap files in a top-level "<owner>-<repo>-<commit>/" folder; --strip-components=1 flattens it
-                /bin/tar -xzf "${tmp_archive}" -C "${destination_directory}" --strip-components=1 2>&1 >&2
+                /bin/tar -xzf "${tmp_archive}" -C "${destination_directory}" --strip-components=1 >&2
                 tar_status="$?"
                 set -e
 
                 if [ "${tar_status}" -ne 0 ]
                 then
-                        status "Error: Failed to extract repository archive into ${destination_directory}." 
+                        status "Error: Failed to extract repository archive into ${destination_directory}."
                         exit 1
                 fi
 
@@ -132,33 +146,34 @@ case "${HTTP_CODE}" in
                 exit 0
                 ;;
         400)
-                status "Error 400: Bad Request. Check branch or repository parameter syntax." 
+                status "Error 400: Bad Request. Check branch or repository parameter syntax."
                 exit 400
                 ;;
         401)
-                status "Error 401: Unauthorized. Your REPOSITORY_TOKEN is invalid or has expired." 
+                status "Error 401: Unauthorized. Your APPLICATION_REPOSITORY_TOKEN or APPLICATION_REPOSITORY_EMAIL is invalid or has expired."
                 exit 401
                 ;;
         403)
-                status "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}." 
+                status "Error 403: Forbidden. Token lacks read permissions for ${repository_ownername}/${repository_name}."
                 exit 403
                 ;;
         404)
-                status "Error 404: Not Found. Repository ${repository_ownername}/${repository_name} or branch '${branch}' does not exist." 
+                status "Error 404: Not Found. Repository ${repository_ownername}/${repository_name} or branch '${branch}' does not exist."
                 exit 404
                 ;;
         429)
-                status "Error 429: Rate Limit Exceeded. Back off request frequency." 
+                status "Error 429: Rate Limit Exceeded. Back off request frequency."
                 exit 429
                 ;;
         5*)
-                status "Error ${HTTP_CODE}: Bitbucket Gateway or Remote Server Exception." 
+                status "Error ${HTTP_CODE}: Bitbucket Gateway or Remote Server Exception."
                 exit 500
                 ;;
         *)
-                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code." 
+                status "Error ${HTTP_CODE}: Remote endpoint refused connection or threw an unexpected code."
                 exit 1
                 ;;
 esac
 
 exit 0
+
