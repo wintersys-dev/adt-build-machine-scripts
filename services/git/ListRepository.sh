@@ -2,22 +2,23 @@
 #: Name:        ListRepository.sh
 #: Purpose:     Orchestrates remote repository status checks across configured Git providers.
 #: Author:      Peter Winter
-#: Date:        18/11/2026
-#: Version:     1.0
+#: Date:        21/11/2026
+#: Version:     1.1
 #:
-#: Usage:       ListRepository.sh <repository_provider> <repository_ownername> <repository_name>
+#: Usage:       ListRepository.sh <repository_name> [repository_provider] [repository_ownername]
 #:              ListRepository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] The Git provider name (e.g. bitbucket, github, gitlab).
-#:   $2         [Required] The workspace or repository owner name.
-#:   $3         [Required] The name/slug of the repository to inspect.
+#:   $1         [Required] The name/slug of the repository to inspect.
+#:   $2         [Optional] The Git provider name (e.g. bitbucket, github, gitlab).
+#:   $3         [Optional] The workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
 #:
 #: Dependencies:
 #:   - /home/buildhome.dat
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - ${BUILD_HOME}/services/git/${repository_provider}/ListRepository.sh
 #:   - External binaries: cat, echo, grep, cut
 #:
@@ -42,7 +43,6 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
-
 # Render self-extracting help documentation when -h or --help is supplied
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
 then
@@ -66,16 +66,23 @@ status()
 }
 
 # Validate minimum required positional arguments
-if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
+if [ -z "${1}" ]
 then
-        status "Error: 3 arguments are required" 
-        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> "
+        status "Error: <repository_name> argument is required" 
+        status "Usage: $0 <repository_name> [repository_provider] [repository_ownername]"
         exit 1
 fi
 
-repository_provider="${1:-${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_PROVIDER')}"
-repository_ownername="${2}"
-repository_name="${3}"
+repository_name="${1}"
+repository_provider="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
+repository_ownername="${3:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
+
+# Ensure optional parameters resolved cleanly either via CLI or environment fallback
+if [ -z "${repository_provider}" ] || [ -z "${repository_ownername}" ]
+then
+        status "Error: Could not resolve repository_provider or repository_ownername from arguments or toolkit configuration"
+        exit 1
+fi
 
 # Verify provider sub-driver script exists and is executable before delegating
 provider_script="${BUILD_HOME}/services/git/${repository_provider}/ListRepository.sh"
@@ -103,6 +110,9 @@ then
         status "Error: ${provider_script} returned error code ${exit_code}."
         exit 1
 fi
+
+exit 0
+
 
 exit 0
 
