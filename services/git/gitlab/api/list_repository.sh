@@ -122,13 +122,29 @@ case "${PROJECT_HTTP_CODE}" in
                 exit 1
                 ;;
         200)
-                repo_state="$(/usr/bin/jq -r '
-                if .empty_repo == false then "full"
-                elif .empty_repo == true then "empty"
-                elif .default_branch != null then "full"
-                else "empty"
-                end
-                ' "${tmp_response}" 2>/dev/null)"
+                has_empty_flag="$(/usr/bin/jq -r 'has("empty_repo")' "${tmp_response}" 2>/dev/null)"
+                if [ "${has_empty_flag}" = "true" ]
+                then
+                        repo_state="$(/usr/bin/jq -r 'if .empty_repo == true then "empty" else "full" end' "${tmp_response}" 2>/dev/null)"
+                else
+                        # Unauthenticated public response omits empty_repo; check if any branches exist
+                        branches_code=$(/usr/bin/curl -s --connect-timeout 15 \
+                                -o "${tmp_response}" \
+                                -w "%{http_code}" \
+                                "${project_endpoint}/repository/branches?per_page=1")
+                        if [ "${branches_code}" = "200" ]
+                        then
+                                branch_count="$(/usr/bin/jq 'length' "${tmp_response}" 2>/dev/null)"
+                                if [ "${branch_count:-0}" -gt 0 ]
+                                then
+                                        repo_state="full"
+                                else
+                                        repo_state="empty"
+                                fi
+                        else
+                                repo_state="empty"
+                        fi
+                fi
                 /bin/echo "${repo_state:-empty}"
                 exit 0
                 ;;
