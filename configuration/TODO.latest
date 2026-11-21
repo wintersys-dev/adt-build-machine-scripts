@@ -23,7 +23,10 @@ copy cli list_repository.sh to autoscaler and database from webserver
 copy api clone_repository.sh to autoscaler and database from webserver
 copy cli clone_repository.sh to autoscaler and database from webserver
 
-Monday
+
+After Christmas
+
+After I have refactored the installation scripts refactor BUILDOS and BUILDOS_VERSION like this
 
 BUILDOS and BUILDOS_VERSION IS ONLY NEEDED FOR SPINNING UP MACHINES everywhere else it should be done this way
 replace BUILDOS and BUILDOS_VERSION with this /etc/os-release
