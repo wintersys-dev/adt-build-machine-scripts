@@ -5,14 +5,14 @@
 #: Date:        20/11/2026
 #: Version:     1.1
 #:
-#: Usage:       clone_repository.sh [--branch] <branch> <repository_ownername> <repository_name> <destination_directory>
+#: Usage:       clone_repository.sh <repository_name> <branch> <destination_directory> <repository_ownername> 
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] Target branch name (or "--branch" followed by branch name).
-#:   $2         [Required] The Bitbucket workspace or repository owner name.
-#:   $3         [Required] The name/slug of the repository to clone.
-#:   $4         [Required] Local destination directory for the cloned repository.
+#:   $1         [Required] The name/slug of the repository to clone.
+#:   $2         [Required] Target branch name.
+#:   $3         [Required] Local destination directory for the cloned repository.
+#:   $4         [Required] The Bitbucket workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME Resolved automatically from /home/buildhome.dat
@@ -69,15 +69,15 @@ fi
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
 then
-        status "Error: Branch, repository owner, repository name, and destination directory are required."
-        status "Usage: $0 [--branch] <branch> <repository_ownername> <repository_name> <destination_directory>"
+        status "Error:  Repository name, branch, destination directory, repository owner, are required."
+        status "Usage: $0 <repository_name> <branch> <destination_directory> <repository_ownername>  "
         exit 1
 fi
 
-branch="$(/bin/echo "${1}" | /usr/bin/sed 's/^--branch[[:space:]]*//')"
-repository_ownername="${2}"
-repository_name="${3}"
-destination_directory="${4}"
+repository_name="${1}"
+branch="${2}"
+destination_directory="${3}"
+repository_ownername="${4}"
 
 repo_url="https://bitbucket.org/${repository_ownername}/${repository_name}.git"
 
