@@ -5,7 +5,7 @@
 #: Date:        20/11/2026
 #: Version:     1.3
 #: 
-#: Usage:       clone_repository.sh [--branch] <repository_name> <branch> <destination_directory> <repository_ownername>  
+#: Usage:       clone_repository.sh <repository_name> <branch> <destination_directory> <repository_ownername>  
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
