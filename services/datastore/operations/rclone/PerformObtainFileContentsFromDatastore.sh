@@ -1,12 +1,12 @@
 #!/bin/sh
-#: Name:        ObtainFileFromDatastore.sh
+#: Name:        PerformObtainFileContentsFromDatastore.sh
 #: Purpose:     Retrieves and outputs the contents of a specific object from a target S3 bucket via rclone using the primary cluster profile.
 #: Author:      Peter Winter
 #: Date:        21/11/2026
 #: Version:     1.0
 #:
-#: Usage:       ObtainFileFromDatastore.sh <file_to_obtain>
-#:              ObtainFileFromDatastore.sh [-h|--help]
+#: Usage:       PerformObtainFileContentsFromDatastore.sh <file_to_obtain>
+#:              PerformObtainFileContentsFromDatastore.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] Target S3 bucket pathway and object key to retrieve (without s3: prefix; wildcards are stripped)
