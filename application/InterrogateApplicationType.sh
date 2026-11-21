@@ -65,7 +65,7 @@ then
                 status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
                 exit 1
         else
-                status "I have found potentially usable ${application} webroot baseline sourcecode in your git repo."
+                status "I have found potentially usable ${application} webroot baseline sourcecode in your ${APPLICATION_REPOSITORY_PROVIDER} application repository"
         fi
         
         applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.sql" | /bin/grep 'zzzz')
@@ -84,7 +84,7 @@ then
                 db_type="mysql"
         fi
 
-        status "I have found potentially usable ${db_type} database baseline sourcecode in your git repo."
+        status "I have found potentially usable ${db_type} database baseline sourcecode in your ${APPLICATION_REPOSITORY_PROVIDER} database repository"
         status "The build assets have been verified suitable for the build to proceed"
 
         webroot_db_type=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}" "dbe.dat")
