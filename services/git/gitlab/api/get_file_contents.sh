@@ -90,7 +90,7 @@ trap cleanup EXIT INT TERM
 
 encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr/bin/sed 's/\//%2F/g')"
 encoded_file="$(/bin/echo "${raw_file_path}" | /usr/bin/sed 's/\//%2F/g; s/ /%20/g')"
-api_base="https://gitlab.com"
+api_base="https://gitlab.com/api/v4"
 project_endpoint="${api_base}/projects/${encoded_project}"
 
 use_auth=0
