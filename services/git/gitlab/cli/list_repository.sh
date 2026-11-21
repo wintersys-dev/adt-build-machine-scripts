@@ -1,16 +1,16 @@
 #!/bin/sh
 #: Name:        list_repository.sh
-#: Purpose:     Checks a GitLab project state ("full", "empty", or "none") via Git CLI.
+#: Purpose:     Checks a GitLab project state ("full", "empty", or "none") via Git CLI (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        18/11/2026
+#: Date:        21/11/2026
 #: Version:     1.0
 #:
-#: Usage:       list_repository.sh <repository_ownername> <repository_name>
+#: Usage:       list_repository.sh <repository_name> [repository_ownername]
 #:              list_repository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] The GitLab username or group path (repository owner).
-#:   $2         [Required] The name/slug of the GitLab project to inspect.
+#:   $1         [Required] The name/slug of the GitLab project to inspect.
+#:   $2         [Optional] The GitLab username or group path (repository owner).
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -22,7 +22,7 @@
 #:
 #: Exit Codes:
 #:   0          Project state ("full", "empty", or "none") printed to stdout
-#:   1          Missing arguments, layout faults, or missing credentials
+#:   1          Missing arguments, layout faults, or authentication encoding failure
 ###################################################################################
 # License Agreement:
 # This file is part of The Wintersys Agile Deployment Toolkit.
@@ -52,25 +52,31 @@ if [ -r /home/buildhome.dat ]
 then
         BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
 else
-        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" 
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
         exit 1
 fi
 
-# Route status log entries to the centralized logging utility
+# Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ]
 then
-        /bin/echo "Error: Repository owner name and repository name arguments are required." >&2
-        /bin/echo "Usage: $0 <repository_ownername> <repository_name>" >&2
+        status "Error: Repository name argument is required."
+        status "Usage: $0 <repository_name> [repository_ownername]"
         exit 1
 fi
 
-repository_ownername="${1}"
-repository_name="${2}"
+repository_name="${1}"
+repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
+
+if [ -z "${repository_ownername}" ]
+then
+        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
+        exit 1
+fi
 
 set +e
 REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
