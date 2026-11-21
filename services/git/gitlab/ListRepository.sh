@@ -105,7 +105,7 @@ fi
 
 # Temporary disable set -e to evaluate worker execution failures manually
 set +e
-output="$("${worker_script}" "${repository_ownername}" "${repository_name}")"
+output="$("${worker_script}" "${repository_name}" "${repository_ownername}")"
 worker_status="$?"
 set -e
 
