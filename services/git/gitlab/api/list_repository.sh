@@ -2,15 +2,15 @@
 #: Name:        list_repository.sh
 #: Purpose:     Checks a GitLab project state ("full", "empty", or "none") via REST API v4 (public first, authenticated fallback).
 #: Author:      Peter Winter
-#: Date:        20/11/2026
-#: Version:     1.1
+#: Date:        21/11/2026
+#: Version:     1.2
 #:
-#: Usage:       list_repository.sh <repository_ownername> <repository_name>
+#: Usage:       list_repository.sh <repository_name> [repository_ownername]
 #:              list_repository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] The GitLab username or group path (repository owner).
-#:   $2         [Required] The name/slug of the GitLab project to inspect.
+#:   $1         [Required] The name/slug of the GitLab project to inspect.
+#:   $2         [Optional] The GitLab username or group path (repository owner).
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -65,15 +65,21 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ]
 then
-        status "Error: Repository owner name and repository name arguments are required."
-        status "Usage: $0 <repository_ownername> <repository_name>"
+        status "Error: Repository name argument is required."
+        status "Usage: $0 <repository_name> [repository_ownername]"
         exit 1
 fi
 
-repository_ownername="${1}"
-repository_name="${2}"
+repository_name="${1}"
+repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
+
+if [ -z "${repository_ownername}" ]
+then
+        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
+        exit 1
+fi
 
 tmp_response="$(/bin/mktemp /tmp/repo_list.XXXXXX.json)"
 
