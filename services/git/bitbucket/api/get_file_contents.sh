@@ -87,7 +87,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-api_base="https://bitbucket.org"
+api_base="https://api.bitbucket.org/2.0"
 repo_endpoint="${api_base}/repositories/${repository_ownername}/${repository_name}"
 
 use_auth=0
