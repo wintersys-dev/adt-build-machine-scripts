@@ -5,12 +5,12 @@
 #: Date:        21/11/2026
 #: Version:     1.4
 #:
-#: Usage:       list_repository.sh <repository_name> [repository_ownername]
+#: Usage:       list_repository.sh <repository_name> <repository_ownername>
 #:              list_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the repository to inspect.
-#:   $2         [Optional] The Bitbucket workspace or repository owner name.
+#:   $2         [Required] The Bitbucket workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME Resolved automatically from /home/buildhome.dat
@@ -41,7 +41,6 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
 set -e
 
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
@@ -65,19 +64,13 @@ status()
 
 if [ -z "${1}" ]
 then
-        status "Error: Repository name argument is required."
-        status "Usage: $0 <repository_name> [repository_ownername]"
+        status "Error: Repository name and repository ownername arguments are required."
+        status "Usage: $0 <repository_name> <repository_ownername>"
         exit 1
 fi
 
 repository_name="${1}"
-repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
-
-if [ -z "${repository_ownername}" ]
-then
-        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
-        exit 1
-fi
+repository_ownername="${2}"
 
 tmp_response="$(/bin/mktemp /tmp/bb_repo_list.XXXXXX.json)"
 tmp_curl_cfg="$(/bin/mktemp /tmp/bb_curl_cfg.XXXXXX)"
