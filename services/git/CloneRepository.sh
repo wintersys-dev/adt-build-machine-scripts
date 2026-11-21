@@ -68,7 +68,7 @@ status()
 }
 
 # Validate minimum required positional arguments
-if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ]
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] 
 then
         status "Error: 3 arguments are required with 2 optional argument." 
         status "Usage: $0  <repository_name> <repository_branch> <destination_directory> [repository_provider] [repository_ownername]" 
