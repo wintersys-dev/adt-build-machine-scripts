@@ -90,7 +90,7 @@ then
 fi
 
 # Verify provider sub-driver script exists and is executable before delegating
-provider_script="${BUILD_HOME}/services/git/${repository_provider}/GetFile.sh"
+provider_script="${BUILD_HOME}/services/git/${repository_provider}/GetFileContentsFromRepository.sh"
 
 if [ ! -f "${provider_script}" ]
 then
