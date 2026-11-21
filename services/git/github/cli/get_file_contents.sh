@@ -1,12 +1,12 @@
 #!/bin/sh
-#: Name:        get_file.sh
+#: Name:        get_file_contents.sh
 #: Purpose:     Retrieves the raw contents of a single file from a GitHub repository via Git CLI (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        21/11/2026
 #: Version:     1.0
 #:
-#: Usage:       get_file.sh <repository_name> <repository_ownername> <file_path> [branch_or_ref]
-#:              get_file.sh [-h|--help]
+#: Usage:       get_file_contents.sh <repository_name> <repository_ownername> <file_path> [branch_or_ref]
+#:              get_file_contents.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the GitHub repository.
