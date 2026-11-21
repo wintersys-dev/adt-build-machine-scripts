@@ -3,7 +3,7 @@
 #: Purpose:     Performs a branch-specific shallow Git clone from GitHub (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.2
+#: Version:     1.0
 #:
 #: Usage:       clone_repository.sh <repository_name> <branch> <destination_directory> <repository_ownername>
 #:              clone_repository.sh [-h|--help]
