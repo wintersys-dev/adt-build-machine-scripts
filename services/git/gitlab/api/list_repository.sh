@@ -5,12 +5,12 @@
 #: Date:        21/11/2026
 #: Version:     1.2
 #:
-#: Usage:       list_repository.sh <repository_name> [repository_ownername]
+#: Usage:       list_repository.sh <repository_name> <repository_ownername>
 #:              list_repository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the GitLab project to inspect.
-#:   $2         [Optional] The GitLab username or group path (repository owner).
+#:   $2         [Required] The GitLab username or group path (repository owner).
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -67,19 +67,13 @@ status()
 
 if [ -z "${1}" ]
 then
-        status "Error: Repository name argument is required."
-        status "Usage: $0 <repository_name> [repository_ownername]"
+        status "Error: Repository name and repository ownername arguments are required."
+        status "Usage: $0 <repository_name> <repository_ownername>"
         exit 1
 fi
 
 repository_name="${1}"
-repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
-
-if [ -z "${repository_ownername}" ]
-then
-        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
-        exit 1
-fi
+repository_ownername="${2}"
 
 tmp_response="$(/bin/mktemp /tmp/repo_list.XXXXXX.json)"
 
