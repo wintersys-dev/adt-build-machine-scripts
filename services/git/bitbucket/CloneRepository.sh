@@ -3,7 +3,7 @@
 #: Purpose:     Clones or downloads a remote Bitbucket Git repository branch to a local path.
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       CloneRepository.sh <repository_name> <repository_branch> <destination_directory> <repository_ownername> 
 #:              CloneRepository.sh [-h|--help]
