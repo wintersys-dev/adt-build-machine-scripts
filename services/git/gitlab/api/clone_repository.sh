@@ -5,14 +5,14 @@
 #: Date:        20/11/2026
 #: Version:     1.1
 #:
-#: Usage:       clone_repository.sh <branch> <repository_ownername> <repository_name> <destination_directory>
+#: Usage:       clone_repository.sh <repository_name> <branch> <destination_directory> <repository_ownername>
 #:              clone_repository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] Target branch name or "--branch <name>" flag.
-#:   $2         [Required] The GitLab username or group path (repository owner).
-#:   $3         [Required] The name/slug of the GitLab project to download.
-#:   $4         [Required] Local destination directory for the extracted files.
+#:   $1         [Required] The name/slug of the GitLab project to download.
+#:   $2         [Required] Target branch name.
+#:   $3         [Required] Local destination directory for the extracted files.
+#:   $4         [Required] The GitLab username or group path (repository owner).
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -42,7 +42,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+# along with The Wintersys Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
 
 #set -x
@@ -69,17 +69,17 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ]
+repository_name="${1}"
+branch="${3}"
+destination_directory="${4}"
+repository_ownername="${5}"
+
+if [ -z "${repository_name}" ] || [ -z "${branch}" ] || [ -z "${destination_directory}" ] || [ -z "${repository_ownername}" ]
 then
-        status "Error: Branch, repository owner, repository name, and destination directory are required."
-        status "Usage: $0 <branch> <repository_ownername> <repository_name> <destination_directory>"
+        status "Error: Repository name, branch, destination directory, and repository owner are required."
+        status "Usage: $0 <repository_name> <branch> <destination_directory> <repository_ownername>"
         exit 1
 fi
-
-branch="$(/bin/echo "${1}" | /usr/bin/sed 's/^--branch[[:space:]]*//')"
-repository_ownername="${2}"
-repository_name="${3}"
-destination_directory="${4}"
 
 tmp_archive="$(/bin/mktemp /tmp/repo_archive.XXXXXX.tar.gz)"
 
