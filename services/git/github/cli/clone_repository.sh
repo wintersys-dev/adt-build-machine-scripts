@@ -66,9 +66,9 @@ status()
 
 
 repository_name="${1}"
-branch="${3}"
-destination_directory="${4}"
-repository_ownername="${5}"
+branch="${2}"
+destination_directory="${3}"
+repository_ownername="${4}"
 
 if [ -z "${repository_name}" ] || [ -z "${branch}" ] || [ -z "${destination_directory}" ] || [ -z "${repository_ownername}" ]
 then
