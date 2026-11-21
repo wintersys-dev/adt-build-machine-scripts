@@ -98,7 +98,7 @@ then
 fi
 
 set +e
-output="$(${worker_script} "${repository_branch}" "${repository_ownername}" "${repository_name}" "${destination_directory}")"
+output="$(${worker_script} "${repository_name}" "${repository_branch}" "${destination_directory}" "${repository_ownername}"  )"
 clone_status="$?"
 set -e
 
