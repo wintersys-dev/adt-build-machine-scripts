@@ -1,0 +1,187 @@
+The simplest generic approach in the Wintersys Agile Deployment Toolkit (ADT) is to create a single reusable POSIX wrapper script—for example, ${HOME}/providerscripts/utilities/InstallWithS3Cache.sh—that handles all three modes (binary, source, and package) via nala, MountDatastore.sh, GetFromDatastore.sh, and PutToDatastore.sh.
+Every artifact is automatically keyed by OS codename and CPU architecture (${OS_CODENAME}-${ARCH}) so compiled binaries and .deb bundles never collide across different Ubuntu/Debian releases or ARM/x86 instances.
+
+1. Generic Wrapper Script: InstallWithS3Cache.sh
+
+Save this script in your ADT node repository (e.g., providerscripts/utilities/InstallWithS3Cache.sh) and chmod +x it:
+bash
+#!/bin/sh
+#################################################################################
+# Generic S3 Pull-Through Software Installer for Wintersys ADT
+# Usage:
+#   InstallWithS3Cache.sh <mode> <name> <version> <source_or_pkg> [build_cmds] [install_dir]
+#
+# Modes:
+#   binary  : <source_or_pkg> = download URL; [install_dir] = target dir (default /usr/local/bin)
+#   source  : <source_or_pkg> = source tarball URL; [build_cmds] = configure/make flags or script
+#   package : <source_or_pkg> = space-separated package(s) (supports pkg=version)
+#################################################################################
+
+set -e
+
+MODE="$1"
+NAME="$2"
+VERSION="$3"
+TARGET="$4"
+EXTRA="$5"
+INSTALL_DIR="${6:-/usr/local/bin}"
+
+DATASTORE_OPS="${HOME}/services/datastore/operations"
+CACHE_BUCKET="adt-software-cache"
+OS_CODENAME=$(/usr/bin/lsb_release -cs)
+ARCH=$(/usr/bin/dpkg --print-architecture)
+
+# Unique cache key per software, version, OS release, and CPU architecture
+ARTIFACT_KEY="${NAME}-${VERSION}-${MODE}-${OS_CODENAME}-${ARCH}.tar.gz"
+WORK_DIR="/tmp/adt-cache-${NAME}-${VERSION}"
+CACHED_TAR="/tmp/${ARTIFACT_KEY}"
+
+/bin/rm -rf "${WORK_DIR}"
+/bin/mkdir -p "${WORK_DIR}"
+
+# 1. Mount distributed S3 cache bucket
+${DATASTORE_OPS}/MountDatastore.sh "${CACHE_BUCKET}" "distributed"
+
+# 2. Attempt pull from local region S3 datastore
+${DATASTORE_OPS}/GetFromDatastore.sh "${CACHE_BUCKET}/${ARTIFACT_KEY}" "/tmp" "local" || true
+
+# 3. Cache Miss: Fetch/build/download from upstream and populate distributed S3 cache
+if [ ! -f "${CACHED_TAR}" ]; then
+    case "${MODE}" in
+        binary)
+            # Download raw archive or single binary, normalize into a clean tarball
+            RAW_FILE="${WORK_DIR}/download"
+            /usr/bin/wget -q -O "${RAW_FILE}" "${TARGET}"
+            if /usr/bin/file "${RAW_FILE}" | /bin/grep -q "gzip compressed"; then
+                /bin/tar -xzf "${RAW_FILE}" -C "${WORK_DIR}"
+                /bin/rm -f "${RAW_FILE}"
+            elif /usr/bin/file "${RAW_FILE}" | /bin/grep -q "XZ compressed"; then
+                /bin/tar -xJf "${RAW_FILE}" -C "${WORK_DIR}"
+                /bin/rm -f "${RAW_FILE}"
+            else
+                /bin/mv "${RAW_FILE}" "${WORK_DIR}/${NAME}"
+                /bin/chmod +x "${WORK_DIR}/${NAME}"
+            fi
+            /bin/tar -czf "${CACHED_TAR}" -C "${WORK_DIR}" .
+            ;;
+
+        source)
+            # Download source tarball, compile into DESTDIR staging root, and archive output
+            SRC_TAR="${WORK_DIR}/src.tar.gz"
+            STAGE_DIR="${WORK_DIR}/stage"
+            SRC_DIR="${WORK_DIR}/src"
+            /bin/mkdir -p "${STAGE_DIR}" "${SRC_DIR}"
+
+            /usr/bin/wget -q -O "${SRC_TAR}" "${TARGET}"
+            /bin/tar -xf "${SRC_TAR}" -C "${SRC_DIR}" --strip-components=1
+
+            (
+                cd "${SRC_DIR}"
+                if [ -n "${EXTRA}" ]; then
+                    eval "${EXTRA}"
+                else
+                    ./configure --prefix=/usr/local && /usr/bin/make -j"$(/usr/bin/nproc)"
+                fi
+                /usr/bin/make DESTDIR="${STAGE_DIR}" install
+            )
+            /bin/tar -czf "${CACHED_TAR}" -C "${STAGE_DIR}" .
+            ;;
+
+        package)
+            # Use nala to fetch .deb packages + dependencies without installing, then archive them
+            DEB_DIR="${WORK_DIR}/debs"
+            /bin/mkdir -p "${DEB_DIR}"
+            /usr/bin/nala update
+            # Pass custom APT cache dir to nala so only this software's .debs are captured
+            /usr/bin/nala install -y --download-only \
+                -o Dir::Cache::archives="${DEB_DIR}" ${TARGET}
+
+            /bin/tar -czf "${CACHED_TAR}" -C "${DEB_DIR}" --exclude='lock' --exclude='partial' .
+            ;;
+
+        *)
+            echo "Unknown mode: ${MODE}. Use binary, source, or package." >&2
+            exit 1
+            ;;
+    esac
+
+    # Push newly built/fetched artifact to all configured S3 regions
+    ${DATASTORE_OPS}/PutToDatastore.sh "${CACHE_BUCKET}" "${CACHED_TAR}" "root" "distributed" "no"
+fi
+
+# 4. Cache Hit (or freshly populated cache): Install onto the machine
+case "${MODE}" in
+    binary)
+        /bin/mkdir -p "${INSTALL_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DIR}"
+        ;;
+
+    source)
+        /bin/tar -xzf "${CACHED_TAR}" -C /
+        /sbin/ldconfig || true
+        ;;
+
+    package)
+        INSTALL_DEB_DIR="${WORK_DIR}/install-debs"
+        /bin/mkdir -p "${INSTALL_DEB_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DEB_DIR}"
+        # Install offline directly from cached .debs using nala
+        /usr/bin/nala install -y "${INSTALL_DEB_DIR}"/*.deb
+        ;;
+esac
+
+# 5. Cleanup temporary files
+/bin/rm -rf "${WORK_DIR}" "${CACHED_TAR}"
+Use code with caution.
+
+2. How to Call It for Any Software
+
+Once placed in your ADT repository, your installation/ scripts become one-liners regardless of software type:
+
+A. Any Pre-Compiled Binary
+
+Downloads once from GitHub/upstream, caches the extracted binary in S3, and unpacks straight to /usr/local/bin on future builds:
+bash
+${HOME}/providerscripts/utilities/InstallWithS3Cache.sh \
+    "binary" \
+    "s5cmd" \
+    "2.2.2" \
+    "https://github.com" \
+    "" \
+    "/usr/local/bin"
+Use code with caution.
+
+B. Any Source Code Build
+
+Compiles once on the first cache miss, archives the DESTDIR installation tree to S3, and skips ./configure and make on every subsequent webserver or autoscaled node:
+bash
+# Ensure build toolchain is present via nala (also cached!)
+${HOME}/providerscripts/utilities/InstallWithS3Cache.sh \
+    "package" "build-deps" "1.0" "build-essential libssl-dev libpcre2-dev zlib1g-dev"
+
+# Compile and cache any source release (Nginx, Redis, PHP, HAProxy, etc.)
+${HOME}/providerscripts/utilities/InstallWithS3Cache.sh \
+    "source" \
+    "nginx" \
+    "1.26.2" \
+    "https://nginx.org" \
+    "./configure --prefix=/usr/local/nginx --with-http_ssl_module && make -j\$(nproc)"
+Use code with caution.
+
+C. Any Package or Pinned Version via nala
+
+Downloads the exact .deb files and transitive dependencies via nala, bundles them into one tarball in S3, and installs offline with nala on every future node:
+bash
+# Latest version from repo
+${HOME}/providerscripts/utilities/InstallWithS3Cache.sh \
+    "package" "jq-curl" "latest" "jq curl"
+
+# Exact pinned version(s)
+${HOME}/providerscripts/utilities/InstallWithS3Cache.sh \
+    "package" "nginx-pinned" "1.24.0-2ubuntu7" "nginx=1.24.0-2ubuntu7"
+Use code with caution.
+(Tip: When using "latest" as the version string for package mode, bump the version parameter in your script whenever you want to invalidate the S3 cache and pull newer upstream .deb packages.)
+If you'd like, let me know:
+• Whether your ADT fork uses custom positional arguments for PutToDatastore.sh / GetFromDatastore.sh (e.g., passing <datastore_provider> or <s3_config_file> first)
+• If you want package mode to automatically run apt-mark hold on pinned versions after nala installs them
+I can adjust the wrapper script to match your exact ADT script signatures.
