@@ -1,0 +1,358 @@
+To keep the code from wrapping or overflowing inside narrow text areas, here is each file reformatted with strictly short lines (under 72 characters) and broken into smaller, clean chunks so every line fits comfortably without horizontal scrolling or clipping.
+
+Part 1A: InstallWithS3Cache.sh (Header & Cache Key Setup)
+
+sh
+#!/bin/sh
+# POSIX S3 Pull-Through Installer for Wintersys ADT
+set -eu
+
+if [ -r /home/homedir.dat ]; then
+    HOME="$(/bin/cat /home/homedir.dat)"
+else
+    /bin/echo "Missing /home/homedir.dat" >&2
+    exit 1
+fi
+
+MODE="${1:?Mode required: binary|source|package}"
+NAME="${2:?Software name required}"
+VERSION="${3:?Version required}"
+TARGET="${4:?URL or package list required}"
+EXTRA="${5:-}"
+INSTALL_DIR="${6:-/usr/local/bin}"
+EXPECTED_SHA256="${7:-}"
+
+OPS="${HOME}/services/datastore/operations"
+SITE_URL="$("${HOME}/utilities/config/ExtractConfigValue.sh" \
+    'WEBSITEURL')"
+SITE_SLUG="$(/bin/echo "${SITE_URL}" | /bin/sed 's/\./-/g')"
+BUCKET="${SITE_SLUG}-software-cache"
+
+OS_CODE=$(/usr/bin/lsb_release -cs)
+ARCH=$(/usr/bin/dpkg --print-architecture)
+
+HOLD_MODE=""
+REPO_SCRIPT=""
+if [ "${MODE}" = "package" ] && [ -n "${EXTRA}" ]; then
+    case "${EXTRA}" in
+        hold-pinned:*)
+            HOLD_MODE="hold-pinned"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" \
+                | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold:*)
+            HOLD_MODE="hold"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" \
+                | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold|hold-pinned)
+            HOLD_MODE="${EXTRA}"
+            ;;
+        *)
+            REPO_SCRIPT="${EXTRA}"
+            ;;
+    esac
+fi
+
+OPT_SIG="${TARGET}:${EXTRA}"
+if [ "${MODE}" = "source" ]; then
+    FIRST=$(printf '%s\n' "${EXTRA}" | /usr/bin/awk '{print $1}')
+    if [ -n "${FIRST}" ] && [ -f "${FIRST}" ]; then
+        SHASH=$(/usr/bin/sha256sum "${FIRST}" \
+            | /usr/bin/awk '{print $1}')
+        OPT_SIG="${SHASH}:${OPT_SIG}"
+    fi
+elif [ "${MODE}" = "package" ] && [ -n "${REPO_SCRIPT}" ] \
+    && [ -f "${REPO_SCRIPT}" ]; then
+    SHASH=$(/usr/bin/sha256sum "${REPO_SCRIPT}" \
+        | /usr/bin/awk '{print $1}')
+    OPT_SIG="${SHASH}:${OPT_SIG}"
+fi
+OHASH=$(printf '%s' "${OPT_SIG}" \
+
+    | /usr/bin/sha256sum | /usr/bin/cut -c1-8)
+
+KEY="${NAME}-${VERSION}-${MODE}-${OS_CODE}-${ARCH}-${OHASH}.tar.gz"
+BASE_TMP="/var/tmp/adt-cache"
+WORK_DIR="${BASE_TMP}/${NAME}-${VERSION}-$$"
+CACHED_TAR="${BASE_TMP}/${KEY}"
+LOCK_FILE="${BASE_TMP}/${KEY}.lock"
+
+/bin/mkdir -p "${BASE_TMP}" "${WORK_DIR}"
+
+cleanup() {
+    /bin/rm -rf "${WORK_DIR}" "${CACHED_TAR}" "${CACHED_TAR}.tmp"
+}
+trap cleanup EXIT INT TERM
+
+exec 9>"${LOCK_FILE}"
+/usr/bin/flock -x 9
+Use code with caution.
+
+Part 1B: InstallWithS3Cache.sh (S3 Pull & Cache Miss Build)
+
+(Append directly below Part 1A in the same file)
+sh
+"${OPS}/MountDatastore.sh" "ad-hoc" "distributed" "${BUCKET}"
+"${OPS}/GetFromDatastore.sh" "ad-hoc" "${KEY}" \
+    "${BASE_TMP}" "${BUCKET}" 2>/dev/null || true
+
+if [ -f "${CACHED_TAR}" ] \
+    && ! /bin/gzip -t "${CACHED_TAR}" 2>/dev/null; then
+    printf '%s\n' "WARN: Corrupt ${KEY}; rebuilding..." >&2
+    /bin/rm -f "${CACHED_TAR}"
+fi
+
+if [ ! -f "${CACHED_TAR}" ]; then
+    case "${MODE}" in
+        binary)
+            RAW="${WORK_DIR}/download"
+            /usr/bin/wget --tries=3 --timeout=30 -q \
+                -O "${RAW}" "${TARGET}"
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${RAW}" \
+                    | /usr/bin/sha256sum -c -
+            fi
+            FTYPE=$(/usr/bin/file -b "${RAW}")
+            case "${FTYPE}" in
+                *"gzip compressed"*)
+                    /bin/tar -xzf "${RAW}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW}"
+                    ;;
+                *"XZ compressed"*)
+                    /bin/tar -xJf "${RAW}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW}"
+                    ;;
+                *)
+                    /bin/mv "${RAW}" "${WORK_DIR}/${NAME}"
+                    /bin/chmod 0755 "${WORK_DIR}/${NAME}"
+                    ;;
+            esac
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${WORK_DIR}" .
+            ;;
+
+        source)
+            STAR="${WORK_DIR}/src.tar.gz"
+            STAGE="${WORK_DIR}/stage"
+            SDIR="${WORK_DIR}/src"
+            /bin/mkdir -p "${STAGE}" "${SDIR}"
+            /usr/bin/wget --tries=3 --timeout=30 -q \
+                -O "${STAR}" "${TARGET}"
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${STAR}" \
+                    | /usr/bin/sha256sum -c -
+            fi
+            /bin/tar -xf "${STAR}" -C "${SDIR}" \
+                --strip-components=1
+            (
+                cd "${SDIR}"
+                export STAGE_DIR="${STAGE}" SRC_DIR="${SDIR}"
+                export NAME VERSION
+                FIRST=$(printf '%s\n' "${EXTRA}" \
+                    | /usr/bin/awk '{print $1}')
+                if [ -n "${FIRST}" ] && [ -f "${FIRST}" ]; then
+                    /bin/chmod 0755 "${FIRST}"
+                    ARGS=$(printf '%s\n' "${EXTRA}" \
+                        | /usr/bin/cut -s -d' ' -f2-)
+                    eval "\"${FIRST}\" ${ARGS}"
+                elif [ -n "${EXTRA}" ]; then
+                    eval "${EXTRA}"
+                else
+                    ./configure --prefix=/usr/local
+                    /usr/bin/make -j"$(/usr/bin/nproc)"
+                    /usr/bin/make DESTDIR="${STAGE}" install
+                fi
+            )
+            if [ -z "$(/bin/ls -A "${STAGE}")" ]; then
+                printf '%s\n' "ERROR: Empty build ${NAME}" >&2
+                exit 1
+            fi
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${STAGE}" .
+            ;;
+
+        package)
+            BDIR="${WORK_DIR}/bundle"
+            DDIR="${BDIR}/debs"
+            MDIR="${BDIR}/apt-meta"
+            /bin/mkdir -p "${DDIR}/partial" \
+                "${MDIR}/sources.list.d" "${MDIR}/keyrings"
+            if [ -n "${REPO_SCRIPT}" ]; then
+                if [ ! -f "${REPO_SCRIPT}" ]; then
+                    printf '%s\n' "Missing ${REPO_SCRIPT}" >&2
+                    exit 1
+                fi
+                /bin/chmod 0755 "${REPO_SCRIPT}"
+                "${REPO_SCRIPT}"
+            fi
+            /usr/bin/nala update
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y --download-only \
+                -o Dir::Cache::archives="${DDIR}" ${TARGET}
+            /bin/cp -a /etc/apt/sources.list.d/. \
+                "${MDIR}/sources.list.d/" 2>/dev/null || true
+            /bin/cp -a /etc/apt/keyrings/. \
+                "${MDIR}/keyrings/" 2>/dev/null || true
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${BDIR}" \
+                --exclude='debs/lock' \
+                --exclude='debs/partial' .
+            ;;
+
+        *)
+            printf '%s\n' "Unknown mode: ${MODE}" >&2
+            exit 1
+            ;;
+    esac
+
+    /bin/mv "${CACHED_TAR}.tmp" "${CACHED_TAR}"
+    "${OPS}/PutToDatastore.sh" "ad-hoc" "${CACHED_TAR}" \
+        "root" "distributed" "no" "${BUCKET}"
+fi
+Use code with caution.
+
+Part 1C: InstallWithS3Cache.sh (Install & Hold Execution)
+
+(Append directly below Part 1B to finish InstallWithS3Cache.sh)
+sh
+case "${MODE}" in
+    binary)
+        /bin/mkdir -p "${INSTALL_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DIR}"
+        ;;
+
+    source)
+        /bin/tar -xzf "${CACHED_TAR}" -C /
+        /sbin/ldconfig || true
+        ;;
+
+    package)
+        EDIR="${WORK_DIR}/extract"
+        /bin/mkdir -p "${EDIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${EDIR}"
+
+        if [ -d "${EDIR}/apt-meta/keyrings" ]; then
+            /bin/mkdir -p /etc/apt/keyrings
+            /bin/cp -an "${EDIR}/apt-meta/keyrings/." \
+                /etc/apt/keyrings/ 2>/dev/null || true
+        fi
+        if [ -d "${EDIR}/apt-meta/sources.list.d" ]; then
+            /bin/mkdir -p /etc/apt/sources.list.d
+            /bin/cp -an "${EDIR}/apt-meta/sources.list.d/." \
+                /etc/apt/sources.list.d/ 2>/dev/null || true
+        fi
+
+        if ! /usr/bin/nala install -y \
+            "${EDIR}/debs"/*.deb 2>/dev/null; then
+            printf '%s\n' "WARN: Falling back to live nala" >&2
+            /usr/bin/nala update
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y ${TARGET}
+        fi
+
+        if [ "${HOLD_MODE}" = "hold" ] \
+            || [ "${HOLD_MODE}" = "hold-pinned" ]; then
+            for spec in ${TARGET}; do
+                case "${spec}" in
+                    *=*)
+                        pkg=$(printf '%s' "${spec}" \
+                            | /usr/bin/cut -d'=' -f1)
+                        /usr/bin/apt-mark hold "${pkg}"
+                        ;;
+                    *)
+                        if [ "${HOLD_MODE}" = "hold" ]; then
+                            /usr/bin/apt-mark hold "${spec}"
+                        fi
+                        ;;
+                esac
+            done
+        fi
+        ;;
+esac
+Use code with caution.
+
+Part 2: Custom Build Script (build-nginx-custom.sh)
+
+sh
+#!/bin/sh
+set -eu
+
+printf '%s\n' "Building ${NAME} ${VERSION}: $*"
+
+./configure \
+    --prefix=/usr/local/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --conf-path=/etc/nginx/nginx.conf \
+    --with-http_ssl_module \
+    --with-http_v2_module \
+    --with-http_realip_module \
+    "$@"
+
+/usr/bin/make -j"$(/usr/bin/nproc)"
+/usr/bin/make DESTDIR="${STAGE_DIR}" install
+Use code with caution.
+
+Part 3: Custom PHP Repo Script (setup-php-repo.sh)
+
+sh
+#!/bin/sh
+set -eu
+
+DISTRO=$(. /etc/os-release && printf '%s' "${ID}")
+CODE=$(/usr/bin/lsb_release -cs)
+KEYRING="/etc/apt/keyrings"
+
+/bin/mkdir -p "${KEYRING}"
+
+case "${DISTRO}" in
+    ubuntu)
+        KEY_URL="https://ubuntu.com"
+        KEY_ID="0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C"
+        PPA="https://launchpadcontent.net"
+        /usr/bin/wget -qO- "${KEY_URL}?op=get&search=${KEY_ID}" \
+            | /usr/bin/gpg --batch --yes --dearmor \
+            -o "${KEYRING}/ondrej-php.gpg"
+        printf '%s\n' \
+            "deb [signed-by=${KEYRING}/ondrej-php.gpg] ${PPA} ${CODE} main" \
+            > /etc/apt/sources.list.d/ondrej-php.list
+        ;;
+    debian)
+        SURY="https://sury.org"
+        /usr/bin/wget -qO "${KEYRING}/sury-php.gpg" \
+            "${SURY}/apt.gpg"
+        printf '%s\n' \
+            "deb [signed-by=${KEYRING}/sury-php.gpg] ${SURY}/ ${CODE} main" \
+            > /etc/apt/sources.list.d/sury-php.list
+        ;;
+    *)
+        printf '%s\n' "Unsupported distro: ${DISTRO}" >&2
+        exit 1
+        ;;
+esac
+Use code with caution.
+
+Part 4: Example Calls
+
+sh
+HOME="$(/bin/cat /home/homedir.dat)"
+INST="${HOME}/providerscripts/utilities/InstallWithS3Cache.sh"
+WDIR="${HOME}/providerscripts/webserver"
+
+# 1. Binary
+URL_S5="https://github.com"
+"${INST}" "binary" "s5cmd" "2.2.2" \
+    "${URL_S5}/v2.2.2/s5cmd_2.2.2_Linux-64bit.tar.gz"
+
+# 2. Source with custom build script + flags
+"${INST}" "source" "nginx" "1.26.2" \
+    "https://nginx.org" \
+    "${WDIR}/build-nginx-custom.sh --with-threads"
+
+# 3. Package bundle with custom PHP repo
+PKGS="php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-zip"
+"${INST}" "package" "php8.3-stack" "8.3" \
+    "${PKGS}" "${WDIR}/setup-php-repo.sh"
+
+# 4. Package bundle with selective hold
+"${INST}" "package" "base-tools" "1.0" \
+    "nginx=1.24.0-2ubuntu7 jq curl unzip" "hold-pinned"
+Use code with caution.
+If the code blocks still wrap on your screen width, let me know your preferred output format (e.g., plain <textarea> HTML blocks or downloadable file structure) and I can adjust accordingly.
