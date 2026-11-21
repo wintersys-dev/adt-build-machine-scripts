@@ -79,7 +79,7 @@ repository_name="${1}"
 repository_branch="${2}"
 destination_directory="${3}"
 repository_provider="${4:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
-repository_ownername="${5:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
+repository_ownername="${5:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
 
 # Verify provider sub-driver script exists and is executable before delegating
 provider_script="${BUILD_HOME}/services/git/${repository_provider}/CloneRepository.sh"
