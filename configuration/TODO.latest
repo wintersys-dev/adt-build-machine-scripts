@@ -23,6 +23,11 @@ copy cli list_repository.sh to autoscaler and database from webserver
 copy api clone_repository.sh to autoscaler and database from webserver
 copy cli clone_repository.sh to autoscaler and database from webserver
 
+Next Week
+
+Ask AI to review all the different api and cli scripts I have updated - servers dns dbaas git and any others I have done and scan read all 
+scripts I have updated to look for any inconsistencies. Upload the scripts in a batch where possible. 
+
 
 After Christmas
 
