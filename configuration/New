@@ -1,3 +1,350 @@
+
+most up to date version
+
+When installing packages from custom third-party repositories (such as ppa:ondrej/php on Ubuntu, packages.sury.org/php on Debian, or the official nginx.org repo), your S3 cache needs to handle two things:
+1. On a cache miss: Configure the custom repository + GPG keyring before nala update and --download-only run so nala can resolve and download the .deb packages.
+2. On a cache hit (and fallback): Even though .deb files install offline without needing the repository configured first, caching the repository's .list/.sources and GPG keyring inside the same S3 tarball ensures that:
+	• Your live nala fallback works if an offline install ever hits a missing dependency.
+	• Your server can still receive future security updates for that PHP branch (unless held).
+
+1. How It Works: Optional REPO_SETUP_SCRIPT
+
+By passing an optional repo setup script (e.g., repo:/path/to/setup-php-repo.sh or hold-pinned:/path/to/setup-php-repo.sh) in the $5 (EXTRA) parameter:
+1. On a cache miss, InstallWithS3Cache.sh runs your repo setup script before nala update, downloads all .deb packages, and bundles /etc/apt/sources.list.d/ + /etc/apt/keyrings/ alongside the .deb files inside the S3 tarball.
+2. On a cache hit, it restores the cached repo sources/keyrings and installs all .deb files offline via nala—zero PPA/Sury network hits during autoscaling!
+
+2. Complete Updated POSIX Script: InstallWithS3Cache.sh
+
+sh
+#!/bin/sh
+#################################################################################
+# Production POSIX S3 Pull-Through Software Installer for Wintersys ADT
+#
+# Usage:
+#   InstallWithS3Cache.sh <mode> <name> <version> <target> [extra] [install_dir] [sha256]
+#
+# Arguments:
+#   mode        : binary | source | package
+#   name        : Logical software or bundle name (e.g., php8.3-stack, nginx)
+#   version     : Version label (e.g., 8.3.14, 2026.11)
+#   target      : Upstream URL (binary/source) OR space-separated packages (package)
+#   extra       : [source] Path to custom build script + args OR inline build commands
+#                 [package] Optional hold mode ("hold" | "hold-pinned") and/or
+#                           custom repo script path, e.g. "hold-pinned:/path/to/repo.sh"
+#                           or "/path/to/repo.sh"
+#   install_dir : [binary] Target installation directory (default: /usr/local/bin)
+#   sha256      : [binary/source] Optional expected SHA256 checksum of download
+#################################################################################
+
+set -eu
+
+MODE="${1:?ERROR: Mode required (binary|source|package)}"
+NAME="${2:?ERROR: Software name required}"
+VERSION="${3:?ERROR: Version required}"
+TARGET="${4:?ERROR: Target URL or package list required}"
+EXTRA="${5:-}"
+INSTALL_DIR="${6:-/usr/local/bin}"
+EXPECTED_SHA256="${7:-}"
+
+DATASTORE_OPS="${HOME}/services/datastore/operations"
+CACHE_BUCKET="adt-software-cache"
+OS_CODENAME=$(/usr/bin/lsb_release -cs)
+ARCH=$(/usr/bin/dpkg --print-architecture)
+
+# Parse package-mode options (supports "hold", "hold-pinned", "/path/repo.sh", or "hold-pinned:/path/repo.sh")
+HOLD_MODE=""
+REPO_SCRIPT=""
+if [ "${MODE}" = "package" ] && [ -n "${EXTRA}" ]; then
+    case "${EXTRA}" in
+        hold-pinned:*)
+            HOLD_MODE="hold-pinned"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold:*)
+            HOLD_MODE="hold"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold|hold-pinned)
+            HOLD_MODE="${EXTRA}"
+            ;;
+        *)
+            REPO_SCRIPT="${EXTRA}"
+            ;;
+    esac
+fi
+
+# Hash target + build/repo script contents + options for automatic cache invalidation
+OPT_SIG="${TARGET}:${EXTRA}"
+if [ "${MODE}" = "source" ]; then
+    FIRST_TOKEN=$(printf '%s\n' "${EXTRA}" | /usr/bin/awk '{print $1}')
+    if [ -n "${FIRST_TOKEN}" ] && [ -f "${FIRST_TOKEN}" ]; then
+        SCRIPT_HASH=$(/usr/bin/sha256sum "${FIRST_TOKEN}" | /usr/bin/awk '{print $1}')
+        OPT_SIG="${SCRIPT_HASH}:${OPT_SIG}"
+    fi
+elif [ "${MODE}" = "package" ] && [ -n "${REPO_SCRIPT}" ] && [ -f "${REPO_SCRIPT}" ]; then
+    SCRIPT_HASH=$(/usr/bin/sha256sum "${REPO_SCRIPT}" | /usr/bin/awk '{print $1}')
+    OPT_SIG="${SCRIPT_HASH}:${OPT_SIG}"
+fi
+OPT_HASH=$(printf '%s' "${OPT_SIG}" | /usr/bin/sha256sum | /usr/bin/cut -c1-8)
+
+ARTIFACT_KEY="${NAME}-${VERSION}-${MODE}-${OS_CODENAME}-${ARCH}-${OPT_HASH}.tar.gz"
+BASE_TMP="/var/tmp/adt-cache"
+WORK_DIR="${BASE_TMP}/${NAME}-${VERSION}-$$"
+CACHED_TAR="${BASE_TMP}/${ARTIFACT_KEY}"
+LOCK_FILE="${BASE_TMP}/${ARTIFACT_KEY}.lock"
+
+/bin/mkdir -p "${BASE_TMP}" "${WORK_DIR}"
+
+cleanup() {
+    /bin/rm -rf "${WORK_DIR}" "${CACHED_TAR}" "${CACHED_TAR}.tmp"
+}
+trap cleanup EXIT INT TERM
+
+exec 9>"${LOCK_FILE}"
+/usr/bin/flock -x 9
+
+# 1. Ensure distributed S3 cache bucket exists across configured regions
+${DATASTORE_OPS}/MountDatastore.sh "${CACHE_BUCKET}" "distributed"
+
+# 2. Attempt pull from local region S3 bucket
+${DATASTORE_OPS}/GetFromDatastore.sh "${CACHE_BUCKET}/${ARTIFACT_KEY}" "${BASE_TMP}" "local" || true
+
+# Validate archive integrity if present
+if [ -f "${CACHED_TAR}" ] && ! /bin/gzip -t "${CACHED_TAR}" 2>/dev/null; then
+    printf '%s\n' "WARN: Corrupt cached archive ${ARTIFACT_KEY}; rebuilding..." >&2
+    /bin/rm -f "${CACHED_TAR}"
+fi
+
+# 3. Cache Miss: Fetch/build/download from upstream and populate distributed S3
+if [ ! -f "${CACHED_TAR}" ]; then
+    case "${MODE}" in
+        binary)
+            RAW_FILE="${WORK_DIR}/download"
+            /usr/bin/wget --tries=3 --timeout=30 -q -O "${RAW_FILE}" "${TARGET}"
+
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${RAW_FILE}" | /usr/bin/sha256sum -c -
+            fi
+
+            FILE_TYPE=$(/usr/bin/file -b "${RAW_FILE}")
+            case "${FILE_TYPE}" in
+                *"gzip compressed"*)
+                    /bin/tar -xzf "${RAW_FILE}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW_FILE}"
+                    ;;
+                *"XZ compressed"*)
+                    /bin/tar -xJf "${RAW_FILE}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW_FILE}"
+                    ;;
+                *)
+                    /bin/mv "${RAW_FILE}" "${WORK_DIR}/${NAME}"
+                    /bin/chmod 0755 "${WORK_DIR}/${NAME}"
+                    ;;
+            esac
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${WORK_DIR}" .
+            ;;
+
+        source)
+            SRC_TAR="${WORK_DIR}/src.tar.gz"
+            STAGE_DIR="${WORK_DIR}/stage"
+            SRC_DIR="${WORK_DIR}/src"
+            /bin/mkdir -p "${STAGE_DIR}" "${SRC_DIR}"
+
+            /usr/bin/wget --tries=3 --timeout=30 -q -O "${SRC_TAR}" "${TARGET}"
+
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${SRC_TAR}" | /usr/bin/sha256sum -c -
+            fi
+
+            /bin/tar -xf "${SRC_TAR}" -C "${SRC_DIR}" --strip-components=1
+
+            (
+                cd "${SRC_DIR}"
+                export STAGE_DIR SRC_DIR NAME VERSION
+                FIRST_TOKEN=$(printf '%s\n' "${EXTRA}" | /usr/bin/awk '{print $1}')
+
+                if [ -n "${FIRST_TOKEN}" ] && [ -f "${FIRST_TOKEN}" ]; then
+                    /bin/chmod 0755 "${FIRST_TOKEN}"
+                    CUSTOM_ARGS=$(printf '%s\n' "${EXTRA}" | /usr/bin/cut -s -d' ' -f2-)
+                    eval "\"${FIRST_TOKEN}\" ${CUSTOM_ARGS}"
+                elif [ -n "${EXTRA}" ]; then
+                    eval "${EXTRA}"
+                else
+                    ./configure --prefix=/usr/local
+                    /usr/bin/make -j"$(/usr/bin/nproc)"
+                    /usr/bin/make DESTDIR="${STAGE_DIR}" install
+                fi
+            )
+
+            if [ -z "$(/bin/ls -A "${STAGE_DIR}")" ]; then
+                printf '%s\n' "ERROR: Source build produced empty STAGE_DIR for ${NAME}" >&2
+                exit 1
+            fi
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${STAGE_DIR}" .
+            ;;
+
+        package)
+            PKG_BUNDLE_DIR="${WORK_DIR}/bundle"
+            DEB_DIR="${PKG_BUNDLE_DIR}/debs"
+            APT_META_DIR="${PKG_BUNDLE_DIR}/apt-meta"
+            /bin/mkdir -p "${DEB_DIR}/partial" "${APT_META_DIR}/sources.list.d" "${APT_META_DIR}/keyrings"
+
+            # Configure custom repository (e.g. Ondrej/Sury PHP) before nala update
+            if [ -n "${REPO_SCRIPT}" ]; then
+                if [ ! -f "${REPO_SCRIPT}" ]; then
+                    printf '%s\n' "ERROR: Custom repo script not found: ${REPO_SCRIPT}" >&2
+                    exit 1
+                fi
+                /bin/chmod 0755 "${REPO_SCRIPT}"
+                "${REPO_SCRIPT}"
+            fi
+
+            /usr/bin/nala update
+            # Word-splitting on ${TARGET} is intentional for multi-package bundles
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y --download-only \
+                -o Dir::Cache::archives="${DEB_DIR}" ${TARGET}
+
+            # Snapshot custom repo sources + keyrings into the cached bundle as well
+            /bin/cp -a /etc/apt/sources.list.d/. "${APT_META_DIR}/sources.list.d/" 2>/dev/null || true
+            /bin/cp -a /etc/apt/keyrings/. "${APT_META_DIR}/keyrings/" 2>/dev/null || true
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${PKG_BUNDLE_DIR}" \
+                --exclude='debs/lock' --exclude='debs/partial' .
+            ;;
+
+        *)
+            printf '%s\n' "ERROR: Unknown mode '${MODE}'. Use binary, source, or package." >&2
+            exit 1
+            ;;
+    esac
+
+    # Atomically finalize archive and push to all configured S3 regions
+    /bin/mv "${CACHED_TAR}.tmp" "${CACHED_TAR}"
+    ${DATASTORE_OPS}/PutToDatastore.sh "${CACHE_BUCKET}" "${CACHED_TAR}" "root" "distributed" "no"
+fi
+
+# 4. Cache Hit (or freshly populated cache): Install onto target system
+case "${MODE}" in
+    binary)
+        /bin/mkdir -p "${INSTALL_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DIR}"
+        ;;
+
+    source)
+        /bin/tar -xzf "${CACHED_TAR}" -C /
+        /sbin/ldconfig || true
+        ;;
+
+    package)
+        EXTRACT_DIR="${WORK_DIR}/extract"
+        /bin/mkdir -p "${EXTRACT_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${EXTRACT_DIR}"
+
+        # Restore cached third-party repo definitions & GPG keyrings if present
+        if [ -d "${EXTRACT_DIR}/apt-meta/keyrings" ]; then
+            /bin/mkdir -p /etc/apt/keyrings
+            /bin/cp -an "${EXTRACT_DIR}/apt-meta/keyrings/." /etc/apt/keyrings/ 2>/dev/null || true
+        fi
+        if [ -d "${EXTRACT_DIR}/apt-meta/sources.list.d" ]; then
+            /bin/mkdir -p /etc/apt/sources.list.d
+            /bin/cp -an "${EXTRACT_DIR}/apt-meta/sources.list.d/." /etc/apt/sources.list.d/ 2>/dev/null || true
+        fi
+
+        # Fast offline install from cached .debs; live nala fallback if base image drifted
+        if ! /usr/bin/nala install -y "${EXTRACT_DIR}/debs"/*.deb 2>/dev/null; then
+            printf '%s\n' "WARN: Offline .deb install failed; falling back to live nala..." >&2
+            /usr/bin/nala update
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y ${TARGET}
+        fi
+
+        if [ "${HOLD_MODE}" = "hold" ] || [ "${HOLD_MODE}" = "hold-pinned" ]; then
+            for pkg_spec in ${TARGET}; do
+                case "${pkg_spec}" in
+                    *=*)
+Use code with caution.
+pkg_name=$(printf '%s' "${pkg_spec}" | /usr/bin/cut -d'=' -f1)
+/usr/bin/apt-mark hold "${pkg_name}"
+;;
+*)
+if [ "${HOLD_MODE}" = "hold" ]; then
+/usr/bin/apt-mark hold "${pkg_spec}"
+fi
+;;
+esac
+done
+fi
+;;
+esac
+
+---
+
+### 3. Example Custom Repo Script for PHP (`setup-php-repo.sh`)
+
+Save this in your ADT repository (e.g., `${HOME}/providerscripts/webserver/setup-php-repo.sh`). It works cleanly across both **Ubuntu** (Ondřej PPA) and **Debian** (Sury) without requiring `software-properties-common` (`add-apt-repository`):
+
+```sh
+#!/bin/sh
+set -eu
+
+DISTRO=$(. /etc/os-release && printf '%s' "${ID}")
+CODENAME=$(/usr/bin/lsb_release -cs)
+
+/bin/mkdir -p /etc/apt/keyrings
+
+case "${DISTRO}" in
+    ubuntu)
+        /usr/bin/gpg --batch --yes --dearmor \
+            -o /etc/apt/keyrings/ondrej-php.gpg <<'EOF' || true
+EOF
+        # Fetch Ondrej Launchpad signing key directly
+        /usr/bin/wget -qO- "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C" \
+            | /usr/bin/gpg --batch --yes --dearmor -o /etc/apt/keyrings/ondrej-php.gpg
+        printf '%s\n' "deb [signed-by=/etc/apt/keyrings/ondrej-php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu ${CODENAME} main" \
+            > /etc/apt/sources.list.d/ondrej-php.list
+        ;;
+    debian)
+        /usr/bin/wget -qO /etc/apt/keyrings/sury-php.gpg https://packages.sury.org/php/apt.gpg
+        printf '%s\n' "deb [signed-by=/etc/apt/keyrings/sury-php.gpg] https://packages.sury.org/php/ ${CODENAME} main" \
+            > /etc/apt/sources.list.d/sury-php.list
+        ;;
+    *)
+        printf '%s\n' "ERROR: Unsupported distro for PHP repo setup: ${DISTRO}" >&2
+        exit 1
+        ;;
+esac
+
+4. Calling It for a Full PHP 8.3 (or 8.4) Stack
+
+sh
+INSTALLER="${HOME}/providerscripts/utilities/InstallWithS3Cache.sh"
+PHP_REPO_SCRIPT="${HOME}/providerscripts/webserver/setup-php-repo.sh"
+
+# Installs PHP 8.3 + all extensions from Ondrej/Sury in ONE cached S3 tarball
+# Pass "hold-pinned:${PHP_REPO_SCRIPT}" if you pin exact patch versions with '='
+"${INSTALLER}" \
+    "package" \
+    "php8.3-stack" \
+    "8.3" \
+    "php8.3-fpm php8.3-cli php8.3-common php8.3-mysql php8.3-curl php8.3-gd php8.3-mbstring php8.3-xml php8.3-zip php8.3-intl php8.3-bcmath php8.3-opcache" \
+    "${PHP_REPO_SCRIPT}"
+Use code with caution.
+• First node (cache miss): Adds the Ondřej/Sury GPG key and repo, downloads every php8.3-* .deb + dependency via nala, bundles the .debs and the repo config/keyring into one .tar.gz, and uploads to distributed S3.
+• Every subsequent node (cache hit): Pulls the tarball from local S3, restores the repo/keyring, and installs all PHP 8.3 packages offline with nala in seconds—completely immune to Launchpad or Sury PPA rate limits or outages.
+If you'd like, I can also show you how to:
+• Add a companion post-install hook (e.g., to configure php-fpm pools or enable systemd services after extraction)
+• Wire this directly into ADT's software.dat / PHP_VERSION deployment variables
+Let me know if you want to add either next.
+
+
+
+
+
+source code build
+
 The simplest generic approach in the Wintersys Agile Deployment Toolkit (ADT) is to create a single reusable POSIX wrapper script—for example, ${HOME}/providerscripts/utilities/InstallWithS3Cache.sh—that handles all three modes (binary, source, and package) via nala, MountDatastore.sh, GetFromDatastore.sh, and PutToDatastore.sh.
 Every artifact is automatically keyed by OS codename and CPU architecture (${OS_CODENAME}-${ARCH}) so compiled binaries and .deb bundles never collide across different Ubuntu/Debian releases or ARM/x86 instances.
 
