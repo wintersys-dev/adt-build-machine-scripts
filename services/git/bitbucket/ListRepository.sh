@@ -2,15 +2,15 @@
 #: Name:        ListRepository.sh
 #: Purpose:     Checks whether a Bitbucket repository is "full", "empty", or "none".
 #: Author:      Peter Winter
-#: Date:        20/11/2026
-#: Version:     1.1
+#: Date:        21/11/2026
+#: Version:     1.2
 #:
-#: Usage:       ListRepository.sh <repository_ownername> <repository_name>
+#: Usage:       ListRepository.sh <repository_name> [repository_ownername]
 #:              ListRepository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] The Bitbucket workspace or repository owner name.
-#:   $2         [Required] The name/slug of the repository to inspect.
+#:   $1         [Required] The name/slug of the repository to inspect.
+#:   $2         [Optional] The Bitbucket workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME Resolved automatically from /home/buildhome.dat
@@ -18,6 +18,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/configuration/software.dat
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
 #:   - ${BUILD_HOME}/services/git/bitbucket/${orchestration_tool}/list_repository.sh
 #:   - External binaries: awk, cat, cut, echo, grep, tr
 #:
@@ -60,15 +61,21 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-if [ -z "${1}" ] || [ -z "${2}" ]
+if [ -z "${1}" ]
 then
-        status "Error: Repository owner name and repository name arguments are required."
-        status "Usage: $0 <repository_ownername> <repository_name>"
+        status "Error: Repository name argument is required."
+        status "Usage: $0 <repository_name> [repository_ownername]"
         exit 1
 fi
 
-repository_ownername="${1}"
-repository_name="${2}"
+repository_name="${1}"
+repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
+
+if [ -z "${repository_ownername}" ]
+then
+        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
+        exit 1
+fi
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
@@ -94,7 +101,7 @@ then
 fi
 
 set +e
-output="$(${worker_script} "${repository_ownername}" "${repository_name}")"
+output="$("${worker_script}" "${repository_ownername}" "${repository_name}")"
 worker_status="$?"
 set -e
 
@@ -118,4 +125,5 @@ else
 fi
 
 exit 0
+
 
