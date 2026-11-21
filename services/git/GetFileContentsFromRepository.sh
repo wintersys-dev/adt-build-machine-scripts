@@ -1,12 +1,12 @@
 #!/bin/sh
-#: Name:        GetFile.sh
+#: Name:       GetFileContentsFromRepository.sh
 #: Purpose:     Orchestrates single-file retrieval across configured Git providers.
 #: Author:      Peter Winter
 #: Date:        21/11/2026
 #: Version:     1.0
 #:
-#: Usage:       GetFile.sh <repository_name> <file_path> [repository_provider] [repository_ownername] [branch_or_ref]
-#:              GetFile.sh [-h|--help]
+#: Usage:       GetFileContentsFromRepository.sh <repository_name> <file_path> [repository_provider] [repository_ownername] [branch_or_ref]
+#:              GetFileContentsFromRepository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the repository to inspect.
