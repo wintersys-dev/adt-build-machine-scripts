@@ -5,12 +5,12 @@
 #: Date:        21/11/2026
 #: Version:     1.0
 #:
-#: Usage:       ListRepository.sh <repository_name> [repository_ownername]
+#: Usage:       ListRepository.sh <repository_name> <repository_ownername>
 #:              ListRepository.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the repository to inspect.
-#:   $2         [Optional] The Github workspace or repository owner name.
+#:   $2         [Required] The Github workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -63,22 +63,15 @@ status()
         "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
 }
 
-# Input validation
 if [ -z "${1}" ]
 then
-        status "Error: Repository name argument is required."
-        status "Usage: $0 <repository_name> [repository_ownername]"
+        status "Error: Repository name and repository ownername arguments are required."
+        status "Usage: $0 <repository_name> <repository_ownername>"
         exit 1
 fi
 
 repository_name="${1}"
-repository_ownername="${2:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_OWNER')}"
-
-if [ -z "${repository_ownername}" ]
-then
-        status "Error: Could not resolve repository_ownername from arguments or toolkit configuration."
-        exit 1
-fi
+repository_ownername="${2}"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
