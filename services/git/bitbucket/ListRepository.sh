@@ -101,7 +101,7 @@ then
 fi
 
 set +e
-output="$("${worker_script}" "${repository_ownername}" "${repository_name}")"
+output="$("${worker_script}" "${repository_name}" "${repository_ownername}")"
 worker_status="$?"
 set -e
 
