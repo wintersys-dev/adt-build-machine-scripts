@@ -3,7 +3,7 @@
 #: Purpose:     Downloads and extracts a Bitbucket repository branch archive (public first, authenticated fallback).
 #: Author:      Peter Winter
 #: Date:        20/11/2026
-#: Version:     1.3
+#: Version:     1.0
 #: 
 #: Usage:       clone_repository.sh <repository_name> <branch> <destination_directory> <repository_ownername>  
 #:              clone_repository.sh [-h|--help]
@@ -45,7 +45,6 @@
 # You should have received a copy of the GNU General Public License
 # along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
 ####################################################################################
-set -x
 set -e
 
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
