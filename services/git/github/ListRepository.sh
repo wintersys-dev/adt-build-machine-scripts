@@ -3,7 +3,7 @@
 #: Purpose:     Checks whether a Github repository is "full", "empty", or "none".
 #: Author:      Peter Winter
 #: Date:        21/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       ListRepository.sh <repository_name> [repository_ownername]
 #:              ListRepository.sh [-h|--help]
