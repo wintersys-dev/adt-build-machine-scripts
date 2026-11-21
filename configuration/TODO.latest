@@ -28,6 +28,9 @@ Monday
 BUILDOS and BUILDOS_VERSION IS ONLY NEEDED FOR SPINNING UP MACHINES everywhere else it should be done this way
 replace BUILDOS and BUILDOS_VERSION with this /etc/os-release
 
+BUILDOS_VERSION="$(. /etc/os-release && printf '%s' "${VERSION_ID}")"
+BUILDOS="$(. /etc/os-release && printf '%s' "${ID}")"
+
 -----------------------
 
 Here is your complete, ready-to-use adt-source-cache.sh updated with the cleaner /etc/os-release detection snippet (and the stray blank line in the find command fixed):
