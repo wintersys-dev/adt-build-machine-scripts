@@ -5,13 +5,13 @@
 #: Date:        18/11/2026
 #: Version:     1.0
 #:
-#: Usage:       CloneRepository.sh <repository_ownername> <repository_name> <repository_branch> <destination_directory>
+#: Usage:       CloneRepository.sh <repository_name> <branch> <destination_directory> <repository_ownername>
 #:
 #: Parameters:
-#:   $1         [Required] The Github workspace or repository owner name.
-#:   $2         [Required] The name/slug of the repository to clone.
-#:   $3         [Required] The target branch name to clone.
-#:   $4         [Required] The local destination directory path.
+#:   $1         [Required] The name/slug of the repository to clone.
+#:   $2         [Required] The target branch name to clone.
+#:   $3         [Required] The local destination directory path.
+#:   $4         [Required] The Github workspace or repository owner name.
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -67,14 +67,14 @@ status()
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] 
 then
         status "Error: Missing required arguments." 
-        status "Usage: $0 <repository_ownername> <repository_name> <repository_branch> <destination_directory>" 
+        status "Usage: $0 <repository_name> <branch> <destination_directory> <repository_ownername>" 
         exit 1
 fi
 
-repository_ownername="${1}"
-repository_name="${2}"
-repository_branch="${3}"
-destination_directory="${4}"
+repository_name="${1}"
+repository_branch="${2}"
+destination_directory="${3}"
+repository_ownername="${4}"
 
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
@@ -101,7 +101,7 @@ fi
 
 # Temporary disable set -e to evaluate git transaction failures manually
 set +e
-output="$(${worker_script} "${repository_branch}" "${repository_ownername}" "${repository_name}" "${destination_directory}")"
+output="$(${worker_script} "${repository_name}" "${destination_directory}" "${repository_branch}" "${repository_ownername}")"
 clone_status="$?"
 set -e
 
@@ -116,6 +116,7 @@ else
 fi
 
 exit 0
+
 
 
 
