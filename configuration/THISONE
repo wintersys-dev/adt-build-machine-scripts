@@ -1,0 +1,278 @@
+Here is the complete, strictly POSIX-compliant (/bin/sh) production script with all upgrades integrated: multi-package nala bundles, selective hold-pinned / hold support, custom build script overrides with custom options, automatic cache invalidation when package lists or build flags change, SHA256 verification, and atomic S3 uploads.
+
+1. Complete POSIX Script: InstallWithS3Cache.sh
+
+Save this as ${HOME}/providerscripts/utilities/InstallWithS3Cache.sh and run chmod +x on it:
+sh
+#!/bin/sh
+#################################################################################
+# Production POSIX S3 Pull-Through Software Installer for Wintersys ADT
+#
+# Usage:
+#   InstallWithS3Cache.sh <mode> <name> <version> <target> [extra] [install_dir] [sha256]
+#
+# Arguments:
+#   mode        : binary | source | package
+#   name        : Logical software or bundle name (e.g., nginx, webserver-stack)
+#   version     : Version label (e.g., 1.26.2, 2026.11)
+#   target      : Upstream URL (binary/source) OR space-separated packages (package)
+#   extra       : [source] Path to custom build script + args OR inline build commands
+#                 [package] "hold" (lock all) | "hold-pinned" (lock only pkg=ver items)
+#   install_dir : [binary] Target installation directory (default: /usr/local/bin)
+#   sha256      : [binary/source] Optional expected SHA256 checksum of download
+#################################################################################
+
+set -eu
+
+MODE="${1:?ERROR: Mode required (binary|source|package)}"
+NAME="${2:?ERROR: Software name required}"
+VERSION="${3:?ERROR: Version required}"
+TARGET="${4:?ERROR: Target URL or package list required}"
+EXTRA="${5:-}"
+INSTALL_DIR="${6:-/usr/local/bin}"
+EXPECTED_SHA256="${7:-}"
+
+DATASTORE_OPS="${HOME}/services/datastore/operations"
+CACHE_BUCKET="adt-software-cache"
+OS_CODENAME=$(/usr/bin/lsb_release -cs)
+ARCH=$(/usr/bin/dpkg --print-architecture)
+
+# Hash target + build script contents + options so modifying package lists,
+# changing build flags, or editing a custom build script invalidates old caches
+OPT_SIG="${TARGET}:${EXTRA}"
+FIRST_TOKEN=$(printf '%s\n' "${EXTRA}" | /usr/bin/awk '{print $1}')
+if [ -n "${FIRST_TOKEN}" ] && [ -f "${FIRST_TOKEN}" ]; then
+    SCRIPT_HASH=$(/usr/bin/sha256sum "${FIRST_TOKEN}" | /usr/bin/awk '{print $1}')
+    OPT_SIG="${SCRIPT_HASH}:${OPT_SIG}"
+fi
+OPT_HASH=$(printf '%s' "${OPT_SIG}" | /usr/bin/sha256sum | /usr/bin/cut -c1-8)
+
+ARTIFACT_KEY="${NAME}-${VERSION}-${MODE}-${OS_CODENAME}-${ARCH}-${OPT_HASH}.tar.gz"
+BASE_TMP="/var/tmp/adt-cache"
+WORK_DIR="${BASE_TMP}/${NAME}-${VERSION}-$$"
+CACHED_TAR="${BASE_TMP}/${ARTIFACT_KEY}"
+LOCK_FILE="${BASE_TMP}/${ARTIFACT_KEY}.lock"
+
+/bin/mkdir -p "${BASE_TMP}" "${WORK_DIR}"
+
+cleanup() {
+    /bin/rm -rf "${WORK_DIR}" "${CACHED_TAR}" "${CACHED_TAR}.tmp"
+}
+trap cleanup EXIT INT TERM
+
+# Serialize concurrent runs for the same artifact on this node
+exec 9>"${LOCK_FILE}"
+/usr/bin/flock -x 9
+
+# 1. Ensure distributed S3 cache bucket exists across configured regions
+${DATASTORE_OPS}/MountDatastore.sh "${CACHE_BUCKET}" "distributed"
+
+# 2. Attempt pull from local region S3 bucket
+${DATASTORE_OPS}/GetFromDatastore.sh "${CACHE_BUCKET}/${ARTIFACT_KEY}" "${BASE_TMP}" "local" || true
+
+# Validate archive integrity if present
+if [ -f "${CACHED_TAR}" ] && ! /bin/gzip -t "${CACHED_TAR}" 2>/dev/null; then
+    printf '%s\n' "WARN: Corrupt cached archive ${ARTIFACT_KEY}; rebuilding..." >&2
+    /bin/rm -f "${CACHED_TAR}"
+fi
+
+# 3. Cache Miss: Fetch/build/download from upstream and populate distributed S3
+if [ ! -f "${CACHED_TAR}" ]; then
+    case "${MODE}" in
+        binary)
+            RAW_FILE="${WORK_DIR}/download"
+            /usr/bin/wget --tries=3 --timeout=30 -q -O "${RAW_FILE}" "${TARGET}"
+
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${RAW_FILE}" | /usr/bin/sha256sum -c -
+            fi
+
+            FILE_TYPE=$(/usr/bin/file -b "${RAW_FILE}")
+            case "${FILE_TYPE}" in
+                *"gzip compressed"*)
+                    /bin/tar -xzf "${RAW_FILE}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW_FILE}"
+                    ;;
+                *"XZ compressed"*)
+                    /bin/tar -xJf "${RAW_FILE}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW_FILE}"
+                    ;;
+                *)
+                    /bin/mv "${RAW_FILE}" "${WORK_DIR}/${NAME}"
+                    /bin/chmod 0755 "${WORK_DIR}/${NAME}"
+                    ;;
+            esac
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${WORK_DIR}" .
+            ;;
+
+        source)
+            SRC_TAR="${WORK_DIR}/src.tar.gz"
+            STAGE_DIR="${WORK_DIR}/stage"
+            SRC_DIR="${WORK_DIR}/src"
+            /bin/mkdir -p "${STAGE_DIR}" "${SRC_DIR}"
+
+            /usr/bin/wget --tries=3 --timeout=30 -q -O "${SRC_TAR}" "${TARGET}"
+
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${SRC_TAR}" | /usr/bin/sha256sum -c -
+            fi
+
+            /bin/tar -xf "${SRC_TAR}" -C "${SRC_DIR}" --strip-components=1
+
+            (
+                cd "${SRC_DIR}"
+                export STAGE_DIR SRC_DIR NAME VERSION
+
+                if [ -n "${FIRST_TOKEN}" ] && [ -f "${FIRST_TOKEN}" ]; then
+                    /bin/chmod 0755 "${FIRST_TOKEN}"
+                    CUSTOM_ARGS=$(printf '%s\n' "${EXTRA}" | /usr/bin/cut -s -d' ' -f2-)
+                    # Execute custom build script with custom options
+                    eval "\"${FIRST_TOKEN}\" ${CUSTOM_ARGS}"
+                elif [ -n "${EXTRA}" ]; then
+                    # Execute inline POSIX build commands
+                    eval "${EXTRA}"
+                else
+                    # Default standard autotools build
+                    ./configure --prefix=/usr/local
+                    /usr/bin/make -j"$(/usr/bin/nproc)"
+                    /usr/bin/make DESTDIR="${STAGE_DIR}" install
+                fi
+            )
+
+            if [ -z "$(/bin/ls -A "${STAGE_DIR}")" ]; then
+                printf '%s\n' "ERROR: Source build produced empty STAGE_DIR for ${NAME}" >&2
+                exit 1
+            fi
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${STAGE_DIR}" .
+            ;;
+
+        package)
+            DEB_DIR="${WORK_DIR}/debs"
+            /bin/mkdir -p "${DEB_DIR}/partial"
+            /usr/bin/nala update
+            # Word-splitting on ${TARGET} is intentional to pass multiple packages to nala
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y --download-only \
+                -o Dir::Cache::archives="${DEB_DIR}" ${TARGET}
+
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${DEB_DIR}" --exclude='lock' --exclude='partial' .
+            ;;
+
+        *)
+            printf '%s\n' "ERROR: Unknown mode '${MODE}'. Use binary, source, or package." >&2
+            exit 1
+            ;;
+    esac
+
+    # Atomically finalize archive and push to all configured S3 regions
+    /bin/mv "${CACHED_TAR}.tmp" "${CACHED_TAR}"
+    ${DATASTORE_OPS}/PutToDatastore.sh "${CACHE_BUCKET}" "${CACHED_TAR}" "root" "distributed" "no"
+fi
+
+# 4. Cache Hit (or freshly populated cache): Install onto target system
+case "${MODE}" in
+    binary)
+        /bin/mkdir -p "${INSTALL_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DIR}"
+        ;;
+
+    source)
+        /bin/tar -xzf "${CACHED_TAR}" -C /
+        /sbin/ldconfig || true
+        ;;
+
+    package)
+        INSTALL_DEB_DIR="${WORK_DIR}/install-debs"
+        /bin/mkdir -p "${INSTALL_DEB_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DEB_DIR}"
+
+        if ! /usr/bin/nala install -y "${INSTALL_DEB_DIR}"/*.deb 2>/dev/null; then
+            printf '%s\n' "WARN: Offline .deb install failed; falling back to live nala..." >&2
+            /usr/bin/nala update
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y ${TARGET}
+        fi
+
+        if [ "${EXTRA}" = "hold" ] || [ "${EXTRA}" = "hold-pinned" ]; then
+            for pkg_spec in ${TARGET}; do
+                case "${pkg_spec}" in
+                    *=*)
+                        pkg_name=$(printf '%s' "${pkg_spec}" | /usr/bin/cut -d'=' -f1)
+                        /usr/bin/apt-mark hold "${pkg_name}"
+                        ;;
+                    *)
+                        if [ "${EXTRA}" = "hold" ]; then
+                            /usr/bin/apt-mark hold "${pkg_spec}"
+                        fi
+                        ;;
+                esac
+            done
+        fi
+        ;;
+esac
+Use code with caution.
+
+2. Custom Source Build Script Example (build-nginx-custom.sh)
+
+sh
+#!/bin/sh
+set -eu
+
+# Provided automatically by InstallWithS3Cache.sh:
+#   STAGE_DIR : Staging root directory (use DESTDIR="${STAGE_DIR}" on make install)
+#   SRC_DIR   : Unpacked source directory (current working directory)
+#   NAME      : Software name
+#   VERSION   : Software version
+#   $@        : Custom build options passed after the script path
+
+printf '%s\n' "Building ${NAME} ${VERSION} with custom options: $*"
+
+./configure \
+    --prefix=/usr/local/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --conf-path=/etc/nginx/nginx.conf \
+    --with-http_ssl_module \
+    --with-http_v2_module \
+    --with-http_realip_module \
+    "$@"
+
+/usr/bin/make -j"$(/usr/bin/nproc)"
+/usr/bin/make DESTDIR="${STAGE_DIR}" install
+Use code with caution.
+
+3. Complete Usage Examples
+
+sh
+INSTALLER="${HOME}/providerscripts/utilities/InstallWithS3Cache.sh"
+
+# 1. Multi-package bundle via nala (locks ONLY nginx=1.24.0-2ubuntu7, leaves jq/curl/unzip open to security patches)
+"${INSTALLER}" \
+    "package" \
+    "webserver-base-pkgs" \
+    "1.0" \
+    "nginx=1.24.0-2ubuntu7 jq curl unzip" \
+    "hold-pinned"
+
+# 2. Custom source build script with custom flags
+"${INSTALLER}" \
+    "source" \
+    "nginx" \
+    "1.26.2" \
+    "https://nginx.org" \
+    "${HOME}/providerscripts/webserver/build-nginx-custom.sh --with-http_stub_status_module --with-threads"
+
+# 3. Pre-compiled binary release
+"${INSTALLER}" \
+    "binary" \
+    "s5cmd" \
+    "2.2.2" \
+    "https://github.com" \
+    "" \
+    "/usr/local/bin"
+Use code with caution.
+If you'd like, I can also show you how to:
+• Add a companion post-install hook (e.g., running a postinstall.sh script after extracting cached source builds to create system users and enable systemd units)
+• Integrate this directly into ADT's software.dat configuration flow
+Let me know if you want to explore either next.
