@@ -1,7 +1,33 @@
-In the git scripts work out which parameters should be option (in other words, they can be defined in the template and update them)
+
+Saturday Morning
+In the git scripts on the build machine work out which parameters should be options (in other words, they can be defined in the template and update them)
+
+
+Saturday Evening
+Retest all the git scripts on the build machine
+for gitlab github and bitbucket
+1. api - List public Clone public List Private clone private
+2. cli - List public clone public list private clone private
+
+Sunday (daytime)
+translate list_repository.sh for api github gitlab and bitbucket to webserver and test
+translate clone_repository.sh for api github gitlab and bitbucket to webserver and test
+
+translate list_repositoy.sh for cli github gitlab and bitbucket to webserver and test
+translate clone_repository.sh for cli github gitlab and bitbucket to webserver and test
+
+Sunday (evening)
+
+copy api list_repository.sh to autoscaler and database from webserver
+copy cli list_repository.sh to autoscaler and database from webserver
+copy api clone_repository.sh to autoscaler and database from webserver
+copy cli clone_repository.sh to autoscaler and database from webserver
+
+Monday
 
 replace BUILDOS and BUILDOS_VERSION with this /etc/os-release
 
+-----------------------
 
 Here is your complete, ready-to-use adt-source-cache.sh updated with the cleaner /etc/os-release detection snippet (and the stray blank line in the find command fixed):
 sh
