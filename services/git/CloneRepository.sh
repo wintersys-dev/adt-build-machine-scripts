@@ -5,15 +5,16 @@
 #: Date:        18/11/2026
 #: Version:     1.0
 #:
-#: Usage:       CloneRepository.sh <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>
+#: Usage:       CloneRepository.sh  <repository_name> <repository_branch> <destination_directory> [repository_provider] [repository_ownername]
 #:              CloneRepository.sh [-h|--help]
 #:
 #: Parameters:
-#:   $1         [Required] The Git provider name (e.g. bitbucket, github, gitlab).
-#:   $2         [Required] The workspace or repository owner name.
-#:   $3         [Required] The name/slug of the repository to clone.
-#:   $4         [Required] The target branch name to clone.
-#:   $5         [Required] The local destination directory path.
+#:   $1         [Required] The name/slug of the repository to clone.
+#:   $2         [Required] The target branch name to clone.
+#:   $3         [Required] The local destination directory path.
+#:   $4         [Optional] The Git provider name (e.g. bitbucket, github, gitlab).
+#:   $5         [Optional] The workspace or repository owner name.
+
 #:
 #: Environment:
 #:   BUILD_HOME       Resolved automatically from /home/buildhome.dat
@@ -69,16 +70,16 @@ status()
 # Validate minimum required positional arguments
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ]
 then
-        status "Error: 4 arguments are required with 1 optional argument." 
-        status "Usage: $0 <repository_provider> <repository_ownername> <repository_name> <repository_branch> <destination_directory>" 
+        status "Error: 3 arguments are required with 2 optional argument." 
+        status "Usage: $0  <repository_name> <repository_branch> <destination_directory> [repository_provider] [repository_ownername]" 
         exit 1
 fi
 
-repository_provider="${1:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
-repository_ownername="${2}"
-repository_name="${3}"
-repository_branch="${4}"
-destination_directory="${5}"
+repository_name="${1}"
+repository_branch="${2}"
+destination_directory="${3}"
+repository_provider="${4:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
+repository_ownername="${5:-$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" 'APPLICATION_REPOSITORY_PROVIDER')}"
 
 # Verify provider sub-driver script exists and is executable before delegating
 provider_script="${BUILD_HOME}/services/git/${repository_provider}/CloneRepository.sh"
@@ -97,7 +98,7 @@ fi
 
 # Delegate clone operation to the provider-specific sub-driver
 set +e
-"${provider_script}" "${repository_ownername}" "${repository_name}" "${repository_branch}" "${destination_directory}"
+"${provider_script}" "${repository_name}" "${repository_branch}" "${destination_directory}" "${repository_ownername}"
 exit_code="$?"
 set -e
 
