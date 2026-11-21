@@ -90,7 +90,7 @@ then
         exit 1
 fi
 
-worker_script="${BUILD_HOME}/services/git/github/${orchestration_tool}/get_file.sh"
+worker_script="${BUILD_HOME}/services/git/github/${orchestration_tool}/get_file_contents.sh"
 
 if [ ! -x "${worker_script}" ]
 then
