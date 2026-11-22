@@ -52,7 +52,7 @@ then
 
         if ( [ "${applicationDB}" = "" ] )
         then
-                applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.psql" | /bin/grep 'zzzz' | bin/grep 'CREATE TABLE')
+                applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.psql" | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')
                 if [ "${applicationDB}" = "" ] 
                 then
                         status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
@@ -65,14 +65,13 @@ then
         fi
 
         status "I have found potentially usable ${db_type} database baseline sourcecode in your ${APPLICATION_REPOSITORY_PROVIDER} database repository"
-        status "The build assets have been verified suitable for the build to proceed"
 
         webroot_db_type=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${APPLICATION_BASELINE_SOURCECODE_REPOSITORY}" "dbe.dat")
 
-        if printf '%s\n' "${webroot_db_type}" | grep -qw -- "Maria" || printf '%s\n' "${webroot_db_type}" | grep -qw -- "MySQL" 
+        if printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "Maria" || printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "MySQL" 
         then
                 webroot_db_type="mysql"
-        elif printf '%s\n' "${webroot_db_type}" | grep -qw -- "Postgres" 
+        elif printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "Postgres" 
         then
                 webroot_db_type="postgres"
         else
@@ -87,6 +86,7 @@ then
                 exit 1
         else
                 status "The database type that the webroot repository ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} expects matches with what the database repository ${BASELINE_DB_REPOSITORY} expects"
+                status "The build assets have been verified suitable for the build to proceed"
         fi
 fi
 
@@ -130,10 +130,10 @@ then
 
         webroot_db_type="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz" "hourly" | /usr/bin/tar -xzOf - ./dbe.dat)"
 
-        if printf '%s\n' "${webroot_db_type}" | grep -qw -- "Maria" || printf '%s\n' "${webroot_db_type}" | grep -qw -- "MySQL"
+        if printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "Maria" || printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "MySQL"
         then
                 webroot_db_type="mysql"
-        elif printf '%s\n' "${webroot_db_type}" | grep -qw -- "Postgres"
+        elif printf '%s\n' "${webroot_db_type}" | /bin/grep -qw -- "Postgres"
         then
                 webroot_db_type="postgres"
         else
@@ -147,6 +147,6 @@ then
                 status "The application webroot is expecting ${db_type} and the webroot database is expecting ${webroot_db_type})"
                 exit 1
         else
-                status "The database type that the webroot backup expects matches with what the database backup expects"
+                status "The database type that the webroot backup expects ${webroot_db_type} matches with what the database backup expects ${db_type}"
         fi
 fi
