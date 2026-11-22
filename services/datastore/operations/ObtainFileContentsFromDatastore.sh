@@ -122,7 +122,8 @@ then
         exit 1
 fi
 
-obtain_object_driver="${BUILD_HOME}/services/datastore/operations/${datastore_tool}/ObtainFileFromDatastore.sh"
+obtain_object_driver="${BUILD_HOME}/services/datastore/operations/${datastore_tool}/PerformObtainFileContentsFromDatastore.sh"
+
 if [ ! -f "${obtain_object_driver}" ] || [ ! -x "${obtain_object_driver}" ]
 then
         status "Error: Datastore object retrieval driver missing or not executable at ${obtain_object_driver}"
