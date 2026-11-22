@@ -62,7 +62,7 @@ fi
 # Route status log entries to stderr so stdout remains clean for callers
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
 if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]
