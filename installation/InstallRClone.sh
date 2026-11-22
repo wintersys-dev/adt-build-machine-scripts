@@ -79,7 +79,7 @@ then
                 then
                         ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
                         cd /opt
-						${HOME}/services/git/CloneRepository.sh "github" "rclone" "rclone"
+						${BUILD_HOME}/services/git/CloneRepository.sh "rclone" "master" "." "github" "rclone"
                         cd /opt/rclone
                         /usr/bin/go build
                         /bin/mv /opt/rclone/rclone /usr/bin/rclone
@@ -112,7 +112,7 @@ then
                 then
                         ${BUILD_HOME}/installation/InstallGo.sh ${buildos}
                         cd /opt
-                        ${HOME}/services/git/CloneRepository.sh "github" "rclone" "rclone"
+						${BUILD_HOME}/services/git/CloneRepository.sh "rclone" "master" "." "github" "rclone"
                         cd /opt/rclone
                         /usr/bin/go build
                         /bin/mv /opt/rclone/rclone /usr/bin/rclone
