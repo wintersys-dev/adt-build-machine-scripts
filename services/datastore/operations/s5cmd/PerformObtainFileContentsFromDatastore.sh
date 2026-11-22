@@ -100,7 +100,7 @@ fi
 
 # Retrieve S3 object content directly to stdout via s5cmd
 set +e
-/usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" cat "s3://${file_to_obtain}" 2>/dev/null
+/usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" --log=error cat "s3://${file_to_obtain}" 2>/dev/null
 s5cmd_status=$?
 set -e
 
