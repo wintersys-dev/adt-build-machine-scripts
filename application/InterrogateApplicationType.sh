@@ -25,35 +25,15 @@
 #set -x
 
 status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+        ${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
 }
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
 WEBSITE_NAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_NAME`"
 BUILD_ARCHIVE_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_ARCHIVE_CHOICE`"
 APPLICATION_REPOSITORY_PROVIDER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_REPOSITORY_PROVIDER`"
-APPLICATION_REPOSITORY_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_REPOSITORY_USERNAME`"
-APPLICATION_REPOSITORY_OWNER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_REPOSITORY_OWNER`"
-APPLICATION_REPOSITORY_TOKEN="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_REPOSITORY_TOKEN`"
 APPLICATION_BASELINE_SOURCECODE_REPOSITORY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh APPLICATION_BASELINE_SOURCECODE_REPOSITORY`"
 BASELINE_DB_REPOSITORY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BASELINE_DB_REPOSITORY`"
-
-website_subdomain="`/bin/echo ${WEBSITE_URL} | /usr/bin/awk -F'.' '{print $1}'`"
-interrogation_home="${BUILD_HOME}/interrogation"
-
-if ( [ ! -d ${interrogation_home} ] )
-then
-        /bin/mkdir -p ${interrogation_home}
-fi
-
-if ( [ -d ${interrogation_home} ] )
-then
-        /bin/rm -r ${interrogation_home}/* 1>/dev/null 2>/dev/null
-fi
-
-cd ${interrogation_home}
-
 
 #If we are a basseline check then we expect to be able to find the baseline repository available
 if ( [ "${BUILD_ARCHIVE_CHOICE}" = "baseline" ] )
@@ -67,12 +47,12 @@ then
         else
                 status "I have found potentially usable ${application} webroot baseline sourcecode in your ${APPLICATION_REPOSITORY_PROVIDER} application repository"
         fi
-        
-        applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.sql" | /bin/grep 'zzzz')
+
+        applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.sql" | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')
 
         if ( [ "${applicationDB}" = "" ] )
         then
-                applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.psql" | /bin/grep 'zzzz')
+                applicationDB=$(${BUILD_HOME}/services/git/GetFileContentsFromRepository.sh "${BASELINE_DB_REPOSITORY}" "applicationDB.psql" | /bin/grep 'zzzz' | bin/grep 'CREATE TABLE')
                 if [ "${applicationDB}" = "" ] 
                 then
                         status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
@@ -110,55 +90,63 @@ then
         fi
 fi
 
-#If we are a temporal build, check then we expect to be able to find a backup in the datastore
-periodicity=""
 if ( [ "${BUILD_ARCHIVE_CHOICE}" != "baseline" ] && [ "${BUILD_ARCHIVE_CHOICE}" != "virgin" ] )
 then
-        datastorebucket="0"
-        datastoredbbucket="0"
-        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz" "." "${BUILD_ARCHIVE_CHOICE}"
-        ${BUILD_HOME}/services/datastore/operations/GetFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "." "${BUILD_ARCHIVE_CHOICE}"
-        archive="${interrogation_home}/applicationsourcecode.tar.gz"
-        archivedb="${interrogation_home}/${WEBSITE_NAME}-DB-backup.tar.gz"
-
-        if ( [  -f ${archive} ] )
+        application="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz" "hourly" | /usr/bin/tar -xzOf - ./dba.dat)"
+        if ( [ "${application}" = "" ] )
         then
-                status "I have found potentially usable backup webroot sourcecode in your datastore. The build can proceed"
-                status ""
-                datastorebucket="1"
+                status "Sorry, could not find the application type from a webroot backup in your datastore when I was expecting to, will have to exit..."
+                exit 1
         else
-                status "Did not find candidate sourcecode in your datastore"
-                /bin/touch /tmp/END_IT_ALL
+                status "I have found potentially usable ${application} webroot backup in your provided application datastore"
         fi
 
-        if ( [  -f ${archivedb} ] )
+        set -x
+
+        applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')"
+        if ( [ "${applicationDB}" = "" ] )
         then
-                status "I have found potentially usable backup db dump in your datastore. The build can proceed"
-                status ""
-                datastoredbbucket="1"
+                applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')" 
+                if [ "${applicationDB}" = "" ]
+                then
+                        status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
+                        exit 1
+                else
+                        db_type="postgres"
+                fi
+                if [ "${applicationDB}" = "" ]
+                then
+                        status "Sorry, could not find the application database in your datastore when I was expecting to, will have to exit..."
+                        exit 1
+                else
+                        db_type="postgres"
+                fi
         else
-                status "Notice: did not find candidate db sourcecode in your datastore"
-                status "Press <enter> to acknowledge and continue, otherwise, ctrl-c to exit"
-                read x
+                db_type="mysql"
+        fi
+
+        status "I have found potentially usable ${db_type} database baseline sourcecode in your ${APPLICATION_REPOSITORY_PROVIDER} database repository"
+        status "The build assets have been verified suitable for the build to proceed"
+
+        webroot_db_type="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-webroot" "applicationsourcecode.tar.gz" "hourly" | /usr/bin/tar -xzOf - ./dbe.dat)"
+
+        if printf '%s\n' "${webroot_db_type}" | grep -qw -- "Maria" || printf '%s\n' "${webroot_db_type}" | grep -qw -- "MySQL"
+        then
+                webroot_db_type="mysql"
+        elif printf '%s\n' "${webroot_db_type}" | grep -qw -- "Postgres"
+        then
+                webroot_db_type="postgres"
+        else
+                status "Could not establish application database type from repository sourcecode"
+                exit 1
+        fi
+
+        if ( [ "${db_type}" != "${webroot_db_type}" ] )
+        then
+                status "Mismatch detected between the database type the application webroot thinks it is and what the application database repository thinks it is"
+                status "The application webroot is expecting ${db_type} and the webroot database is expecting ${webroot_db_type})"
+                exit 1
+        else
+                status "The database type that the webroot backup expects matches with what the database backup expects"
         fi
 fi
-
-#If we successfully have found the a repository for our baseline then have a go at finding which application it is by baseline
-#if ( [ "${gitrepo}" = "1" ] )
-#then
-#        export REPOSITORY_TOKEN="${APPLICATION_REPOSITORY_TOKEN}"
-#        ${BUILD_HOME}/services/git/CloneRepository.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${APPLICATION_BASELINE_SOURCECODE_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME} 
-#        ${BUILD_HOME}/services/git/CloneRepository.sh ${APPLICATION_REPOSITORY_PROVIDER} ${APPLICATION_REPOSITORY_OWNER} ${BASELINE_DB_REPOSITORY} ${APPLICATION_REPOSITORY_USERNAME}
-#        unset REPOSITORY_TOKEN
-#        ${BUILD_HOME}/application/WhichApplicationByGitAndBaseline.sh
-#fi
-
-#If we successfully have found the a backup for our temporal backup then have a go at finding which application it is by backup
-if ( [ "${datastorebucket}" = "1" ] )
-then
-        /bin/tar xvfz ${archive} -C ${interrogation_home}
-        /bin/tar xvfz ${archivedb} -C ${interrogation_home}
-        ${BUILD_HOME}/application/WhichApplicationByDatastoreAndBackup.sh
-fi
-
-cd ${BUILD_HOME}
