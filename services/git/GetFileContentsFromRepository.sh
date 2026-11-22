@@ -65,7 +65,7 @@ fi
 # Route status log entries to the centralized logging utility on stderr
 status()
 {
-        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}" 2>/dev/null >&2
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
 }
 
 # Validate minimum required positional arguments
