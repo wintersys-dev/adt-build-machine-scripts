@@ -100,7 +100,7 @@ fi
 
 # Retrieve S3 object content directly to stdout via s3cmd
 set +e
-/usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" get "s3://${file_to_obtain}" - 2>/dev/null
+/usr/bin/s3cmd --config="${cfg_file}" --host="https://${host_base}" --quiet get "s3://${file_to_obtain}" - 2>/dev/null
 s3cmd_status=$?
 set -e
 
