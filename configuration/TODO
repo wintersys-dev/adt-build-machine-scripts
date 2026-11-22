@@ -1,7 +1,13 @@
+This week
+
 1. Test the new Obtain File From Datastore and complete the interrogation script and remove the Which scripts
 2. retest all the git scripts on the build machine and when happy migrate them to the webserver and test them on the webserver
+End of Monday
 3. Test that a baselined application can be cloned and installed once the git scripts are up to date on the websever
 4. test that the other 3rd party applications such as apache and whatnot that use CloneRepository.sh work correctly with the new git approach
+End of Wednesday
 5. When happy update the git scripts on the database and the autoscaler
 6 test the installation of a baselined repository again with the database scripts having been updated
+End of Thursday
 7 retest and review all the api and cli scripts that I have updated including the autoscaler ones
+End of next week
