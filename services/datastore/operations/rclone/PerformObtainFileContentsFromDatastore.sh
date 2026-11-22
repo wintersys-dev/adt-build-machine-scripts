@@ -107,7 +107,7 @@ fi
 
 # Retrieve S3 object content directly to stdout via rclone
 set +e
-/usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" cat "s3:${file_to_obtain}" 2>/dev/null
+/usr/bin/rclone --config "${cfg_file}" --s3-endpoint "${host_base}" --quiet cat "s3:${file_to_obtain}" 2>/dev/null
 rclone_status=$?
 set -e
 
