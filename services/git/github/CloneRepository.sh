@@ -101,7 +101,7 @@ fi
 
 # Temporary disable set -e to evaluate git transaction failures manually
 set +e
-output="$(${worker_script} "${repository_name}"  "${repository_branch}" "${destination_directory}""${repository_ownername}")"
+output="$(${worker_script} "${repository_name}"  "${repository_branch}" "${destination_directory}" "${repository_ownername}")"
 clone_status="$?"
 set -e
 
