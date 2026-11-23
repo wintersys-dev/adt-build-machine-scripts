@@ -41,6 +41,88 @@ echo () {
 	/bin/echo "${yellow} ${1} ${reset}"
 }
 
+load_template_safely () {
+	tpl="${1}"
+	line_num=0
+
+	while IFS= read -r line || [ -n "${line}" ]
+	do
+		line_num=$((line_num + 1))
+
+		# Strip leading whitespace
+		trimmed="$(/usr/bin/printf '%s' "${line}" | /bin/sed 's/^[[:space:]]*//')"
+
+		# Skip empty lines and comments
+		case "${trimmed}" in
+			""|\#*) continue ;;
+		esac
+
+		# Strip optional leading 'export '
+		trimmed="${trimmed#export }"
+
+		# Ensure line is a valid KEY=VALUE assignment
+		case "${trimmed}" in
+			[A-Za-z_]*=*)
+				key="${trimmed%%=*}"
+				raw_val="${trimmed#*=}"
+				;;
+			*)
+				${log_command} "Security/Syntax error on line ${line_num} of ${tpl}: invalid assignment '${trimmed}'"
+				exit 1
+				;;
+		esac
+
+		# Validate variable name strictly
+		if ! /usr/bin/printf '%s\n' "${key}" | /bin/grep -Eq '^[A-Za-z_][A-Za-z0-9_]*$'
+		then
+			${log_command} "Invalid variable name '${key}' on line ${line_num} of ${tpl}"
+			exit 1
+		fi
+
+		# Reject command substitution $(...) or backticks unless wrapped in single quotes
+		case "${raw_val}" in
+			\'*\')
+				# Single-quoted literal: strip outer single quotes safely
+				val="${raw_val#\'}"
+				val="${val%\'}"
+				case "${val}" in
+					*\'*)
+						${log_command} "Unsafe unescaped single quote on line ${line_num} of ${tpl}"
+						exit 1
+						;;
+				esac
+				;;
+			*)
+				# Reject $(...), backticks, or unquoted command separators (; | & > <)
+				if /usr/bin/printf '%s\n' "${raw_val}" | /bin/grep -Eq '(\$\(|`)'
+				then
+					${log_command} "Security error on line ${line_num} of ${tpl}: command substitution is forbidden in templates"
+					exit 1
+				fi
+
+				case "${raw_val}" in
+					\"*\")
+						val="${raw_val#\"}"
+						val="${val%\"}"
+						;;
+					*)
+						if /usr/bin/printf '%s\n' "${raw_val}" | /bin/grep -Eq '[;|&><[:space:]]'
+						then
+							${log_command} "Syntax/Security error on line ${line_num} of ${tpl}: unquoted special characters or spaces"
+							exit 1
+						fi
+						val="${raw_val}"
+						;;
+				esac
+				;;
+		esac
+
+		# Assign safely without interpreting metacharacters
+		eval "${key}=\${val}"
+		export "${key}"
+	done < "${tpl}"
+}
+
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 quick_specification="${BUILD_HOME}/specifications/quick_specification.dat"
 status_set="0"
@@ -80,7 +162,7 @@ then
 		exit 1
 	fi
 
-	. "${templatefile}"
+	load_template_safely "${templatefile}"
 fi
 # Helper: validate a variable against quick_specification.dat (rejects empty values)
 check_spec () {
