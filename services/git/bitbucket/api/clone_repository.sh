@@ -10,7 +10,7 @@
 #:
 #: Parameters:
 #:   $1         [Required] The name/slug of the repository to download.
-#:   $2         [Required] Target branch name (or "--branch" followed by branch name).
+#:   $2         [Required] Target branch name.
 #:   $3         [Required] Local destination directory for the extracted files.
 #:   $4         [Required] The Bitbucket workspace or repository owner name.
 #:
@@ -20,7 +20,7 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
-#:   - External binaries: cat, curl, cut, echo, grep, gzip, mkdir, mktemp, printf, rm, sed, tar
+#:   - External binaries: cat, curl, cut, echo, grep, gzip, head, mkdir, mktemp, printf, rm, tar
 #:
 #: Exit Codes:
 #:   0          Repository archive downloaded and extracted cleanly
@@ -91,8 +91,8 @@ case "${branch}" in
         */*)
                 branch_api="https://api.bitbucket.org/2.0/repositories/${repository_ownername}/${repository_name}/refs/branches/${branch}"
                 set +e
-                REPOSITORY_TOKEN="$("${HOME}/utilities/config/ExtractConfigValue.sh" 'APPLICATIONREPOSITORYTOKEN' 2>/dev/null)"
-                ATLASSIAN_EMAIL="$("${HOME}/utilities/config/ExtractConfigValue.sh" 'APPLICATIONREPOSITORYEMAIL' 2>/dev/null)"
+                REPOSITORY_TOKEN="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_TOKEN')"
+                ATLASSIAN_EMAIL="$(${BUILD_HOME}/helpers/services/GetVariableValue.sh 'APPLICATION_REPOSITORY_EMAIL')"
                 set -e
 
                 if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ] && [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
@@ -109,7 +109,7 @@ case "${branch}" in
                 target_ref=$(/bin/echo "${branch_json}" | /usr/bin/grep -o '"hash"[[:space:]]*:[[:space:]]*"[0-9a-f]\{40\}"' | /usr/bin/head -n 1 | /usr/bin/cut -d'"' -f4)
                 if [ -z "${target_ref}" ]
                 then
-                        /bin/echo "Error 404: Not Found. Could not resolve branch '${branch}' on Bitbucket." >&2
+                        status "Error 404: Not Found. Could not resolve branch '${branch}' on Bitbucket." >&2
                         exit 404
                 fi
                 archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${target_ref}.tar.gz"
