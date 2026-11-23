@@ -89,9 +89,15 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # URL-encode slashes in owner/project path for GitLab v4 API
-encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr/bin/sed 's/\//%2F/g')"
+#encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr/bin/sed 's/\//%2F/g')"
+#api_base="https://gitlab.com/api/v4"
+#endpoint_url="${api_base}/projects/${encoded_project}/repository/archive.tar.gz?sha=${branch}"
+
+# URL-encode slashes in owner/project path and branch name for GitLab v4 API
+encoded_project="$(/bin/echo "${repository_ownername}/${repository_name}" | /usr/bin/sed 's|/|%2F|g')"
+encoded_branch="$(/bin/echo "${branch}" | /usr/bin/sed 's|/|%2F|g')"
 api_base="https://gitlab.com/api/v4"
-endpoint_url="${api_base}/projects/${encoded_project}/repository/archive.tar.gz?sha=${branch}"
+endpoint_url="${api_base}/projects/${encoded_project}/repository/archive.tar.gz?sha=${encoded_branch}"
 
 # 1. Attempt unauthenticated download first (works for public projects without touching credentials)
 set +e
