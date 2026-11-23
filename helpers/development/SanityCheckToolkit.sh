@@ -185,4 +185,107 @@ do
                 then
                         warn_msg "REPOSITORY_TOKEN is set but never explicitly unset"
                 fi
+                # -----------------------------------------------------------------
+                # 7. Temp File & Cleanup Hygiene
+                # -----------------------------------------------------------------
+                if grep -q 'mktemp' "${script}" && ! grep -q 'trap ' "${script}"
+                then
+                        fail_msg "Uses mktemp without a trap cleanup handler"
+                fi
+
+                # -----------------------------------------------------------------
+                # 8. Curl Network Reliability Checks
+                # -----------------------------------------------------------------
+                if grep -q 'curl ' "${script}" && ! grep -q -- '--connect-timeout' "${script}"
+                then
+                        warn_msg "Calls curl without --connect-timeout (risk of hanging indefinitely)"
+                fi
+
+                # -----------------------------------------------------------------
+                # 9. POSIX Exit Code Range Check (> 255 wraps modulo 256)
+                # -----------------------------------------------------------------
+                if grep -E '^[[:space:]]*exit[[:space:]]+(25[6-9]|2[6-9][0-9]|[3-9][0-9]{2,})' "${script}" >/dev/null 2>&1
+                then
+                        warn_msg "Uses exit code > 255 (wraps modulo 256 in POSIX shells)"
+                fi
+
+                # -----------------------------------------------------------------
+                # 10. Dangerous Unquoted Variable Removal
+                # -----------------------------------------------------------------
+                if grep -E 'rm[[:space:]]+-rf[[:space:]]+["'\'']?\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/?["'\'']?[[:space:]]*$' "${script}" >/dev/null 2>&1
+                then
+                        warn_msg "Potentially dangerous bare 'rm -rf \$VAR' without subpath guard"
+                fi
+
+                # -----------------------------------------------------------------
+                # 11. Toolkit Documentation & Permissions
+                # -----------------------------------------------------------------
+                if [ ! -x "${script}" ]
+                then
+                        warn_msg "File is not marked executable (missing chmod +x)"
+                fi
+
+                for header in '#: Name:' '#: Purpose:' '#: Usage:'
+                do
+                        if ! grep -q "^${header}" "${script}"
+                        then
+                                warn_msg "Missing self-extracting help header: '${header}'"
+                        fi
+                done
+
+        } 2>"${tmp_err}"
+
+        if [ "${file_failed}" -ne 0 ] || [ "${file_warned}" -ne 0 ]
+        then
+                printf '\n%s\n' "${script}"
+                cat "${tmp_err}"
+        fi
+
+        if [ "${file_failed}" -ne 0 ]
+        then
+                total_failed=$((total_failed + 1))
+                printf '%s FAIL\n' "${repo_name}" >> "${tmp_repo_stats}"
+        else
+                printf '%s PASS\n' "${repo_name}" >> "${tmp_repo_stats}"
+        fi
+
+        total_warnings=$((total_warnings + file_warned))
+
+done < "${tmp_list}"
+
+# -----------------------------------------------------------------
+# Per-Repository Summary Breakdown
+# -----------------------------------------------------------------
+printf '\n====================================================================\n'
+printf 'Wintersys Toolkit Lint Summary (Target: %s)\n' "${target_dir}"
+printf '====================================================================\n'
+
+if [ -s "${tmp_repo_stats}" ]
+then
+        awk '
+        {
+                repo = $1
+                status = $2
+                total[repo]++
+                if (status == "FAIL") failed[repo]++
+        }
+        END {
+                for (r in total) {
+                        f = (r in failed) ? failed[r] : 0
+                        p = total[r] - f
+                        printf "  %-38s Total: %3d | Passed: %3d | Failed: %3d\n", r, total[r], p, f
+                }
+        }' "${tmp_repo_stats}" | sort
+fi
+
+printf '--------------------------------------------------------------------\n'
+printf 'Total Scripts Checked: %d | Failed: %d | Warnings: %d\n' "${total_checked}" "${total_failed}" "${total_warnings}"
+printf '====================================================================\n'
+
+if [ "${total_failed}" -ne 0 ]
+then
+        exit 1
+fi
+exit 0
+
 
