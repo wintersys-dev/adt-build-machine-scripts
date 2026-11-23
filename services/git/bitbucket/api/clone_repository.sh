@@ -85,7 +85,41 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
+# If branch contains a '/', resolve it to its commit hash first (Bitbucket /get/ fails on slashes)
+target_ref="${branch}"
+case "${branch}" in
+        */*)
+                branch_api="https://api.bitbucket.org/2.0/repositories/${repository_ownername}/${repository_name}/refs/branches/${branch}"
+                set +e
+                REPOSITORY_TOKEN="$("${HOME}/utilities/config/ExtractConfigValue.sh" 'APPLICATIONREPOSITORYTOKEN' 2>/dev/null)"
+                ATLASSIAN_EMAIL="$("${HOME}/utilities/config/ExtractConfigValue.sh" 'APPLICATIONREPOSITORYEMAIL' 2>/dev/null)"
+                set -e
+
+                if [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ] && [ -n "${ATLASSIAN_EMAIL}" ] && [ "${ATLASSIAN_EMAIL}" != "none" ]
+                then
+                        branch_json=$(/usr/bin/printf 'user = "%s:%s"\n' "${ATLASSIAN_EMAIL}" "${REPOSITORY_TOKEN}" | /usr/bin/curl -s -L --connect-timeout 15 -K - "${branch_api}")
+                elif [ -n "${REPOSITORY_TOKEN}" ] && [ "${REPOSITORY_TOKEN}" != "none" ]
+                then
+                        branch_json=$(/usr/bin/printf 'Authorization: Bearer %s\n' "${REPOSITORY_TOKEN}" | /usr/bin/curl -s -L --connect-timeout 15 -H @- "${branch_api}")
+                else
+                        branch_json=$(/usr/bin/curl -s -L --connect-timeout 15 "${branch_api}")
+                fi
+                unset REPOSITORY_TOKEN ATLASSIAN_EMAIL
+
+                target_ref=$(/bin/echo "${branch_json}" | /usr/bin/grep -o '"hash"[[:space:]]*:[[:space:]]*"[0-9a-f]\{40\}"' | /usr/bin/head -n 1 | /usr/bin/cut -d'"' -f4)
+                if [ -z "${target_ref}" ]
+                then
+                        /bin/echo "Error 404: Not Found. Could not resolve branch '${branch}' on Bitbucket." >&2
+                        exit 404
+                fi
+                archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${target_ref}.tar.gz"
+
+                ;;
+        *)
+                archive_url="https://bitbucket.org/${repository_ownername}/${repository_name}/get/${branch}.tar.gz"
+                ;;
+esac
+
 
 # 1. Attempt unauthenticated download first (works for public repositories)
 set +e
