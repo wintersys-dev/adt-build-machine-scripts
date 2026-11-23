@@ -40,6 +40,9 @@ then
         exit 0
 fi
 
+/bin/echo 'run this first find . -path ./.git -prune -o -type d -exec chmod 755 {} + -o -type f -name "*.sh" -exec chmod 755 {} + -o -type f -exec chmod 644 {} +'
+exit
+
 target_dir="${1:-.}"
 
 if [ ! -d "${target_dir}" ]
