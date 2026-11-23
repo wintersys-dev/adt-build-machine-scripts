@@ -1,14 +1,7 @@
 This week
 
-On the webserver refactor CreateRepository.sh and PushToRepository to match CloneRepository.sh and ListRespository.sh (should be able to use them as templates)
-Test all the git scripts on the webserver
-Test that a baselined application can be cloned and installed once the git scripts are up to date on the websever
-End of Monday
-
-if happy copy them all to the autoscaler and the webserver
-test a full baselined deployment with the refactored scripts
-End of Tuesday
 
 test that the other 3rd party applications such as apache and whatnot that use CloneRepository.sh work correctly with the new git approach
-retest and review all the api and cli scripts that I have updated including the autoscaler ones
+retest and review all the api and cli scripts that I have updated including the autoscaler ones so thats:
+servers dns email git dbaas firewall (cli and email, and with repositories public and private)
 End of Thursday
