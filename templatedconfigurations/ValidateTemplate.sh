@@ -45,6 +45,14 @@ load_template_safely () {
 	tpl="${1}"
 	line_num=0
 
+	case "${key}" in
+	PATH|HOME|BUILD_HOME|IFS|LD_PRELOAD|LD_LIBRARY_PATH)
+		${log_command} "Security error on line ${line_num}: template cannot override protected variable '${key}'"
+		exit 1
+		;;
+	esac
+
+
 	while IFS= read -r line || [ -n "${line}" ]
 	do
 		line_num=$((line_num + 1))
@@ -78,6 +86,14 @@ load_template_safely () {
 			${log_command} "Invalid variable name '${key}' on line ${line_num} of ${tpl}"
 			exit 1
 		fi
+
+		# Prevent template from hijacking critical system or toolkit environment variables
+		case "${key}" in
+			PATH|HOME|BUILD_HOME|IFS|LD_PRELOAD|LD_LIBRARY_PATH)
+				${log_command} "Security error on line ${line_num}: template cannot override protected variable '${key}'"
+				exit 1
+				;;
+		esac
 
 		# Reject command substitution $(...) or backticks unless wrapped in single quotes
 		case "${raw_val}" in
