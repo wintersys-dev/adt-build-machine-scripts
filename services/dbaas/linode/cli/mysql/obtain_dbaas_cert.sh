@@ -3,7 +3,7 @@
 #: Purpose:     Retrieves and validates the SSL CA certificate for a Linode MySQL DBaaS cluster via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       obtain_dbaas_cert.sh <database_id>
 #:              obtain_dbaas_cert.sh [-h|--help]
@@ -39,7 +39,6 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -79,6 +78,12 @@ CLOUDHOST="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" CLOUDHOST)"
 BUILD_IDENTIFIER="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" BUILD_IDENTIFIER)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (CLOUDHOST, BUILD_IDENTIFIER, or TOKEN)."
+        exit 1
+fi
+
 # Define target runtime directory and output path for the decoded CA certificate
 runtime_dest="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
 cert_target="${runtime_dest}/DBaaS_CERT"
@@ -89,16 +94,15 @@ then
         /bin/mkdir -p "${runtime_dest}"
 fi
 
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
-
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Fetch the SSL certificate JSON payload via linode-cli with errexit paused
 set +e
@@ -147,6 +151,7 @@ else
 fi
 
 exit 0
+
 
 
 
