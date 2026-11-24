@@ -3,7 +3,7 @@
 #: Purpose:     Provisions a managed Linode MySQL DBaaS cluster within a specified VPC via API.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       create_dbaas_server.sh
 #:              create_dbaas_server.sh [-h|--help]
