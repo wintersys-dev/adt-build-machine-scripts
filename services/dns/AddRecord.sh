@@ -89,26 +89,18 @@ then
         DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_DNS_CHOICE)"
 fi
 
+if [ -z "${DNS_CHOICE}" ]
+then
+        status "Error: DNS_CHOICE not set"
+        exit 1
+fi
+
 # Verify that the core software configuration file exists and is readable
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
 then
         status "Error: Cannot read software configuration file at ${software_file}"
         exit 1
-fi
-
-# Extract and validate the active orchestration tool (cli or api)
-orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
-
-if [ -z "${orchestration_tool}" ]
-then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
-        exit 1
-fi
-
-if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
-then
-        orchestration_tool="api"
 fi
 
 # Locate and verify execution permissions on the provider-specific AddRecord.sh script
