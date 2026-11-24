@@ -134,7 +134,7 @@ then
                         mailhub="in-v3.mailjet.com:587"
                         ;;
                 3)
-                        mailhub="email-smtp.eu-west-1.amazonaws.com""
+                        mailhub="email-smtp.eu-west-1.amazonaws.com"
                         ;;
                 *)
                         status "Error: Unsupported SYSTEM_EMAIL_PROVIDER value (${EMAIL_PROVIDER})."
