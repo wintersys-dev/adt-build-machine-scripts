@@ -3,7 +3,7 @@
 #: Purpose:     Resolves the Linode platform instance ID for a MySQL DBaaS cluster label via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       obtain_dbaas_id.sh
 #:              obtain_dbaas_id.sh [-h|--help]
@@ -67,18 +67,30 @@ status()
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Extract the target database cluster label from the 7th colon-delimited field
 label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
+
+if [ -z "${label}" ]
+then
+        status "Error: Missing cluster label in DATABASE_DBaaS_INSTALLATION_TYPE."
+        exit 1
+fi
 
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Query the Linode MySQL DBaaS instance catalog via CLI with errexit paused
 set +e
@@ -95,8 +107,8 @@ then
         exit 1
 fi
 
-# Filter the returned cluster array safely via jq for the matching cluster label
-database_id="$(/bin/echo "${cli_output}" | /usr/bin/jq -r --arg lbl "${label}" '.[] | select(.label | contains($lbl)) | .id // empty')"
+# Filter the returned cluster array safely via jq using exact label equality
+database_id="$(/bin/echo "${cli_output}" | /usr/bin/jq -r --arg lbl "${label}" '.[] | select(.label == $lbl) | .id // empty')"
 
 if [ -z "${database_id}" ]
 then
@@ -106,5 +118,6 @@ fi
 
 /bin/echo "${database_id}"
 exit 0
+
 
 
