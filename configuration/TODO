@@ -1,6 +1,25 @@
 This month
+wednesday
 test that the other 3rd party applications such as apache and whatnot that use CloneRepository.sh work correctly with the new git approach
 Have the CloneRepository.sh scripts been updated and tested on the database machines and the autoscaler machines?
 Review, update and test all scripts in the services directories on all machine types. 
-
 I want the service scripts to be completely solid before I start refactoring the installation scripts
+
+Thursday
+Cron
+Data store
+
+weekend have an experimental play around with 
+the new install technique
+
+Tuesday
+Dbaas
+DNS
+
+Wednesday
+Email 
+Git
+
+Thursday
+Security
+Server
