@@ -119,7 +119,7 @@ domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url
 
 if [ -z "${domain_id}" ]
 then
-        /bin/echo "Domain ID not found matching zone track string pattern: ${domain_url}" >&2
+        status "Domain ID not found matching zone track string pattern: ${domain_url}" 
         exit 1
 fi
 
