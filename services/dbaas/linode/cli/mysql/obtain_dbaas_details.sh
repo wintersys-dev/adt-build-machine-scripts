@@ -3,7 +3,7 @@
 #: Purpose:     Extracts connection details and credentials for a Linode MySQL DBaaS instance via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       obtain_dbaas_details.sh <database_id>
 #:              obtain_dbaas_details.sh [-h|--help]
@@ -79,6 +79,12 @@ MULTI_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGIO
 PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Extract application-level database name, username, and password from the configuration string
 db_name="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $8}')"
 db_username="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $9}')"
@@ -92,28 +98,40 @@ else
         db_scope_prefix=""
 fi
 
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
-
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Query instance metadata and root credentials via linode-cli with errexit paused
 set +e
 cli_instance_json="$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null)"
+inst_exit_code="$?"
 cli_credentials_json="$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json 2>/dev/null)"
+creds_exit_code="$?"
 set -e
 
 # Clear the sensitive token variable immediately after the CLI calls finish
 unset LINODE_CLI_TOKEN
 
+if [ "${inst_exit_code}" -ne 0 ] || [ -z "${cli_instance_json}" ]
+then
+        status "Failed to retrieve metadata for database ${database_id} via Linode CLI."
+        exit 1
+fi
+
+if [ "${creds_exit_code}" -ne 0 ] || [ -z "${cli_credentials_json}" ]
+then
+        status "Failed to retrieve credentials for database ${database_id} via Linode CLI."
+        exit 1
+fi
+
 # Parse cluster attributes and root credentials from the returned JSON payloads
-export database_id
 CLUSTER_NAME="$(/bin/echo "${cli_instance_json}" | /usr/bin/jq -r --arg id "${database_id}" '.[] | select(.id == ($id | tonumber)) | .label // empty')"
 DB_IDENTIFIER="$(/bin/echo "${cli_instance_json}" | /usr/bin/jq -r --arg id "${database_id}" '.[] | select(.id == ($id | tonumber)) | .hosts.primary // empty')"
 DB_USERNAME="$(/bin/echo "${cli_credentials_json}" | /usr/bin/jq -r '.[].username // empty')"
@@ -122,7 +140,7 @@ DB_PORT="$(/bin/echo "${cli_instance_json}" | /usr/bin/jq -r --arg id "${databas
 DB_NAME="${db_name}"
 
 # Verify that every required connection attribute resolved to a non-empty value
-for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME
+for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME db_username db_password
 do
         eval "var_val=\${$var_name}"
         if [ -z "${var_val}" ]
@@ -139,8 +157,8 @@ then
 fi
 
 # Combine admin credentials with application-level credentials using the ':::' delimiter
-export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
+DB_USERNAME="${DB_USERNAME}:::${db_username}"
+DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
 
 # Emit shell-eval-compatible variable assignments to stdout for parent orchestrators
 /bin/cat <<EOF
@@ -153,5 +171,6 @@ DB_NAME='${DB_NAME}'
 EOF
 
 exit 0
+
 
 
