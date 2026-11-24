@@ -3,7 +3,7 @@
 #: Purpose:     Updates the network firewall allow list for a managed Linode MySQL DBaaS cluster via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       update_dbaas_firewall.sh <database_id> <allow_list>
 #:              update_dbaas_firewall.sh [-h|--help]
@@ -19,7 +19,7 @@
 #:   - /home/buildhome.dat
 #:   - LogStatusMessages.sh
 #:   - GetVariableValue.sh
-#:   - External binaries: cat, echo, grep, cut, linode-cli
+#:   - External binaries: cat, echo, grep, cut, tr, linode-cli
 #:
 #: Exit Codes:
 #:   0          Target database network access control rules modified cleanly via CLI
@@ -73,25 +73,34 @@ then
 fi
 
 database_id="${1}"
-allow_list="${2}"
+allow_list_raw="${2}"
 
 # Retrieve the cloud provider authentication token from the active deployment context
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
+if [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variable (TOKEN)."
+        exit 1
+fi
 
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
 
+# Convert comma-separated CIDRs into space-separated items so linode-cli receives distinct list elements
+allow_list_args="$(/bin/echo "${allow_list_raw}" | /usr/bin/tr ',' ' ')"
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
+
 # Execute the MySQL firewall allow list update via linode-cli with errexit paused
 set +e
-/usr/local/bin/linode-cli databases mysql-update "${database_id}" --allow_list "${allow_list}" --no-defaults
+# Intentional unquoted word-splitting on ${allow_list_args} for multi-value CLI option
+cli_output="$(/usr/local/bin/linode-cli databases mysql-update "${database_id}" --allow_list ${allow_list_args} --no-defaults 2>&1)"
 exit_code="$?"
 set -e
 
@@ -100,11 +109,12 @@ unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
 then
-        status "Database ${database_id} firewall allow list failed to update via Linode CLI."
+        status "Database ${database_id} firewall allow list failed to update via Linode CLI. Output: ${cli_output}"
         exit 1
 fi
 
 status "Database ${database_id} firewall access network settings successfully modified via CLI."
 exit 0
+
 
 
