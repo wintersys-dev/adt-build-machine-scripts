@@ -65,7 +65,7 @@ status()
 }
 
 # Validate that the required JSON payload argument was provided
-if [ -z "${2}" ]
+if [ -z "${1}" ] || [ -z "${2}" ]
 then
         status "Error: JSON payload argument is required."
         status "Usage: $0 <domain_id_or_zone> <json_payload>"
