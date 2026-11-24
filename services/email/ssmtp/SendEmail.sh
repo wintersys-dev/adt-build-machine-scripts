@@ -157,7 +157,7 @@ fi
 # Dispatch the email using /usr/bin/mail with appropriate headers
 if [ "${content_type}" = "HTML" ]
 then
-        if ! /bin/echo "${message}" | /usr/bin/mail -s "${subject}" -a "From: ${FROM_NAME} <${FROM_ADDRESS}>" "${TO_ADDRESS}" -a "Content-Type: text/html"
+        if ! /bin/echo "${message}" | /usr/bin/mail -s "${subject}" -a "Content-Type: text/html" -a "From: ${FROM_NAME} <${FROM_ADDRESS}>" "${TO_ADDRESS}" 
         then
                 status "Error: Failed to send HTML email via /usr/bin/mail."
                 exit 1
