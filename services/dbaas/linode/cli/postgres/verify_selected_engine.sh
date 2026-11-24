@@ -3,7 +3,7 @@
 #: Purpose:     Validates chosen database engine compatibility using the Linode CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       verify_selected_engine.sh
 #:              verify_selected_engine.sh [-h|--help]
@@ -39,7 +39,6 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -68,23 +67,34 @@ status()
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Extract the target engine identifier string from the 3rd colon-delimited field
 engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $3}')"
 
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
+if [ -z "${engine}" ]
+then
+        status "Error: Missing database engine identifier in DATABASE_DBaaS_INSTALLATION_TYPE."
+        exit 1
+fi
 
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
 
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
+
 # Query available managed database engines via linode-cli with errexit paused
 set +e
-cli_output="$(/usr/local/bin/linode-cli databases engines --json 2>/dev/null)"
+cli_output="$(/usr/local/bin/linode-cli databases engines --no-defaults --json 2>/dev/null)"
 exit_code="$?"
 set -e
 
@@ -106,9 +116,9 @@ then
         exit 1
 fi
 
-# Verify that the configured engine exists as an exact word match in the available list
+# Verify that the configured engine exists as an exact fixed-string word match in the available list
 set +e
-/bin/echo "${available_engines}" | /bin/grep -q -w "${engine}"
+/bin/echo "${available_engines}" | /bin/grep -F -q -w "${engine}"
 match_code="$?"
 set -e
 
@@ -120,4 +130,5 @@ fi
 
 status "Database engine '${engine}' successfully verified via CLI against cloud catalog matrix... OK to proceed."
 exit 0
+
 
