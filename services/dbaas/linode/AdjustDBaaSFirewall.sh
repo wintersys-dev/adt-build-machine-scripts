@@ -93,13 +93,7 @@ then
         exit 1
 fi
 
-# Determine the target database engine directory (mysql or postgres)
-database_type="mysql"
-case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
-        Postgres*)
-                database_type="postgres"
-                ;;
-esac
+database_type_lower="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}' | /bin/tr '[:upper:]' '[:lower:]')"
 
 # Apply DBaaS firewall allow-list updates only on single-region or primary multi-region builds
 if [ "${MULTI_REGION}" = "0" ] || ( [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ] )
@@ -109,8 +103,8 @@ then
                 case "${DATABASE_DBaaS_INSTALLATION_TYPE}" in
                         *DBAAS*)
                                 # Resolve the managed DBaaS cluster ID and update its VPC IP range allow-list
-                                database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/obtain_dbaas_id.sh")"
-                                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                                database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
+                                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                                 ;;
                 esac
         fi
