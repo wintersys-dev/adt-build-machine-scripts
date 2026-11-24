@@ -83,6 +83,12 @@ then
         DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_DNS_CHOICE)"
 fi
 
+if [ -z "${DNS_CHOICE}" ]
+then
+        status "Error: DNS_CHOICE not set"
+        exit 1
+fi
+
 # Locate the optional provider-specific GetProxyDNSIPs.sh script
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/GetProxyDNSIPs.sh"
 
