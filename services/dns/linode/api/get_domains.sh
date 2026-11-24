@@ -77,7 +77,7 @@ fi
 api_sub="api"
 api_domain="linode.com"
 api_path="v4/domains"
-endpoint="https://${api_sub}.${api_domain}/${api_path}"
+endpoint="https://${api_sub}.${api_domain}/${api_path}?page_size=500"
 
 # Submit the DNS domains lookup GET request with token passed securely via stdin
 set +e
