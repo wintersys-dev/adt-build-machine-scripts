@@ -133,7 +133,9 @@ fi
 # Dispatch the email via /usr/bin/sendemail
 current_date="$(/bin/date)"
 
-if ! /usr/bin/sendemail -o tls=no -o "message-content-type=${msg_format}" -f "${FROM_ADDRESS}" -t "${TO_ADDRESS}" -s "${mailhub}" -xu "${USERNAME}" -xp "${PASSWORD}" -u "${subject} ${current_date}" -m "${message}"
+#can't hide credentials from process tree for sendemail
+
+if ! /usr/bin/sendemail -o tls=yes -o "message-content-type=${msg_format}" -f "${FROM_ADDRESS}" -t "${TO_ADDRESS}" -s "${mailhub}" -xu "${USERNAME}" -xp "${PASSWORD}" -u "${subject} ${current_date}" -m "${message}"
 then
         status "Error: Failed to send email via /usr/bin/sendemail."
         exit 1
