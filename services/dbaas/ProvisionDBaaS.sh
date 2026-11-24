@@ -8,8 +8,7 @@
 #: Usage:       ProvisionDBaaS.sh 
 #:              ProvisionDBaaS.sh [-h|--help]
 #:
-#: Parameters:
-#:   $1         [Required] The target server type or database role identifier.
+#: Parameters:  None
 #:
 #: Environment:
 #:   BUILD_HOME Resolved automatically from /home/buildhome.dat
@@ -23,7 +22,7 @@
 #:
 #: Exit Codes:
 #:   0          Target handoff complete and DBaaS provisioned successfully
-#:   1          Missing arguments, unreadable configurations, or missing provider script
+#:   1          Unreadable configurations, or missing provider script
 #:   *          Bubbled exit code from provider-specific ProvisionDBaaS.sh
 ###################################################################################
 # License Agreement:
