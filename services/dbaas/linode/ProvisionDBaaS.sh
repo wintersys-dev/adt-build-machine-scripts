@@ -108,12 +108,9 @@ fi
 # Orchestrate cloud-managed DBaaS creation or reuse on single-region / primary builds
 if [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && { [ "${MULTI_REGION}" = "0" ] || { [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]; }; }
 then
-        # Extract the lowercase engine slug (e.g. mysql, postgres) from the installation profile
-        database_type_lower="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}' | /bin/tr '[:upper:]' '[:lower:]')"
-
         # Verify that the requested DBaaS engine and version are supported by the provider
         set +e
-        "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/verify_selected_engine.sh"
+        "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/verify_selected_engine.sh"
         exit_code="$?"
         set -e
 
@@ -125,17 +122,17 @@ then
 
         # Check if a matching managed database cluster already exists
         set +e
-        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/obtain_dbaas_id.sh")"
         exit_code="$?"
         set -e
 
         if [ "${exit_code}" -ne 0 ]
         then
                 # Provision a new managed DBaaS cluster and wait for it to become active
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/create_dbaas_server.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/create_dbaas_server.sh"
 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/check_dbaas_service_status.sh"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/check_dbaas_service_status.sh"
                 exit_code="$?"
                 set -e
 
@@ -149,7 +146,7 @@ then
                 status "A database with id ${database_id} is already active, not provisioning a new one"
 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                 exit_code="$?"
                 set -e
 
@@ -162,14 +159,14 @@ then
 
         # Re-fetch the verified cluster ID and extract connection credentials and SSL certificate
         set +e
-        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
+        database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/obtain_dbaas_id.sh")"
         exit_code="$?"
         set -e
 
         if [ "${exit_code}" -eq 0 ] && [ -n "${database_id}" ]
         then
                 set +e
-                db_payload="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_details.sh" "${database_id}")"
+                db_payload="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/obtain_dbaas_details.sh" "${database_id}")"
                 exit_code="$?"
                 set -e
 
@@ -182,7 +179,7 @@ then
                 fi
 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_cert.sh" "${database_id}"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/obtain_dbaas_cert.sh" "${database_id}"
                 exit_code="$?"
                 set -e
 
