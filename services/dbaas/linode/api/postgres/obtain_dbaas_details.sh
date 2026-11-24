@@ -3,7 +3,7 @@
 #: Purpose:     Extracts connection details and credentials for a Linode PostgreSQL DBaaS instance.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       obtain_dbaas_details.sh <database_id>
 #:              obtain_dbaas_details.sh [-h|--help]
@@ -79,10 +79,17 @@ MULTI_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGIO
 PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Extract application-level database name, username, and password from the configuration string
 db_name="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $8}')"
 db_username="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $9}')"
 db_password="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $10}')"
+
 # Switch endpoint host prefix to 'public-' when operating as the primary hub in multi-region mode
 if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
@@ -99,23 +106,54 @@ creds_path="v4/databases/postgresql/instances/${database_id}/credentials"
 instance_endpoint="https://${api_sub}.${api_domain}/${instance_path}"
 creds_endpoint="https://${api_sub}.${api_domain}/${creds_path}"
 
-# Query instance metadata and root credentials with token passed securely via stdin
+# Query instance metadata with token passed securely via stdin
 set +e
-api_instance_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X GET "${instance_endpoint}")"
-api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X GET "${creds_endpoint}")"
+api_instance_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s --connect-timeout 15 --max-time 30 -X GET "${instance_endpoint}")"
+instance_exit_code="$?"
 set -e
 
+if [ "${instance_exit_code}" -ne 0 ] || [ -z "${api_instance_json}" ]
+then
+        status "Failed to retrieve metadata for database ${database_id} (Network/Curl infrastructure execution error)."
+        exit 1
+fi
+
+if /bin/echo "${api_instance_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+then
+        api_err_msg="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.errors[0].reason // .errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve metadata for database ${database_id}. Cloud Provider Reason: ${api_err_msg}"
+        exit 1
+fi
+
+# Query root credentials with token passed securely via stdin
+set +e
+api_credentials_json="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s --connect-timeout 15 --max-time 30 -X GET "${creds_endpoint}")"
+creds_exit_code="$?"
+set -e
+
+if [ "${creds_exit_code}" -ne 0 ] || [ -z "${api_credentials_json}" ]
+then
+        status "Failed to retrieve credentials for database ${database_id} (Network/Curl infrastructure execution error)."
+        exit 1
+fi
+
+if /bin/echo "${api_credentials_json}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
+then
+        api_err_msg="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.errors[0].reason // .errors.reason // "Unknown API error parameters."')"
+        status "Failed to retrieve credentials for database ${database_id}. Cloud Provider Reason: ${api_err_msg}"
+        exit 1
+fi
+
 # Parse cluster attributes and root credentials from the returned JSON payloads
-export database_id
-export CLUSTER_NAME="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.label // empty')"
-export DB_IDENTIFIER="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.hosts.primary // empty')"
-export DB_USERNAME="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.username // empty')"
-export DB_PASSWORD="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.password // empty')"
-export DB_PORT="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.port // empty')"
-export DB_NAME="${db_name}"
+CLUSTER_NAME="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.label // empty')"
+DB_IDENTIFIER="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.hosts.primary // empty')"
+DB_USERNAME="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.username // empty')"
+DB_PASSWORD="$(/bin/echo "${api_credentials_json}" | /usr/bin/jq -r '.password // empty')"
+DB_PORT="$(/bin/echo "${api_instance_json}" | /usr/bin/jq -r '.port // empty')"
+DB_NAME="${db_name}"
 
 # Verify that every required connection attribute resolved to a non-empty value
-for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME
+for var_name in CLUSTER_NAME DB_IDENTIFIER DB_USERNAME DB_PASSWORD DB_PORT DB_NAME db_username db_password
 do
         eval "var_val=\${$var_name}"
         if [ -z "${var_val}" ]
@@ -132,8 +170,8 @@ then
 fi
 
 # Combine admin credentials with application-level credentials using the ':::' delimiter
-export DB_USERNAME="${DB_USERNAME}:::${db_username}"
-export DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
+DB_USERNAME="${DB_USERNAME}:::${db_username}"
+DB_PASSWORD="${DB_PASSWORD}:::${db_password}"
 
 # Emit shell-eval-compatible variable assignments to stdout for parent orchestrators
 /bin/cat <<EOF
@@ -146,4 +184,5 @@ DB_NAME='${DB_NAME}'
 EOF
 
 exit 0
+
 
