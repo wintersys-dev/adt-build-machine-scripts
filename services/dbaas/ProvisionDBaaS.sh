@@ -5,7 +5,7 @@
 #: Date:        15/11/2026
 #: Version:     1.0
 #:
-#: Usage:       ProvisionDBaaS.sh <server_type>
+#: Usage:       ProvisionDBaaS.sh 
 #:              ProvisionDBaaS.sh [-h|--help]
 #:
 #: Parameters:
