@@ -3,7 +3,7 @@
 #: Purpose:     Monitors Linode MySQL DBaaS cluster status until active via linode-cli.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       check_dbaas_service_status.sh
 #:              check_dbaas_service_status.sh [-h|--help]
@@ -67,8 +67,28 @@ status()
 DATABASE_DBaaS_INSTALLATION_TYPE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DATABASE_DBaaS_INSTALLATION_TYPE)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Extract the target database cluster label from the 7th colon-delimited field
 label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
+
+if [ -z "${label}" ]
+then
+        status "Error: Missing cluster label in DATABASE_DBaaS_INSTALLATION_TYPE."
+        exit 1
+fi
+
+# Verify that the linode-cli binary is installed and executable
+if [ ! -x /usr/local/bin/linode-cli ]
+then
+        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
+        exit 1
+fi
+
 # Configure polling retry ceiling (50 attempts x 20s = 1000 seconds max wait)
 max_attempts=50
 sleep_interval=20
@@ -84,13 +104,13 @@ while true
 do
         # Query MySQL instances via linode-cli; tolerate transient errors during provisioning
         set +e
-        cli_output="$([ -x /usr/local/bin/linode-cli ] && /usr/local/bin/linode-cli --no-defaults databases mysql-list --json 2>/dev/null || /bin/echo "")"
+        cli_output="$(/usr/local/bin/linode-cli --no-defaults databases mysql-list --json 2>/dev/null)"
         set -e
 
         db_status=""
         if [ -n "${cli_output}" ]
         then
-                db_status="$(/bin/echo "${cli_output}" | /usr/bin/jq -r --arg lbl "${label}" '.[] | select(.label == $lbl).status // empty')"
+                db_status="$(/bin/echo "${cli_output}" | /usr/bin/jq -r --arg lbl "${label}" '.[]? | select(.label == $lbl).status // empty' 2>/dev/null || true)"
         fi
 
         if [ -z "${db_status}" ]
@@ -127,6 +147,7 @@ done
 # Ensure the sensitive CLI token is cleared from the environment before exiting
 unset LINODE_CLI_TOKEN
 exit 0
+
 
 
 
