@@ -91,7 +91,7 @@ endpoint="https://${api_sub}.${api_domain}/${api_path}"
 
 # Submit the DNS records lookup GET request with token passed securely via stdin
 set +e
-RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s "${endpoint}" -w "\nHTTP_STATUS:%{http_code}")
+RESPONSE="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @-  --connect-timeout 15 --max-time 30 -s "${endpoint}" -w "\nHTTP_STATUS:%{http_code}")"
 set -e
 
 # Separate the HTTP status code and JSON response body
