@@ -148,7 +148,7 @@ then
                 /bin/echo "AuthPass=${PASSWORD}"
                 /bin/echo "FromLineOverride=YES"
                 /bin/echo "UseSTARTTLS=YES"
-        } >> "${ssmtp_conf}"
+        } > "${ssmtp_conf}"
 
         /bin/chmod 600 "${ssmtp_conf}"
         /bin/touch "${ssmtp_flag}"
