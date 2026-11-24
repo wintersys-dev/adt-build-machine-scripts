@@ -87,6 +87,12 @@ then
         DNS_CHOICE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" AUTH_DNS_CHOICE)"
 fi
 
+if [ -z "${DNS_CHOICE}" ]
+then
+        status "Error: DNS_CHOICE not set"
+        exit 1
+fi
+
 # Verify that the core software configuration file exists and is readable
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
