@@ -256,6 +256,10 @@ fi
 if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
         primary_cred_dir="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}"
+        if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER} ] )
+        then
+                /bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER} 
+        fi
         /bin/echo "DB_NAME=${DB_NAME}" > "${primary_cred_dir}/credentials.dat"
         /bin/echo "DB_PASSWORD=${DB_PASSWORD}" >> "${primary_cred_dir}/credentials.dat"
         /bin/echo "DB_USERNAME=${DB_USERNAME}" >> "${primary_cred_dir}/credentials.dat"
