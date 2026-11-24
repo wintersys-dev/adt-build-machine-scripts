@@ -3,7 +3,7 @@
 #: Purpose:     Provisions a managed Linode MySQL DBaaS cluster within a specified VPC via API.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       create_dbaas_server.sh
 #:              create_dbaas_server.sh [-h|--help]
@@ -74,6 +74,12 @@ MULTI_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGIO
 PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Parse colon-delimited cluster attributes from DATABASE_DBaaS_INSTALLATION_TYPE
 # Format: MySQL:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
 engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $3}')"
@@ -84,6 +90,13 @@ label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{
 vpc_id="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $11}')"
 subnet_id="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $12}')"
 
+# Ensure required string fields are non-empty before constructing JSON payload
+if [ -z "${engine}" ] || [ -z "${db_region}" ] || [ -z "${machine_type}" ] || [ -z "${label}" ]
+then
+        status "Error: Missing required cluster attributes in DATABASE_DBaaS_INSTALLATION_TYPE."
+        exit 1
+fi
+
 # Enable public VPC access only when acting as the primary hub in a multi-region topology
 if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
 then
@@ -92,24 +105,36 @@ else
         public_access="false"
 fi
 
-# Build the JSON provisioning request body (preserving unquoted integers and booleans)
-json_payload="$(/bin/cat <<EOF
-{
-  "label": "${label}",
-  "region": "${db_region}",
-  "type": "${machine_type}",
-  "engine": "${engine}",
-  "cluster_size": ${cluster_size},
-  "ssl_connection": true,
-  "allow_list": ["0.0.0.0/0"],
-  "private_network": {
-    "vpc_id": ${vpc_id},
-    "subnet_id": ${subnet_id},
-    "public_access": ${public_access}
-  }
-}
-EOF
-)"
+# Build the JSON provisioning request body safely via jq (validates integer/boolean types)
+json_payload="$(/usr/bin/jq -n \
+        --arg lbl "${label}" \
+        --arg reg "${db_region}" \
+        --arg typ "${machine_type}" \
+        --arg eng "${engine}" \
+        --argjson size "${cluster_size:-null}" \
+        --argjson vpc "${vpc_id:-null}" \
+        --argjson sub "${subnet_id:-null}" \
+        --argjson pub "${public_access}" \
+        '{
+                label: $lbl,
+                region: $reg,
+                type: $typ,
+                engine: $eng,
+                cluster_size: $size,
+                ssl_connection: true,
+                allow_list: ["0.0.0.0/0"],
+                private_network: {
+                        vpc_id: $vpc,
+                        subnet_id: $sub,
+                        public_access: $pub
+                }
+        }' 2>/dev/null)"
+
+if [ -z "${json_payload}" ] || [ -z "${cluster_size}" ] || [ -z "${vpc_id}" ] || [ -z "${subnet_id}" ]
+then
+        status "Error: Failed to generate a valid JSON provisioning payload (check numeric fields: cluster_size, vpc_id, subnet_id)."
+        exit 1
+fi
 
 # Assemble endpoint from split components to prevent browser URL rewriting during copy-paste
 api_sub="api"
@@ -119,11 +144,11 @@ endpoint="https://${api_sub}.${api_domain}/${api_path}"
 
 # Submit the DBaaS creation POST request with token passed securely via stdin
 set +e
-api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X POST "${endpoint}" -H "Content-Type: application/json" -d "${json_payload}")"
+api_response="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s --connect-timeout 15 --max-time 30 -X POST "${endpoint}" -H "Content-Type: application/json" -d "${json_payload}")"
 exit_code="$?"
 set -e
 
-if [ "${exit_code}" -ne 0 ]
+if [ "${exit_code}" -ne 0 ] || [ -z "${api_response}" ]
 then
         status "Failed to provision DBaaS server (Network/Curl infrastructure execution error)."
         exit 1
@@ -132,13 +157,14 @@ fi
 # Inspect the returned JSON payload for Linode API error objects
 if /bin/echo "${api_response}" | /usr/bin/jq -e '.errors' >/dev/null 2>&1
 then
-        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason' 2>/dev/null || /bin/echo "Unknown API error pattern structure.")"
+        api_err_msg="$(/bin/echo "${api_response}" | /usr/bin/jq -r '.errors[0].reason // "Unknown API error pattern structure."')"
         status "Failed to provision DBaaS server. Cloud Provider Reason: ${api_err_msg}"
         exit 1
 fi
 
 status "Database provision request successfully submitted for instance '${label}'."
 exit 0
+
 
 
 
