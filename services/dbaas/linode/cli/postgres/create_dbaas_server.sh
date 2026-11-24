@@ -3,7 +3,7 @@
 #: Purpose:     Provisions a managed Linode PostgreSQL DBaaS server within a VPC via linode-cli.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.0
+#: Version:     1.1
 #:
 #: Usage:       create_dbaas_server.sh
 #:              create_dbaas_server.sh [-h|--help]
@@ -40,9 +40,8 @@
 
 #########################################################################################################
 #DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
-#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:postgresql/14.4:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
+#DATABASE_DBaaS_INSTALLATION_TYPE="Postgres:DBAAS:postgresql/16:nl-ams:g6-nanode-1:1:test-cluster:testdb1:testdbuser:gdhf76gdfgsh:266632:266052"
 #########################################################################################################
-
 
 # Exit immediately if any command exits with a non-zero status
 set -e
@@ -75,6 +74,12 @@ MULTI_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" MULTI_REGIO
 PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_REGION)"
 TOKEN="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" TOKEN)"
 
+if [ -z "${DATABASE_DBaaS_INSTALLATION_TYPE}" ] || [ -z "${TOKEN}" ]
+then
+        status "Error: Failed to fetch required context variables (DATABASE_DBaaS_INSTALLATION_TYPE or TOKEN)."
+        exit 1
+fi
+
 # Parse colon-delimited cluster attributes from DATABASE_DBaaS_INSTALLATION_TYPE
 # Format: Postgres:DBAAS:<engine>:<region>:<machine_type>:<cluster_size>:<cluster_label>:<db_name>:<db_username>:<db_password>:<vpc_id>:<subnet_id>
 engine="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $3}')"
@@ -84,6 +89,14 @@ cluster_size="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -
 label="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $7}')"
 vpc_id="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $11}')"
 subnet_id="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $12}')"
+
+# Validate all required cluster attributes before executing CLI creation
+if [ -z "${engine}" ] || [ -z "${db_region}" ] || [ -z "${machine_type}" ] || [ -z "${cluster_size}" ] || [ -z "${label}" ] || [ -z "${vpc_id}" ] || [ -z "${subnet_id}" ]
+then
+        status "Error: Missing required cluster attributes in DATABASE_DBaaS_INSTALLATION_TYPE."
+        exit 1
+fi
+
 # Enable public VPC access only when acting as the primary hub in a multi-region topology
 public_access_flag="--private_network.public_access"
 if [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]
@@ -93,20 +106,19 @@ else
         public_access_val="false"
 fi
 
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
-
 # Verify that the linode-cli binary is installed and executable
 if [ ! -x /usr/local/bin/linode-cli ]
 then
         status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        unset LINODE_CLI_TOKEN
         exit 1
 fi
 
-# Dispatch PostgreSQL DBaaS creation via linode-cli with errexit paused to capture its exit code
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
+
+# Dispatch PostgreSQL DBaaS creation via linode-cli with errexit paused to capture output and exit code
 set +e
-/usr/local/bin/linode-cli databases postgresql-create --no-defaults \
+cli_output="$(/usr/local/bin/linode-cli databases postgresql-create --no-defaults \
         --label "${label}" \
         --region "${db_region}" \
         --type "${machine_type}" \
@@ -116,7 +128,7 @@ set +e
         --allow_list "0.0.0.0/0" \
         --private_network.vpc_id "${vpc_id}" \
         --private_network.subnet_id "${subnet_id}" \
-        "${public_access_flag}" "${public_access_val}"
+        "${public_access_flag}" "${public_access_val}" 2>&1)"
 exit_code="$?"
 set -e
 
@@ -125,10 +137,11 @@ unset LINODE_CLI_TOKEN
 
 if [ "${exit_code}" -ne 0 ]
 then
-        status "Failed to provision DBaaS server via Linode CLI."
+        status "Failed to provision DBaaS server via Linode CLI. Reason: ${cli_output}"
         exit 1
 fi
 
 status "Database provision request successfully submitted via CLI for instance '${label}'."
 exit 0
+
 
