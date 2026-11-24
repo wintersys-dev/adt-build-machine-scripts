@@ -93,7 +93,7 @@ endpoint="https://${api_sub}.${api_domain}/${api_path}"
 
 # Submit the DNS record deletion DELETE request with token passed securely via stdin
 set +e
-RESPONSE=$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s -X DELETE "${endpoint}" -w "\nHTTP_STATUS:%{http_code}")
+RESPONSE="$(/bin/echo "Authorization: Bearer ${TOKEN}" | /usr/bin/curl -H @- -s  --connect-timeout 15 --max-time 30  -X DELETE "${endpoint}" -w "\nHTTP_STATUS:%{http_code}")"
 set -e
 
 # Separate the HTTP status code and JSON response body
