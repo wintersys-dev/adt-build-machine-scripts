@@ -18,8 +18,8 @@
 #:   - /home/buildhome.dat
 #:   - LogStatusMessages.sh
 #:   - GetVariableValue.sh
-#:   - ObtainDatabaseID.sh
-#:   - UpdateDBaaSFirewall.sh
+#:   - obtain_dbaas_id.sh
+#:   - update_dbaas_firewall.sh
 #:   - ${BUILD_HOME}/configuration/software.dat
 #:   - External binaries: cat, echo, grep, cut, awk
 #:
