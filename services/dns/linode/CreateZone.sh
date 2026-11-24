@@ -138,7 +138,7 @@ then
 fi
 
 # Check whether the zone already exists (supporting both API .data[] and CLI .[] JSON shapes)
-domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '(if type == "object" and has("data") then .data else . end)[] | select(.domain | contains($dom)) | .id // empty' 2>/dev/null)"
+domain_id="$(/bin/echo "${domain_json}" | /usr/bin/jq -r --arg dom "${domain_url}" '(if type == "object" and has("data") then .data else . end)[] | select(.domain == $dom) | .id // empty' 2>/dev/null)"
 
 if [ -z "${domain_id}" ]
 then
