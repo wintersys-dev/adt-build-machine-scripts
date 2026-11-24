@@ -101,20 +101,6 @@ then
         exit 1
 fi
 
-# Extract and validate the active orchestration tool (cli or api)
-orchestration_tool="$(/usr/bin/awk -F':' '/^ORCHESTRATION_TOOL:/ {print $NF}' "${software_file}")"
-
-if [ -z "${orchestration_tool}" ]
-then
-        status "Error: ORCHESTRATION_TOOL not found in ${software_file}"
-        exit 1
-fi
-
-if [ ! -d "${BUILD_HOME}/services/dns/${DNS_CHOICE}/${orchestration_tool}" ]
-then
-        orchestration_tool="api"
-fi
-
 # Locate and verify execution permissions on the provider-specific GetAllRecordIDs.sh script
 script_path="${BUILD_HOME}/services/dns/${DNS_CHOICE}/GetAllRecordIDs.sh"
 
