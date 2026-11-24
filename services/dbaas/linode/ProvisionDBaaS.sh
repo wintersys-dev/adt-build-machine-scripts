@@ -79,6 +79,7 @@ PRIMARY_REGION="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" PRIMARY_R
 DBaaS_PUBLIC_ENDPOINT="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DBaaS_PUBLIC_ENDPOINT)"
 DEPLOYMENT_MODE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DEPLOYMENT_MODE)"
 WEBSITE_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL)"
+VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 
 # Verify that the core software configuration file exists and is readable
 software_file="${BUILD_HOME}/configuration/software.dat"
@@ -142,7 +143,7 @@ then
                 status "A database with id ${database_id} is already active, not provisioning a new one"
 
                 set +e
-                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "0.0.0.0/0"
+                "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                 exit_code="$?"
                 set -e
 
