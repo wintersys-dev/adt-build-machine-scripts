@@ -83,7 +83,7 @@ while IFS= read -r line
 do
         [ -n "${line}" ] && set -- "$@" "${line}"
 done <<EOF
-$(/bin/echo "${json_payload}" | /usr/bin/jq -r 'to_entries[] | select(.value != null and .value != "") | "--\(.key)", (.value | tostring)')
+$(printf '%s\n' "${json_payload}" | /usr/bin/jq -r 'to_entries[] | select(.value != null and .value != "") | "--\(.key)", (.value | tostring)')
 EOF
 
 # Retrieve the cloud provider authentication token from the active deployment context
