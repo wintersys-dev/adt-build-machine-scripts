@@ -104,6 +104,11 @@ then
                         *DBAAS*)
                                 # Resolve the managed DBaaS cluster ID and update its VPC IP range allow-list
                                 database_id="$("${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/obtain_dbaas_id.sh")"
+                                if [ -n "${database_id}" ] 
+                                then
+                                        status "Error: database_id not set"
+                                        exit 1
+                                fi
                                 "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/${database_type_lower}/update_dbaas_firewall.sh" "${database_id}" "${VPC_IP_RANGE}"
                                 ;;
                 esac
