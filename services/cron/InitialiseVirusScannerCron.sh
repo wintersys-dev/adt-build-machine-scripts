@@ -83,8 +83,9 @@ set +e
 current_crontab="$(/usr/bin/crontab -u root -l 2>/dev/null)"
 set -e
 
-# Check if the virus scan job is already scheduled; if not, append and reload safely via stdin
-if ! /usr/bin/printf '%s\n' "${current_crontab}" | /usr/bin/grep -Fq "VirusScan.sh"
+matching_entry="$(/usr/bin/printf '%s\n' "${current_crontab}" | /usr/bin/grep -F "VirusScan.sh" || true)"
+
+if [ -z "${matching_entry}" ]
 then
         cron_entry="@daily /bin/sleep \$(/usr/bin/shuf -i1-1000 -n1) && /usr/bin/nice -n 15 ${scan_script}"
         if [ -z "${current_crontab}" ]
