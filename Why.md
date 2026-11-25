@@ -19,7 +19,7 @@ That frustration is exactly why I built the **Wintersys Agile Deployment Toolkit
 
 ## The Hidden Tax of Container Orchestration
 
-Docker and Kubernetes solve real problems when you are Google running tens of thousands of heterogeneous microservices across bare-metal data centres. But for 95% of web applications—WordPress, Moodle, Joomla, Drupal, custom PHP/MariaDB stacks—adopting Kubernetes introduces an enormous operational tax:
+Docker and Kubernetes solve real problems when you are running tens of thousands of heterogeneous microservices across bare-metal data centres. But for 95% of web applications—WordPress, Moodle, Joomla, Drupal, custom PHP/MariaDB stacks—adopting Kubernetes introduces an enormous operational tax:
 
 1. **Abstraction upon abstraction:** When something breaks at 3:00 AM, you aren't just debugging Linux networking or Nginx. You are debugging `kube-proxy`, CoreDNS, CNI overlay routing, ingress controllers, persistent volume claims, and container runtime shims.
 2. **Resource overhead:** A control plane and node agents eat gigabytes of RAM and CPU cycles before your application serves a single HTTP request. On lean cloud VPS instances, Kubernetes consumes half the machine just to stay alive.
