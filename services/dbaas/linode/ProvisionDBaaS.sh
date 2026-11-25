@@ -81,7 +81,7 @@ DEPLOYMENT_MODE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DEPLOYME
 WEBSITE_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL)"
 VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 
-if [ -n "${VPC_IP_RANGE}" ]
+if [ ! -n "${VPC_IP_RANGE}" ]
 then
         status "Error: VPC_IP_RANGE is not set"
         exit 1
