@@ -109,7 +109,7 @@ then
 fi
 
 # Delete the target S3 object or path via s3cmd
-status "Deleting S3 object 's3://${file_to_delete}' via profile ${count}..."
+status "Deleting S3 object 's3://${file_to_delete}' via profile ${count}..." "no"
 set +e
 if [ -n "${recursive}" ]
 then
@@ -127,7 +127,7 @@ then
         exit 1
 fi
 
-status "Success! Deleted S3 object 's3://${file_to_delete}' on profile ${count}."
+status "Success! Deleted S3 object 's3://${file_to_delete}' on profile ${count}." "no"
 exit 0
 
 
