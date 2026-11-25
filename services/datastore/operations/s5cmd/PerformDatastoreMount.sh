@@ -107,7 +107,7 @@ check_status=$?
 
 if [ "${check_status}" -ne 0 ]
 then
-        status "Creating S3 bucket 's3://${datastore_to_mount}' via profile ${count}..."
+        status "Creating S3 bucket 's3://${datastore_to_mount}' via profile ${count}..." "no"
         /usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" mb "s3://${datastore_to_mount}" >/dev/null 2>&1
         mb_status=$?
 
