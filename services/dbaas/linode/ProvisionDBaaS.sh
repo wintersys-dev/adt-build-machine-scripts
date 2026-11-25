@@ -81,12 +81,6 @@ DEPLOYMENT_MODE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" DEPLOYME
 WEBSITE_URL="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" WEBSITE_URL)"
 VPC_IP_RANGE="$("${BUILD_HOME}/helpers/services/GetVariableValue.sh" VPC_IP_RANGE)"
 
-if [ ! -n "${VPC_IP_RANGE}" ]
-then
-        status "Error: VPC_IP_RANGE is not set"
-        exit 1
-fi
-
 # Verify that the core software configuration file exists and is readable
 software_file="${BUILD_HOME}/configuration/software.dat"
 if [ ! -f "${software_file}" ] || [ ! -r "${software_file}" ]
@@ -108,6 +102,13 @@ fi
 # Orchestrate cloud-managed DBaaS creation or reuse on single-region / primary builds
 if [ "${DATABASE_INSTALLATION_TYPE}" = "DBaaS" ] && { [ "${MULTI_REGION}" = "0" ] || { [ "${MULTI_REGION}" = "1" ] && [ "${PRIMARY_REGION}" = "1" ]; }; }
 then
+
+        if [ ! -n "${VPC_IP_RANGE}" ]
+        then
+                status "Error: VPC_IP_RANGE is not set"
+                exit 1
+        fi
+        
         # Verify that the requested DBaaS engine and version are supported by the provider
         set +e
         "${BUILD_HOME}/services/dbaas/${CLOUDHOST}/${orchestration_tool}/verify_selected_engine.sh"
