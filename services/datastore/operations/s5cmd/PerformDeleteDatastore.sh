@@ -101,7 +101,7 @@ then
 fi
 
 # Check for internal objects and delete them recursively before removing the bucket
-status "Purging objects from S3 bucket 's3://${datastore_to_delete}' via profile ${count}..."
+status "Purging objects from S3 bucket 's3://${datastore_to_delete}' via profile ${count}..." "no"
 set +e
 s5_objects="$(/usr/bin/s5cmd --credentials-file "${cfg_file}" --endpoint-url "https://${host_base}" ls "s3://${datastore_to_delete}/*" 2>/dev/null)"
 
