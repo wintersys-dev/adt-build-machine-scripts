@@ -1,12 +1,12 @@
 #!/bin/sh
-#: Name:        InitialiseBuildMachineCrontabs.sh
+#: Name:        InitialiseCrontabs.sh
 #: Purpose:     Orchestrates the initialisation of all required root crontab entries for the Build Machine.
 #: Author:      Peter Winter
 #: Date:        16/11/2026
 #: Version:     1.0
 #:
-#: Usage:       InitialiseBuildMachineCrontabs.sh
-#:              InitialiseBuildMachineCrontabs.sh [-h|--help]
+#: Usage:       InitialiseCrontabs.sh
+#:              InitialiseCrontabs.sh [-h|--help]
 #:
 #: Parameters:
 #:   None
@@ -17,7 +17,6 @@
 #: Dependencies:
 #:   - /home/buildhome.dat
 #:   - LogStatusMessages.sh
-#:   - InitialiseBuildMachineFirewallCron.sh
 #:   - InitialiseUpdateAndUpgradeCron.sh
 #:   - InitialiseRenewSSLCertificateCron.sh
 #:   - InitialiseAuditSSHConnectionsCron.sh
@@ -78,7 +77,7 @@ fi
 
 # Execute each build machine cron initialiser script sequentially with validation
 cron_dir="${BUILD_HOME}/services/cron"
-cron_scripts="InitialiseBuildMachineFirewallCron.sh InitialiseUpdateAndUpgradeCron.sh InitialiseRenewSSLCertificateCron.sh InitialiseAuditSSHConnectionsCron.sh InitialiseVirusScannerCron.sh"
+cron_scripts="InitialiseUpdateAndUpgradeCron.sh InitialiseRenewSSLCertificateCron.sh InitialiseAuditSSHConnectionsCron.sh InitialiseVirusScannerCron.sh"
 
 for script_name in ${cron_scripts}
 do
