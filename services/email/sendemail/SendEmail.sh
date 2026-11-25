@@ -114,7 +114,7 @@ case "${EMAIL_PROVIDER}" in
                 mailhub="in-v3.mailjet.com:587"
                 ;;
         3)
-                mailhub="email-smtp.eu-west-1.amazonaws.com"
+                mailhub="email-smtp.eu-west-1.amazonaws.com:587"
                 ;;
         *)
                 status "Error: Unsupported SYSTEM_EMAIL_PROVIDER value (${EMAIL_PROVIDER})."
