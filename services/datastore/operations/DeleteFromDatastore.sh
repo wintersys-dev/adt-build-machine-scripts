@@ -156,6 +156,6 @@ then
         done
 fi
 
-/bin/echo "Success! Completed datastore object deletion for '${target_object}'." "no"
+status "Success! Completed datastore object deletion for '${target_object}'." "no"
 exit 0
 
