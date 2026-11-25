@@ -1,0 +1,5 @@
+ALLOW SSH connections from all IP addresses using the OS firewall and then constrict the SSH connections to your build machine to your particular 
+laptop ip address(es) using the GUI system of your cloudhost. This way the OS firewall is a first line of defence and the cloudhost firewall
+locks things down so that only particular IP addresses have access to your machine via SSH.
+Also, consider only having your build machine "online" when you are actually doing work because an offline machine can't be attacked in other words
+shutdown your build machine once you have completed your work and reboot it the next time you have work that you want to do on it.
