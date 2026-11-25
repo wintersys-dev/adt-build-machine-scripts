@@ -76,28 +76,33 @@ set +e
 current_crontab="$(/usr/bin/crontab -u root -l 2>/dev/null)"
 set -e
 
-# Check if the audit job is already scheduled; if not, append and reload safely via stdin
-if ! /bin/echo "${current_crontab}" | /usr/bin/grep -Fq "AuditSSHConnections.sh"
+matching_entry="$(/usr/bin/printf '%s\n' "${current_crontab}" | /usr/bin/grep -F "AuditSSHConnections.sh" || true)"
+
+if [ -z "${matching_entry}" ]
 then
-        cron_entry="*/1 * * * * ${audit_script}"
-        if [ -z "${current_crontab}" ]
-        then
-                new_crontab="${cron_entry}"
-        else
-                new_crontab="$(/usr/bin/printf '%s\n%s' "${current_crontab}" "${cron_entry}")"
-        fi
 
-        fi
-
-        if /bin/echo "${new_crontab}" | /usr/bin/crontab -u root - 2>/dev/null
+        # Check if the audit job is already scheduled; if not, append and reload safely via stdin
+        if ! /bin/echo "${current_crontab}" | /usr/bin/grep -Fq "AuditSSHConnections.sh"
         then
-                status "Success! Scheduled AuditSSHConnections.sh in root crontab."
-        else
-                status "Error: Failed to update root crontab for AuditSSHConnections.sh."
-                exit 1
+                cron_entry="*/1 * * * * ${audit_script}"
+                if [ -z "${current_crontab}" ]
+                then
+                        new_crontab="${cron_entry}"
+                else
+                        new_crontab="$(/usr/bin/printf '%s\n%s' "${current_crontab}" "${cron_entry}")"
+                fi
         fi
 else
-        status "AuditSSHConnections.sh is already present in root crontab."
+        status "AuditSSHConnections.sh entry is already present in root crontab."
+
+fi
+
+if /bin/echo "${new_crontab}" | /usr/bin/crontab -u root - 2>/dev/null
+then
+        status "Success! Scheduled AuditSSHConnections.sh in root crontab."
+else
+        status "Error: Failed to update root crontab for AuditSSHConnections.sh."
+        exit 1
 fi
 
 exit 0
