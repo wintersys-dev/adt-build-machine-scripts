@@ -94,7 +94,7 @@ To illustrate real-world value for money, the comparison below models a **5,000-
 ### C. Operational & Staffing TCO Advantages
 1. **No Specialist Kubernetes / SRE Hiring Premium:** Managed cleanly by existing university Linux/systems administrators using standard POSIX `/bin/sh`, `cron`, `Nginx`, and `MariaDB` skills—avoiding the £65,000–£85,000+ UK salary overhead of dedicated Kubernetes platform engineers.
 2. **Elimination of `moodledata` Container Storage Bottlenecks:** Runs directly on native Linux filesystems with S3 asset persistence (`SetupAssetsStore.sh`), avoiding the NFS `ReadWriteMany` lock latency that degrades Moodle quiz submissions under load.
-Use code with caution.
+
 3. Predictable Off-Term Cost Reduction: Scales down automatically during summer and winter academic breaks while maintaining full multi-tier backups and security hardening.
 
 5. Technical & Operational Summary for IT Assurance Teams
