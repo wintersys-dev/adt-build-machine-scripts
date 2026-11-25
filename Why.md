@@ -63,7 +63,7 @@ Every piece of Wintersys ADT is plain-text POSIX shell with self-documenting hea
 | **Security & Perimeter Defense** | **Active & built-in** (automated firewalling, SSH audits, webroot immutability, WireGuard/whitelist gateways) | **DIY** (requires manual host firewalling; Docker modifies `iptables` directly) | **DIY / Add-ons** (requires NetworkPolicies, RBAC tuning, and external WAF/ingress setup) |
 | **Debugging & Transparency** | **Plain-text POSIX shell** (`set -x`, standard `/var/log`, self-documenting `-h` headers) | Moderate (`docker logs`, `docker exec`, overlay filesystem inspection) | High complexity (`kubectl`, YAML manifests, CNI routing, `CrashLoopBackOff` states) |
 | **Configuration Format** | Simple key-value templates & modular shell scripts | `docker-compose.yml` + Dockerfiles | Hundreds/thousands of lines of YAML, Helm charts, or Kustomize overlays |
-| **Cloud Provider Portability** | **High** (clean provider wrappers for Linode, DigitalOcean, Vultr, AWS, Exoscale) | High for single-host VMs | Moderate to low (often tied to managed cloud K8s ingress/storage drivers) |
+| **Cloud Provider Portability** | **High** (clean provider wrappers for Linode, DigitalOcean, Vultr, Exoscale) | High for single-host VMs | Moderate to low (often tied to managed cloud K8s ingress/storage drivers) |
 | **Ideal Use Case** | Production CMS/web apps, agencies, and lean cloud fleets needing HA without bloat | Local development and simple single-server multi-service stacks | Large enterprises running dozens/hundreds of polyglot microservices |
 
 ### The Bottom Line
