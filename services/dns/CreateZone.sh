@@ -5,7 +5,7 @@
 #: Date:        15/11/2026
 #: Version:     1.0
 #:
-#: Usage:       CreateZone.sh <website_url>
+#: Usage:       CreateZone.sh <zone_root_domain>
 #:              CreateZone.sh [-h|--help]
 #:
 #: Parameters:
@@ -71,7 +71,7 @@ status()
 if [ -z "${1}" ]
 then
         status "Error: 1 argument is required."
-        status "Usage: $0 <website_url>"
+        status "Usage: $0 <zone_root_domain>"
         exit 1
 fi
 
