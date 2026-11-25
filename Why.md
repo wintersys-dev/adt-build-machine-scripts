@@ -44,7 +44,7 @@ You don't need Kubernetes to get multi-node resilience, automated failover, or h
 * **Aggressive Self-Defending Security:** Automated firewall enforcement (`SetupFirewallFromCron`), SSH auditing, webroot immutability checks, and dynamic authenticator gateways (`firewall`, `whitelist`, `basic-auth`, or `wire-guard`) lock down every node automatically.
 
 ### 3. Multi-Cloud & Multi-Region Portability
-Because ADT interacts with cloud providers (Linode, DigitalOcean, Vultr, AWS, Exoscale) through clean provider wrappers and standard REST/CLI interfaces, you aren't locked into a managed Kubernetes offering. Spinning up a multi-region deployment or switching DNS/object-storage providers is a configuration choice, not a six-month migration project.
+Because ADT interacts with cloud providers (Linode, DigitalOcean, Vultr, Exoscale) through clean provider wrappers and standard REST/CLI interfaces, you aren't locked into a managed Kubernetes offering. Spinning up a multi-region deployment or switching DNS/object-storage providers is a configuration choice, not a six-month migration project.
 
 ### 4. Total Observability and Hackability
 Every piece of Wintersys ADT is plain-text POSIX shell with self-documenting headers (`-h` / `--help`). Any Linux administrator can open a script, read it top to bottom in two minutes, trace its exact execution, and modify it on the spot. There is no compilation step, no proprietary DSL, and no black box between you and your servers.
