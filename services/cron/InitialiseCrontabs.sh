@@ -75,9 +75,15 @@ then
         /bin/chmod 600 "${root_crontab}"
 fi
 
+virus_scanner=""
+if ( [ "$(/bin/grep "^VIRUSSCANNER:*" ${BUILD_HOME}/configuration/software.dat)" != "" ] )
+then
+        virus_scanner="InitialiseVirusScannerCron.sh"
+fi
+
 # Execute each build machine cron initialiser script sequentially with validation
 cron_dir="${BUILD_HOME}/services/cron"
-cron_scripts="InitialiseUpdateAndUpgradeCron.sh InitialiseRenewSSLCertificateCron.sh InitialiseAuditSSHConnectionsCron.sh InitialiseVirusScannerCron.sh"
+cron_scripts="InitialiseUpdateAndUpgradeCron.sh InitialiseRenewSSLCertificateCron.sh InitialiseAuditSSHConnectionsCron.sh ${virus_scanner}"
 
 for script_name in ${cron_scripts}
 do
