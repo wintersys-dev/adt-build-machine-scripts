@@ -71,7 +71,7 @@ status()
 if [ -z "${1}" ]
 then
         status "Error: 1 argument is required."
-        status "Usage: $0 <zone_root_domain>"
+        status "Usage: $0 <website_domain e.g. www.domain.com>"
         exit 1
 fi
 
