@@ -94,16 +94,16 @@ then
         else
                 new_crontab="$(/usr/bin/printf '%s\n%s' "${current_crontab}" "${cron_entry}")"
         fi
-
-        if /usr/bin/printf '%s\n' "${new_crontab}" | /usr/bin/crontab -u root - 2>/dev/null
-        then
-                status "Success! Scheduled daily VirusScan.sh in root crontab."
-        else
-                status "Error: Failed to update root crontab for VirusScan.sh."
-                exit 1
-        fi
 else
         status "VirusScan.sh is already present in root crontab."
+fi
+
+if /usr/bin/printf '%s\n' "${new_crontab}" | /usr/bin/crontab -u root - 2>/dev/null
+then
+        status "Success! Scheduled daily apt update/upgrade and reboot in root crontab."
+else
+        status "Error: Failed to update root crontab for apt update/upgrade."
+        exit 1
 fi
 
 exit 0
