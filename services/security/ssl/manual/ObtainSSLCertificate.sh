@@ -113,8 +113,7 @@ then
 fi
 
 # Validate required configuration variables
-if [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ] || \
-   [ -z "${DNS_CHOICE}" ] || [ -z "${WEBSITE_URL}" ]
+if [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ] || [ -z "${DNS_CHOICE}" ] || [ -z "${WEBSITE_URL}" ]
 then
         /bin/echo "Error: Missing required SSL configuration variables (CLOUDHOST, BUILD_IDENTIFIER, DNS_CHOICE, or WEBSITE_URL)." >&2
         exit 1
