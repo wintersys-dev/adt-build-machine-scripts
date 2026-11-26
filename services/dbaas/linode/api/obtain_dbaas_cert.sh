@@ -3,7 +3,7 @@
 #: Purpose:     Retrieves and validates the SSL CA certificate for a Linode DBaaS cluster (MySQL or PostgreSQL).
 #: Author:      Peter Winter
 #: Date:        24/11/2026
-#: Version:     2.0
+#: Version:     1.0
 #:
 #: Usage:       obtain_dbaas_cert.sh <database_id>
 #:              obtain_dbaas_cert.sh [-h|--help]
