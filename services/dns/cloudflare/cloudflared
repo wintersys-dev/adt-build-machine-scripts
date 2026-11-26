@@ -1,0 +1,320 @@
+To integrate Cloudflare Tunnel creation and token management directly into Wintersys ADT, you can add a two-part lifecycle hook using the Cloudflare Tunnel API: a build-machine provisioning script to create the tunnel and route DNS, and a webserver bootstrap snippet to install cloudflared using the retrieved token. [1] (https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel-api/)
+Because Cloudflare supports remotely managed tunnels ("config_src": "cloudflare"), your build machine can create a single tunnel per deployment, configure its public hostname ingress rules via API, store the resulting CLOUDFLARE_TUNNEL_TOKEN, and pass that same token to every webserver (including autoscaled replicas). [1] (https://developers.cloudflare.com/tunnel/configuration/), [2] (https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel-api/)
+
+1. Prerequisites: Cloudflare API Token Permissions
+
+Ensure your CLOUDFLARE_API_TOKEN in your ADT configuration includes these permissions: [1] (https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel-api/)
+• Account -> Cloudflare Tunnel -> Edit (or Cloudflare One Connectors Write)
+• Zone -> DNS -> Edit (to create the CNAME record pointing to <tunnel_id>.cfargotunnel.com) [1] (https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel-api/), [2] (https://blog.rullo.fr/use-cloudflare-tunnels-as-an-ingress-for-k8s-df21cefc4403)
+
+2. Build Machine Script: ProvisionCloudflareTunnel.sh
+
+Place this script in your build machine's DNS/network services directory (e.g., ${BUILD_HOME}/services/dns/cloudflare/ProvisionCloudflareTunnel.sh). It follows your exact Wintersys ADT conventions (#!/bin/sh, #: help header, LogStatusMessages.sh, and jq): [1]
+sh
+#!/bin/sh
+#: Name:        ProvisionCloudflareTunnel.sh
+#: Purpose:     Creates a remotely-managed Cloudflare Tunnel, configures ingress, binds DNS, and outputs the connector token.
+#: Author:      Peter Winter
+#: Date:        26/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ProvisionCloudflareTunnel.sh <account_id> <zone_id> <api_token> <tunnel_name> <public_hostname> <origin_url>
+#:              ProvisionCloudflareTunnel.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Required] Cloudflare Account ID.
+#:   $2         [Required] Cloudflare Zone ID for the target domain.
+#:   $3         [Required] Cloudflare API Bearer Token with Tunnel:Edit and DNS:Edit permissions.
+#:   $4         [Required] Unique label for the Cloudflare Tunnel (e.g., adt-prod-tunnel).
+#:   $5         [Required] Public FQDN to route through the tunnel (e.g., www.example.com).
+#:   $6         [Required] Local origin service URL on the webserver (e.g., http://localhost:80).
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - LogStatusMessages.sh
+#:   - External binaries: cat, echo, grep, cut, curl, jq
+#:
+#: Exit Codes:
+#:   0          Tunnel provisioned, DNS bound, and token saved to ${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat
+#:   1          Missing arguments or Cloudflare API failure
+###################################################################################
+# License Agreement:
+# This file is part of The Wintersys Agile Deployment Toolkit.
+# The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# The Agile Deployment Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+#set -x
+set -e
+
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+else
+        /bin/echo "Application framework configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+status()
+{
+        "${BUILD_HOME}/helpers/services/LogStatusMessages.sh" "${1}"
+}
+
+if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ] || [ -z "${4}" ] || [ -z "${5}" ] || [ -z "${6}" ]
+then
+        status "Error: 6 arguments are required"
+        status "Usage: $0 <account_id> <zone_id> <api_token> <tunnel_name> <public_hostname> <origin_url>"
+        exit 1
+fi
+
+account_id="${1}"
+zone_id="${2}"
+api_token="${3}"
+tunnel_name="${4}"
+public_hostname="${5}"
+origin_url="${6}"
+
+cf_api_base="https://api.cloudflare.com/client/v4"
+token_store="${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat"
+id_store="${BUILD_HOME}/runtimedata/cloudflare_tunnel_id.dat"
+
+# 1. Check if a tunnel with this name already exists (idempotency for rebuilds)
+set +e
+existing_resp="$(/usr/bin/curl -sS -X GET "${cf_api_base}/accounts/${account_id}/cfd_tunnel?name=${tunnel_name}&is_deleted=false" \
+        -H "Authorization: Bearer ${api_token}" \
+        -H "Content-Type: application/json")"
+curl_status="$?"
+set -e
+
+if [ "${curl_status}" -ne 0 ] || [ -z "${existing_resp}" ]
+then
+        status "Error: Failed to query existing Cloudflare Tunnels."
+        exit 1
+fi
+
+tunnel_id="$(/bin/echo "${existing_resp}" | /usr/bin/jq -r '.result[0].id // empty')"
+tunnel_token=""
+
+# 2. Create the remotely-managed tunnel if it does not exist
+if [ -z "${tunnel_id}" ]
+then
+        status "Creating Cloudflare Tunnel '${tunnel_name}'..."
+        create_payload="$(/usr/bin/jq -n --arg name "${tunnel_name}" '{name: $name, config_src: "cloudflare"}')"
+
+        set +e
+        create_resp="$(/usr/bin/curl -sS -X POST "${cf_api_base}/accounts/${account_id}/cfd_tunnel" \
+                -H "Authorization: Bearer ${api_token}" \
+                -H "Content-Type: application/json" \
+                --data "${create_payload}")"
+        curl_status="$?"
+        set -e
+
+        success_flag="$(/bin/echo "${create_resp}" | /usr/bin/jq -r '.success // false')"
+        if [ "${curl_status}" -ne 0 ] || [ "${success_flag}" != "true" ]
+        then
+                status "Error: Failed to create Cloudflare Tunnel '${tunnel_name}': ${create_resp}"
+                exit 1
+        fi
+
+        tunnel_id="$(/bin/echo "${create_resp}" | /usr/bin/jq -r '.result.id // empty')"
+        tunnel_token="$(/bin/echo "${create_resp}" | /usr/bin/jq -r '.result.token // empty')"
+else
+        status "Reusing existing Cloudflare Tunnel '${tunnel_name}' (${tunnel_id})..."
+fi
+
+# 3. Fetch the connector token explicitly if not returned during creation
+if [ -z "${tunnel_token}" ]
+then
+        set +e
+        token_resp="$(/usr/bin/curl -sS -X GET "${cf_api_base}/accounts/${account_id}/cfd_tunnel/${tunnel_id}/token" \
+                -H "Authorization: Bearer ${api_token}" \
+                -H "Content-Type: application/json")"
+        curl_status="$?"
+        set -e
+
+        tunnel_token="$(/bin/echo "${token_resp}" | /usr/bin/jq -r '.result // empty')"
+fi
+
+if [ -z "${tunnel_id}" ] || [ -z "${tunnel_token}" ]
+then
+        status "Error: Could not resolve Cloudflare Tunnel ID or connector token."
+        exit 1
+fi
+
+# 4. Push ingress routing rules (public_hostname -> origin_url + required 404 catch-all)
+status "Configuring Cloudflare Tunnel ingress for '${public_hostname}' -> '${origin_url}'..."
+ingress_payload="$(/usr/bin/jq -n \
+        --arg host "${public_hostname}" \
+        --arg svc "${origin_url}" \
+        '{config: {ingress: [{hostname: $host, service: $svc, originRequest: {}}, {service: "http_status:404"}]}}')"
+
+set +e
+config_resp="$(/usr/bin/curl -sS -X PUT "${cf_api_base}/accounts/${account_id}/cfd_tunnel/${tunnel_id}/configurations" \
+        -H "Authorization: Bearer ${api_token}" \
+        -H "Content-Type: application/json" \
+        --data "${ingress_payload}")"
+curl_status="$?"
+set -e
+
+config_ok="$(/bin/echo "${config_resp}" | /usr/bin/jq -r '.success // false')"
+if [ "${curl_status}" -ne 0 ] || [ "${config_ok}" != "true" ]
+then
+        status "Error: Failed to update tunnel ingress rules: ${config_resp}"
+        exit 1
+fi
+
+# 5. Create or update the proxied CNAME DNS record pointing to <tunnel_id>.cfargotunnel.com
+tunnel_cname="${tunnel_id}.cfargotunnel.com"
+set +e
+dns_lookup="$(/usr/bin/curl -sS -X GET "${cf_api_base}/zones/${zone_id}/dns_records?type=CNAME&name=${public_hostname}" \
+        -H "Authorization: Bearer ${api_token}" \
+        -H "Content-Type: application/json")"
+set -e
+
+dns_record_id="$(/bin/echo "${dns_lookup}" | /usr/bin/jq -r '.result[0].id // empty')"
+dns_payload="$(/usr/bin/jq -n \
+        --arg name "${public_hostname}" \
+        --arg content "${tunnel_cname}" \
+        '{type: "CNAME", name: $name, content: $content, proxied: true}')"
+
+if [ -z "${dns_record_id}" ]
+then
+        set +e
+        dns_resp="$(/usr/bin/curl -sS -X POST "${cf_api_base}/zones/${zone_id}/dns_records" \
+                -H "Authorization: Bearer ${api_token}" \
+                -H "Content-Type: application/json" \
+                --data "${dns_payload}")"
+        set -e
+else
+        set +e
+        dns_resp="$(/usr/bin/curl -sS -X PUT "${cf_api_base}/zones/${zone_id}/dns_records/${dns_record_id}" \
+                -H "Authorization: Bearer ${api_token}" \
+                -H "Content-Type: application/json" \
+                --data "${dns_payload}")"
+        set -e
+fi
+
+dns_ok="$(/bin/echo "${dns_resp}" | /usr/bin/jq -r '.success // false')"
+if [ "${dns_ok}" != "true" ]
+then
+        status "Error: Failed to bind Cloudflare DNS CNAME for '${public_hostname}': ${dns_resp}"
+        exit 1
+fi
+
+# 6. Persist Tunnel ID and Token securely in runtimedata for webserver/autoscaler provisioning
+/usr/bin/mkdir -p "${BUILD_HOME}/runtimedata"
+/bin/echo "${tunnel_id}" > "${id_store}"
+/bin/echo "${tunnel_token}" > "${token_store}"
+/bin/chmod 600 "${id_store}" "${token_store}"
+
+status "Success: Cloudflare Tunnel '${tunnel_name}' (${tunnel_id}) active for '${public_hostname}'."
+exit 0
+Use code with caution.
+
+3. Webserver / Autoscaler Side: Attaching a Replica
+
+Once ProvisionCloudflareTunnel.sh saves the token to ${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat, your build machine passes that token to every webserver (whether on Multipass or Linode) during provisioning or scaling.
+Inside your webserver setup script (e.g., InstallCloudflared.sh), run:
+sh
+#!/bin/sh
+set -e
+
+tunnel_token="${1}"
+
+if [ -z "${tunnel_token}" ]
+then
+        /bin/echo "No Cloudflare Tunnel token supplied; skipping cloudflared setup."
+        exit 0
+fi
+
+if ! command -v cloudflared >/dev/null 2>&1
+then
+        /usr/bin/mkdir -p /usr/share/keyrings
+        /usr/bin/curl -fsSL https://cloudflare.com | /usr/bin/tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+        codename="$(. /etc/os-release && /bin/echo "${VERSION_CODENAME}")"
+        /bin/echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://cloudflare.com ${codename} main" | /usr/bin/tee /etc/apt/sources.list.d/cloudflared.list >/dev/null
+        /usr/bin/apt-get update -qq
+        /usr/bin/apt-get install -y -qq cloudflared
+fi
+
+# Register and start the systemd service (automatically load-balances across all active replicas)
+/usr/bin/cloudflared service install "${tunnel_token}"
+Use code with caution.
+
+How This Fits Your Autoscaling & Multipass Workflow
+
+• Idempotent Rebuilds: If you tear down your Multipass VMs and rebuild, ProvisionCloudflareTunnel.sh detects the existing tunnel by name, retrieves its token via GET /accounts/{account_id}/cfd_tunnel/{tunnel_id}/token, updates the ingress/DNS, and hands the token to your fresh VMs. [1] (https://developers.cloudflare.com/tunnel/reference/tunnel-tokens/)
+• Zero-API Autoscaling: When your autoscaler launches a second or third webserver (either locally via Multipass or on Linode), it reads ${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat and runs cloudflared service install. Cloudflare immediately adds the new VM as a load-balanced replica without any DNS API calls. [1] (https://developers.cloudflare.com/tunnel/configuration/), [2] (https://developers.cloudflare.com/tunnel/reference/tunnel-tokens/)
+Would you like to:
+• Add a companion DestroyCloudflareTunnel.sh teardown script for when you decommission a deployment?
+• Wire this token directly into your Multipass ProvisionServer.sh / cloud-init user-data injection?
+• Continue refactoring your next Linode script for Multipass?
+
+
+You add a webserver to the tunnel simply by installing cloudflared on that webserver and running cloudflared service install <TUNNEL_TOKEN>—no API calls or dashboard changes needed.
+Because ProvisionCloudflareTunnel.sh already configured the tunnel's routing rules on Cloudflare's side (public_hostname → http://localhost:80), any webserver that starts cloudflared using that exact same token automatically registers itself as an active origin for your website.
+Here are the three ways to do this in your Wintersys ADT workflow, depending on how you are provisioning the webserver:
+
+Method 1: Automatically at Boot via cloud-init (user_data_path)
+
+This is the cleanest way for both Multipass and Linode, because the webserver joins the tunnel the moment it boots—before your build machine even finishes SSHing in.
+1. Read the token your build machine saved:sh
+TUNNEL_TOKEN="$(/bin/cat "${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat")"
+Use code with caution.
+2. Inject it into your cloud-init user_data template (or replace a placeholder like __CLOUDFLARE_TUNNEL_TOKEN__ before calling ProvisionServer.sh):yaml
+#cloud-config
+runcmd:
+  - mkdir -p /usr/share/keyrings
+  - curl -fsSL https://cloudflare.com | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+  - echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://cloudflare.com $(. /etc/os-release && echo "$VERSION_CODENAME") main" | tee /etc/apt/sources.list.d/cloudflared.list >/dev/null
+  - apt-get update -qq && apt-get install -y -qq cloudflared
+  - cloudflared service install __CLOUDFLARE_TUNNEL_TOKEN__
+Use code with caution.
+
+Method 2: From Your Build Machine Over SSH (During Webserver Setup)
+
+If you prefer to keep cloud-init minimal and have your build machine install cloudflared alongside Nginx/Apache:
+1. Copy InstallCloudflared.sh (from the previous step) to the webserver or execute it remotely over SSH from your build machine:sh
+TUNNEL_TOKEN="$(/bin/cat "${BUILD_HOME}/runtimedata/cloudflare_tunnel_token.dat")"
+
+/usr/bin/ssh -o StrictHostKeyChecking=no root@"${WEBSERVER_IP}" \
+    "sh -s" "${TUNNEL_TOKEN}" < "${BUILD_HOME}/services/dns/cloudflare/InstallCloudflared.sh"
+Use code with caution.
+2. As soon as that command finishes, systemd starts cloudflared on the webserver and opens 4 persistent outbound connections to Cloudflare's edge.
+
+Method 3: Adding a 2nd, 3rd, or Autoscaled Webserver
+
+When your autoscaler spins up another webserver (for example, web-2 on Multipass or Linode):
+• Run the exact same step with the exact same cloudflare_tunnel_token.dat.
+• You do not create a second tunnel or touch DNS. Cloudflare automatically sees two active cloudflared connectors under the same Tunnel ID and immediately begins round-robin load-balancing visitor traffic across both webservers.
+• When you destroy web-2 during scale-down, its connector drops off and Cloudflare seamlessly routes 100% of traffic back to web-1.
+
+Quick Verification Command
+
+To verify that a webserver successfully joined the tunnel, run this inside the webserver (or via multipass exec <server_name> -- ...):
+sh
+sudo systemctl status cloudflared
+Use code with caution.
+You should see active (running) along with log lines confirming Registered tunnel connection across four edge locations.
+Would you like to:
+• See how to inject __CLOUDFLARE_TUNNEL_TOKEN__ cleanly inside your Multipass ProvisionServer.sh before multipass launch runs?
+• Write the DestroyCloudflareTunnel.sh script to clean up the tunnel and DNS record when tearing down an environment?
+• Refactor your next Linode script for Multipass?
+
