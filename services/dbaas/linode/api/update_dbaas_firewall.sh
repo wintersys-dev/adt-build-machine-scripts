@@ -3,7 +3,7 @@
 #: Purpose:     Updates the network firewall allow list for a managed Linode DBaaS cluster (MySQL or PostgreSQL).
 #: Author:      Peter Winter
 #: Date:        24/11/2026
-#: Version:     2.0
+#: Version:     1.0
 #:
 #: Usage:       update_dbaas_firewall.sh <database_id> <allow_list>
 #:              update_dbaas_firewall.sh [-h|--help]
