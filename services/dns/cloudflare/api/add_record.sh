@@ -96,8 +96,9 @@ endpoint="https://${api_sub}.${api_domain}/${api_path}"
 # Submit the DNS record creation POST request using Bearer token or legacy Global API Key
 set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
-then
-        api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
+then        
+        account_id="${DNS_SECURITY_KEY%:::*}"
+        api_token="${DNS_SECURITY_KEY#*:::}"
         RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${endpoint}" --header "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 else
         RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${endpoint}" --header "X-Auth-Email: ${DNS_USERNAME}" --header "Content-Type: application/json" --data "${json_payload}" 2>&1)"
