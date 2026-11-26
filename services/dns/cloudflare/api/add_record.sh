@@ -97,7 +97,6 @@ endpoint="https://${api_sub}.${api_domain}/${api_path}"
 set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then        
-        account_id="${DNS_SECURITY_KEY%:::*}"
         api_token="${DNS_SECURITY_KEY#*:::}"
         RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${endpoint}" --header "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 else
