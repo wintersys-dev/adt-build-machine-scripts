@@ -3,7 +3,7 @@
 #: Purpose:     Resolves the Linode platform instance ID for a DBaaS cluster label (MySQL or PostgreSQL).
 #: Author:      Peter Winter
 #: Date:        24/11/2026
-#: Version:     2.0
+#: Version:     1.0
 #:
 #: Usage:       obtain_dbaas_id.sh
 #:              obtain_dbaas_id.sh [-h|--help]
