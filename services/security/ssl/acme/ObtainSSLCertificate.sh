@@ -1,28 +1,37 @@
 #!/bin/sh
-#####################################################################################
-# Description: This is a script which will generate an SSL Certificate. When a webserver
-# is being built from the build client and not through the autoscaling mechanism, there
-# are 3 scenarios
-#
-# 1) No certificate has been issued for the current domain name before in which case,
-# one is generated and stored in the build directory hierarchy where it can be retrieved later
-#
-# 2) A certificate has been generated before for this domain name and we want to reuse it
-# by selecting it from the build client filesystem where we stored it in 1. In this case,
-# this script will not be used to generate a certificate.
-#
-# 3) There is a previously issued certificate we can use, but, it has expired, in which case
-# this script will be used to generate a new certificate.
-#
-# Something to be aware of. There are limits set on certificate issuance so, if you run
-# scenario 1, several times as you would if you are making "HARDCORE" builds then if you are
-# not issuing staging certificates then you will hit the issuing limit and the certificate
-# will fail to generate. To work around this (but only if you are testing) then set
-# SSL_LIVE_CERT="0" in your template to generate a staging certicate free of issuing limits
-# rather than a live certificate which has issuance constraints. 
-#####################################################################################
+#: Name:        ObtainSSLCertificate.sh
+#: Purpose:     Issues an SSL/TLS certificate via acme.sh DNS-01 challenge with CA failover on the build machine.
+#: Author:      Peter Winter
+#: Date:        26/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ObtainSSLCertificate.sh [website_url] [auth: yes|no]
+#:              ObtainSSLCertificate.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Optional] Target domain name (defaults to WEBSITE_URL from build configuration)
+#:   $2         [Optional] Set to "yes" to issue using AUTH_SERVER_URL and AUTH_DNS_* credentials
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat and exported
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
+#:   - ${BUILD_HOME}/installation/InstallSocat.sh
+#:   - ${BUILD_HOME}/installation/InstallAcme.sh
+#:   - ${BUILD_HOME}/services/dns/GetZoneID.sh
+#:   - ${BUILD_HOME}/services/dns/CreateZone.sh
+#:   - ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/*
+#:   - ${HOME}/.acme.sh/acme.sh
+#:   - External binaries: cat, echo, printf, grep, cut, awk, cp, rm
+#:
+#: Exit Codes:
+#:   0          SSL/TLS certificate issued cleanly by primary or backup ACME CA
+#:   1          Missing /home/buildhome.dat, missing required variables/helpers, or issuance failure
+###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -32,163 +41,219 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-#######################################################################################################
-#######################################################################################################
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
+
+# Exit immediately if any command exits with a non-zero status
 #set -x
+set -e
+
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the build machine toolkit root directory from /home/buildhome.dat
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+        export BUILD_HOME
+else
+        /bin/echo "Application build configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+if [ -z "${BUILD_HOME}" ] || [ ! -d "${BUILD_HOME}" ]
+then
+        /bin/echo "Error: Resolved BUILD_HOME directory '${BUILD_HOME}' is invalid." >&2
+        exit 1
+fi
+
+var_helper="${BUILD_HOME}/helpers/services/GetVariableValue.sh"
+if [ ! -x "${var_helper}" ]
+then
+        /bin/echo "Error: GetVariableValue.sh missing or not executable at ${var_helper}" >&2
+        exit 1
+fi
 
 website_url="${1}"
 auth="${2}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-SYSTEM_FROM_EMAIL_ADDRESS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh 'SYSTEM_FROM_EMAIL_ADDRESS'`"
-ROOT_DOMAIN="`/bin/echo ${website_url} | /usr/bin/cut -d'.' -f2-`"
-DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_USERNAME`"
-DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_SECURITY_KEY`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
-BUILDOS="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILDOS`"
-SSL_GENERATION_METHOD="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_METHOD`"
-SSL_GENERATION_SERVICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_GENERATION_SERVICE`"
-SSL_LIVE_CERT="`${BUILD_HOME}/helpers/services/GetVariableValue.sh SSL_LIVE_CERT`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
+set +e
+SYSTEM_FROM_EMAIL_ADDRESS="$("${var_helper}" 'SYSTEM_FROM_EMAIL_ADDRESS')"
+DNS_USERNAME="$("${var_helper}" 'DNS_USERNAME')"
+DNS_SECURITY_KEY="$("${var_helper}" 'DNS_SECURITY_KEY')"
+DNS_CHOICE="$("${var_helper}" 'DNS_CHOICE')"
+BUILDOS="$("${var_helper}" 'BUILDOS')"
+SSL_GENERATION_SERVICE="$("${var_helper}" 'SSL_GENERATION_SERVICE')"
+SSL_LIVE_CERT="$("${var_helper}" 'SSL_LIVE_CERT')"
 
-if ( [ "${website_url}" != "" ] )
+if [ -n "${website_url}" ]
 then
         WEBSITE_URL="${website_url}"
 else
-        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh WEBSITE_URL`"
+        WEBSITE_URL="$("${var_helper}" 'WEBSITE_URL')"
 fi
 
-if ( [ "${auth}" = "yes" ] )
+if [ "${auth}" = "yes" ]
 then
-        WEBSITE_URL="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_SERVER_URL`"
-        DNS_USERNAME="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_USERNAME`"
-        DNS_SECURITY_KEY="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_SECURITY_KEY`"
-        DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh AUTH_DNS_CHOICE`"
+        WEBSITE_URL="$("${var_helper}" 'AUTH_SERVER_URL')"
+        DNS_USERNAME="$("${var_helper}" 'AUTH_DNS_USERNAME')"
+        DNS_SECURITY_KEY="$("${var_helper}" 'AUTH_DNS_SECURITY_KEY')"
+        DNS_CHOICE="$("${var_helper}" 'AUTH_DNS_CHOICE')"
+fi
+set -e
+
+if [ -z "${WEBSITE_URL}" ] || [ -z "${DNS_CHOICE}" ] || [ -z "${BUILDOS}" ]
+then
+        /bin/echo "Error: Missing required SSL/DNS configuration values (WEBSITE_URL, DNS_CHOICE, or BUILDOS)." >&2
+        exit 1
 fi
 
-if ( [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ] )
+server="letsencrypt"
+backup_server="zerossl"
+if [ "${SSL_GENERATION_SERVICE}" = "ZEROSSL" ]
 then
         server="zerossl"
         backup_server="letsencrypt"
-fi
-
-if ( [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ] )
+elif [ "${SSL_GENERATION_SERVICE}" = "LETSENCRYPT" ]
 then
         server="letsencrypt"
         backup_server="zerossl"
 fi
 
-if ( [ "${SYSTEM_FROM_EMAIL_ADDRESS}" = "" ] )
+if [ -z "${SYSTEM_FROM_EMAIL_ADDRESS}" ]
 then
         SYSTEM_FROM_EMAIL_ADDRESS="${DNS_USERNAME}"
 fi
 
-if ( [ -d ~/.acme.sh/${WEBSITE_URL}_ecc ] )
+if [ -z "${SYSTEM_FROM_EMAIL_ADDRESS}" ]
 then
-        /bin/rm -r ~/.acme.sh/${WEBSITE_URL}_ecc
+        /bin/echo "Error: Neither SYSTEM_FROM_EMAIL_ADDRESS nor DNS_USERNAME is set for ACME account registration." >&2
+        exit 1
 fi
 
-${BUILD_HOME}/installation/InstallSocat.sh ${BUILDOS}
-${BUILD_HOME}/installation/InstallAcme.sh ${BUILDOS} ${SYSTEM_FROM_EMAIL_ADDRESS} #"https://acme-v02.api.letsencrypt.org/directory "
+acme_home="${HOME}/.acme.sh"
+acme_bin="${acme_home}/acme.sh"
 
-if ( [ "`/bin/grep -r ${SYSTEM_FROM_EMAIL_ADDRESS} ~/.acme.sh`" = "" ] )
+if [ -d "${acme_home}/${WEBSITE_URL}_ecc" ]
 then
-        ~/.acme.sh/acme.sh --register-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" 
+        /bin/rm -rf "${acme_home}/${WEBSITE_URL}_ecc"
+fi
+
+"${BUILD_HOME}/installation/InstallSocat.sh" "${BUILDOS}"
+"${BUILD_HOME}/installation/InstallAcme.sh" "${BUILDOS}" "${SYSTEM_FROM_EMAIL_ADDRESS}"
+
+if [ ! -x "${acme_bin}" ]
+then
+        /bin/echo "Error: acme.sh binary not found or not executable at ${acme_bin}" >&2
+        exit 1
+fi
+
+if ! /bin/grep -rqF "${SYSTEM_FROM_EMAIL_ADDRESS}" "${acme_home}" 2>/dev/null
+then
+        "${acme_bin}" --register-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}"
 else
-        ~/.acme.sh/acme.sh --update-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --force
+        "${acme_bin}" --update-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --force
 fi
 
-~/.acme.sh/acme.sh --set-default-ca --server "${server}"
+"${acme_bin}" --set-default-ca --server "${server}"
 
-count="0"
-
-if ( [ "${DNS_CHOICE}" = "cloudflare" ] )
+staging_flag=""
+if [ "${SSL_LIVE_CERT}" = "0" ]
 then
-        zone_name="`/bin/echo ${WEBSITE_URL} | /usr/bin/cut -d'.' -f2-`"
-        zone_id="`${BUILD_HOME}/services/dns/GetZoneID.sh "${zone_name}"`"
-
-        if ( [ "${zone_id}" = "" ] )
-        then
-                ${BUILD_HOME}/services/dns/CreateZone.sh  "${WEBSITE_URL}"
-        fi
-
-        if ( [ "`/bin/echo ${DNS_SECURITY_KEY} | /bin/grep ':::'`" != "" ] )
-        then
-                account_id="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $1}'`"
-                api_token="`/bin/echo ${DNS_SECURITY_KEY} | /usr/bin/awk -F':::' '{print $2}'`"
-
-                export CF_Account_ID="${account_id}"
-                export CF_Token="${api_token}"
-        else
-                export CF_Key="${DNS_SECURITY_KEY}"
-                export CF_Email="${DNS_USERNAME}"
-        fi
-
-        ~/.acme.sh/acme.sh --issue --dns dns_cf -d "${WEBSITE_URL}" --server ${server}  --standalone --force  --always-force-new-domain-key 
-        if ( [ "$?" != "0" ] )
-        then
-                ~/.acme.sh/acme.sh --issue --dns dns_cf -d "${WEBSITE_URL}" --server ${backup_server}  --standalone --force  --always-force-new-domain-key 
-        fi
+        staging_flag="--staging"
 fi
 
+cleanup_cf_env()
+{
+        unset CF_Account_ID CF_Token CF_Key CF_Email
+}
+trap cleanup_cf_env EXIT INT TERM
 
-if ( [ "${DNS_CHOICE}" = "digitalocean" ] )
-then
-        if ( [ -f ~/.acme.sh/dnsapi/dns_dgon.sh ] )
+issue_with_failover()
+{
+        dns_plugin="${1}"
+
+        set +e
+        "${acme_bin}" --issue --dns "${dns_plugin}" -d "${WEBSITE_URL}" --server "${server}" ${staging_flag} --standalone --force --always-force-new-domain-key
+        issue_exit="$?"
+        set -e
+
+        if [ "${issue_exit}" -ne 0 ]
         then
-                /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/digitalocean.sh ~/.acme.sh/dnsapi/dns_dgon.sh
+                /bin/echo "Warning: Primary CA (${server}) failed for ${WEBSITE_URL}; retrying with backup CA (${backup_server})..." >&2
+                "${acme_bin}" --issue --dns "${dns_plugin}" -d "${WEBSITE_URL}" --server "${backup_server}" ${staging_flag} --standalone --force --always-force-new-domain-key
         fi
+}
 
-        ~/.acme.sh/acme.sh --issue --dns dns_dgon -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
-        if ( [ "$?" != "0" ] )
-        then
-                ~/.acme.sh/acme.sh --issue --dns dns_dgon -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
-        fi
-fi
+case "${DNS_CHOICE}" in
+        cloudflare)
+                zone_name="$(printf '%s\n' "${WEBSITE_URL}" | /usr/bin/cut -d'.' -f2-)"
+                set +e
+                zone_id="$("${BUILD_HOME}/services/dns/GetZoneID.sh" "${zone_name}")"
+                set -e
 
-if ( [ "${DNS_CHOICE}" = "exoscale" ] )
-then
-        if ( [ -f ~/.acme.sh/dnsapi/dns_exoscale.sh ] )
-        then
-                /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/exoscale.sh ~/.acme.sh/dnsapi/dns_exoscale.sh
-        fi
+                if [ -z "${zone_id}" ]
+                then
+                        "${BUILD_HOME}/services/dns/CreateZone.sh" "${WEBSITE_URL}"
+                fi
 
-        ~/.acme.sh/acme.sh --issue --dns dns_exoscale -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
-        if ( [ "$?" != "0" ] )
-        then
-                ~/.acme.sh/acme.sh --issue --dns dns_exoscale -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
-        fi
+                case "${DNS_SECURITY_KEY}" in
+                        *:::*)
+                                account_id="$(printf '%s\n' "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $1}')"
+                                api_token="$(printf '%s\n' "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
+                                export CF_Account_ID="${account_id}"
+                                export CF_Token="${api_token}"
+                                ;;
+                        *)
+                                export CF_Key="${DNS_SECURITY_KEY}"
+                                export CF_Email="${DNS_USERNAME}"
+                                ;;
+                esac
 
-fi
+                issue_with_failover "dns_cf"
+                ;;
+        digitalocean)
+                if [ -f "${acme_home}/dnsapi/dns_dgon.sh" ]
+                then
+                        /bin/cp "${BUILD_HOME}/services/security/ssl/acme/acme-overrides/digitalocean.sh" "${acme_home}/dnsapi/dns_dgon.sh"
+                fi
+                issue_with_failover "dns_dgon"
+                ;;
+        exoscale)
+                if [ -f "${acme_home}/dnsapi/dns_exoscale.sh" ]
+                then
+                        /bin/cp "${BUILD_HOME}/services/security/ssl/acme/acme-overrides/exoscale.sh" "${acme_home}/dnsapi/dns_exoscale.sh"
+                fi
+                issue_with_failover "dns_exoscale"
+                ;;
+        linode)
+                if [ -f "${acme_home}/dnsapi/dns_linode_v4.sh" ]
+                then
+                        /bin/cp "${BUILD_HOME}/services/security/ssl/acme/acme-overrides/linode.sh" "${acme_home}/dnsapi/dns_linode_v4.sh"
+                fi
+                issue_with_failover "dns_linode_v4"
+                ;;
+        vultr)
+                if [ -f "${acme_home}/dnsapi/dns_vultr.sh" ]
+                then
+                        /bin/cp "${BUILD_HOME}/services/security/ssl/acme/acme-overrides/vultr.sh" "${acme_home}/dnsapi/dns_vultr.sh"
+                fi
+                issue_with_failover "dns_vultr"
+                ;;
+        *)
+                /bin/echo "Error: Unsupported DNS_CHOICE '${DNS_CHOICE}'." >&2
+                exit 1
+                ;;
+esac
 
-if ( [ "${DNS_CHOICE}" = "linode" ] )
-then
-        if ( [ -f ~/.acme.sh/dnsapi/dns_linode_v4.sh ] )
-        then
-                /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/linode.sh ~/.acme.sh/dnsapi/dns_linode_v4.sh
-        fi
+cleanup_cf_env
+trap - EXIT INT TERM
 
-        ~/.acme.sh/acme.sh --issue --dns dns_linode_v4 -d "${WEBSITE_URL}" --server ${server} --standalone --force  --always-force-new-domain-key
-        if ( [ "$?" != "0" ] )
-        then
-                ~/.acme.sh/acme.sh --issue --dns dns_linode_v4 -d "${WEBSITE_URL}" --server ${backup_server} --standalone --force  --always-force-new-domain-key
-        fi
-fi
+exit 0
 
-if ( [ "${DNS_CHOICE}" = "vultr" ] )
-then
-        if ( [ -f ~/.acme.sh/dnsapi/dns_vultr.sh ] )
-        then
-                /bin/cp ${BUILD_HOME}/services/security/ssl/acme/acme-overrides/vultr.sh ~/.acme.sh/dnsapi/dns_vultr.sh
-        fi
-
-        ~/.acme.sh/acme.sh --issue --dns dns_vultr -d "${WEBSITE_URL}" --server ${server} --standalone --always-force-new-domain-key
-        if ( [ "$?" != "0" ] )
-        then
-                ~/.acme.sh/acme.sh --issue --dns dns_vultr -d "${WEBSITE_URL}" --server ${backup_server} --standalone --always-force-new-domain-key
-        fi
-fi
 
 
