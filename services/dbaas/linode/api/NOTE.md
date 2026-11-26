@@ -1,4 +1,0 @@
-I know there is hardly any difference between the mysql and postgres implementations here, but, splitting them up rather
-than combining them leaves the way open for any mysql or postgres specific customisations you might want to make or in the 
-future if you wanted to use a different database engine which might not fit in so neatly you can add its own custom
-implementation easily this way. 
