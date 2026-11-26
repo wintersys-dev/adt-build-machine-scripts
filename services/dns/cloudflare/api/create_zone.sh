@@ -39,7 +39,7 @@
 ####################################################################################
 
 # Exit immediately if any command exits with a non-zero status
-#set -x
+set -x
 set -e
 
 # Render self-extracting help documentation when -h or --help is supplied
@@ -90,16 +90,17 @@ api_domain="cloudflare.com"
 api_path="client/v4/zones"
 endpoint="https://${api_sub}.${api_domain}/${api_path}"
 
-# Construct the JSON payload defining the new authoritative zone name
-json_payload="{\"name\":\"${zone_name}\"}"
 
 # Submit the zone creation POST request using Bearer token or legacy Global API Key
 set +e
 if /bin/echo "${DNS_SECURITY_KEY}" | /bin/grep -q ':::'
 then
-        api_token="$(/bin/echo "${DNS_SECURITY_KEY}" | /usr/bin/awk -F':::' '{print $2}')"
+        account_id="${DNS_SECURITY_KEY%:::*}"
+        api_token="${DNS_SECURITY_KEY#*:::}"
+        json_payload='{"name":"'${zone_name}'","account":{"id":"'${account_id}'"},"type": "full"}'
         RESPONSE="$(/bin/echo "Authorization: Bearer ${api_token}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${endpoint}" -H "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 else
+        json_payload='{"name":"'${zone_name}'"}'
         RESPONSE="$(/bin/echo "X-Auth-Key: ${DNS_SECURITY_KEY}" | /usr/bin/curl -H @- -sS -w "\nHTTP_STATUS:%{http_code}" -X POST "${endpoint}" -H "X-Auth-Email: ${DNS_USERNAME}" -H "Content-Type: application/json" --data "${json_payload}" 2>&1)"
 fi
 CURL_EXIT="$?"
