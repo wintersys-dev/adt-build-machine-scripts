@@ -425,7 +425,7 @@ then
 	status "Interrogating to see what Application you are running, if any"
 	status "#############################################################"
 	${BUILD_HOME}/application/InterrogateApplicationType.sh
-	if [ "$?" != "0" ] )
+	if [ "$?" != "0" ] 
 	then
 		status "Application interrogation failed"
 		exit
