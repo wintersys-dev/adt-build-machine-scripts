@@ -3,7 +3,7 @@
 #: Purpose:     Validates chosen database engine compatibility against Linode's DBaaS catalog.
 #: Author:      Peter Winter
 #: Date:        24/11/2026
-#: Version:     2.0
+#: Version:     1.0
 #:
 #: Usage:       verify_selected_engine.sh
 #:              verify_selected_engine.sh [-h|--help]
