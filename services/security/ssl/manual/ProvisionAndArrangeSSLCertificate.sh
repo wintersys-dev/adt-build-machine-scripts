@@ -1,12 +1,33 @@
 #!/bin/sh
-###################################################################################
-# Author: Peter Winter
-# Date  : 12/07/2016
-# Description : This will provision and arrange a newly provisioned SSL certificate
-# when using a manul certificate
+#: Name:        ProvisionAndArrangeSSLCertificate.sh
+#: Purpose:     Coordinates manual SSL/TLS certificate verification, rotation, and installation on the build machine.
+#: Author:      Peter Winter
+#: Date:        26/11/2026
+#: Version:     1.0
+#:
+#: Usage:       ProvisionAndArrangeSSLCertificate.sh [website_url]
+#:              ProvisionAndArrangeSSLCertificate.sh [-h|--help]
+#:
+#: Parameters:
+#:   $1         [Optional] Target domain name (defaults to WEBSITE_URL from build configuration)
+#:
+#: Environment:
+#:   BUILD_HOME Resolved automatically from /home/buildhome.dat and exported
+#:
+#: Dependencies:
+#:   - /home/buildhome.dat
+#:   - ${BUILD_HOME}/helpers/services/GetVariableValue.sh
+#:   - ${BUILD_HOME}/helpers/services/LogStatusMessages.sh
+#:   - ${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh
+#:   - ${BUILD_HOME}/services/security/ssl/manual/ObtainSSLCertificate.sh
+#:   - External binaries: cat, echo, grep, cut, date, mkdir, mv, chmod, openssl, touch
+#:
+#: Exit Codes:
+#:   0          Valid manual SSL/TLS certificate verified or installed in build runtime cache
+#:   1          Missing /home/buildhome.dat, missing required variables/helpers, or installation failure
 ###################################################################################
 # License Agreement:
-# This file is part of The Agile Deployment Toolkit.
+# This file is part of The Wintersys Agile Deployment Toolkit.
 # The Agile Deployment Toolkit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,116 +37,132 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
-##################################################################################
-##################################################################################
-#set -x
+# along with The Agile Deployment Toolkit.  If not, see <http://gnu.org>.
+####################################################################################
 
-status () {
-	${BUILD_HOME}/helpers/services/LogStatusMessages.sh "${1}"
+# Exit immediately if any command exits with a non-zero status
+#set -x
+set -e
+
+# Render self-extracting help documentation when -h or --help is supplied
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]
+then
+        /usr/bin/grep '^#:' "$0" | /usr/bin/cut -c 4-
+        exit 0
+fi
+
+# Resolve the build machine toolkit root directory from /home/buildhome.dat
+if [ -r /home/buildhome.dat ]
+then
+        BUILD_HOME="$(/bin/cat /home/buildhome.dat)"
+        export BUILD_HOME
+else
+        /bin/echo "Application build configuration file missing at /home/buildhome.dat" >&2
+        exit 1
+fi
+
+if [ -z "${BUILD_HOME}" ] || [ ! -d "${BUILD_HOME}" ]
+then
+        /bin/echo "Error: Resolved BUILD_HOME directory '${BUILD_HOME}' is invalid." >&2
+        exit 1
+fi
+
+var_helper="${BUILD_HOME}/helpers/services/GetVariableValue.sh"
+log_helper="${BUILD_HOME}/helpers/services/LogStatusMessages.sh"
+hardcore_helper="${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh"
+obtain_script="${BUILD_HOME}/services/security/ssl/manual/ObtainSSLCertificate.sh"
+
+if [ ! -x "${var_helper}" ] || [ ! -x "${obtain_script}" ]
+then
+        /bin/echo "Error: Required SSL/build helper scripts missing or not executable under ${BUILD_HOME}." >&2
+        exit 1
+fi
+
+status()
+{
+        if [ -x "${log_helper}" ]
+        then
+                "${log_helper}" "${1}"
+        else
+                /bin/echo "${1}"
+        fi
 }
 
-website_url="${1}"
+target_domain="${1}"
 
-BUILD_HOME="`/bin/cat /home/buildhome.dat`"
-CLOUDHOST="`${BUILD_HOME}/helpers/services/GetVariableValue.sh CLOUDHOST`"
-BUILD_IDENTIFIER="`${BUILD_HOME}/helpers/services/GetVariableValue.sh BUILD_IDENTIFIER`"
-DNS_CHOICE="`${BUILD_HOME}/helpers/services/GetVariableValue.sh DNS_CHOICE`"
+set +e
+CLOUDHOST="$("${var_helper}" 'CLOUDHOST')"
+BUILD_IDENTIFIER="$("${var_helper}" 'BUILD_IDENTIFIER')"
+DNS_CHOICE="$("${var_helper}" 'DNS_CHOICE')"
 
-
-if ( [ ! -d ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url} ] )
+if [ -z "${target_domain}" ]
 then
-	/bin/mkdir -p ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}
+        target_domain="$("${var_helper}" 'WEBSITE_URL')"
+fi
+set -e
+
+if [ -z "${target_domain}" ] || [ -z "${CLOUDHOST}" ] || [ -z "${BUILD_IDENTIFIER}" ] || [ -z "${DNS_CHOICE}" ]
+then
+        /bin/echo "Error: Missing required SSL context variables (target_domain, CLOUDHOST, BUILD_IDENTIFIER, or DNS_CHOICE)." >&2
+        exit 1
+fi
+
+ssl_cache_dir="${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${target_domain}"
+cached_cert="${ssl_cache_dir}/fullchain.pem"
+cached_key="${ssl_cache_dir}/privkey.pem"
+
+if [ ! -d "${ssl_cache_dir}" ]
+then
+        /bin/mkdir -p "${ssl_cache_dir}"
 fi
 
 status ""
 status "#############################################################################################"
-status "We are setting up an SSL certificate for our webserver so it can establish secure connections"
+status "We are setting up an SSL certificate for ${target_domain} so it can establish secure connections"
 status "#############################################################################################"
 
-# We now need to get our SSL certificate.
-# There are three cases. 1) We have a valid SSL certificate for this domain name on our filesystem and we simply copy that over to our new server
-#                      2) We have an SSL certificate on our filesystem but it is expired, so we need to generate a new one and copy it over.
-#                      3) We have no SSL certificate on our filesystem so we need to generate a new one and copy that over to our server
+needs_install="no"
+install_reason=""
 
-if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem ] )
+if [ -f "${cached_cert}" ] && [ -f "${cached_key}" ]
 then
-	if ( [ "`/usr/bin/openssl x509 -checkend 604800 -noout -in ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem | /bin/grep 'Certificate will expire'`" != "" ] )
-	then
-		if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem ] )
-		then
-			/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem.previous`/bin/date | /bin/sed 's/ //g'`
-		fi
-
-		if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem ] )
-		then
-			/bin/mv ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem.previous`/bin/date | /bin/sed 's/ //g'`
-		fi
-
-		if ( [ -d ${BUILD_HOME}/.lego ] )
-		then
-			/bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
-		fi
-
-		if ( [ ! -d ${BUILD_HOME}/.lego ] )
-		then
-			/bin/mkdir ${BUILD_HOME}/.lego
-		fi
-
-		${BUILD_HOME}/services/security/ssl/manual/ObtainSSLCertificate.sh ${website_url}
-
-
-		if ( [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.crt ] && [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.key ] )
-		then
-			/bin/mv ${BUILD_HOME}/.lego/certificates/${website_url}.crt ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem
-			/bin/mv ${BUILD_HOME}/.lego/certificates/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem
-		fi
-
-		if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem ] )
-		then
-			/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem
-			/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem
-			status "Have successfully generated a new certificate for your domain ${website_url} because the old certificate has expired"
-			status "Press <enter> to acknowledge"
-			if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-			then
-				read x
-			fi
-		else
-			status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesn't seem to have been generated"
-			status "Can't operate without it, this is a secure system, so have to exit. Please investigate in ${BUILD_HOME}/logs"
-			/bin/touch /tmp/END_IT_ALL
-		fi
-	fi
+        # Check if cached certificate expires within 7 days (604800 seconds); returns non-zero if expiring/expired
+        if ! /usr/bin/openssl x509 -checkend 604800 -noout -in "${cached_cert}" >/dev/null 2>&1
+        then
+                timestamp="$(/bin/date +%Y%m%d%H%M%S)"
+                /bin/mv "${cached_cert}" "${cached_cert}.previous-${timestamp}"
+                /bin/mv "${cached_key}" "${cached_key}.previous-${timestamp}"
+                needs_install="yes"
+                install_reason="because the old certificate has expired or is expiring soon"
+        fi
 else
-	if ( [ -d ${BUILD_HOME}/.lego ] )
-	then
-		/bin/mv ${BUILD_HOME}/.lego ${BUILD_HOME}/.lego-previous-`/bin/date | /bin/sed 's/ //g'`
-	fi
-
-	${BUILD_HOME}/services/security/ssl/manual/ObtainSSLCertificate.sh ${website_url}
-
-	if ( [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.crt ] && [ -f ${BUILD_HOME}/.lego/certificates/${website_url}.key ] )
-	then
-		#All this is about is putting the generated certificate files in the right place on our nice new webserver
-		/bin/mv ${BUILD_HOME}/.lego/certificates/${website_url}.crt ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem
-		/bin/mv ${BUILD_HOME}/.lego/certificates/${website_url}.key ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem
-
-		if ( [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem ] && [ -f ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem ] )
-		then
-			/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/privkey.pem
-			/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${website_url}/fullchain.pem
-			status "Have successfully generated a new certificate for your domain ${website_url} because originally there was no certificate present on your filesystem for me to use"
-			status "Press <enter> to acknowledge"
-			if ( [ "`${BUILD_HOME}/helpers/services/IsHardcoreBuild.sh`" != "1" ] )
-			then
-				read x
-			fi
-		else
-			status "Something seems to be a bit wrong. We were trying to generate a new SSL ceritificate on the webserver, but, it doesnt seem to have been generated"
-			status "Cant operate without it, this is a secure system, so have to quit. Please investigate ${BUILD_HOME}/logs"
-			/bin/touch /tmp/END_IT_ALL
-
-		fi
-	fi
+        needs_install="yes"
+        install_reason="because originally there was no certificate present on your filesystem for me to use"
 fi
+
+if [ "${needs_install}" = "yes" ]
+then
+        set +e
+        "${obtain_script}" "${target_domain}"
+        obtain_exit="$?"
+        set -e
+
+        if [ "${obtain_exit}" -eq 0 ] && [ -f "${cached_cert}" ] && [ -f "${cached_key}" ]
+        then
+                /bin/chmod 400 "${cached_key}" "${cached_cert}"
+                status "Have successfully installed a new certificate for your domain ${target_domain} ${install_reason}"
+                status "Press <enter> to acknowledge"
+                if [ -x "${hardcore_helper}" ] && [ "$("${hardcore_helper}")" != "1" ]
+                then
+                        read -r _
+                fi
+        else
+                status "Something seems to be a bit wrong. We were trying to install a new SSL certificate for ${target_domain}, but it doesn't seem to have been generated"
+                status "Can't operate without it, this is a secure system, so have to exit. Please investigate in ${BUILD_HOME}/logs"
+                /usr/bin/touch /tmp/END_IT_ALL
+                exit 1
+        fi
+fi
+
+exit 0
+
