@@ -1,4 +1,10 @@
 This month
+
+There is a problem with /home/X9bh7gHIWNkM5eW2p83X/services/datastore/operations/s5cmd/PerformPutToDatastore.sh root directory
+
+I think I probably want to pass down "root" from PutToDatastore.sh to PerformPutToDatastore and then strip it down to "" there
+
+Need to test it on all the different datastore tools and it is stopping BackFromCron from working on the webservers
 wednesday
 test that the other 3rd party applications such as apache and whatnot that use CloneRepository.sh work correctly with the new git approach
 Have the CloneRepository.sh scripts been updated and tested on the database machines and the autoscaler machines?
