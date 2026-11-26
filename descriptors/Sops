@@ -46,3 +46,197 @@ If you are planning to fork and modify ADT yourself, let me know:
 • Whether you prefer a completely serverless setup (SOPS + Age only) or running a centralized secret manager (like self-hosted Infisical or Vault)
 • Which CMS/application you primarily deploy (WordPress, Joomla, Drupal, or Moodle)
 I can sketch out the exact POSIX shell wrapper functions to drop into ADT's providerscripts/ directory.
+
+Here is a drop-in POSIX-compliant shell wrapper (SecretsManager.sh) designed specifically for Wintersys ADT’s providerscripts/security/ directory.
+Because ADT runs on strict #!/bin/sh (Dash on Debian/Ubuntu) and avoids Bashisms, this script uses pure POSIX shell constructs, standard curl/jq API calls, tmpfs RAM mounting, and sops + age for zero-dependency static decryption.
+
+1. The POSIX Shell Wrapper (providerscripts/security/SecretsManager.sh)
+
+sh
+#!/bin/sh
+######################################################################################
+# Author: Custom ADT Security Extension
+# Description: Pluggable, zero-secret-on-disk wrapper for Wintersys ADT.
+# Supports:
+#   1. SOPS + Age (Serverless static decryption into RAM)
+#   2. Infisical / Vault API (Dynamic single-use bootstrap token exchange)
+#   3. tmpfs RAM-disk runtime injection (/run/adt-secrets)
+######################################################################################
+
+SECRETS_MOUNT="/run/adt-secrets"
+
+# ------------------------------------------------------------------------------------
+# 1. BOOTSTRAP: Ensure sops and age binaries exist (Static Go binaries, zero deps)
+# ------------------------------------------------------------------------------------
+install_sops_age() {
+    ARCH=$(uname -m)
+    case "${ARCH}" in
+        x86_64)  BIN_ARCH="amd64" ;;
+        aarch64) BIN_ARCH="arm64" ;;
+        *)       echo "Unsupported architecture: ${ARCH}" >&2; return 1 ;;
+    esac
+
+    if ! command -v age >/dev/null 2>&1; then
+        curl -fsSL "https://github.com{BIN_ARCH}.tar.gz" \
+            | tar -xz -C /usr/local/bin --strip-components=1 age/age age/age-keygen
+        chmod 755 /usr/local/bin/age /usr/local/bin/age-keygen
+    fi
+
+    if ! command -v sops >/dev/null 2>&1; then
+        curl -fsSL -o /usr/local/bin/sops \
+            "https://github.com{BIN_ARCH}"
+        chmod 755 /usr/local/bin/sops
+    fi
+}
+
+# ------------------------------------------------------------------------------------
+# 2. BUILD MACHINE: Decrypt SOPS file directly into volatile shell memory (No disk write)
+# Usage: load_sops_secrets "/path/to/secrets.enc.env"
+# Requires: SOPS_AGE_KEY environment variable passed via cloud-init user-data
+# ------------------------------------------------------------------------------------
+load_sops_secrets() {
+    ENCRYPTED_FILE="$1"
+
+    if [ -z "${SOPS_AGE_KEY}" ]; then
+        echo "CRITICAL: SOPS_AGE_KEY is not set in environment." >&2
+        return 1
+    fi
+
+    if [ ! -f "${ENCRYPTED_FILE}" ]; then
+        echo "CRITICAL: Encrypted secrets file not found at ${ENCRYPTED_FILE}" >&2
+        return 1
+    fi
+
+    install_sops_age || return 1
+
+    # Decrypt to stdout and export safely into the current shell session
+    # Uses a temporary subshell pipe so plain-text never touches the filesystem
+    DECRYPTED_DATA=$(sops -d --input-type dotenv --output-type dotenv "${ENCRYPTED_FILE}")
+    if [ $? -ne 0 ] || [ -z "${DECRYPTED_DATA}" ]; then
+        echo "CRITICAL: Failed to decrypt ${ENCRYPTED_FILE}" >&2
+        return 1
+    fi
+
+    # Export each KEY=VALUE line into current POSIX shell environment
+    OLD_IFS="${IFS}"
+    IFS='
+'
+    for line in ${DECRYPTED_DATA}; do
+        case "${line}" in
+            ''|\#*) continue ;;
+            *=*)
+                KEY="${line%%=*}"
+                VAL="${line#*=}"
+                export "${KEY}=${VAL}"
+                ;;
+        esac
+    done
+    IFS="${OLD_IFS}"
+
+    # Scrub variable from memory
+    unset DECRYPTED_DATA
+}
+
+# ------------------------------------------------------------------------------------
+# 3. RUNTIME MOUNT: Create an isolated RAM-only filesystem for web/DB nodes
+# ------------------------------------------------------------------------------------
+init_ram_vault() {
+    OWNER="${1:-www-data}"
+
+    if [ ! -d "${SECRETS_MOUNT}" ]; then
+        mkdir -p "${SECRETS_MOUNT}"
+    fi
+
+    if ! mountpoint -q "${SECRETS_MOUNT}"; then
+        mount -t tmpfs -o size=16M,mode=0700,uid="${OWNER}",gid="${OWNER}" tmpfs "${SECRETS_MOUNT}"
+    fi
+}
+
+# ------------------------------------------------------------------------------------
+# 4. NODE BOOT: Exchange short-lived Infisical/Vault token for runtime secrets in RAM
+# Usage: fetch_dynamic_secrets_to_ram "https://example.com" "project-id" "prod"
+# Requires: BOOTSTRAP_TOKEN passed via cloud-init user-data
+# ------------------------------------------------------------------------------------
+fetch_dynamic_secrets_to_ram() {
+    API_URL="$1"
+    PROJECT_ID="$2"
+    ENVIRONMENT="$3"
+    OWNER="${4:-www-data}"
+
+    if [ -z "${BOOTSTRAP_TOKEN}" ]; then
+        echo "CRITICAL: BOOTSTRAP_TOKEN missing from node environment." >&2
+        return 1
+    fi
+
+    init_ram_vault "${OWNER}"
+
+    # Fetch secrets from Infisical v3 API (easily adaptable to HashiCorp Vault KV v2)
+    RESPONSE=$(curl -fsSL -H "Authorization: Bearer ${BOOTSTRAP_TOKEN}" \
+        "${API_URL}/api/v3/secrets/raw?workspaceId=${PROJECT_ID}&environment=${ENVIRONMENT}")
+
+    if [ $? -ne 0 ] || [ -z "${RESPONSE}" ]; then
+        echo "CRITICAL: Secret API fetch failed." >&2
+        return 1
+    fi
+
+    # Write directly to RAM-backed .env and PHP config files
+    ENV_TARGET="${SECRETS_MOUNT}/adt.env"
+    PHP_TARGET="${SECRETS_MOUNT}/adt-secrets.php"
+
+    printf "%s" "${RESPONSE}" | jq -r '.secrets[] | "\(.secretKey)=\(.secretValue)"' > "${ENV_TARGET}"
+
+    {
+        printf "<?php\n// Auto-generated in tmpfs RAM. Never touches disk.\n"
+        printf "%s" "${RESPONSE}" | jq -r '.secrets[] | "define(\x27\(.secretKey)\x27, \x27\(.secretValue)\x27);"'
+    } > "${PHP_TARGET}"
+
+    chown "${OWNER}:${OWNER}" "${ENV_TARGET}" "${PHP_TARGET}"
+    chmod 0400 "${ENV_TARGET}" "${PHP_TARGET}"
+
+    # Scrub token and raw JSON from memory
+    unset BOOTSTRAP_TOKEN RESPONSE
+}
+Use code with caution.
+
+2. How to Hook This Into ADT’s Existing Scripts
+
+
+A. On the Build Machine (build-machine repo)
+
+Instead of writing plain-text credentials into ApplicationCredentials.sh or database_descriptor.dat, source the wrapper at the top of ExpeditedBuild.sh or HardcoreBuild.sh:
+sh
+. "${BUILD_HOME}/providerscripts/security/SecretsManager.sh"
+
+# Decrypts your Git-committed secrets.enc.env straight into RAM
+load_sops_secrets "${BUILD_HOME}/config/secrets.enc.env"
+Use code with caution.
+When provisioning the build machine via cloud-init, you only pass one line in your user-data override:
+sh
+export SOPS_AGE_KEY="AGE-SECRET-KEY-1..."
+Use code with caution.
+
+B. On the Webserver / Autoscaler Nodes (webserver & autoscaler repos)
+
+Inside the webserver boot script (right before PHP-FPM/Nginx starts), pull the runtime credentials into /run/adt-secrets:
+sh
+. "${BUILD_HOME}/providerscripts/security/SecretsManager.sh"
+
+# Pulls DB_PASSWORD, S3_SECRET_KEY, etc. into /run/adt-secrets/adt-secrets.php
+fetch_dynamic_secrets_to_ram "https://yourdomain.com" "${PROJECT_ID}" "production" "www-data"
+Use code with caution.
+
+C. Inside Your CMS Configuration (wp-config.php, configuration.php, settings.php)
+
+At the very top of your CMS config file, require the RAM-resident file instead of hardcoding database credentials on disk:
+php
+<?php
+if (file_exists('/run/adt-secrets/adt-secrets.php')) {
+    require_once '/run/adt-secrets/adt-secrets.php';
+}
+// Standard CMS config now uses DB_NAME, DB_USER, DB_PASSWORD constants from RAM
+Use code with caution.
+If you'd like to adapt this further, let me know:
+• Whether you want the build-machine script snippet that automatically mints the short-lived Infisical/Vault token when spinning up new webserver droplets
+• How to adapt the JSON parser for HashiCorp Vault KV v2 or Doppler instead of Infisical
+
+
