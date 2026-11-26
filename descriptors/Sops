@@ -239,4 +239,79 @@ If you'd like to adapt this further, let me know:
 • Whether you want the build-machine script snippet that automatically mints the short-lived Infisical/Vault token when spinning up new webserver droplets
 • How to adapt the JSON parser for HashiCorp Vault KV v2 or Doppler instead of Infisical
 
+Yes, and loading secrets just-in-time (one at a time) is actually much safer than loading everything at the top of a script.
+When you load all secrets at the start of a script, every child process spawned later (like curl, git, ssh, or third-party installers) inherits all of those environment variables. By fetching a single secret right when you need it—and immediately unsetting it afterward—you shrink the blast radius if any sub-command logs its environment or gets compromised.
+
+1. Just-in-Time POSIX Wrapper Functions (SecretsManager.sh)
+
+Add these two functions to your SecretsManager.sh wrapper. One extracts a single key from a SOPS-encrypted file, and the other fetches a single secret from an API (like Infisical or Vault):
+sh
+# ------------------------------------------------------------------------------------
+# Fetch ONE secret from SOPS directly to stdout (No env pollution, no disk write)
+# Usage: DB_PASS=$(get_sops_secret "/path/to/secrets.enc.yaml" "DB_PASSWORD")
+# ------------------------------------------------------------------------------------
+get_sops_secret() {
+    ENCRYPTED_FILE="$1"
+    SECRET_KEY="$2"
+
+    if [ -z "${SOPS_AGE_KEY}" ] || [ ! -f "${ENCRYPTED_FILE}" ]; then
+        return 1
+    fi
+
+    # SOPS --extract natively decrypts ONLY the requested key
+    sops -d --extract "[\"${SECRET_KEY}\"]" "${ENCRYPTED_FILE}" 2>/dev/null
+}
+
+# ------------------------------------------------------------------------------------
+# Fetch ONE secret from Infisical/Vault API directly to stdout
+# Usage: API_KEY=$(get_api_secret "https://example.com" "proj-id" "prod" "CF_TOKEN")
+# ------------------------------------------------------------------------------------
+get_api_secret() {
+    API_URL="$1"
+    PROJECT_ID="$2"
+    ENVIRONMENT="$3"
+    SECRET_KEY="$4"
+
+    if [ -z "${BOOTSTRAP_TOKEN}" ]; then
+        return 1
+    fi
+
+    curl -fsSL -H "Authorization: Bearer ${BOOTSTRAP_TOKEN}" \
+        "${API_URL}/api/v3/secrets/raw/${SECRET_KEY}?workspaceId=${PROJECT_ID}&environment=${ENVIRONMENT}" \
+        | jq -r '.secret.secretValue'
+}
+Use code with caution.
+(Note: For sops --extract to target individual keys cleanly, store your secrets in YAML or JSON format—e.g., secrets.enc.yaml—rather than a flat .env file.)
+
+2. How to Use It in ADT Scripts (Fetch → Use → Scrub)
+
+Instead of exporting variables globally at the top of your script, wrap each action in a scoped block where the variable lives only for milliseconds:
+sh
+. "${BUILD_HOME}/providerscripts/security/SecretsManager.sh"
+SECRETS_FILE="${BUILD_HOME}/config/secrets.enc.yaml"
+
+# --- Example 1: Updating DNS via Cloudflare ---
+CF_API_TOKEN=$(get_sops_secret "${SECRETS_FILE}" "CLOUDFLARE_API_TOKEN")
+curl -X POST "https://cloudflare.com{ZONE_ID}/dns_records" \
+     -H "Authorization: Bearer ${CF_API_TOKEN}" \
+     -H "Content-Type: application/json" \
+     --data '{"type":"A","name":"://example.com","content":"1.2.3.4"}'
+unset CF_API_TOKEN  # Immediately scrubbed from memory
+
+# --- Example 2: Passing a secret to a sub-command without even storing a shell variable ---
+mysql -u root -p"$(get_sops_secret "${SECRETS_FILE}" "DB_ROOT_PASSWORD")" -e "CREATE DATABASE app_db;"
+Use code with caution.
+
+Trade-off to Keep in Mind
+
+• Performance: Calling sops -d or curl 15 separate times adds ~1–3 seconds of execution overhead compared to decrypting a single file once. For infrastructure provisioning scripts (like ADT builds), a 2-second overhead is negligible and well worth the security isolation.
+• Process List Exposure (ps aux): When passing a secret inline as a command-line argument (like -p"$(get_sops_secret ...)"), be careful with tools like mysql or curl, as command-line arguments can briefly appear in ps aux. Whenever possible, pass the fetched secret via standard input (stdin) or a scoped single-command environment variable:sh
+# Safest: Passed only to the single command's environment, hidden from 'ps aux' and parent shell
+MYSQL_PWD=$(get_sops_secret "${SECRETS_FILE}" "DB_ROOT_PASSWORD") mysql -u root -e "CREATE DATABASE app_db;"
+Use code with caution.
+If you'd like to implement this pattern across ADT, let me know:
+• Whether you want to cache the decrypted SOPS payload in a locked tmpfs file during the build to eliminate the repeated decryption overhead while still reading one key at a time
+• How to handle multi-line secrets (like SSH private keys or TLS certificates) safely with get_sops_secret
+
+
 
