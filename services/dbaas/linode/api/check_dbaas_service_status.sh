@@ -3,7 +3,7 @@
 #: Purpose:     Monitors Linode DBaaS cluster status (MySQL or PostgreSQL) until active via REST API.
 #: Author:      Peter Winter
 #: Date:        24/11/2026
-#: Version:     2.0
+#: Version:     1.0
 #:
 #: Usage:       check_dbaas_service_status.sh
 #:              check_dbaas_service_status.sh [-h|--help]
