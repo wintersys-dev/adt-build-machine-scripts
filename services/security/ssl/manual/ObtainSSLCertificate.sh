@@ -81,9 +81,9 @@ then
 		status "Cheers. So, mate, please paste your certifcate key here. <ctrl d> when done"
 		status "ESSENTIAL - Only copy from the first dash in the file '-' to the last dash in the file. Do not copy any prefixed whitespace or suffixed whitespace"
 
-		p1rivkey=`cat`
-		/bin/echo "${privkey}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${WEBSITE_URL}/pr1ivkey.pem
-		/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${WEBSITE_URL}/p1rivkey.pem
+		privkey=`cat`
+		/bin/echo "${privkey}" > ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${WEBSITE_URL}/privkey.pem
+		/bin/chmod 400 ${BUILD_HOME}/runtime/${CLOUDHOST}/${BUILD_IDENTIFIER}/ssl/${DNS_CHOICE}/${WEBSITE_URL}/privkey.pem
 	fi
 fi
 
