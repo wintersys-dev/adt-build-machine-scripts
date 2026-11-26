@@ -165,7 +165,7 @@ case "${bucket_type}" in
                 active_bucket="adt-$(/bin/echo "${WEBSITE_URL}" | /bin/sed 's/\./-/g')-${DNS_CHOICE}-dbaas"
                 ;;
         "ad-hoc")
-                active_bucket="adt-${additional_specifier}"
+                active_bucket="${additional_specifier}"
                 ;;
         "all")
                 active_bucket="all"
