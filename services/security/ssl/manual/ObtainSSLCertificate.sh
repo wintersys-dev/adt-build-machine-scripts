@@ -1,14 +1,14 @@
 
 #!/bin/sh
-#: Name:        ManualSSLCertificate.sh
+#: Name:        ObtainSSLCertificate.sh
 #: Purpose:     Allows a user to manually supply an SSL/TLS certificate chain and private key.
 #:              Supports reusing an existing certificate or supplying a new certificate.
 #: Author:      Peter Winter
 #: Date:        26/11/2026
 #: Version:     1.0
 #:
-#: Usage:       ManualSSLCertificate.sh [website_url]
-#:              ManualSSLCertificate.sh [-h|--help]
+#: Usage:       ObtainSSLCertificate.sh [website_url]
+#:              ObtainSSLCertificate.sh [-h|--help]
 #:
 #: Parameters:
 #:   $1         [Optional] Target domain name (defaults to WEBSITE_URL from build configuration)
