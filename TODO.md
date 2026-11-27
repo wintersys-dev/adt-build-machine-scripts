@@ -1,11 +1,11 @@
 1. integrate new installation technique
 2. Refactor software.dat and inject it from config repository (on build machine first) and then once the securitymanager is in place clone the config
 repository to the different machine types and pass the security sensitive parameters in through cloud init and distribute them to the different
-machines through cloud-init. See what other config files such as scaling and so on I want to have in the repository
+machines through cloud-init. See what other config files such as scaling and so on I want to have in the repository. See if the webserver name can be removed from the template and just cue what webserver to install based on what is in software.dat. Just install using nala when available, binary if that's the only available option and install with a custom script (which can be compiling or just a bespoke repo setup like PHP) when needed. 
 3. put in a callback mechanism into the cloud-init scripts to call back with status updates to the build machine so that the deployer knows what is happening with the cloud-init process
-4. Rework the autoscaling stuff to read from a config file in the datastore which defines how many autoscalers how many init webservers how many reverse proxies and how many database VPS machines
-5. install redis or an open source alternative on the database VPS and update firewall and so on
-6. 
+4. work out what I want to do with webserver configuration Maybe I can hold the webserver configurations in the config directory and then run custom snippets based on the server type. One generic config mechanism which can then be tailored or replaced based on what application is being installed. 
+5. Rework the autoscaling stuff to read from a config file in the datastore which defines how many autoscalers how many init webservers how many reverse proxies and how many database VPS machines
+6. install redis or an open source alternative on the database VPS and update firewall and so on
 7. Create a Laptop repository which contains api based scripts to spin up a build machine rather than using the stackscript or cloud init. This script can
 prompt the user for only the absolute essentials of what is needed such as api tokens and s3 keys and so on and once the user has been prompted the
 script ask them if they want to store those credentials in a config file on their laptop so that on subsequent runs they simply type "deploy.sh" and
