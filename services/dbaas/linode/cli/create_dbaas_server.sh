@@ -3,7 +3,7 @@
 #: Purpose:     Provisions a managed Linode DBaaS server within a VPC via linode-cli.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       create_dbaas_server.sh
 #:              create_dbaas_server.sh [-h|--help]
