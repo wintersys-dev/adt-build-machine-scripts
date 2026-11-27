@@ -1,0 +1,286 @@
+Here is the finalized, production-hardened InstallWithS3Cache.sh with repo mode removed and all three fixes applied, formatted with lines under 72 characters.
+
+Summary of Hardening Applied
+
+• Local Cache Resilience: cleanup() removes only "${WORK_DIR}" and "${CACHED_TAR}.tmp", preserving valid "${CACHED_TAR}" archives locally if PutToDatastore.sh encounters a transient S3 failure.
+• Glob-Safe Unquoted Expansion: Uses set -f / set +f around unquoted ${TARGET} and ${ARGS} expansions so wildcard characters (*, ?) in package specs or configure flags never expand against local filenames.
+• Removed eval on Build Scripts: Executes custom build scripts directly without eval while keeping inline shell commands supported when EXTRA is not an executable file path.
+
+Part 1A: InstallWithS3Cache.sh (Header & Cache Key Setup)
+
+sh
+#!/bin/sh
+# POSIX S3 Pull-Through Installer for Wintersys ADT
+set -eu
+
+if [ -r /home/homedir.dat ]; then
+    HOME="$(/bin/cat /home/homedir.dat)"
+else
+    /bin/echo "Missing /home/homedir.dat" >&2
+    exit 1
+fi
+
+MODE="${1:?Mode required: binary|source|package}"
+NAME="${2:?Software name required}"
+VERSION="${3:?Version required}"
+TARGET="${4:?URL or package list required}"
+EXTRA="${5:-}"
+INSTALL_DIR="${6:-/usr/local/bin}"
+EXPECTED_SHA256="${7:-}"
+
+OPS="${HOME}/services/datastore/operations"
+SITE_URL="$("${HOME}/utilities/config/ExtractConfigValue.sh" \
+    'WEBSITEURL')"
+SITE_SLUG="$(/bin/echo "${SITE_URL}" | /bin/sed 's/\./-/g')"
+BUCKET="${SITE_SLUG}-software-cache"
+
+OS_CODE=$(/usr/bin/lsb_release -cs)
+ARCH=$(/usr/bin/dpkg --print-architecture)
+
+HOLD_MODE=""
+REPO_SCRIPT=""
+if [ "${MODE}" = "package" ] && [ -n "${EXTRA}" ]; then
+    case "${EXTRA}" in
+        hold-pinned:*)
+            HOLD_MODE="hold-pinned"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" \
+                | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold:*)
+            HOLD_MODE="hold"
+            REPO_SCRIPT=$(printf '%s' "${EXTRA}" \
+                | /usr/bin/cut -d':' -f2-)
+            ;;
+        hold|hold-pinned)
+            HOLD_MODE="${EXTRA}"
+            ;;
+        *)
+            REPO_SCRIPT="${EXTRA}"
+            ;;
+    esac
+fi
+
+OPT_SIG="${TARGET}:${EXTRA}"
+if [ "${MODE}" = "source" ]; then
+    FIRST=$(printf '%s\n' "${EXTRA}" | /usr/bin/awk '{print $1}')
+    if [ -n "${FIRST}" ] && [ -f "${FIRST}" ]; then
+        SHASH=$(/usr/bin/sha256sum "${FIRST}" \
+            | /usr/bin/awk '{print $1}')
+        OPT_SIG="${SHASH}:${OPT_SIG}"
+    fi
+elif [ "${MODE}" = "package" ] && [ -n "${REPO_SCRIPT}" ] \
+    && [ -f "${REPO_SCRIPT}" ]; then
+    SHASH=$(/usr/bin/sha256sum "${REPO_SCRIPT}" \
+        | /usr/bin/awk '{print $1}')
+    OPT_SIG="${SHASH}:${OPT_SIG}"
+fi
+OHASH=$(printf '%s' "${OPT_SIG}" \
+
+    | /usr/bin/sha256sum | /usr/bin/cut -c1-8)
+
+KEY="${NAME}-${VERSION}-${MODE}-${OS_CODE}-${ARCH}-${OHASH}.tar.gz"
+BASE_TMP="/var/tmp/adt-cache"
+WORK_DIR="${BASE_TMP}/${NAME}-${VERSION}-$$"
+CACHED_TAR="${BASE_TMP}/${KEY}"
+LOCK_FILE="${BASE_TMP}/${KEY}.lock"
+
+/bin/mkdir -p "${BASE_TMP}" "${WORK_DIR}"
+
+cleanup() {
+    /bin/rm -rf "${WORK_DIR}" "${CACHED_TAR}.tmp"
+}
+trap cleanup EXIT INT TERM
+
+exec 9>"${LOCK_FILE}"
+/usr/bin/flock -x 9
+Use code with caution.
+
+Part 1B: InstallWithS3Cache.sh (S3 Pull & Cache Miss Build)
+
+(Append directly below Part 1A)
+sh
+"${OPS}/MountDatastore.sh" "ad-hoc" "distributed" "${BUCKET}"
+"${OPS}/GetFromDatastore.sh" "ad-hoc" "${KEY}" \
+    "${BASE_TMP}" "${BUCKET}" 2>/dev/null || true
+
+if [ -f "${CACHED_TAR}" ] \
+    && ! /bin/gzip -t "${CACHED_TAR}" 2>/dev/null; then
+    printf '%s\n' "WARN: Corrupt ${KEY}; rebuilding..." >&2
+    /bin/rm -f "${CACHED_TAR}"
+fi
+
+if [ ! -f "${CACHED_TAR}" ]; then
+    case "${MODE}" in
+        binary)
+            RAW="${WORK_DIR}/download"
+            /usr/bin/wget --tries=3 --timeout=30 -q \
+                -O "${RAW}" "${TARGET}"
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${RAW}" \
+                    | /usr/bin/sha256sum -c -
+            fi
+            FTYPE=$(/usr/bin/file -b "${RAW}")
+            case "${FTYPE}" in
+                *"gzip compressed"*)
+                    /bin/tar -xzf "${RAW}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW}"
+                    ;;
+                *"XZ compressed"*)
+                    /bin/tar -xJf "${RAW}" -C "${WORK_DIR}"
+                    /bin/rm -f "${RAW}"
+                    ;;
+                *)
+                    /bin/mv "${RAW}" "${WORK_DIR}/${NAME}"
+                    /bin/chmod 0755 "${WORK_DIR}/${NAME}"
+                    ;;
+            esac
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${WORK_DIR}" .
+            ;;
+
+        source)
+            STAR="${WORK_DIR}/src.tar.gz"
+            STAGE="${WORK_DIR}/stage"
+            SDIR="${WORK_DIR}/src"
+            /bin/mkdir -p "${STAGE}" "${SDIR}"
+            /usr/bin/wget --tries=3 --timeout=30 -q \
+                -O "${STAR}" "${TARGET}"
+            if [ -n "${EXPECTED_SHA256}" ]; then
+                printf '%s  %s\n' "${EXPECTED_SHA256}" "${STAR}" \
+                    | /usr/bin/sha256sum -c -
+            fi
+            /bin/tar -xf "${STAR}" -C "${SDIR}" \
+                --strip-components=1
+            (
+                cd "${SDIR}"
+                export STAGE_DIR="${STAGE}" SRC_DIR="${SDIR}"
+                export NAME VERSION
+                FIRST=$(printf '%s\n' "${EXTRA}" \
+                    | /usr/bin/awk '{print $1}')
+                if [ -n "${FIRST}" ] && [ -f "${FIRST}" ]; then
+                    /bin/chmod 0755 "${FIRST}"
+                    ARGS=$(printf '%s\n' "${EXTRA}" \
+                        | /usr/bin/cut -s -d' ' -f2-)
+                    set -f
+                    # shellcheck disable=SC2086
+                    "${FIRST}" ${ARGS}
+                    set +f
+                elif [ -n "${EXTRA}" ]; then
+                    /bin/sh -eu -c "${EXTRA}"
+                else
+                    ./configure --prefix=/usr/local
+                    /usr/bin/make -j"$(/usr/bin/nproc)"
+                    /usr/bin/make DESTDIR="${STAGE}" install
+                fi
+            )
+            if [ -z "$(/bin/ls -A "${STAGE}")" ]; then
+                printf '%s\n' "ERROR: Empty build ${NAME}" >&2
+                exit 1
+            fi
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${STAGE}" .
+            ;;
+
+        package)
+            BDIR="${WORK_DIR}/bundle"
+            DDIR="${BDIR}/debs"
+            MDIR="${BDIR}/apt-meta"
+            /bin/mkdir -p "${DDIR}/partial" \
+                "${MDIR}/sources.list.d" "${MDIR}/keyrings"
+            if [ -n "${REPO_SCRIPT}" ]; then
+                if [ ! -f "${REPO_SCRIPT}" ]; then
+                    printf '%s\n' "Missing ${REPO_SCRIPT}" >&2
+                    exit 1
+                fi
+                /bin/chmod 0755 "${REPO_SCRIPT}"
+                "${REPO_SCRIPT}"
+            fi
+            /usr/bin/nala update
+            set -f
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y --download-only \
+                -o Dir::Cache::archives="${DDIR}" ${TARGET}
+            set +f
+            /bin/cp -a /etc/apt/sources.list.d/. \
+                "${MDIR}/sources.list.d/" 2>/dev/null || true
+            /bin/cp -a /etc/apt/keyrings/. \
+                "${MDIR}/keyrings/" 2>/dev/null || true
+            /bin/tar -czf "${CACHED_TAR}.tmp" -C "${BDIR}" \
+                --exclude='debs/lock' \
+                --exclude='debs/partial' .
+            ;;
+
+        *)
+            printf '%s\n' "Unknown mode: ${MODE}" >&2
+            exit 1
+            ;;
+    esac
+
+    /bin/mv "${CACHED_TAR}.tmp" "${CACHED_TAR}"
+    "${OPS}/PutToDatastore.sh" "ad-hoc" "${CACHED_TAR}" \
+        "root" "distributed" "no" "${BUCKET}"
+fi
+Use code with caution.
+
+Part 1C: InstallWithS3Cache.sh (Install & Hold Execution)
+
+(Append directly below Part 1B)
+sh
+case "${MODE}" in
+    binary)
+        /bin/mkdir -p "${INSTALL_DIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${INSTALL_DIR}"
+        ;;
+
+    source)
+        /bin/tar -xzf "${CACHED_TAR}" -C /
+        /sbin/ldconfig || true
+        ;;
+
+    package)
+        EDIR="${WORK_DIR}/extract"
+        /bin/mkdir -p "${EDIR}"
+        /bin/tar -xzf "${CACHED_TAR}" -C "${EDIR}"
+
+        if [ -d "${EDIR}/apt-meta/keyrings" ]; then
+            /bin/mkdir -p /etc/apt/keyrings
+            /bin/cp -an "${EDIR}/apt-meta/keyrings/." \
+                /etc/apt/keyrings/ 2>/dev/null || true
+        fi
+        if [ -d "${EDIR}/apt-meta/sources.list.d" ]; then
+            /bin/mkdir -p /etc/apt/sources.list.d
+            /bin/cp -an "${EDIR}/apt-meta/sources.list.d/." \
+                /etc/apt/sources.list.d/ 2>/dev/null || true
+        fi
+
+        if ! /usr/bin/nala install -y \
+            "${EDIR}/debs"/*.deb 2>/dev/null; then
+            printf '%s\n' "WARN: Falling back to live nala" >&2
+            /usr/bin/nala update
+            set -f
+            # shellcheck disable=SC2086
+            /usr/bin/nala install -y ${TARGET}
+            set +f
+        fi
+
+        if [ "${HOLD_MODE}" = "hold" ] \
+            || [ "${HOLD_MODE}" = "hold-pinned" ]; then
+            set -f
+            for spec in ${TARGET}; do
+                case "${spec}" in
+                    *=*)
+                        pkg=$(printf '%s' "${spec}" \
+                            | /usr/bin/cut -d'=' -f1)
+                        /usr/bin/apt-mark hold "${pkg}"
+                        ;;
+                    *)
+                        if [ "${HOLD_MODE}" = "hold" ]; then
+                            /usr/bin/apt-mark hold "${spec}"
+                        fi
+                        ;;
+                esac
+            done
+            set +f
+        fi
+        ;;
+esac
+Use code with caution.
+If you'd like, I can also provide a lightweight cache eviction/cleanup cron snippet for /var/tmp/adt-cache or help you wire this into your existing ADT webserver/database build scripts.
