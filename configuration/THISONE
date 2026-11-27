@@ -356,3 +356,164 @@ PKGS="php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-zip"
     "nginx=1.24.0-2ubuntu7 jq curl unzip" "hold-pinned"
 Use code with caution.
 If the code blocks still wrap on your screen width, let me know your preferred output format (e.g., plain <textarea> HTML blocks or downloadable file structure) and I can adjust accordingly.
+
+
+You can add a comma-separated ROLES or TARGETS column to the manifest and filter against the calling script name or machine role at runtime.
+In Wintersys ADT, provisioning scripts are separated by server type (e.g., BuildWebserver.sh, BuildDatabase.sh, BuildAutoscaler.sh, or InitialiseNewServer.sh). By adding a target filter field to software-cache.dat, a single manifest file can govern the entire fleet while each script only installs what it needs.
+
+1. Updated Manifest Format (software-cache.dat)
+
+Add a 6th pipe-delimited field (TARGETS) at the end of each line. Use all for shared base tools, or a comma-separated list of script names / machine roles (e.g., webserver,autoscaler or BuildWebserver.sh).
+Schema:
+text
+NAME:MODE:VERSION|TARGET|EXTRA|INSTALL_DIR|SHA256|TARGETS
+Use code with caution.
+
+Example software-cache.dat
+
+ini
+# ==============================================================================
+# Wintersys ADT Pull-Through S3 Cache Manifest (Target-Filtered)
+# Format: NAME:MODE:VERSION|TARGET|EXTRA|INSTALL_DIR|SHA256|TARGETS
+# TARGETS: 'all' or comma-separated roles/filenames (e.g., webserver,autoscaler)
+# ==============================================================================
+
+# --- Installed on ALL servers ---
+s5cmd:binary:2.2.2|https://github.com||/usr/local/bin||all
+base-tools:package:1.0|jq curl unzip|hold-pinned|||all
+
+# --- Installed ONLY by Webserver & Autoscaler scripts ---
+nginx:source:1.26.2|https://nginx.org|@/webserver/build-nginx-custom.sh --with-threads|||webserver,autoscaler
+php8.3-stack:package:8.3|php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-zip|@/webserver/setup-php-repo.sh|||webserver,autoscaler
+
+# --- Installed ONLY by Database scripts ---
+mariadb-tools:package:10.11|mariadb-backup pv||||database
+Use code with caution.
+
+2. Updated POSIX Runner (ApplySoftwareCacheManifest.sh)
+
+Pass the calling script's filename (via $(basename "$0")) or a role name as the second argument. If omitted, it automatically detects the parent script name using ps.
+sh
+#!/bin/sh
+# POSIX Manifest Executor with File/Role Filtering
+set -eu
+
+if [ -r /home/homedir.dat ]; then
+    HOME="$(/bin/cat /home/homedir.dat)"
+else
+    /bin/echo "Missing /home/homedir.dat" >&2
+    exit 1
+fi
+
+MANIFEST="${1:-${HOME}/runtime/software-cache.dat}"
+# Second arg: explicit filter (e.g. "webserver" or "BuildWebserver.sh")
+# Defaults to 'all' if run interactively without a filter
+FILTER="${2:-all}"
+
+INST="${HOME}/providerscripts/utilities/InstallWithS3Cache.sh"
+PDIR="${HOME}/providerscripts"
+
+if [ ! -r "${MANIFEST}" ]; then
+    printf '%s\n' "ERROR: Manifest not readable: ${MANIFEST}" >&2
+    exit 1
+fi
+
+if [ ! -x "${INST}" ]; then
+    printf '%s\n' "ERROR: Installer not executable: ${INST}" >&2
+    exit 1
+fi
+
+matches_filter() {
+    line_targets="$1"
+    active_filter="$2"
+
+    # Strip '.sh' extension if a filename was passed (e.g. BuildWebserver.sh -> BuildWebserver)
+    norm_filter=$(printf '%s' "${active_filter}" | /bin/sed 's/\.sh$//')
+
+    # If runner was called with 'all' or manifest line says 'all', allow it
+    [ "${norm_filter}" = "all" ] && return 0
+    [ -z "${line_targets}" ] || [ "${line_targets}" = "all" ] && return 0
+
+    # Check comma-separated list in manifest
+    old_ifs="${IFS}"
+    IFS=','
+    for item in ${line_targets}; do
+        norm_item=$(printf '%s' "${item}" | /bin/sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/\.sh$//')
+        if [ "${norm_item}" = "all" ] || [ "${norm_item}" = "${norm_filter}" ]; then
+            IFS="${old_ifs}"
+            return 0
+        fi
+    done
+    IFS="${old_ifs}"
+    return 1
+}
+
+while IFS= read -r line || [ -n "${line}" ]; do
+    clean=$(printf '%s' "${line}" | /bin/sed 's/^[[:space:]]*//')
+    case "${clean}" in
+        ""|\#*) continue ;;
+    esac
+
+    header=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f1)
+    target=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f2)
+    extra=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f3)
+    install_dir=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f4)
+    sha256=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f5)
+    targets=$(printf '%s' "${clean}" | /usr/bin/cut -d'|' -f6)
+
+    # Skip line if it does not match the requested file or role
+    if ! matches_filter "${targets}" "${FILTER}"; then
+        continue
+    fi
+
+    name=$(printf '%s' "${header}" | /usr/bin/cut -d':' -f1)
+    mode=$(printf '%s' "${header}" | /usr/bin/cut -d':' -f2)
+    version=$(printf '%s' "${header}" | /usr/bin/cut -d':' -f3)
+
+    if [ -z "${name}" ] || [ -z "${mode}" ] || [ -z "${version}" ] \
+        || [ -z "${target}" ]; then
+        printf '%s\n' "ERROR: Malformed manifest line: ${clean}" >&2
+        exit 1
+    fi
+
+    case "${extra}" in
+        @/*)
+            extra="${PDIR}/$(printf '%s' "${extra}" | /usr/bin/cut -c3-)"
+            ;;
+        hold:@/*)
+            rest=$(printf '%s' "${extra}" | /usr/bin/cut -c8-)
+            extra="hold:${PDIR}/${rest}"
+            ;;
+        hold-pinned:@/*)
+            rest=$(printf '%s' "${extra}" | /usr/bin/cut -c15-)
+            extra="hold-pinned:${PDIR}/${rest}"
+            ;;
+    esac
+
+    [ -z "${install_dir}" ] && install_dir="/usr/local/bin"
+
+    printf '%s\n' "==> [${FILTER}] Processing ${name} (${mode} v${version})"
+    "${INST}" "${mode}" "${name}" "${version}" \
+        "${target}" "${extra}" "${install_dir}" "${sha256}"
+
+done < "${MANIFEST}"
+Use code with caution.
+
+3. Usage Inside Specific ADT Scripts
+
+You can filter either by the script's own filename or by a logical role:
+• Filter by calling file ($0):
+Inside BuildWebserver.sh (if manifest TARGETS lists BuildWebserver.sh or BuildWebserver):sh
+"${HOME}/providerscripts/utilities/ApplySoftwareCacheManifest.sh" \
+    "${HOME}/runtime/software-cache.dat" "$(/usr/bin/basename "$0")"
+Use code with caution.
+• Filter by role name:
+Inside BuildWebserver.sh or BuildAutoscaler.sh:sh
+"${HOME}/providerscripts/utilities/ApplySoftwareCacheManifest.sh" \
+    "${HOME}/runtime/software-cache.dat" "webserver"
+Use code with caution.
+• Filter by a single package name (optional CLI override):
+If you ever need a specific script to install just one specific entry from the manifest, you can pass the package name if you add [ "${name}" = "${norm_filter}" ] inside matches_filter().
+Would you like me to:
+• Add single-package lookup to ApplySoftwareCacheManifest.sh so any script can also call ApplySoftwareCacheManifest.sh manifest.dat nginx to install one specific item on demand?
+• Show how to auto-detect the server role from ADT's /home/machinetype.dat (or ExtractConfigValue.sh) so scripts don't need to pass a filter argument at all?
