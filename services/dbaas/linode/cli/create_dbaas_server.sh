@@ -106,16 +106,6 @@ else
         public_access_val="false"
 fi
 
-# Verify that the linode-cli binary is installed and executable
-if [ ! -x /usr/local/bin/linode-cli ]
-then
-        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        exit 1
-fi
-
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
-
 # Resolve Linode API database family slug ('mysql' or 'postgresql') from Field 1
 db_family="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}')"
 case "${db_family}" in
@@ -130,6 +120,16 @@ case "${db_family}" in
                 exit 1
                 ;;
 esac
+
+# Verify that the linode-cli binary is installed and executable
+if [ ! -x /usr/local/bin/linode-cli ]
+then
+        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
+        exit 1
+fi
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Dispatch MySQL DBaaS creation via linode-cli with errexit paused to capture output and exit code
 set +e
