@@ -20,12 +20,12 @@
 # along with The Agile Deployment Toolkit.  If not, see <http://www.gnu.org/licenses/>.
 #######################################################################################################
 #######################################################################################################
-#set -x
+set -x
 
 if ( [ ! -f  ./CleanupDatastore.sh ] )
 then
-	/bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/datastore subdirectory"
-	exit
+        /bin/echo "Sorry, this script has to be run from the ${BUILD_HOME}/helpers/datastore subdirectory"
+        exit
 fi
 
 BUILD_HOME="`/bin/cat /home/buildhome.dat`"
@@ -34,39 +34,30 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 read response
 if ( [ "${response}" = "1" ] )
 then
-	DATASTORE_PROVIDER="digitalocean"
+        DATASTORE_PROVIDER="digitalocean"
 elif ( [ "${response}" = "2" ] )
 then
-	DATASTORE_PROVIDER="exoscale"
+        DATASTORE_PROVIDER="exoscale"
 elif ( [ "${response}" = "3" ] )
 then
-	DATASTORE_PROVIDER="linode"
+        DATASTORE_PROVIDER="linode"
 elif ( [ "${response}" = "4" ] )
 then
-	DATASTORE_PROVIDER="vultr"
+        DATASTORE_PROVIDER="vultr"
 else
-	/bin/echo "Unrecognised  cloudhost. Exiting ...."
-	exit
+        /bin/echo "Unrecognised  cloudhost. Exiting ...."
+        exit
 fi
 
-if ( [ "${1}" = "all" ] )
-then
-	/bin/echo "You are asking to list and consider for deletion all of the buckets in your datastore. This is risky as mistakes might delete unintended data"
-	/bin/echo "But seeing as you have passed the parameter 'all' I will presume you know what you are doing. Double check all that is offered for deletion before typing 'Y'"
-	/bin/echo "Press <enter> to continue"
-	read x
-	buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,'`
-else
-	buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,' | /bin/grep "authip-adt-allowed"`
-fi
+buckets=`${BUILD_HOME}/services/datastore/operations/ListDatastore.sh "all" | /usr/bin/awk '{print $NF}' | /bin/sed 's,s3://,,' | /bin/grep '^adt-'`
 
 for bucket in ${buckets}
 do
-	/bin/echo "Have found bucket: ${bucket} do you want to delete it, (Y|N)"
-	read response
+        /bin/echo "Have found bucket: ${bucket} do you want to delete it, (Y|N)"
+        read response
 
-	if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
-	then
-		${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "${bucket}" "distributed"
-	fi
+        if ( [ "${response}" = "y" ] || [ "${response}" = "Y" ] )
+        then
+                ${BUILD_HOME}/services/datastore/operations/DeleteDatastore.sh "ad-hoc" "distributed" "${bucket}"
+        fi
 done
