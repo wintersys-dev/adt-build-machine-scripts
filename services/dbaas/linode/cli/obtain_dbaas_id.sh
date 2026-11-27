@@ -1,6 +1,6 @@
 #!/bin/sh
 #: Name:        obtain_dbaas_id.sh
-#: Purpose:     Resolves the Linode platform instance ID for a MySQL DBaaS cluster label via CLI.
+#: Purpose:     Resolves the Linode platform instance ID for a DBaaS cluster label via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
 #: Version:     1.1
@@ -107,9 +107,9 @@ fi
 # Export authentication token temporarily for linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Query the Linode MySQL DBaaS instance catalog via CLI with errexit paused
+# Query the Linode DBaaS instance catalog via CLI with errexit paused
 set +e
-cli_output="$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null)"
+cli_output="$(/usr/local/bin/linode-cli databases ${db_type}-list --no-defaults --json 2>/dev/null)"
 exit_code="$?"
 set -e
 
