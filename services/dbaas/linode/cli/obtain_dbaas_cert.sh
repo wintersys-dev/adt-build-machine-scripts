@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        obtain_dbaas_cert.sh
-#: Purpose:     Retrieves and validates the SSL CA certificate for a Linode MySQL DBaaS cluster via CLI.
+#: Purpose:     Retrieves and validates the SSL CA certificate for a Linode  DBaaS cluster via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       obtain_dbaas_cert.sh <database_id>
 #:              obtain_dbaas_cert.sh [-h|--help]
@@ -121,7 +121,7 @@ export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Fetch the SSL certificate JSON payload via linode-cli with errexit paused
 set +e
-cli_output="$(/usr/local/bin/linode-cli databases mysql-ssl-cert "${database_id}" --no-headers --no-defaults --json 2>/dev/null)"
+cli_output="$(/usr/local/bin/linode-cli databases ${db_type}-ssl-cert "${database_id}" --no-headers --no-defaults --json 2>/dev/null)"
 exit_code="$?"
 set -e
 
