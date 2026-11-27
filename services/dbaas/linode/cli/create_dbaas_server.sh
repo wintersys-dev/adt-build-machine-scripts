@@ -116,6 +116,21 @@ fi
 # Export authentication token temporarily for linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
+# Resolve Linode API database family slug ('mysql' or 'postgresql') from Field 1
+db_family="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}')"
+case "${db_family}" in
+        MySQL|mysql)
+                db_type="mysql"
+                ;;
+        Postgres|PostgreSQL|postgres|postgresql)
+                db_type="postgresql"
+                ;;
+        *)
+                status "Error: Unsupported database family '${db_family}' in DATABASE_DBaaS_INSTALLATION_TYPE."
+                exit 1
+                ;;
+esac
+
 # Dispatch MySQL DBaaS creation via linode-cli with errexit paused to capture output and exit code
 set +e
 cli_output="$(/usr/local/bin/linode-cli databases mysql-create --no-defaults \
