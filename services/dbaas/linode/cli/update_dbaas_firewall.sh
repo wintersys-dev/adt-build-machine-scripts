@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        update_dbaas_firewall.sh
-#: Purpose:     Updates the network firewall allow list for a managed Linode MySQL DBaaS cluster via CLI.
+#: Purpose:     Updates the network firewall allow list for a managed Linode DBaaS cluster via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       update_dbaas_firewall.sh <database_id> <allow_list>
 #:              update_dbaas_firewall.sh [-h|--help]
