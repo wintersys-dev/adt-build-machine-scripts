@@ -82,13 +82,6 @@ then
         exit 1
 fi
 
-# Verify that the linode-cli binary is installed and executable
-if [ ! -x /usr/local/bin/linode-cli ]
-then
-        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
-        exit 1
-fi
-
 # Resolve Linode API database family slug ('mysql' or 'postgresql') from Field 1
 db_family="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}')"
 case "${db_family}" in
@@ -104,15 +97,22 @@ case "${db_family}" in
                 ;;
 esac
 
+# Verify that the linode-cli binary is installed and executable
+if [ ! -x /usr/local/bin/linode-cli ]
+then
+        status "Error: Linode CLI binary missing or not executable at /usr/local/bin/linode-cli"
+        exit 1
+fi
+
+# Export authentication token temporarily for linode-cli execution
+export LINODE_CLI_TOKEN="${TOKEN}"
+
 # Configure polling retry ceiling (50 attempts x 20s = 1000 seconds max wait)
 max_attempts=50
 sleep_interval=20
 attempt=1
 
 status "Waiting for database '${label}' to become active..."
-
-# Export authentication token temporarily for linode-cli execution
-export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Poll Linode Managed Databases via CLI until the cluster reports 'active' or times out
 while true
