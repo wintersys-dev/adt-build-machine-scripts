@@ -89,6 +89,21 @@ then
         exit 1
 fi
 
+# Resolve Linode API database family slug ('mysql' or 'postgresql') from Field 1
+db_family="$(/bin/echo "${DATABASE_DBaaS_INSTALLATION_TYPE}" | /usr/bin/awk -F':' '{print $1}')"
+case "${db_family}" in
+        MySQL|mysql)
+                db_type="mysql"
+                ;;
+        Postgres|PostgreSQL|postgres|postgresql)
+                db_type="postgresql"
+                ;;
+        *)
+                status "Error: Unsupported database family '${db_family}' in DATABASE_DBaaS_INSTALLATION_TYPE."
+                exit 1
+                ;;
+esac
+
 # Configure polling retry ceiling (50 attempts x 20s = 1000 seconds max wait)
 max_attempts=50
 sleep_interval=20
