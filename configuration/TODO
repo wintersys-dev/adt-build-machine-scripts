@@ -13,21 +13,24 @@ Have the CloneRepository.sh scripts been updated and tested on the database mach
 Review, update and test all scripts in the services directories on all machine types. 
 I want the service scripts to be completely solid before I start refactoring the installation scripts
 
-Thursday
-Cron
+Friday
 Data store
+
+s3cmd buildmachine webserver
+s5cmd webserver
+rclone buildmachine webserver
 
 weekend have an experimental play around with 
 the new install technique
 
-Tuesday
+Saturday
 Dbaas
-DNS
+DNS (build machine webserver)
+Email (build machine webserver)
 
-Wednesday
-Email 
-Git
+Sunday
+Git (build machine webserver)
+Security 
 
-Thursday
-Security
-Server
+Monday
+Server (build machine autoscaler)
