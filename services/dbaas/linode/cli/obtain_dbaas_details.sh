@@ -1,9 +1,9 @@
 #!/bin/sh
 #: Name:        obtain_dbaas_details.sh
-#: Purpose:     Extracts connection details and credentials for a Linode MySQL DBaaS instance via CLI.
+#: Purpose:     Extracts connection details and credentials for a Linode DBaaS instance via CLI.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
-#: Version:     1.1
+#: Version:     1.0
 #:
 #: Usage:       obtain_dbaas_details.sh <database_id>
 #:              obtain_dbaas_details.sh [-h|--help]
