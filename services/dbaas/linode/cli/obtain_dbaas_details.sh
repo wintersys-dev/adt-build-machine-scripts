@@ -125,9 +125,9 @@ export LINODE_CLI_TOKEN="${TOKEN}"
 
 # Query instance metadata and root credentials via linode-cli with errexit paused
 set +e
-cli_instance_json="$(/usr/local/bin/linode-cli databases mysql-list --no-defaults --json 2>/dev/null)"
+cli_instance_json="$(/usr/local/bin/linode-cli databases ${db_type}-list --no-defaults --json 2>/dev/null)"
 inst_exit_code="$?"
-cli_credentials_json="$(/usr/local/bin/linode-cli databases mysql-creds-view "${database_id}" --no-defaults --json 2>/dev/null)"
+cli_credentials_json="$(/usr/local/bin/linode-cli databases ${db_type}-creds-view "${database_id}" --no-defaults --json 2>/dev/null)"
 creds_exit_code="$?"
 set -e
 
