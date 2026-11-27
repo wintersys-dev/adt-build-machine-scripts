@@ -112,10 +112,10 @@ allow_list_args="$(/bin/echo "${allow_list_raw}" | /usr/bin/tr ',' ' ')"
 # Export authentication token temporarily for linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Execute the MySQL firewall allow list update via linode-cli with errexit paused
+# Execute the firewall allow list update via linode-cli with errexit paused
 set +e
 # Intentional unquoted word-splitting on ${allow_list_args} for multi-value CLI option
-cli_output="$(/usr/local/bin/linode-cli databases mysql-update "${database_id}" --allow_list ${allow_list_args} --no-defaults 2>&1)"
+cli_output="$(/usr/local/bin/linode-cli databases ${db_type}-update "${database_id}" --allow_list ${allow_list_args} --no-defaults 2>&1)"
 exit_code="$?"
 set -e
 
