@@ -103,10 +103,10 @@ then
 
         set -x
 
-        applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')"
+        applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /usr/bin/awk 'BEGIN{IGNORECASE=1} /MySQL database dump complete/,0' | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')"
         if ( [ "${applicationDB}" = "" ] )
         then
-                applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')" 
+                applicationDB="$(${BUILD_HOME}/services/datastore/operations/ObtainFileContentsFromDatastore.sh "backup-db" "${WEBSITE_NAME}-DB-backup.tar.gz" "hourly" | /usr/bin/tar -xzOf - | /usr/bin/awk 'BEGIN{IGNORECASE=1} /PostgreSQL database dump complete/,0' | /bin/grep 'zzzz' | /bin/grep 'CREATE TABLE')" 
                 if [ "${applicationDB}" = "" ]
                 then
                         status "Sorry, could not find the baseline repository for you application when I was expecting to, will have to exit..."
