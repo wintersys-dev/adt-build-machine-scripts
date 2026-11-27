@@ -18,6 +18,6 @@ the script uses those parameters. Perhaps put in checks so that the credentials 
 13. applications need to not have their config stored in outside_webroot instead the configs need to be in /var/www/html so review how the application
 installation works
 14. Refactor the Expedited.sh main script and make it so that the cloud-init script of the build machine is stored in BUILD_HOME and can be run as a cloud-init script or directly from the command line. Take out all the ISHARDCORE stuff and taks out that silly error handing stuff I was doing in the main script. Make Expedited so that all the initialisation stuff is done in a block and then once all the intialisation stuff is done consider it to be in an INITIALISED state and move it from an INITIALISED state to a BUILDING state and then FINALISING and then COMPLETED
-15. 
+15. refactor exoscale, vultr and digital ocean scripts in the same way as linode
   
   
