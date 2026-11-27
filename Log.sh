@@ -30,10 +30,10 @@ BUILD_HOME="`/bin/cat /home/buildhome.dat`"
 #If you are running for linode (for example you would need to change this script up front according to the subsequent examples
 #The actual log files are stored at ${BUILD_HOME}/runtime/<cloudhost>/<build_identifier>/logs
 
-#${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh vultr crew ${1} ${2} 
+#${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh vultr test-build ${1} ${2} 
 
-${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh linode crew ${1} ${2} 
-#${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh digitalocean crew2 ${1} ${2}
+${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh linode test-build ${1} ${2} 
+#${BUILD_HOME}/helpers/services/DisplayLoggingStreams.sh digitalocean test-build ${1} ${2}
 
 #Defaults to interactive
 if ( [ "$?" != "0" ] )
