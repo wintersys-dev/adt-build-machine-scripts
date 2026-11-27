@@ -1,6 +1,6 @@
 #!/bin/sh
 #: Name:        create_dbaas_server.sh
-#: Purpose:     Provisions a managed Linode MySQL DBaaS server within a VPC via linode-cli.
+#: Purpose:     Provisions a managed Linode DBaaS server within a VPC via linode-cli.
 #: Author:      Peter Winter
 #: Date:        15/11/2026
 #: Version:     1.1
@@ -131,9 +131,9 @@ fi
 # Export authentication token temporarily for linode-cli execution
 export LINODE_CLI_TOKEN="${TOKEN}"
 
-# Dispatch MySQL DBaaS creation via linode-cli with errexit paused to capture output and exit code
+# Dispatch DBaaS creation via linode-cli with errexit paused to capture output and exit code
 set +e
-cli_output="$(/usr/local/bin/linode-cli databases mysql-create --no-defaults \
+cli_output="$(/usr/local/bin/linode-cli databases ${db_type}-create --no-defaults \
         --label "${label}" \
         --region "${db_region}" \
         --type "${machine_type}" \
