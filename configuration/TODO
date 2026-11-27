@@ -15,22 +15,18 @@ I want the service scripts to be completely solid before I start refactoring the
 
 Friday
 Data store
-
 s3cmd buildmachine webserver
 s5cmd webserver
-rclone buildmachine webserver
-
-weekend have an experimental play around with 
-the new install technique
 
 Saturday
-Dbaas
 DNS (build machine webserver)
 Email (build machine webserver)
+Git (build machine webserver)
+
 
 Sunday
-Git (build machine webserver)
 Security 
+Server
 
 Monday
-Server (build machine autoscaler)
+Review all scripts in the service areas and refactor the initialisation scripts on the build machine
