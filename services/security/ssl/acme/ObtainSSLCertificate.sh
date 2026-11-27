@@ -152,11 +152,12 @@ then
         exit 1
 fi
 
-if ! /bin/grep -rqF "${SYSTEM_FROM_EMAIL_ADDRESS}" "${acme_home}" 2>/dev/null
+if "${acme_bin}" --update-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --server ${server} --home "${acme_home}"
 then
-        "${acme_bin}" --register-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}"
+        /bin/echo "Successfully updated ACME account."
 else
-        "${acme_bin}" --update-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --force
+        /bin/echo "Failed to update an existing ACME account registering a new account."
+        "${acme_bin}" --register-account -m "${SYSTEM_FROM_EMAIL_ADDRESS}" --server zerossl --home "${acme_home}"
 fi
 
 "${acme_bin}" --set-default-ca --server "${server}"
