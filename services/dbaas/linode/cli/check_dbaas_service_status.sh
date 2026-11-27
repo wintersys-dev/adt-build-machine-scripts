@@ -117,9 +117,9 @@ status "Waiting for database '${label}' to become active..."
 # Poll Linode Managed Databases via CLI until the cluster reports 'active' or times out
 while true
 do
-        # Query MySQL instances via linode-cli; tolerate transient errors during provisioning
+        # Query db instances via linode-cli; tolerate transient errors during provisioning
         set +e
-        cli_output="$(/usr/local/bin/linode-cli --no-defaults databases mysql-list --json 2>/dev/null)"
+        cli_output="$(/usr/local/bin/linode-cli --no-defaults databases ${db_type}-list --json 2>/dev/null)"
         set -e
 
         db_status=""
