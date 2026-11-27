@@ -231,7 +231,7 @@ then
                 status "SSL Certificates successfully validated"
                 status "Putting SSL Certificates into the datastore"
 
-                if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`"!= "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] )
+                if ( [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "fullchain.pem"`" != "" ] && [ "`${BUILD_HOME}/services/datastore/operations/ListFromDatastore.sh "${datastore_identifier}" "privkey.pem"`" != "" ] )
                 then
                 	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "fullchain.pem" "fullchain.pem.$$.old" "local"
                 	${BUILD_HOME}/services/datastore/operations/MoveDatastoreObject.sh "${datastore_identifier}" "privkey.pem" "privkey.pem.$$.old" "local"
