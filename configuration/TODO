@@ -1,5 +1,24 @@
 This month
 
+
+test 
+
+today
+check scripts for refactoring 
+test any scripts that have been refactored
+
+cloudflare dns
+
+tomorrow and monday
+
+git 
+security 
+server
+
+-------------------------
+
+
+
 first of all test cloudflare DNS on the autoscaler with www14.nuocial.uk and do it for both key types
 
 There is a problem with /home/X9bh7gHIWNkM5eW2p83X/services/datastore/operations/s5cmd/PerformPutToDatastore.sh root directory
